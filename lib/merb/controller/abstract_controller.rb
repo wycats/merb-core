@@ -11,7 +11,10 @@ class Merb::AbstractController
       _abstract_subclasses << klass.to_s
       super
     end
-  end    
+  end
+  
+  attr_accessor :_benchmarks, :_thrown_content
+  
   
   
 end
