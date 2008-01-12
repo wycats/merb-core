@@ -161,7 +161,6 @@ module Merb
     #
     # ==== Parameters
     # file<String>:: Path to file to send to the client
-    #
     def nginx_send_file(file)
       headers['X-Accel-Redirect'] = File.expand_path(file)
       return
