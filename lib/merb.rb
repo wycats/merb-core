@@ -12,7 +12,7 @@ module Merb
   class << self
     
     attr_accessor :environment, :load_paths
-    self.load_paths = Mash.new
+    self.load_paths = Hash.new
 		
 		# This is the core mechanism for setting up your application layout
 		# merb-core won't set a default application layout, but merb-more will
