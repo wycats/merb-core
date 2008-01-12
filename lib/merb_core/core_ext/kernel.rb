@@ -61,21 +61,18 @@ module Kernel
     # TODO: adjust this message once logging refactor is complete.
     require(library)
     message = "#{Time.now.httpdate}: loading library '#{library}' from #{__app_file_trace__.first} ..."
-    puts(message)
-    Merb.logger.info(message)
+    Merb.logger.debug(message)
   rescue LoadError
     # TODO: adjust the two messages below to use merb's logger.error/info once logging refactor is complete.
     message = "#{Time.now.httpdate}: <e> Could not find '#{library}' as either a library or gem, loaded from #{__app_file_trace__.first}.\n"
-    puts(message)
     Merb.logger.error(message)
     
     # Print a helpful message
     message =  "#{Time.now.httpdate}: <i> Please be sure that if '#{library}': \n"
     message << "#{Time.now.httpdate}: <i>   * is a normal ruby library (file), be sure that the path of the library it is present in the $LOAD_PATH via $LOAD_PATH.unshift(\"/path/to/#{library}\") \n"
     message << "#{Time.now.httpdate}: <i>   * is included within a gem, be sure that you are specifying the gem as a dependency \n"
-    puts(message)
     Merb.logger.error(message)
-    exit() # Missing library/gem must be addressed.
+    exit # Missing library/gem must be addressed.
   end
   
   # does a basic require, and prints the message passed as an optional
@@ -84,7 +81,7 @@ module Kernel
   def rescue_require(sym, message = nil)
     require sym
   rescue LoadError, RuntimeError
-    puts message if message
+    Merb.logger.error(message) if message
   end
   
   # Used in Merb.root/dependencies.yml
@@ -97,12 +94,9 @@ module Kernel
   #   $ ruby script/generate model MyModel # will use the appropriate generator for your ORM
   
   def use_orm(orm)
-    raise "Don't call use_orm more than once" unless 
-      Merb::GENERATOR_SCOPE.delete(:merb_default)
-    orm = orm.to_sym
-    orm_plugin = orm.to_s.match(/^merb_/) ? orm.to_s : "merb_#{orm}" 
-    Merb::GENERATOR_SCOPE.unshift(orm) unless
-      Merb::GENERATOR_SCOPE.include?(orm)
+    raise "Don't call use_orm more than once" unless Merb::GENERATOR_SCOPE.delete(:merb_default)
+    orm_plugin = orm.to_s.match(/^merb_/) ? orm.to_s : "merb_#{orm}"
+    Merb::GENERATOR_SCOPE.unshift(orm.to_sym) unless Merb::GENERATOR_SCOPE.include?(orm.to_sym)
     Kernel.dependency(orm_plugin)
   end
   
@@ -116,12 +110,11 @@ module Kernel
   #   $ ruby script/generate controller MyController # will use the appropriate generator for tests
   
   def use_test(test_framework)
-    test_framework = test_framework.to_sym
-    raise "use_test only supports :rspec and :test_unit currently" unless
-      [:rspec, :test_unit].include?(test_framework)
+    raise "use_test only supports :rspec and :test_unit currently" unless 
+      [:rspec, :test_unit].include?(test_framework.to_sym)
     Merb::GENERATOR_SCOPE.delete(:rspec)
     Merb::GENERATOR_SCOPE.delete(:test_unit)
-    Merb::GENERATOR_SCOPE.push(test_framework)
+    Merb::GENERATOR_SCOPE.push(test_framework.to_sym)
   end
   
   # Returns an array with a stack trace of the application's files.
