@@ -4,9 +4,15 @@
 require 'rubygems'
 require 'set'
 require 'fileutils'
+
+$LOAD_PATH.push File.dirname(__FILE__) unless 
+  $LOAD_PATH.include?(File.dirname(__FILE__)) || 
+  $LOAD_PATH.include?(File.expand_path(File.dirname(__FILE__)))
+
 require 'merb_core/gem_ext/erubis'
 require 'merb_core/logger'
 require 'merb_core/version'
+require 'merb_core/core_ext'
 
 gem "assistance"
 require "assistance"
@@ -15,7 +21,7 @@ module Merb
   class << self
     
     attr_accessor :environment, :load_paths
-    self.load_paths = Hash.new
+    Merb.load_paths = Hash.new
 		
 		require 'merb_core/autoload'
 		
@@ -59,7 +65,7 @@ module Merb
 		  
     # Set up default generator scope
     attr_accessor :generator_scope
-    self.generator_scope = [:merb_default, :merb, :rspec]
+    Merb.generator_scope = [:merb_default, :merb, :rspec]
   end
 
 end

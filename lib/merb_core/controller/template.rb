@@ -62,29 +62,25 @@ module Merb::Template
     #   Merb::Template.register_extensions(Merb::Template::Erubis, ["erb"])
     # ]}}
     def register_extensions(engine, extensions) enforce!(engine => Class, extensions => Array)
+      raise ArgumentError, "The class you are registering does not have a compile_template method" unless
+        engine.respond_to?(:compile_template)
       extensions.each{|ext| EXTENSIONS[ext] = engine }
     end
   end
   
-  class Erubis
-    Merb::Template.register_extensions(self, %[erb])
-    
-    # ==== Parameters
-    # path<String>:: A full path to the template
-    def initialize(path)
-      @path = path
-    end
-    
+  require 'erubis'
+  class Erubis    
     # ==== Parameters
     # path<String>:: A full path to the template
     # name<String>:: The name of the method that will be created
     # mod<Module>:: The module that the compiled method will be placed into
-    def compile_template(path, name, mod)
-      template = Erubis::Eruby.new(File.read(path))
+    def self.compile_template(path, name, mod)
+      template = ::Erubis::Eruby.new(File.read(path))
       template.def_method(mod, name, path) 
       name     
     end
-    
+  
+    Merb::Template.register_extensions(self, %w[erb])    
   end
   
 end
