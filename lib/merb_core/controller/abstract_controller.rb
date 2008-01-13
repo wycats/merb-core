@@ -61,7 +61,6 @@
 # Filter:: <Array[Symbol, (Symbol, String, Proc)]>
 class Merb::AbstractController
   include Merb::RenderMixin
-  include Merb::GeneralControllerMixin
   
   class_inheritable_accessor :_before_filters, :_after_filters, :_template_root
   self._before_filters, self._after_filters = [], []
@@ -101,21 +100,22 @@ class Merb::AbstractController
     end
   end
   
-  attr_accessor :_benchmarks, :_thrown_content
+  attr_accessor :_benchmarks, :_thrown_content, :_body
   
   # ==== Parameters
   # *args<Object>:: The args are ignored
   def initialize(*args)
     @_benchmarks = {}
-    @thrown_content = AbstractController._default_thrown_content    
   end
   
   # ==== Parameters
   # action<~to_s>:: The action to dispatch to. This will be #send'ed in _call_action
   def _dispatch(action=:to_s)
+    @action = action
+    
     caught = catch(:halt) do
       start = Time.now
-      result = _call_filters(_before_filters)
+      result = _call_filters(_before_filters.reverse)
       @_benchmarks[:before_filters_time] = Time.now - start if _before_filters
       result
     end
@@ -131,7 +131,7 @@ class Merb::AbstractController
     end
     start = Time.now
     _call_filters(_after_filters) 
-    @_benchmarks[:after_filters_time] = Time.now - start if after_filters
+    @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
   end
   
   # This method exists to provide an overridable hook for ActionArgs
@@ -155,14 +155,12 @@ class Merb::AbstractController
   # * execute the +Proc+, in the context of the controller (self will
   #   be the controller)
   def _call_filters(filter_set)
-    action = params[:action].intern
-    
     (filter_set || []).each do |filter, rule|
       # Both:
       # * no :only or the current action is in the :only list
       # * no :exclude or the current action is not in the :exclude list
-      if (!rule.key?(:only) || rule[:only].include?(action)) &&
-      (!rule.key?(:exclude) || !rule[:exclude].include?(action))
+      if (!rule.key?(:only) || rule[:only].include?(@action)) &&
+      (!rule.key?(:exclude) || !rule[:exclude].include?(@action))
         case filter
         when Symbol, String then send(filter)
         when Proc           then self.instance_eval(&filter)
@@ -182,7 +180,7 @@ class Merb::AbstractController
   # ==== Note
   # If the filter already exists, its options will be replaced
   # with opts
-  def self.after(filter, opts = {})
+  def self.after(filter = nil, opts = {}, &block)
     add_filter(self._after_filters, filter, opts)
   end
 
@@ -195,8 +193,8 @@ class Merb::AbstractController
   #
   # ==== Note
   # If the filter already exists, its options will be replaced with opts  
-  def self.before(filter, opts = {})
-    add_filter(self._before_filters, filter, opts)
+  def self.before(filter = nil, opts = {}, &block)
+    add_filter(self._before_filters, filter || block, opts)
   end
      
   # Skip an after filter that has been previously defined (perhaps in a superclass)
@@ -212,7 +210,7 @@ class Merb::AbstractController
   # ==== Parameters
   # filter<Symbol>:: A filter name to skip  
   def self.skip_before(filter)
-    skip_filter(self._before_filters, filter)
+    skip_filter(self._before_filters , filter)
   end  
   
   #---

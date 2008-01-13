@@ -1,5 +1,6 @@
 module Merb
   autoload :AbstractController,   "merb_core/controller/abstract_controller"
+  autoload :BootLoader,           "merb_core/boot/bootloader"
   autoload :Const,                "merb_core/constants"
   autoload :Controller,           "merb_core/controller/merb_controller"
   autoload :ControllerExceptions, "merb_core/controller/exceptions"
@@ -15,4 +16,8 @@ end
 
 # Require this rather than autoloading it so we can be sure the default templater
 # gets registered
-require "merb_core/controller/template"  
+require "merb_core/controller/template"
+
+module Merb
+  module GlobalHelper; end
+end

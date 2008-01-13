@@ -18,7 +18,7 @@ module Merb::Template
     # character replaced based on the non-alphanumeric character
     # to avoid edge-case collisions.
     def template_name(path)
-      path.gsub(/[^\.a-zA-Z0-9]/, "__").gsub(/\./, "_")    
+      path.gsub(/[^\.a-zA-Z0-9]/, "__").gsub(/\./, "_")
     end
     
     # Takes a template at a particular path and inlines it into
@@ -35,6 +35,8 @@ module Merb::Template
     # Even though this method supports inlining into any module,
     # the method must be available to instances of AbstractController
     # that will use it.
+    #---
+    # @public
     def inline_template(path, mod = Merb::GlobalHelper)
       METHOD_LIST[path.gsub(/\.[^\.]*$/, "")] = 
         engine_for(path).compile_template(path, template_name(path), mod)
@@ -44,6 +46,8 @@ module Merb::Template
     # 
     # ==== Parameters
     # path<String>:: The path of the file to find an engine for
+    #---
+    # @semipublic
     def engine_for(path)
       EXTENSIONS[path.match(/\.([^\.]*)$/)[1]]
     end
@@ -61,6 +65,8 @@ module Merb::Template
     # {{[
     #   Merb::Template.register_extensions(Merb::Template::Erubis, ["erb"])
     # ]}}
+    #---
+    # @public
     def register_extensions(engine, extensions) enforce!(engine => Class, extensions => Array)
       raise ArgumentError, "The class you are registering does not have a compile_template method" unless
         engine.respond_to?(:compile_template)

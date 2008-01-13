@@ -14,25 +14,25 @@ module Merb
       
       def inherited(klass)
         if !klass._before && !klass._after
-          subclasses << klass
+          subclasses << klass.to_s
         elsif klass._before
-          subclasses.insert(subclasses.index(klass.before), klass)
+          subclasses.insert(subclasses.index(klass._before), klass.to_s)
         else
-          subclasses.insert(subclasses.index(klass.before) + 1, klass)          
+          subclasses.insert(subclasses.index(klass._before) + 1, klass.to_s)          
         end
         super
       end
       
       def run
-        subclasses.each {|klass| klass.new.run }
+        subclasses.each {|klass| Object.full_const_get(klass).new.run }
       end
       
       def after(klass)
-        self.after = klass
+        self._after = klass.to_s
       end
       
       def before(klass)
-        self.before = klass
+        self._before = klass.to_s
       end
       
     end
@@ -68,6 +68,7 @@ class Merb::BootLoader::LoadPaths < Merb::BootLoader
     $LOAD_PATH.unshift Merb.load_paths[:lib].first        if Merb.load_paths[:lib]
     
     # Require all the files in the registered load paths
+    puts Merb.load_paths.inspect
     Merb.load_paths.each do |name, path|
       Dir[path.first / path.last].each do |file| 
         klasses = ObjectSpace.classes.dup
@@ -114,18 +115,18 @@ class Merb::BootLoader::Templates < Merb::BootLoader
   
   def template_paths
     extension_glob = "{#{Merb::Template::EXTENSIONS.keys.join(',')}}"
-    
+
     # This gets all templates set in the controllers template roots        
     # We separate the two maps because most of controllers will have
     # the same _template_root, so it's silly to be globbing the same
     # path over and over.
     template_paths = Merb::AbstractController._abstract_subclasses.map do |klass| 
-      klass._template_root
+      Object.full_const_get(klass)._template_root
     end.uniq.map {|path| Dir["#{path}/**/*.#{extension_glob}"] }
     
     # This gets the templates that might be created outside controllers
     # template roots.  eg app/views/shared/*
-    template_paths << Dir["#{Merb.load_paths[:view]}/**/*.#{extension_glob}"]
+    template_paths << Dir["#{Merb.load_paths[:view]}/**/*.#{extension_glob}"] if Merb.load_paths[:view]
     
     template_paths.flatten.compact.uniq
   end  
