@@ -1,6 +1,10 @@
 $TESTING=true
 
 require File.join(File.dirname(__FILE__), "..", "lib", "merb")
+Merb.environment = "test"
+Merb.logger = Merb::Logger.new(Merb.load_paths[:log] || "logger")
+Merb.logger.level = Merb::Logger.const_get(Merb::Config[:log_level].upcase) rescue Merb::Logger::INFO
+
 
 # -- Global custom matchers --
 
