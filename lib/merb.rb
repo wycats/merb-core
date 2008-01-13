@@ -17,6 +17,8 @@ module Merb
     attr_accessor :environment, :load_paths
     self.load_paths = Hash.new
 		
+		require 'merb_core/autoload'
+		
 		# This is the core mechanism for setting up your application layout
 		# merb-core won't set a default application layout, but merb-more will
 		# use the app/:type layout that is in use in Merb 0.5

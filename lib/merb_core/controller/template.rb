@@ -61,7 +61,7 @@ module Merb::Template
     # {{[
     #   Merb::Template.register_extensions(Merb::Template::Erubis, ["erb"])
     # ]}}
-    def register_extensions(engine, extensions) enforce!(engine => Symbol, extensions => Array)
+    def register_extensions(engine, extensions) enforce!(engine => Class, extensions => Array)
       extensions.each{|ext| EXTENSIONS[ext] = engine }
     end
   end

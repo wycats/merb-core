@@ -63,11 +63,33 @@ class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::GeneralControllerMixin
   
-  class_inheritable_accessor :_before_filters, :_after_filters
+  class_inheritable_accessor :_before_filters, :_after_filters, :_template_root
   self._before_filters, self._after_filters = [], []
+  self._template_root = Merb.load_paths[:view]
+  
+  # This is called after the controller is instantiated to figure out
+  # where to look for templates under the _template_root. Override this
+  # to define a new structure for your app.
+  #
+  # ==== Examples
+  # {{[
+  #   def _template_location
+  #     "#{params[:controller]}.#{prams[:action]}.#{content_type}"
+  # ]}}
+  #
+  # This would look for templates at controller.action.mime.type instead
+  # of controller/action.mime.type
+  def _template_location
+    "#{params[:controller]}/#{params[:action]}.#{content_type}"
+  end
   
   cattr_accessor :_abstract_subclasses, :_template_path_cache
+  #---
+  # We're using abstract_subclasses so that Merb::Controller can have its
+  # own subclasses. We're using a Set so we don't have to worry about
+  # uniqueness.
   self._abstract_subclasses = Set.new
+  def self.subclasses_list() _abstract_subclasses end
   
   class << self
     # ==== Parameters

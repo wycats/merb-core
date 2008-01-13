@@ -3,6 +3,8 @@ class Merb::Controller < AbstractController
   class_inheritable_accessor :_session_id_key, :_session_expiry, :_hidden_actions
   cattr_accessor :_subclasses, :_session_secret_key
   self._subclasses = Set.new
+  def self.subclasses_list() _subclasses end
+  
   self.session_secret_key = nil
   self._session_id_key = '_session_id'
   self._session_expiry = Time.now + Merb::Const::WEEK * 2

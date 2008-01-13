@@ -3,7 +3,7 @@
 # to, for example, an array without those additions being shared with either their parent, siblings, or
 # children, which is unlike the regular class-level attributes that are shared across the entire hierarchy.
 class Class # :nodoc:
-  
+    
   def _attr_reader(*syms)
     syms.flatten.each do |sym|
       class_eval <<-EOS
@@ -184,7 +184,7 @@ class Class # :nodoc:
   def reset_inheritable_attributes
     @inheritable_attributes = EMPTY_INHERITABLE_ATTRIBUTES
   end
-
+  
   private
     # Prevent this constant from being created multiple times
     EMPTY_INHERITABLE_ATTRIBUTES = {}.freeze unless const_defined?(:EMPTY_INHERITABLE_ATTRIBUTES)

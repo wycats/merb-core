@@ -11,5 +11,8 @@ module Merb
   autoload :Responder,            "merb_core/controller/mixins/responder"
   autoload :Router,               "merb_core/dispatch/router"
   autoload :SessionMixin,         "merb_core/dispatch/session"
-  autoload :Template,             "merb_core/controller/template"  
 end
+
+# Require this rather than autoloading it so we can be sure the default templater
+# gets registered
+require "merb_core/controller/template"  

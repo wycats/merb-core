@@ -1,3 +1,3 @@
-corelib = File.dirname(__FILE__) / "core_ext"
+corelib = File.join(File.dirname(__FILE__), "core_ext")
 
-Dir.glob["#{corelib}/*"].each {|fn| require (corelib / fn)}
+Dir.glob("#{corelib}/*").each {|fn| require(File.join(fn))}
