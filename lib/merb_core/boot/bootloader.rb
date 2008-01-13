@@ -82,6 +82,7 @@ class Merb::BootLoader::LoadPaths < Merb::BootLoader
         remove_constant(klass)
       end
     end
+    load file
   end
   
   def remove_constant(const)
