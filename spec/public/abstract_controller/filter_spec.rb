@@ -1,0 +1,63 @@
+# ==== Public API
+# Merb::AbstractController.before(filter<Symbol, Proc>, opts<Hash>)
+# Merb::AbstractController.after(filter<Symbol, Proc>, opts<Hash>)
+# Merb::AbstractController.skip_before(filter<Symbol>)
+# Merb::AbstractController.skip_after(filter<Symbol>)
+#
+# ==== Semipublic API
+# Merb::AbstractController#_body
+# Merb::AbstractController#_dispatch(action<~to_s>)
+
+require File.join(File.dirname(__FILE__), "spec_helper")
+
+describe Merb::AbstractController, " should support before and after filters" do
+  
+  def dispatch_should_make_body(klass, body, action = :index)
+    controller = Merb::Test::Fixtures.const_get(klass).new
+    controller._dispatch(action)
+    controller._body.should == body
+  end
+  
+  it "should support before filters" do
+    dispatch_should_make_body("TestBeforeFilter", "foo filter")
+  end
+  
+  it "should support after filters" do
+    dispatch_should_make_body("TestAfterFilter", "foo filter")
+  end
+  
+  it "should support skipping filters that were defined in a superclass" do
+    dispatch_should_make_body("TestSkipFilter", "")
+  end
+  
+  it "should prepend before filters when added" do
+    dispatch_should_make_body("TestBeforeFilterOrder", "foo filter")
+  end
+
+  it "should append after filters when added" do
+    dispatch_should_make_body("TestAfterFilterOrder", "bar filter")
+  end
+  
+  it "should support proc arguments to filters evaluated in the controller's instance" do
+    dispatch_should_make_body("TestProcFilter", "proc filter1 proc filter2")
+  end
+  
+  it "should support filters that skip specific actions via :exclude" do
+    dispatch_should_make_body("TestExcludeFilter", " ", :index)
+    dispatch_should_make_body("TestExcludeFilter", "foo filter bar filter", :show)    
+  end
+  
+  it "should support filters that work only on specific actions via :only" do
+    dispatch_should_make_body("TestOnlyFilter", "foo filter bar filter", :index)        
+    dispatch_should_make_body("TestOnlyFilter", " ", :show)
+  end
+  
+  it "should throw an error if both :exclude and :only are passed to a filter" do
+    running { Merb::Test::Fixtures.class_eval do
+      class TestErrorFilter < Merb::Test::Fixtures::Testing
+        before :foo, :only => :index, :exclude => :show
+      end 
+    end }.should raise_error(ArgumentError, /either :only or :exclude/)
+  end
+  
+end

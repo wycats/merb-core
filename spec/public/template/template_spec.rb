@@ -1,7 +1,9 @@
 # ==== Public Template API
 # Merb::Template.register_extensions(engine<Class>, extenstions<Array[String]>)
-# Merb::Template.engine_for(path<String>)
 # Merb::Template.inline_template(path<String>, mod<Module>)
+#
+# ==== Semipublic Template API
+# Merb::Template.engine_for(path<String>)
 #
 # ==== Requirements for a new Template Engine
 # A Template Engine must have at least a single class method called compile_template
