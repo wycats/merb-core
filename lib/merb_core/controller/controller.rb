@@ -93,8 +93,9 @@ class Merb::Controller < AbstractController
     # Dispatch the action
     #
     # ==== Parameters
+    # action<~to_s>:: An action to dispatch to
     def dispatch(action=:index)
-      start = Time.now    
+      start = Time.now
       if self.class.callable_actions[action.to_s]
         params[:action] ||= action
         setup_session
@@ -112,8 +113,6 @@ class Merb::Controller < AbstractController
     def cookies() request.cookies end
     def session() request.session end
     def route()   request.route   end
-    
-    
     
   end
 end

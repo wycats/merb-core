@@ -11,4 +11,5 @@ module Merb
   autoload :Responder,            "merb_core/controller/mixins/responder"
   autoload :Router,               "merb_core/dispatch/router"
   autoload :SessionMixin,         "merb_core/dispatch/session"
+  autoload :Template,             "merb_core/controller/template"  
 end
