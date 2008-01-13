@@ -7,14 +7,15 @@ module Merb
   class BootLoader
     
     cattr_accessor :subclasses
-    class_inheritable_accessor :after, :before
+    self.subclasses = []
+    class_inheritable_accessor :_after, :_before
     
     class << self
       
       def inherited(klass)
-        unless klass.before || klass.after
-          subclasses << klass.to_s
-        elsif klass.before
+        if !klass._before && !klass._after
+          subclasses << klass
+        elsif klass._before
           subclasses.insert(subclasses.index(klass.before), klass)
         else
           subclasses.insert(subclasses.index(klass.before) + 1, klass)          
@@ -23,15 +24,15 @@ module Merb
       end
       
       def run
-        subclasses.each {|klass| klass.new.run! }
+        subclasses.each {|klass| klass.new.run }
       end
       
       def after(klass)
-        after = klass
+        self.after = klass
       end
       
       def before(klass)
-        before = klass
+        self.before = klass
       end
       
     end
@@ -49,11 +50,11 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
   # framework structure
   def build_framework
     %[view model controller helper mailer part].each do |component|
-      Merb.push_path(component.to_sym, Merb.root_path "app/#{component}s")
+      Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
     end
-    Merb.push_path(:app_controller, Merb.root_path "app/controllers", "application_controller.rb")
-    Merb.push_path(:config,         Merb.root_path "config", "router.rb")
-    Merb.push_path(:lib,            Merb.root_path "lib")    
+    Merb.push_path(:app_controller, Merb.root_path("app/controllers", "application_controller.rb"))
+    Merb.push_path(:config,         Merb.root_path("config", "router.rb"))
+    Merb.push_path(:lib,            Merb.root_path("lib"))    
   end
 end
 

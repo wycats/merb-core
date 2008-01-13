@@ -33,7 +33,7 @@ class Merb::Controller < AbstractController
     # ==== Parameters
     # *names<~to-s>:: Actions that should be added to the list 
     def hide_action(*names)
-      _hidden_actions = _hidden_actions | names.collect { |n| n.to_s })
+      _hidden_actions = _hidden_actions | names.collect { |n| n.to_s }
     end
     
     # Build a new controller.

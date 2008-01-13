@@ -17,7 +17,7 @@ include FileUtils
 
 NAME = "merb"
 
-require "lib/merb/version"
+require "lib/merb_core/version"
 
 ##############################################################################
 # Packaging & Installation
@@ -47,7 +47,7 @@ spec = Gem::Specification.new do |s|
   s.description  = s.summary
   s.executables  = %w( merb )
   s.require_path = "lib"
-  s.files        = %w( LICENSE README Rakefile TODO ) + [Merb.svn_revision_filename] + Dir["{bin,spec,lib,examples,app_generators,merb_generators,merb_default_generators,rspec_generators,test_unit_generators,script}/**/*"]
+  s.files        = %w( LICENSE README Rakefile TODO ) + Dir["{bin,spec,lib,examples,app_generators,merb_generators,merb_default_generators,rspec_generators,test_unit_generators,script}/**/*"]
 
   # rdoc
   s.has_rdoc         = true
@@ -171,6 +171,15 @@ task :release => :package do
   else
     puts "Usage: rake release RELEASE='Clever tag line goes here'"
   end
+end
+
+##############################################################################
+# SYNTAX CHECKING
+##############################################################################
+
+task :check_syntax do
+  `find . -name "*.rb" |xargs -n1 ruby -c |grep -v "Syntax OK"`
+  puts "* Done"
 end
 
 ##############################################################################

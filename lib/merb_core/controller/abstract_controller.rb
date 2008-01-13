@@ -166,6 +166,8 @@ class Merb::AbstractController
         case filter
         when Symbol, String then send(filter)
         when Proc           then self.instance_eval(&filter)
+        end
+      end
     end
     return :filter_chain_completed
   end
