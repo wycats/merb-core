@@ -10,7 +10,6 @@ class Merb::Controller < AbstractController
   self._session_expiry = Time.now + Merb::Const::WEEK * 2
   
   include Merb::ResponderMixin
-  include Merb::ControllerExceptions
   
   class << self
     
