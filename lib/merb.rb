@@ -24,17 +24,6 @@ module Merb
       Merb::Config.parse_args(argv)
       BootLoader.run
       case Merb::Config[:adapter]
-      when nil
-        # Guess.
-        if ENV.include?("PHP_FCGI_CHILDREN")
-          adapter = Merb::Rack::FastCGI
-        else
-          begin
-            adapter = Merb::Rack::Mongrel
-          rescue LoadError => e
-            adapter = Merb::Rack::WEBrick
-          end
-        end
       when "mongrel"
         adapter = Merb::Rack::Mongrel
       when "webrick"
@@ -53,9 +42,7 @@ module Merb
     
     attr_accessor :environment, :load_paths
     Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)
-      
-		require 'merb_core/autoload'
-		
+      		
 		# This is the core mechanism for setting up your application layout
 		# merb-core won't set a default application layout, but merb-more will
 		# use the app/:type layout that is in use in Merb 0.5
