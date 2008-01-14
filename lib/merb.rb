@@ -18,11 +18,24 @@ gem "assistance"
 require "assistance"
 
 module Merb
+  module Config
+    class << self
+      @@config = {}
+      def [](key)
+        @@config[key]
+      end
+      
+      def []=(key, val)
+        @@config[key] = val
+      end
+    end
+  end
+  
   class << self
     
     attr_accessor :environment, :load_paths
-    Merb.load_paths = Hash.new
-		
+    Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)
+      
 		require 'merb_core/autoload'
 		
 		# This is the core mechanism for setting up your application layout
@@ -37,6 +50,9 @@ module Merb
 		def push_path(type, path, file_glob = "**/*.rb") enforce!(type => Symbol)
 		  load_paths[type] = [path, file_glob]
 		end
+		
+		def dir_for(type)  Merb.load_paths[type].first end
+		def glob_for(type) Merb.load_paths[type][1]    end
 		
 		# Application paths
 		def root()          @root || Merb::Config[:merb_root] || Dir.pwd  end

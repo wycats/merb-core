@@ -126,7 +126,7 @@ class Merb::BootLoader::Templates < Merb::BootLoader
     
     # This gets the templates that might be created outside controllers
     # template roots.  eg app/views/shared/*
-    template_paths << Dir["#{Merb.load_paths[:view]}/**/*.#{extension_glob}"] if Merb.load_paths[:view]
+    template_paths << Dir["#{Merb.dir_for(:view)}/**/*.#{extension_glob}"] if Merb.dir_for(:view)
     
     template_paths.flatten.compact.uniq
   end  

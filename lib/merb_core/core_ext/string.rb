@@ -36,6 +36,15 @@ class String
     end
     new_string
   end
+  
+  # Converts "FooBar::Baz" to "foo_bar/baz". Useful for converting constants
+  # into their associated paths assuming a conventional structure.
+  #
+  # ==== Returns
+  # String:: The path that is associated with the constantized string
+  def to_const_path
+    snake_case.gsub(/::/, "/")
+  end
 
   # Concatenates a path
   #   $ "merb"/"core_ext" #=> "merb/core_ext"

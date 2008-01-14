@@ -11,14 +11,25 @@ module Merb::Template
     # ~foo.bar and __foo.bar or !foo.bar.
     #
     # ==== Parameters
-    # path<String>:: A full path to convert to a valid Ruby method
-    #                name
+    # path<String>:: A full path to convert to a valid Ruby method name
     #---
     # We might want to replace this with something that varies the
     # character replaced based on the non-alphanumeric character
     # to avoid edge-case collisions.
     def template_name(path)
+      path = File.expand_path(path)      
       path.gsub(/[^\.a-zA-Z0-9]/, "__").gsub(/\./, "_")
+    end
+
+    # Get the name of the template method for a particular path
+    #
+    # ==== Parameters
+    # path<String>:: A full path to find a template method for
+    #---
+    # @semipublic
+    def template_for(path)
+      path = File.expand_path(path)      
+      METHOD_LIST[path]
     end
     
     # Takes a template at a particular path and inlines it into
@@ -37,7 +48,8 @@ module Merb::Template
     # that will use it.
     #---
     # @public
-    def inline_template(path, mod = Merb::GlobalHelper)
+    def inline_template(path, mod = Merb::InlineTemplates)
+      path = File.expand_path(path)
       METHOD_LIST[path.gsub(/\.[^\.]*$/, "")] = 
         engine_for(path).compile_template(path, template_name(path), mod)
     end
@@ -49,6 +61,7 @@ module Merb::Template
     #---
     # @semipublic
     def engine_for(path)
+      path = File.expand_path(path)      
       EXTENSIONS[path.match(/\.([^\.]*)$/)[1]]
     end
     
@@ -84,6 +97,46 @@ module Merb::Template
       template = ::Erubis::Eruby.new(File.read(path))
       template.def_method(mod, name, path) 
       name     
+    end
+    
+    module Mixin
+      
+      # Provides direct acccess to the buffer for this view context
+      def _buffer( the_binding )
+        @_buffer = eval( "_buf", the_binding )
+      end
+
+      # Capture allows you to extract a part of the template into an 
+      # instance variable. You can use this instance variable anywhere
+      # in your templates and even in your layout. 
+      # 
+      # Example of capture being used in a .herb page:
+      # 
+      #   <% @foo = capture do %>
+      #     <p>Some Foo content!</p> 
+      #   <% end %>
+      def capture(*args, &block)
+        # get the buffer from the block's binding
+        buffer = _buffer( block.binding ) rescue nil
+
+        # If there is no buffer, just call the block and get the contents
+        if buffer.nil?
+          block.call(*args)
+        # If there is a buffer, execute the block, then extract its contents
+        else
+          pos = buffer.length
+          block.call(*args)
+
+          # extract the block
+          data = buffer[pos..-1]
+
+          # replace it in the original with empty string
+          buffer[pos..-1] = ''
+
+          data
+        end
+      end  
+            
     end
   
     Merb::Template.register_extensions(self, %w[erb])    

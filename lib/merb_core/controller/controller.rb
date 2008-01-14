@@ -110,7 +110,8 @@ class Merb::Controller < AbstractController
       Merb.logger.info("Time spent in #{self.class}##{action} action: #{@_benchmarks[:action_time]} seconds")
     end
     
-    _attr_reader :body, :status, :request, :params, :headers, :response
+    _attr_reader :body, :request, :params, :headers, :response
+    _attr_accessor :status
     def params()  request.params  end
     def cookies() request.cookies end
     def session() request.session end

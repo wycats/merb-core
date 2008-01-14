@@ -97,6 +97,8 @@ module Merb
   # and none of the provides methods can be used.
   module ResponderMixin
     
+    class ContentTypeAlreadySet < StandardError; end
+    
     # ==== Parameters
     # base<Module>:: The module that ResponderMixin was mixed into
     def self.included(base) # :nodoc:
@@ -118,34 +120,71 @@ module Merb
       # ==== Parameters
       # *formats<Symbol>:: 
       #   A list of mime-types that the controller should provide
+      #
+      # ==== Returns
+      # Array:: List of formats passed in
+      #
+      #---
+      # @public
       def provides(*formats)
         formats.each do |fmt|
           self.class_provided_formats << fmt unless class_provided_formats.include?(fmt)
         end
       end
       
+      # This class should only provide the formats listed here, despite
+      # any other definitions previously or in superclasses.
+      #
+      # ==== Parameters
+      # *formats<Symbol>:: Registered mime-type
+      # 
+      # ==== Returns
+      # Array:: List of formats passed in      
+      #
+      #---
+      # @public
       def only_provides(*formats)
         clear_provides
         provides(*formats)
       end
-      
+
+      # This class should not provide any of this list of formats, despite
+      # any other definitions previously or in superclasses.
+      # 
+      # ==== Parameters
+      # *formats<Symbol>:: Registered mime-type
+      # 
+      # ==== Returns
+      # Array:: List of formats that remain after removing the ones not to provide      
+      #
+      #---
+      # @public
       def does_not_provide(*formats)
         self.class_provided_formats -= formats
       end
-      
+
+      # Clear the list of provides
+      #
+      # ==== Returns
+      # Array:: An empty Array
       def clear_provides
         self.class_provided_formats.clear
       end
       
+      # Reset the list of provides to include only :html
+      #
+      # ==== Returns
+      # Array:: [:html]
       def reset_provides
         only_provides(:html)
       end
       
-      # Returns the current list of formats provided for this instance
-      # of the controller.  It starts with what has been set in the controller
-      # (or :html by default) but can be modifed on a per-action basis.      
+      # ==== Returns
+      # The current list of formats provided for this instance of the controller. 
+      # It starts with what has been set in the controller (or :html by default) 
+      # but can be modifed on a per-action basis.      
       def _provided_formats
-        @_provided_formats || class_provided_formats.dup
+        @_provided_formats ||= class_provided_formats.dup
       end
       
       # Sets the provided formats for this action.  Usually, you would
@@ -154,8 +193,17 @@ module Merb
       # 
       # ==== Parameters
       # *formats<Symbol>:: A list of formats to be passed to provides
+      #
+      # ==== Raises
+      # Merb::ResponderMixin::ContentTypeAlreadySet::
+      #   Content negotiation already occured, and the content_type is set.
+      #
+      # ==== Returns
+      # Array:: List of formats passed in
       def _set_provided_formats(*formats)
-        _raise_if_content_type_already_set!
+        if @_content_type
+          raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
+        end
         @_provided_formats = []
         provides(*formats)
       end
@@ -168,10 +216,22 @@ module Merb
       # ==== Parameters
       # *formats<Symbol>:: A list of formats to add to the per-action list
       #                    of provided formats
+      #
+      # ==== Raises
+      # Merb::ResponderMixin::ContentTypeAlreadySet::
+      #   Content negotiation already occured, and the content_type is set.
+      #
+      # ==== Returns
+      # Array:: List of formats passed in
+      #
+      #---
+      # @public
       def provides(*formats)
-        raise_if_content_type_already_set!
+        if @_content_type
+          raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
+        end
         formats.each do |fmt|
-          self.provided_formats << fmt unless provided_formats.include?(fmt)
+          self._provided_formats << fmt unless provided_formats.include?(fmt)
         end
       end
 
@@ -183,17 +243,32 @@ module Merb
       # ==== Parameters
       # *formats<Symbol>:: A list of formats to use as the per-action list
       #                    of provided formats
+      #
+      # ==== Returns
+      # Array:: List of formats passed in
+      #
+      #---
+      # @public
       def only_provides(*formats)
-        self.set_provided_formats(*formats)
+        self._provided_formats = *formats
       end
       
       # Removes formats from the list of provided formats for this particular 
       # request. Usually used to remove formats from a single action.  See
       # also the controller-level does_not_provide that affects all actions in a
       # controller.
+      #
+      # ==== Parameters
+      # *formats<Symbol>:: Registered mime-type
+      # 
+      # ==== Returns
+      # Array:: List of formats that remain after removing the ones not to provide
+      #
+      #---
+      # @public      
       def does_not_provide(*formats)
         formats.flatten!
-        self.provided_formats -= formats
+        self._provided_formats -= formats
       end
       
       # Do the content negotiation:
@@ -212,12 +287,6 @@ module Merb
           return accepts.each { |type| break type if provided_formats.include?(type) }
         end
         raise Merb::ControllerExceptions::NotAcceptable          
-      end      
-
-      # Checks to see if content negotiation has already been performed.
-      # If it has, you can no longer modify the list of provided formats.
-      def _content_type_set?
-        !@_content_type.nil?
       end
 
       # Returns the output format for this request, based on the 
@@ -230,15 +299,46 @@ module Merb
       #
       # Called automatically by +render+, so you should only call it if
       # you need the value, not to trigger content negotiation. 
-      def content_type
-        unless _content_type_set?
-          @_content_type = _perform_content_negotiation
-          unless Merb.available_mime_types.has_key?(@_content_type)
-            raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{@_content_type}") 
-          end
-          headers['Content-Type'] = Merb.available_mime_types[@_content_type].first
-        end
+      # 
+      # ==== Parameters
+      # fmt<String?>:: 
+      #   An optional format to use instead of performing content negotiation.
+      #   This can be used to pass in the values of opts[:format] from the 
+      #   render function to short-circuit content-negotiation when it's not
+      #   necessary. This optional parameter should not be considered part
+      #   of the public API.
+      #
+      # ==== Returns
+      # Symbol:: The content-type that will be used for this controller.
+      #
+      #---
+      # @public
+      def content_type(fmt = nil)
+        self.content_type = (fmt || _perform_content_negotiation) unless @_content_type
         @_content_type
+      end
+      
+      # Sets the content type of the current response to a value based on 
+      # a passed in key. The Content-Type header will be set to the first
+      # registered header for the mime-type.
+      #
+      # ==== Parameters
+      # type<Symbol>:: A type that is in the list of registered mime-types.
+      #
+      # ==== Raises
+      # ArgumentError:: "type" is not in the list of registered mime-types.
+      #
+      # ==== Returns
+      # Symbol:: The content-type that was passed in.
+      #
+      #---
+      # @semipublic
+      def content_type=(type)
+        unless Merb.available_mime_types.has_key?(type)
+          raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
+        end        
+        headers['Content-Type'] = Merb.available_mime_types[type].first        
+        @_content_type = type
       end
       
     end

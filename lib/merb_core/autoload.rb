@@ -19,5 +19,5 @@ end
 require "merb_core/controller/template"
 
 module Merb
-  module GlobalHelper; end
+  module InlineTemplates; end
 end

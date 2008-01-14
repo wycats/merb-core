@@ -174,7 +174,7 @@ module Merb
       class HTTPVersionNotSupported     < Merb::ControllerExceptions::ServerError; STATUS = 505; end
       class InternalServerError         < Merb::ControllerExceptions::ServerError #:doc: 
         STATUS = 500
-        DEFAULT_TEMPLATE = ::Merb::Dispatcher::DEFAULT_ERROR_TEMPLATE
+        # DEFAULT_TEMPLATE = ::Merb::Dispatcher::DEFAULT_ERROR_TEMPLATE
       
         def initialize(exception = nil)
           @exception = exception

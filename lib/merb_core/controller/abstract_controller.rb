@@ -61,10 +61,15 @@
 # Filter:: <Array[Symbol, (Symbol, String, Proc)]>
 class Merb::AbstractController
   include Merb::RenderMixin
+  include Merb::InlineTemplates
   
-  class_inheritable_accessor :_before_filters, :_after_filters, :_template_root
+  class_inheritable_accessor :_before_filters, :_after_filters, :_template_root, :_layout
+
+  # Controller name is part of the public API  
+  def self.controller_name() @controller_name ||= self.name.to_const_path end
+  def controller_name()      self.class.controller_name                   end
+
   self._before_filters, self._after_filters = [], []
-  self._template_root = Merb.load_paths[:view]
   
   # This is called after the controller is instantiated to figure out
   # where to look for templates under the _template_root. Override this
@@ -78,8 +83,20 @@ class Merb::AbstractController
   #
   # This would look for templates at controller.action.mime.type instead
   # of controller/action.mime.type
-  def _template_location
-    "#{params[:controller]}/#{params[:action]}.#{content_type}"
+  #
+  # ==== Returns
+  # String:: 
+  #   Indicating where to look for the template for the current
+  #   controller, action, and content-type.
+  #
+  # ==== Note
+  # The type is irrelevant for controller-types that don't support
+  # content-type negotiation, so we default to not include it in
+  # the superclass.
+  #---
+  # @public
+  def _template_location(action, controller = controller_name, type = nil)
+    "#{controller}/#{action}"
   end
   
   cattr_accessor :_abstract_subclasses, :_template_path_cache
@@ -96,22 +113,34 @@ class Merb::AbstractController
     #   The controller that is being inherited from Merb::AbstractController
     def inherited(klass)
       _abstract_subclasses << klass.to_s
+      klass._template_root ||= Merb.dir_for(:view)
       super
+    end
+    
+    # ==== Parameters
+    # layout<~to_s>:: The layout that should be used for this class
+    # 
+    # ==== Returns
+    # ~to_s:: The layout that was passed in
+    def layout(layout)
+      self._layout = layout
     end
   end
   
   attr_accessor :_benchmarks, :_thrown_content, :_body
+  _attr_accessor :action_name
   
   # ==== Parameters
   # *args<Object>:: The args are ignored
   def initialize(*args)
     @_benchmarks = {}
+    @_caught_content = {}
   end
   
   # ==== Parameters
   # action<~to_s>:: The action to dispatch to. This will be #send'ed in _call_action
   def _dispatch(action=:to_s)
-    @action = action
+    self.action_name = action
     
     caught = catch(:halt) do
       start = Time.now
@@ -121,7 +150,7 @@ class Merb::AbstractController
     end
   
     @_body = case caught
-    when :filter_chain_completed  then _call_action(action)
+    when :filter_chain_completed  then _call_action(action_name)
     when String                   then caught
     when nil                      then _filters_halted
     when Symbol                   then send(caught)
@@ -159,8 +188,8 @@ class Merb::AbstractController
       # Both:
       # * no :only or the current action is in the :only list
       # * no :exclude or the current action is not in the :exclude list
-      if (!rule.key?(:only) || rule[:only].include?(@action)) &&
-      (!rule.key?(:exclude) || !rule[:exclude].include?(@action))
+      if (!rule.key?(:only) || rule[:only].include?(action_name)) &&
+      (!rule.key?(:exclude) || !rule[:exclude].include?(action_name))
         case filter
         when Symbol, String then send(filter)
         when Proc           then self.instance_eval(&filter)
@@ -214,11 +243,14 @@ class Merb::AbstractController
   end  
   
   #---
-  # Defaults that can be overridden by plugins or other mixins
+  # Defaults that can be overridden by plugins, other mixins, or subclasses
   
   def _filters_halted()   "<html><body><h1>Filter Chain Halted!</h1></body></html>"  end
   def _setup_session()                                                               end    
   def _finalize_session()                                                            end
+
+  # Stub so content-type support in RenderMixin doesn't throw errors
+  attr_accessor :content_type
   
   # Handles the template cache (which is used by BootLoader to cache the list of all templates)
   #

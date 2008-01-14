@@ -4,7 +4,7 @@ class Merb::Dispatcher
     attr_accessor :use_mutex
     
     @@mutex = Mutex.new
-    self.use_mutex = ::Merb::Config[:use_mutex]
+    Merb::Dispatcher.use_mutex = ::Merb::Config[:use_mutex]
     
     # This is where we grab the incoming request REQUEST_URI and use that in
     # the merb RouteMatcher to determine which controller and method to run.
