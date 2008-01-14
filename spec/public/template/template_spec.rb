@@ -1,9 +1,10 @@
 # ==== Public Template API
 # Merb::Template.register_extensions(engine<Class>, extenstions<Array[String]>)
-# Merb::Template.inline_template(path<String>, mod<Module>)
 #
 # ==== Semipublic Template API
 # Merb::Template.engine_for(path<String>)
+# Merb::Template.template_name(path<String>)
+# Merb::Template.inline_template(path<String>, mod<Module>)
 #
 # ==== Requirements for a new Template Engine
 # A Template Engine must have at least a single class method called compile_template
@@ -11,6 +12,14 @@
 # * path<String>:: the full path to the template being compiled
 # * name<String>:: the name of the method that will be inlined
 # * mod<Module>:: the module that the method will be inlined into
+#
+# In order to support the concat and capture helpers, they must also provide a
+# Mixin module containing a _buffer method, which exposes the internal buffer
+# being used in the compiled method and a capture method that takes a block 
+# and evaluates its contents in the context of the compiled method. It should 
+# return the contents as a string, but not modify the context. Note that this
+# is optional, but that the merb_helpers core plugin requires concat and capture
+# to work.
 
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 
@@ -42,11 +51,13 @@ end
 
 describe Merb::Template do
   
+  # @public
   it "should accept template-type registrations via #register_extensions" do
     Merb::Template.register_extensions(Merb::Test::Fixtures::MyTemplateEngine, %w[myt])
     Merb::Template.engine_for("foo.myt").should == Merb::Test::Fixtures::MyTemplateEngine
   end
   
+  # @semipublic
   def rendering_template(template_path)
     Merb::Template.inline_template(template_path, Merb::Test::Fixtures::MyHelpers)
     Merb::Test::Fixtures::Environment.new.
@@ -60,7 +71,7 @@ describe Merb::Template do
   end
   
   it "should compile and inline templates via #inline_template for erubis" do
-    template_path = File.expand_path(File.dirname(__FILE__) / "templates" / "template.html.erb")
+    template_path = File.dirname(__FILE__) / "templates" / "template.html.erb"
     rendering_template(template_path).should == "Hello world!"
   end
   
@@ -72,6 +83,12 @@ describe Merb::Template do
     rescue Exception => e
       e.backtrace.first.match(/\/([^:\/]*:\d*)/)[1].should == "error.html.erb:2"
     end
+  end
+  
+  it "should find the full template name for a path via #template_for" do
+    template_path = File.dirname(__FILE__) / "templates" / "template.html.erb"
+    name = Merb::Template.inline_template(template_path, Merb::Test::Fixtures::MyHelpers)
+    Merb::Test::Fixtures::Environment.new.should respond_to(name)
   end
   
 end

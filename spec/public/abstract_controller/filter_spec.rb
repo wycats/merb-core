@@ -11,13 +11,7 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
 
 describe Merb::AbstractController, " should support before and after filters" do
-  
-  def dispatch_should_make_body(klass, body, action = :index)
-    controller = Merb::Test::Fixtures.const_get(klass).new
-    controller._dispatch(action)
-    controller._body.should == body
-  end
-  
+    
   it "should support before filters" do
     dispatch_should_make_body("TestBeforeFilter", "foo filter")
   end
