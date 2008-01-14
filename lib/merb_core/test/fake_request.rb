@@ -42,6 +42,7 @@ module Merb
     
       # ==== Parameters
       # env<Hash>:: A hash of environment keys to be merged into the default list
+      # opt<Hash>:: A hash of options (see below)
       #
       # ==== Options (choose one)
       # :post_body<String>:: The post body for the request
