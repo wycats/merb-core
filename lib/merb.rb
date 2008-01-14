@@ -41,8 +41,12 @@ module Merb
         adapter = Merb::Rack::WEBrick
       when "fastcgi"
         adapter = Merb::Rack::FastCGI
+      when "fcgi"
+        adapter = Merb::Rack::FastCGI  
+      when "thin"
+        adapter = Merb::Rack::Thin
       else
-        adapter = Merb::Rack.const_get(server.capitalize)
+        adapter = Merb::Rack.const_get(adapter.capitalize)
       end    
       adapter.start_server(Merb::Config[:host], Merb::Config[:port])
     end

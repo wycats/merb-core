@@ -2,7 +2,7 @@ require 'thin'
 
 module Merb
   module Rack
-    class Mongrel < Adapter
+    class Thin < Adapter
       # start a Thin server on given host and port.
       def self.start_server(host, port)
         app = new
