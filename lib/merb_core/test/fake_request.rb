@@ -1,48 +1,16 @@
 require 'ostruct'
+require 'cgi'
 
 module Merb
   module Test
     # FakeRequest sets up a default enviroment which can be overridden either
     # by passing and env into initialize or using request['HTTP_VAR'] = 'foo' 
     class FakeRequest < Request
-      attr_reader :req
-      alias :body :req
-      alias :params :env
-      alias :to_hash :env
-    
       def initialize(env = {}, req = StringIO.new)
-        env[:http_cookie] = env.delete(:cookies) if env[:cookies]
         env.environmentize_keys!
         
-        r = OpenStruct.new
-        r.params = DEFAULT_ENV.dup.merge(env)
-        r.body = req
-        super(r)
-        self.post_body = ''
-        @session = {}
-      end
-
-      def self.with(path, options = {})
-        options.merge!(:QUERY_STRING => path.split("?")[1])
-        options.environmentize_keys!
-        new({'REQUEST_URI' => path,
-             'PATH_INFO' => path.sub(/\?.*$/,'')}.merge(options))
-      end
-  
-      def post_body=(post)
-        @req = StringIO.new(post)
-      end  
-      
-      def session
-        @session
-      end
-      
-      def [](key)
-        @env[key]
-      end
-  
-      def []=(key, value)
-        @env[key] = value
+        fake_request = Struct.new(:params, :body).new(DEFAULT_ENV.merge(env), req)
+        super(fake_request)
       end
       
       private    
@@ -70,5 +38,31 @@ module Merb
         'REQUEST_METHOD' => 'GET'      
       }) unless defined?(DEFAULT_ENV)
     end
+
+    module RequestHelper
+    
+      # ==== Parameters
+      # env<Hash>:: A hash of environment keys to be merged into the default list
+      #
+      # ==== Options (choose one)
+      # :post_body<String>:: The post body for the request
+      # :body<String>:: The body for the request
+      # 
+      # ==== Returns
+      # FakeRequest:: A Request object that is built based on the parameters
+      #
+      # ==== Note
+      # If you pass a post_body, the content-type will be set as URL-encoded
+      def fake_request(env = {}, opt = {})
+        if opt[:post_body]
+          req = opt[:post_body]
+          env.merge!(:content_type => "application/x-www-form-urlencoded")
+        else
+          req = opt[:req] || ""
+        end
+        FakeRequest.new(env, StringIO.new(req))
+      end
+    end
   end
+
 end

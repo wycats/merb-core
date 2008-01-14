@@ -8,6 +8,11 @@ module Merb
     self.parse_json_params = true
     self.parse_xml_params = true
     
+    # Initial the request object.
+    #
+    # ==== Parameters
+    # http_request<~params:~[], ~body:IO>:: 
+    #   An object like an HTTP Request.
     def initialize(http_request)
       @env = http_request.params
       @body = http_request.body
@@ -26,7 +31,7 @@ module Merb
             m = body_and_query_params.merge(multipart_params)['_method']
           else  
             m = body_and_query_params['_method']
-          end  
+          end
           m.downcase! if m
           METHODS.include?(m) ? m.to_sym : :post
         else
@@ -38,14 +43,10 @@ module Merb
     # create predicate methods for querying the REQUEST_METHOD
     # get? post? head? put? etc
     METHODS.each do |m|
-      define_method("#{m}?") { method == m.to_sym }
+      class_eval "def #{m}?() method == :#{m} end"
     end
     
     private
-    
-    # FIXME: symbolize_keys on params is a potential problem. symbols are 
-    # not garbage collected so a malicious user could send many large query
-    # keys to Merb forcing it to eat up memeory.
     
     # A hash of parameters passed from the URL like ?blah=hello
     def query_params
@@ -76,15 +77,10 @@ module Merb
     def multipart_params
       @multipart_params ||= 
         begin
-          if Merb::Const::MULTIPART_REGEXP =~ content_type
-            if  @body.size <= 0
-              {}
-            else  
-              self.class.parse_multipart(@body, $1, content_length)
-            end
-          else
-            {}
-          end
+          # if the content-type is multipart and there's stuff in the body,
+          # parse the multipart. Otherwise return {}
+          (Merb::Const::MULTIPART_REGEXP =~ content_type && @body.size > 0) ?
+            self.class.parse_multipart(@body, $1, content_length) : {}
         rescue ControllerExceptions::MultiPartParseError => e
           @multipart_params = {}
           raise e
@@ -142,28 +138,23 @@ module Merb
     end
     
     def controller_name
-      if route_params[:namespace]
-        route_params[:namespace] + '/' + route_params[:controller]
-      else
-        route_params[:controller]
-      end
+      (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
     end
     
     def controller_class
       begin
         cnt = controller_name.to_const_string
       rescue ::String::InvalidPathConversion
-        raise ControllerExceptions::NotFound
+        raise ControllerExceptions::NotFound, 
+          "Controller '#{controller_name}' could not be converted to a class"
       end
       if !Controller._subclasses.include?(cnt)
         raise ControllerExceptions::NotFound, "Controller '#{cnt}' not found"
       end
       
       begin
-        if cnt == "Application"
-          raise ControllerExceptions::NotFound, "The 'Application' controller has no public actions" 
-        end
-        return Object.full_const_get(cnt)
+        return Object.full_const_get(cnt) unless cnt == "Application"
+        raise ControllerExceptions::NotFound, "The 'Application' controller has no public actions"
       rescue NameError
         raise ControllerExceptions::NotFound
       end
