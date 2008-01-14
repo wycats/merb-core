@@ -1,7 +1,5 @@
 $TESTING=true
 
-
-
 require File.join(File.dirname(__FILE__), "..", "lib", "merb")
 require 'merb_core/test/fake_request'
 Merb.environment = "test"
