@@ -63,7 +63,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "ruby2ruby"
   s.add_dependency "json_pure"
   s.add_dependency "assistance"
-  
+  s.add_dependency "rspec"  
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
   s.required_ruby_version = ">= 1.8.4"

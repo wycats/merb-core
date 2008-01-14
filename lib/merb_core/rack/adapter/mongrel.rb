@@ -4,13 +4,12 @@ require 'rack/handler/mongrel'
 module Merb
   module Rack
     class Mongrel < Adapter
-      class << self
-        # start server on given host and port.
-        def start_server(host, port)
-          server = ::Mongrel::HttpServer.new(host, port)
-          server.register('/', ::Rack::Handler::Mongrel.new(self))
-          server.run.join
-        end
+      # start server on given host and port.
+      def self.start_server(host, port)
+        app = new
+        server = ::Mongrel::HttpServer.new(host, port)
+        server.register('/', ::Rack::Handler::Mongrel.new(app))
+        server.run.join
       end
     end
   end
