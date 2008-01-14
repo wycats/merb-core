@@ -1,5 +1,4 @@
 require 'ostruct'
-require 'cgi'
 
 module Merb
   module Test
