@@ -18,19 +18,6 @@ require 'merb_core/version'
 
 
 module Merb
-  module Config
-    class << self
-      @@config = {}
-      def [](key)
-        @@config[key]
-      end
-      
-      def []=(key, val)
-        @@config[key] = val
-      end
-    end
-  end
-  
   class << self
     
     def start(argv=ARGV)
