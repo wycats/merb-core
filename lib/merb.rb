@@ -4,18 +4,18 @@
 require 'rubygems'
 require 'set'
 require 'fileutils'
+require "assistance"
 
 $LOAD_PATH.push File.dirname(__FILE__) unless 
   $LOAD_PATH.include?(File.dirname(__FILE__)) || 
   $LOAD_PATH.include?(File.expand_path(File.dirname(__FILE__)))
 
+require 'merb_core/autoload'
+require 'merb_core/core_ext'
 require 'merb_core/gem_ext/erubis'
 require 'merb_core/logger'
 require 'merb_core/version'
-require 'merb_core/core_ext'
 
-gem "assistance"
-require "assistance"
 
 module Merb
   module Config
@@ -32,6 +32,37 @@ module Merb
   end
   
   class << self
+    
+    def start(argv=ARGV)
+      Merb::Config.parse_args(argv)
+      BootLoader.run
+      case Merb::Config[:adapter]
+      when nil
+        # Guess.
+        if ENV.include?("PHP_FCGI_CHILDREN")
+          adapter = Merb::Rack::FastCGI
+        else
+          begin
+            adapter = Merb::Rack::Mongrel
+          rescue LoadError => e
+            adapter = Merb::Rack::WEBrick
+          end
+        end
+      when "mongrel"
+        adapter = Merb::Rack::Mongrel
+      when "webrick"
+        adapter = Merb::Rack::WEBrick
+      when "fastcgi"
+        adapter = Merb::Rack::FastCGI
+      when "fcgi"
+        adapter = Merb::Rack::FastCGI  
+      when "thin"
+        adapter = Merb::Rack::Thin
+      else
+        adapter = Merb::Rack.const_get(adapter.capitalize)
+      end    
+      adapter.start_server(Merb::Config[:host], Merb::Config[:port])
+    end
     
     attr_accessor :environment, :load_paths
     Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)

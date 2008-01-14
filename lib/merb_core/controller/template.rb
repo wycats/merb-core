@@ -80,7 +80,7 @@ module Merb::Template
     # ]}}
     #---
     # @public
-    def register_extensions(engine, extensions) enforce!(engine => Class, extensions => Array)
+    def register_extensions(engine, extensions) 
       raise ArgumentError, "The class you are registering does not have a compile_template method" unless
         engine.respond_to?(:compile_template)
       extensions.each{|ext| EXTENSIONS[ext] = engine }

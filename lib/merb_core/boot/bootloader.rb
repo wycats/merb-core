@@ -1,9 +1,5 @@
 module Merb
   
-  def self.start
-    BootLoader.run
-  end
-  
   class BootLoader
     
     cattr_accessor :subclasses
@@ -52,8 +48,8 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
     %[view model controller helper mailer part].each do |component|
       Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
     end
-    Merb.push_path(:app_controller, Merb.root_path("app/controllers", "application_controller.rb"))
-    Merb.push_path(:config,         Merb.root_path("config", "router.rb"))
+    Merb.push_path(:app_controller, Merb.root_path("app/controllers/application.rb"))
+    Merb.push_path(:config,         Merb.root_path("config/router.rb"))
     Merb.push_path(:lib,            Merb.root_path("lib"))    
   end
 end
@@ -133,7 +129,7 @@ class Merb::BootLoader::Templates < Merb::BootLoader
 end
 
 class Merb::BootLoader::Libraries < Merb::BootLoader
-  @@libraries = {:disable_json_gem => %[json/ext json/pure]}
+  @@libraries = {:disable_json_gem => %w[json/ext json/pure]}
 
   # Add other libraries to load in early in the boot process
   # 
@@ -157,6 +153,7 @@ class Merb::BootLoader::Libraries < Merb::BootLoader
   end
   
   def require_first_working(first, *rest)
+    p first, rest
     require first
   rescue LoadError
     raise LoadError if rest.empty?
