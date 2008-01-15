@@ -45,7 +45,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
   # This method should be overridden in merb_init.rb before Merb.start to set up a different
   # framework structure
   def build_framework
-    %[view model controller helper mailer part].each do |component|
+    %w[view model controller helper mailer part].each do |component|
       Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
     end
     Merb.push_path(:application,    Merb.root_path("app/controllers/application.rb"))
