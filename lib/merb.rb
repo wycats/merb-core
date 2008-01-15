@@ -5,6 +5,7 @@ require 'rubygems'
 require 'set'
 require 'fileutils'
 require "assistance"
+require 'socket'
 
 $LOAD_PATH.push File.dirname(__FILE__) unless 
   $LOAD_PATH.include?(File.dirname(__FILE__)) || 
@@ -27,6 +28,9 @@ module Merb
       case Merb::Config[:adapter]
       when "mongrel"
         adapter = Merb::Rack::Mongrel
+      when "emongrel"
+        require 'merb_core/rack/adapter/evented_mongrel'        
+        adapter = Merb::Rack::Mongrel
       when "webrick"
         adapter = Merb::Rack::WEBrick
       when "fastcgi"
@@ -36,7 +40,7 @@ module Merb
       when "thin"
         adapter = Merb::Rack::Thin
       else
-        adapter = Merb::Rack.const_get(adapter.capitalize)
+        adapter = Merb::Rack.const_get(Merb::Config[:adapter].capitalize)
       end    
       adapter.start_server(Merb::Config[:host], Merb::Config[:port])
     end
