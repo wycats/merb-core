@@ -15,7 +15,7 @@ require 'merb_core/core_ext'
 require 'merb_core/gem_ext/erubis'
 require 'merb_core/logger'
 require 'merb_core/version'
-
+require 'merb_core/controller/mime'
 
 module Merb
   class << self
@@ -23,6 +23,7 @@ module Merb
     def start(argv=ARGV)
       Merb::Config.parse_args(argv)
       BootLoader.run
+      
       case Merb::Config[:adapter]
       when "mongrel"
         adapter = Merb::Rack::Mongrel

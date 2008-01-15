@@ -3,7 +3,7 @@ module Merb::Test::Fixtures
     self._template_root = File.dirname(__FILE__) / "views"
   end
   
-  class TestFoo < ControllerTesting
+  class TestBase < ControllerTesting
     def index
       "index"
     end

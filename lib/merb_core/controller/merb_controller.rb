@@ -71,6 +71,10 @@ class Merb::Controller < Merb::AbstractController
     end
   end
   
+  def _template_location(action, type = nil, controller = controller_name)
+    "#{controller}/#{action}.#{type}"
+  end  
+  
   # Sets the variables that came in through the dispatch as available to
   # the controller. This is called by .build, so see it for more
   # information.
@@ -107,9 +111,7 @@ class Merb::Controller < Merb::AbstractController
         request.cookies[_session_id_key] = request.params[_session_id_key]
       end
     end
-    @_request, @_response, @_status, @_headers = 
-      request, response, status, headers
-
+    @request, @response, @status, @headers = request, response, status, headers
     nil
   end
   
@@ -135,7 +137,8 @@ class Merb::Controller < Merb::AbstractController
     @_benchmarks[:action_time] = Time.now - start
   end
   
-  _attr_reader :request, :response, :status, :headers
+  attr_reader :request, :response, :headers
+  attr_accessor :status
   def params()  request.params  end
   def cookies() request.cookies end
   def session() request.session end

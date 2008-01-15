@@ -96,7 +96,7 @@ class Merb::AbstractController
   # the superclass.
   #---
   # @public
-  def _template_location(action, controller = controller_name, type = nil)
+  def _template_location(action, type = nil, controller = controller_name)
     "#{controller}/#{action}"
   end
   
@@ -106,6 +106,8 @@ class Merb::AbstractController
   # own subclasses. We're using a Set so we don't have to worry about
   # uniqueness.
   self._abstract_subclasses = Set.new
+  self._template_root = Merb.dir_for(:view)
+  
   def self.subclasses_list() _abstract_subclasses end
   
   class << self
@@ -114,7 +116,6 @@ class Merb::AbstractController
     #   The controller that is being inherited from Merb::AbstractController
     def inherited(klass)
       _abstract_subclasses << klass.to_s
-      klass._template_root ||= Merb.dir_for(:view)
       super
     end
     

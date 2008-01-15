@@ -97,6 +97,8 @@ module Merb
   # and none of the provides methods can be used.
   module ResponderMixin
     
+    TYPES = {}
+    
     class ContentTypeAlreadySet < StandardError; end
     
     # ==== Parameters
@@ -105,6 +107,7 @@ module Merb
       base.extend(ClassMethods)
       base.class_eval do
         class_inheritable_accessor :class_provided_formats
+        self.class_provided_formats = []
       end
       base.reset_provides
     end
@@ -178,171 +181,253 @@ module Merb
       def reset_provides
         only_provides(:html)
       end
-      
-      # ==== Returns
-      # The current list of formats provided for this instance of the controller. 
-      # It starts with what has been set in the controller (or :html by default) 
-      # but can be modifed on a per-action basis.      
-      def _provided_formats
-        @_provided_formats ||= class_provided_formats.dup
-      end
-      
-      # Sets the provided formats for this action.  Usually, you would
-      # use a combination of +provides+, +only_provides+ and +does_not_provide+
-      # to manage this, but you can set it directly.
-      # 
-      # ==== Parameters
-      # *formats<Symbol>:: A list of formats to be passed to provides
-      #
-      # ==== Raises
-      # Merb::ResponderMixin::ContentTypeAlreadySet::
-      #   Content negotiation already occured, and the content_type is set.
-      #
-      # ==== Returns
-      # Array:: List of formats passed in
-      def _set_provided_formats(*formats)
-        if @_content_type
-          raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
-        end
-        @_provided_formats = []
-        provides(*formats)
-      end
-      alias :_provided_formats= :_set_provided_formats   
-      
-      # Adds formats to the list of provided formats for this particular 
-      # request. Usually used to add formats to a single action. See also
-      # the controller-level provides that affects all actions in a controller.
-      #
-      # ==== Parameters
-      # *formats<Symbol>:: A list of formats to add to the per-action list
-      #                    of provided formats
-      #
-      # ==== Raises
-      # Merb::ResponderMixin::ContentTypeAlreadySet::
-      #   Content negotiation already occured, and the content_type is set.
-      #
-      # ==== Returns
-      # Array:: List of formats passed in
-      #
-      #---
-      # @public
-      def provides(*formats)
-        if @_content_type
-          raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
-        end
-        formats.each do |fmt|
-          _provided_formats << fmt unless _provided_formats.include?(fmt)
-        end
-      end
+    end
 
-      # Sets list of provided formats for this particular 
-      # request. Usually used to limit formats to a single action. See also
-      # the controller-level only_provides that affects all actions
-      # in a controller.      
-      # 
-      # ==== Parameters
-      # *formats<Symbol>:: A list of formats to use as the per-action list
-      #                    of provided formats
-      #
-      # ==== Returns
-      # Array:: List of formats passed in
-      #
-      #---
-      # @public
-      def only_provides(*formats)
-        self._provided_formats = *formats
+    # ==== Returns
+    # The current list of formats provided for this instance of the controller. 
+    # It starts with what has been set in the controller (or :html by default) 
+    # but can be modifed on a per-action basis.      
+    def _provided_formats
+      @_provided_formats ||= class_provided_formats.dup
+    end
+    
+    # Sets the provided formats for this action.  Usually, you would
+    # use a combination of +provides+, +only_provides+ and +does_not_provide+
+    # to manage this, but you can set it directly.
+    # 
+    # ==== Parameters
+    # *formats<Symbol>:: A list of formats to be passed to provides
+    #
+    # ==== Raises
+    # Merb::ResponderMixin::ContentTypeAlreadySet::
+    #   Content negotiation already occured, and the content_type is set.
+    #
+    # ==== Returns
+    # Array:: List of formats passed in
+    def _set_provided_formats(*formats)
+      if @_content_type
+        raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
       end
-      
-      # Removes formats from the list of provided formats for this particular 
-      # request. Usually used to remove formats from a single action.  See
-      # also the controller-level does_not_provide that affects all actions in a
-      # controller.
-      #
-      # ==== Parameters
-      # *formats<Symbol>:: Registered mime-type
-      # 
-      # ==== Returns
-      # Array:: List of formats that remain after removing the ones not to provide
-      #
-      #---
-      # @public      
-      def does_not_provide(*formats)
-        formats.flatten!
-        self._provided_formats -= formats
+      @_provided_formats = []
+      provides(*formats)
+    end
+    alias :_provided_formats= :_set_provided_formats   
+    
+    # Adds formats to the list of provided formats for this particular 
+    # request. Usually used to add formats to a single action. See also
+    # the controller-level provides that affects all actions in a controller.
+    #
+    # ==== Parameters
+    # *formats<Symbol>:: A list of formats to add to the per-action list
+    #                    of provided formats
+    #
+    # ==== Raises
+    # Merb::ResponderMixin::ContentTypeAlreadySet::
+    #   Content negotiation already occured, and the content_type is set.
+    #
+    # ==== Returns
+    # Array:: List of formats passed in
+    #
+    #---
+    # @public
+    def provides(*formats)
+      if @_content_type
+        raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
       end
-      
-      # Do the content negotiation:
-      # 1. if params[:format] is there, and provided, use it
-      # 2. Parse the Accept header
-      # 3. If it's */*, use the first provided format
-      # 4. Look for one that is provided, in order of request
-      # 5. Raise 406 if none found
-      def _perform_content_negotiation # :nodoc:
-        raise Merb::ControllerExceptions::NotAcceptable if provided_formats.empty?
-        if fmt = params[:format]
-          return fmt.to_sym if provided_formats.include?(fmt.to_sym)
-        else
-          accepts = Responder.parse(request.accept).map {|t| t.to_sym}
-          return provided_formats.first if accepts.include?(:all)
-          return accepts.each { |type| break type if provided_formats.include?(type) }
-        end
-        raise Merb::ControllerExceptions::NotAcceptable          
+      formats.each do |fmt|
+        _provided_formats << fmt unless _provided_formats.include?(fmt)
       end
+    end
 
-      # Returns the output format for this request, based on the 
-      # provided formats, <tt>params[:format]</tt> and the client's HTTP
-      # Accept header.
-      #
-      # The first time this is called, it triggers content negotiation
-      # and caches the value.  Once you call +content_type+ you can
-      # not set or change the list of provided formats.
-      #
-      # Called automatically by +render+, so you should only call it if
-      # you need the value, not to trigger content negotiation. 
-      # 
-      # ==== Parameters
-      # fmt<String?>:: 
-      #   An optional format to use instead of performing content negotiation.
-      #   This can be used to pass in the values of opts[:format] from the 
-      #   render function to short-circuit content-negotiation when it's not
-      #   necessary. This optional parameter should not be considered part
-      #   of the public API.
-      #
-      # ==== Returns
-      # Symbol:: The content-type that will be used for this controller.
-      #
-      #---
-      # @public
-      def content_type(fmt = nil)
-        self.content_type = (fmt || _perform_content_negotiation) unless @_content_type
-        @_content_type
+    # Sets list of provided formats for this particular 
+    # request. Usually used to limit formats to a single action. See also
+    # the controller-level only_provides that affects all actions
+    # in a controller.      
+    # 
+    # ==== Parameters
+    # *formats<Symbol>:: A list of formats to use as the per-action list
+    #                    of provided formats
+    #
+    # ==== Returns
+    # Array:: List of formats passed in
+    #
+    #---
+    # @public
+    def only_provides(*formats)
+      self._provided_formats = *formats
+    end
+    
+    # Removes formats from the list of provided formats for this particular 
+    # request. Usually used to remove formats from a single action.  See
+    # also the controller-level does_not_provide that affects all actions in a
+    # controller.
+    #
+    # ==== Parameters
+    # *formats<Symbol>:: Registered mime-type
+    # 
+    # ==== Returns
+    # Array:: List of formats that remain after removing the ones not to provide
+    #
+    #---
+    # @public      
+    def does_not_provide(*formats)
+      formats.flatten!
+      self._provided_formats -= formats
+    end
+    
+    # Do the content negotiation:
+    # 1. if params[:format] is there, and provided, use it
+    # 2. Parse the Accept header
+    # 3. If it's */*, use the first provided format
+    # 4. Look for one that is provided, in order of request
+    # 5. Raise 406 if none found
+    def _perform_content_negotiation # :nodoc:
+      raise Merb::ControllerExceptions::NotAcceptable if _provided_formats.empty?
+      if fmt = params[:format] && _provided_formats.include?(fmt.to_sym)
+        return fmt.to_sym
       end
-      
-      # Sets the content type of the current response to a value based on 
-      # a passed in key. The Content-Type header will be set to the first
-      # registered header for the mime-type.
-      #
-      # ==== Parameters
-      # type<Symbol>:: A type that is in the list of registered mime-types.
-      #
-      # ==== Raises
-      # ArgumentError:: "type" is not in the list of registered mime-types.
-      #
-      # ==== Returns
-      # Symbol:: The content-type that was passed in.
-      #
-      #---
-      # @semipublic
-      def content_type=(type)
-        unless Merb.available_mime_types.has_key?(type)
-          raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
-        end        
-        headers['Content-Type'] = Merb.available_mime_types[type].first        
-        @_content_type = type
-      end
-      
+      accepts = Responder.parse(request.accept).map {|t| t.to_sym}
+      return _provided_formats.first if accepts.include?(:all)
+      (accepts & _provided_formats).first || (raise Merb::ControllerExceptions::NotAcceptable)
+    end
+
+    # Returns the output format for this request, based on the 
+    # provided formats, <tt>params[:format]</tt> and the client's HTTP
+    # Accept header.
+    #
+    # The first time this is called, it triggers content negotiation
+    # and caches the value.  Once you call +content_type+ you can
+    # not set or change the list of provided formats.
+    #
+    # Called automatically by +render+, so you should only call it if
+    # you need the value, not to trigger content negotiation. 
+    # 
+    # ==== Parameters
+    # fmt<String?>:: 
+    #   An optional format to use instead of performing content negotiation.
+    #   This can be used to pass in the values of opts[:format] from the 
+    #   render function to short-circuit content-negotiation when it's not
+    #   necessary. This optional parameter should not be considered part
+    #   of the public API.
+    #
+    # ==== Returns
+    # Symbol:: The content-type that will be used for this controller.
+    #
+    #---
+    # @public
+    def content_type(fmt = nil)
+      @_content_type = (fmt || _perform_content_negotiation) unless @_content_type
+      @_content_type
+    end
+    
+    # Sets the content type of the current response to a value based on 
+    # a passed in key. The Content-Type header will be set to the first
+    # registered header for the mime-type.
+    #
+    # ==== Parameters
+    # type<Symbol>:: A type that is in the list of registered mime-types.
+    #
+    # ==== Raises
+    # ArgumentError:: "type" is not in the list of registered mime-types.
+    #
+    # ==== Returns
+    # Symbol:: The content-type that was passed in.
+    #
+    #---
+    # @semipublic
+    def content_type=(type)
+      unless Merb.available_mime_types.has_key?(type)
+        raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
+      end        
+      headers['Content-Type'] = Merb.available_mime_types[type].first        
+      @_content_type = type
     end
     
   end
+
+  class Responder
+  
+    protected
+    def self.parse(accept_header)
+      # parse the raw accept header into a unique, sorted array of AcceptType objects
+      list = accept_header.to_s.split(/,/).enum_for(:each_with_index).map do |entry,index|
+        AcceptType.new(entry,index += 1)
+      end.sort.uniq
+      # firefox (and possibly other browsers) send broken default accept headers.
+      # fix them up by sorting alternate xml forms (namely application/xhtml+xml)
+      # ahead of pure xml types (application/xml,text/xml).
+      if app_xml = list.detect{|e| e.super_range == 'application/xml'}
+        list.select{|e| e.to_s =~ /\+xml/}.each { |acc_type|
+          list[list.index(acc_type)],list[list.index(app_xml)] = 
+            list[list.index(app_xml)],list[list.index(acc_type)] }
+      end
+      list
+    end
+    
+    public
+    def self.params_to_query_string(value, prefix = nil)
+      case value
+      when Array
+        value.map { |v|
+          params_to_query_string(v, "#{prefix}[]")
+        } * "&"
+      when Hash
+        value.map { |k, v|
+          params_to_query_string(v, prefix ? "#{prefix}[#{Merb::Request.escape(k)}]" : Merb::Request.escape(k))
+        } * "&"
+      else
+        "#{prefix}=#{Merb::Request.escape(value)}"
+      end
+    end      
+      
+  end
+
+  class AcceptType
+
+    attr_reader :media_range, :quality, :index, :type, :sub_type
+    
+    def initialize(entry,index)
+      @index = index
+      @media_range, quality = entry.split(/;\s*q=/).map{|a| a.strip }
+      @type, @sub_type = @media_range.split(/\//)
+      quality ||= 0.0 if @media_range == '*/*'
+      @quality = ((quality || 1.0).to_f * 100).to_i
+    end
+  
+    def <=>(entry)
+      c = entry.quality <=> quality
+      c = index <=> entry.index if c == 0
+      c
+    end
+  
+    def eql?(entry)
+      synonyms.include?(entry.media_range)
+    end
+  
+    def ==(entry); eql?(entry); end
+  
+    def hash; super_range.hash; end
+  
+    def synonyms
+      @syns ||= Merb.available_mime_types.values.map do |e| 
+        e[:request_headers] if e[:request_headers].include?(@media_range)
+      end.compact.flatten
+    end
+  
+    def super_range
+      synonyms.first || @media_range
+    end
+  
+    def to_sym
+      Merb.available_mime_types.select{|k,v| 
+        v[:request_headers] == synonyms || v[:request_headers][0] == synonyms[0]}.flatten.first
+    end
+  
+    def to_s
+      @media_range
+    end
+  
+  end
+
     
 end

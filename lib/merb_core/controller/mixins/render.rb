@@ -51,21 +51,22 @@ module Merb::RenderMixin
     
     # If you don't specify a thing to render, assume they want to render the current action
     thing ||= action_name.to_sym
-    
+
     # Content negotiation
     opts[:format] ? (self.content_type = opts[:format]) : content_type 
     
     # Do we have a template to try to render?
     if thing.is_a?(Symbol) || opts[:template]
-      
+
       # Find a template path to look up (_template_location adds flexibility here)
-      template_location = _template_root / (opts[:template] || _template_location(thing))
+      template_location = _template_root / (opts[:template] || _template_location(thing, content_type))
+      
       # Get the method name from the previously inlined list
       template_method = Merb::Template.template_for(template_location)
 
       # Raise an error if there's no template
       raise TemplateNotFound, "No template found at #{template_location}" unless 
-        self.respond_to?(template_method)
+        template_method && self.respond_to?(template_method)
 
       # Call the method in question and throw the content for later consumption by the layout
       throw_content(:for_layout, self.send(template_method))

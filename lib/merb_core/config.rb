@@ -92,6 +92,10 @@ module Merb
              options[:cluster] = nodes
            end
 
+           opts.on("-I", "--init-file FILE", "Name of the file to load first") do |init_file|
+             options[:init_file] = init_file
+           end
+
            opts.on("-p", "--port PORTNUM", "Port to run merb on, defaults to 4000.") do |port|
              options[:port] = port
            end
@@ -261,29 +265,29 @@ module Merb
 
          @configuration = Merb::Config.apply_configuration_from_file options, environment_merb_yml
          
-         case Merb::Config[:environment].to_s
-         when 'production'
-           Merb::Config[:reloader] = Merb::Config.fetch(:reloader, false)
-           Merb::Config[:exception_details] = Merb::Config.fetch(:exception_details, false)
-           Merb::Config[:cache_templates] = true
-         else
-           Merb::Config[:reloader] = Merb::Config.fetch(:reloader, true)
-           Merb::Config[:exception_details] = Merb::Config.fetch(:exception_details, true)
-         end
-
-         Merb::Config[:reloader_time] ||= 0.5 if Merb::Config[:reloader] == true
-
-
-         if Merb::Config[:reloader]
-           Thread.abort_on_exception = true
-           Thread.new do
-             loop do
-               sleep( Merb::Config[:reloader_time] )
-               ::Merb::BootLoader.reload if ::Merb::BootLoader.app_loaded?
-             end
-             Thread.exit
-           end
-         end
+         # case Merb::Config[:environment].to_s
+         # when 'production'
+         #   Merb::Config[:reloader] = Merb::Config.fetch(:reloader, false)
+         #   Merb::Config[:exception_details] = Merb::Config.fetch(:exception_details, false)
+         #   Merb::Config[:cache_templates] = true
+         # else
+         #   Merb::Config[:reloader] = Merb::Config.fetch(:reloader, true)
+         #   Merb::Config[:exception_details] = Merb::Config.fetch(:exception_details, true)
+         # end
+         # 
+         # Merb::Config[:reloader_time] ||= 0.5 if Merb::Config[:reloader] == true
+         # 
+         # 
+         # if Merb::Config[:reloader]
+         #   Thread.abort_on_exception = true
+         #   Thread.new do
+         #     loop do
+         #       sleep( Merb::Config[:reloader_time] )
+         #       ::Merb::BootLoader.reload if ::Merb::BootLoader.app_loaded?
+         #     end
+         #     Thread.exit
+         #   end
+         # end
          @configuration
        end
        

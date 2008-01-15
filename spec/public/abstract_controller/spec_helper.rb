@@ -1,12 +1,10 @@
 __DIR__ = File.dirname(__FILE__)
 require File.join(__DIR__, "..", "..", "spec_helper")
 
-# The framework structure *must* be set up before loading in framework
-# files.
 require File.join(__DIR__, "controllers", "filters")
 require File.join(__DIR__, "controllers", "render")
 
-Merb::BootLoader::Templates.new.run
+Merb::BootLoader::Templates.run
 
 module Merb::Test::Behaviors
   def dispatch_should_make_body(klass, body, action = :index)
