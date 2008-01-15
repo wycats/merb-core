@@ -23,17 +23,20 @@ module Merb
     def start(argv=ARGV)
       Merb::Config.parse_args(argv)
       BootLoader.run
+      puts "loaded"
       case Merb::Config[:adapter]
       when "mongrel"
         adapter = Merb::Rack::Mongrel
       when "webrick"
         adapter = Merb::Rack::WEBrick
-      when "fastcgi"
+      when "fastcgi","fcgi"
         adapter = Merb::Rack::FastCGI
       when "fcgi"
         adapter = Merb::Rack::FastCGI  
       when "thin"
         adapter = Merb::Rack::Thin
+      when "irb"
+        adapter = Merb::Rack::Irb        
       else
         adapter = Merb::Rack.const_get(adapter.capitalize)
       end    
