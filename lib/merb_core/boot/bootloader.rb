@@ -68,7 +68,7 @@ class Merb::BootLoader::LoadPaths < Merb::BootLoader
     Merb.load_paths.each do |name, path|
       Dir[path.first / path.last].each do |file| 
         klasses = ObjectSpace.classes.dup
-        require f
+        require file
         LOADED_CLASSES[file] = ObjectSpace.classes - klasses
       end
     end
