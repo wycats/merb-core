@@ -62,6 +62,7 @@
 class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
+  is_hookable  
   
   class_inheritable_accessor :_before_filters, :_after_filters, :_template_root, :_layout
 
@@ -127,7 +128,12 @@ class Merb::AbstractController
     end
   end
   
-  attr_accessor :_benchmarks, :_thrown_content, :_body
+  attr_accessor :_benchmarks, :_thrown_content
+
+  #---
+  # @semipublic
+  attr_accessor :body
+  
   _attr_accessor :action_name
   
   # ==== Parameters
@@ -140,6 +146,7 @@ class Merb::AbstractController
   # ==== Parameters
   # action<~to_s>:: The action to dispatch to. This will be #send'ed in _call_action
   def _dispatch(action=:to_s)
+    hook :before_dispatch
     self.action_name = action
     
     caught = catch(:halt) do
@@ -149,7 +156,7 @@ class Merb::AbstractController
       result
     end
   
-    @_body = case caught
+    @body = case caught
     when :filter_chain_completed  then _call_action(action_name)
     when String                   then caught
     when nil                      then _filters_halted
@@ -161,6 +168,7 @@ class Merb::AbstractController
     start = Time.now
     _call_filters(_after_filters) 
     @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
+    hook :after_dispatch
   end
   
   # This method exists to provide an overridable hook for ActionArgs

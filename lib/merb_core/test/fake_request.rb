@@ -38,31 +38,5 @@ module Merb
       }) unless defined?(DEFAULT_ENV)
     end
 
-    module RequestHelper
-    
-      # ==== Parameters
-      # env<Hash>:: A hash of environment keys to be merged into the default list
-      # opt<Hash>:: A hash of options (see below)
-      #
-      # ==== Options (choose one)
-      # :post_body<String>:: The post body for the request
-      # :body<String>:: The body for the request
-      # 
-      # ==== Returns
-      # FakeRequest:: A Request object that is built based on the parameters
-      #
-      # ==== Note
-      # If you pass a post_body, the content-type will be set as URL-encoded
-      def fake_request(env = {}, opt = {})
-        if opt[:post_body]
-          req = opt[:post_body]
-          env.merge!(:content_type => "application/x-www-form-urlencoded")
-        else
-          req = opt[:req] || ""
-        end
-        FakeRequest.new(env, StringIO.new(req))
-      end
-    end
   end
-
 end

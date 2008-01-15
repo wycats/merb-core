@@ -2,10 +2,10 @@ $TESTING=true
 
 require File.join(File.dirname(__FILE__), "..", "lib", "merb")
 require 'merb_core/test/fake_request'
+require 'merb_core/test/request_helper'
 Merb.environment = "test"
 Merb.logger = Merb::Logger.new(Merb.dir_for(:log) / "test_log")
 Merb.logger.level = Merb::Logger.const_get(Merb::Config[:log_level].upcase) rescue Merb::Logger::INFO
-
 
 # -- Global custom matchers --
 
@@ -52,16 +52,17 @@ module Merb
       end
     end
         
-    module Helper; end
+    module Helper
+      def running(&blk) blk; end
+      def executing(&blk) blk; end
+      def doing(&blk) blk; end
+      def calling(&blk) blk; end      
+    end
   end
 end
 
 Spec::Runner.configure do |config|
-  config.include(Merb::Test::Helper)
-  config.include(Merb::Test::RspecMatchers)
-  Spec::Example::ExampleGroup.class_eval do
-    def running(&blk) blk; end
-    def executing(&blk) blk; end
-    def doing(&blk) blk; end    
-  end
+  config.include Merb::Test::Helper
+  config.include Merb::Test::RspecMatchers
+  config.include Merb::Test::RequestHelper  
 end

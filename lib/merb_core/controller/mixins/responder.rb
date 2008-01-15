@@ -231,7 +231,7 @@ module Merb
           raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
         end
         formats.each do |fmt|
-          self._provided_formats << fmt unless provided_formats.include?(fmt)
+          _provided_formats << fmt unless _provided_formats.include?(fmt)
         end
       end
 

@@ -2,6 +2,10 @@ require File.join(File.dirname(__FILE__), "spec_helper")
 
 describe Merb::AbstractController, " rendering plain strings" do
 
+  before do
+    Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layouts")
+  end
+
   it "should support rendering plain strings with no layout" do
     dispatch_should_make_body("TestRenderString", "index")
   end
@@ -27,6 +31,10 @@ describe Merb::AbstractController, " rendering plain strings" do
 end
 
 describe Merb::AbstractController, " rendering templates" do
+
+  before do
+    Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layouts")
+  end
 
   it "should support rendering templates with no layout" do
     dispatch_should_make_body("TestRenderTemplate", "index")

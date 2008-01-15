@@ -1,9 +1,9 @@
 module Merb::Test::Fixtures
-  class Testing < Merb::AbstractController
+  class AbstractTesting < Merb::AbstractController
     self._template_root = File.dirname(__FILE__) / "views"
   end
 
-  class TestRenderString < Testing
+  class TestRenderString < AbstractTesting
     def index
       render "index"
     end
@@ -17,7 +17,7 @@ module Merb::Test::Fixtures
 
   class TestRenderStringControllerLayout < TestRenderString;  end
   
-  class TestRenderTemplate < Testing
+  class TestRenderTemplate < AbstractTesting
     def index
       render
     end

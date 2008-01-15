@@ -4,11 +4,11 @@
 # and that other features (or lack thereof), are not causing tests to fail
 # that would otherwise pass.
 module Merb::Test::Fixtures
-  class Testing < Merb::AbstractController
+  class AbstractTesting < Merb::AbstractController
     self._template_root = File.dirname(__FILE__) / "views"
   end
   
-  class TestBeforeFilter < Testing
+  class TestBeforeFilter < AbstractTesting
     before :foo
 
     def index
@@ -21,7 +21,7 @@ module Merb::Test::Fixtures
     end    
   end
 
-  class TestAfterFilter < Testing
+  class TestAfterFilter < AbstractTesting
     after :foo
 
     def index
@@ -30,7 +30,7 @@ module Merb::Test::Fixtures
       
     private
     def foo
-      @_body = "foo filter"
+      @body = "foo filter"
     end        
   end
 
@@ -60,11 +60,11 @@ module Merb::Test::Fixtures
     
     private
     def bar
-      @_body = "bar filter"
+      @body = "bar filter"
     end
   end
   
-  class TestProcFilter < Testing
+  class TestProcFilter < AbstractTesting
     before { @x = "proc filter1" }
     before Proc.new { @y = "proc filter2" }
     
@@ -73,7 +73,7 @@ module Merb::Test::Fixtures
     end
   end
   
-  class TestExcludeFilter < Testing
+  class TestExcludeFilter < AbstractTesting
     before :foo, :exclude => :index
     before :bar, :exclude => [:index]
     
@@ -95,7 +95,7 @@ module Merb::Test::Fixtures
     end
   end
   
-  class TestOnlyFilter < Testing
+  class TestOnlyFilter < AbstractTesting
     before :foo, :only => :index
     before :bar, :only => [:index]
     
