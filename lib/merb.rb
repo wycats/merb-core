@@ -5,6 +5,7 @@ require 'rubygems'
 require 'set'
 require 'fileutils'
 require "assistance"
+require 'socket'
 
 $LOAD_PATH.push File.dirname(__FILE__) unless 
   $LOAD_PATH.include?(File.dirname(__FILE__)) || 
@@ -15,7 +16,7 @@ require 'merb_core/core_ext'
 require 'merb_core/gem_ext/erubis'
 require 'merb_core/logger'
 require 'merb_core/version'
-
+require 'merb_core/controller/mime'
 
 module Merb
   class << self
@@ -23,9 +24,11 @@ module Merb
     def start(argv=ARGV)
       Merb::Config.parse_args(argv)
       BootLoader.run
-      puts "loaded"
       case Merb::Config[:adapter]
       when "mongrel"
+        adapter = Merb::Rack::Mongrel
+      when "emongrel"
+        require 'merb_core/rack/adapter/evented_mongrel'        
         adapter = Merb::Rack::Mongrel
       when "webrick"
         adapter = Merb::Rack::WEBrick
@@ -36,7 +39,7 @@ module Merb
       when "irb"
         adapter = Merb::Rack::Irb        
       else
-        adapter = Merb::Rack.const_get(adapter.capitalize)
+        adapter = Merb::Rack.const_get(Merb::Config[:adapter].capitalize)
       end    
       adapter.start_server(Merb::Config[:host], Merb::Config[:port])
     end

@@ -33,10 +33,10 @@ class Merb::Dispatcher
 
     # this is the custom dispatch_exception; it allows failures to still be dispatched
     # to the error controller
-    rescue => exception
-      Merb.logger.error(Merb.exception(exception))
-      exception = controller_exception(exception)
-      dispatch_exception(request, response, exception)
+    # rescue => exception
+    #   Merb.logger.error(Merb.exception(exception))
+    #   exception = controller_exception(exception)
+    #   dispatch_exception(request, response, exception)
     end
     
     private
@@ -49,10 +49,10 @@ class Merb::Dispatcher
     def dispatch_action(klass, action, request, response, status=200)
       # build controller
       controller = klass.build(request, response, status)
-      if @@use_mutex
-        @@mutex.synchronize { controller.dispatch(action) }
+      if use_mutex
+        @@mutex.synchronize { controller._dispatch(action) }
       else
-        controller.dispatch(action)
+        controller._dispatch(action)
       end
       [controller, action]
     end

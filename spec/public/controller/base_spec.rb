@@ -10,11 +10,11 @@ describe Merb::Controller, " callable actions" do
   end
   
   it "should dispatch to callable actions" do
-    dispatch_to(Merb::Test::Fixtures::TestFoo, :index).body.should == "index"
+    dispatch_to(Merb::Test::Fixtures::TestBase, :index).body.should == "index"
   end
 
   it "should not dispatch to hidden actions" do
-    calling { dispatch_to(Merb::Test::Fixtures::TestFoo, :hidden) }.
+    calling { dispatch_to(Merb::Test::Fixtures::TestBase, :hidden) }.
       should raise_error(Merb::ControllerExceptions::ActionNotFound)
   end
     
