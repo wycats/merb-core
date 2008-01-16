@@ -47,8 +47,8 @@ describe Merb::AbstractController, " should support before and after filters" do
   end
   
   it "should throw an error if both :exclude and :only are passed to a filter" do
-    running { Merb::Test::Fixtures.class_eval do
-      class TestErrorFilter < Merb::Test::Fixtures::AbstractTesting
+    running { Merb::Test::Fixtures::Abstract.class_eval do
+      class TestErrorFilter < Merb::Test::Fixtures::Abstract::Testing
         before :foo, :only => :index, :exclude => :show
       end 
     end }.should raise_error(ArgumentError, /either :only or :exclude/)

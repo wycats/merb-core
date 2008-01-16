@@ -4,7 +4,6 @@
 require 'rubygems'
 require 'set'
 require 'fileutils'
-# require "assistance"
 require 'socket'
 
 $LOAD_PATH.push File.dirname(__FILE__) unless 

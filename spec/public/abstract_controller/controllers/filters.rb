@@ -4,117 +4,118 @@
 # and that other features (or lack thereof), are not causing tests to fail
 # that would otherwise pass.
 module Merb::Test::Fixtures
-  class AbstractTesting < Merb::AbstractController
-    self._template_root = File.dirname(__FILE__) / "views"
-  end
-  
-  class TestBeforeFilter < AbstractTesting
-    before :foo
-
-    def index
-      "#{@x}"
+  module Abstract
+    class Testing < Merb::AbstractController
+      self._template_root = File.dirname(__FILE__) / "views"
     end
+  
+    class TestBeforeFilter < Testing
+      before :foo
+
+      def index
+        "#{@x}"
+      end
       
-    private
-    def foo
-      @x = "foo filter"
-    end    
-  end
-
-  class TestAfterFilter < AbstractTesting
-    after :foo
-
-    def index
-      "index action"
+      private
+      def foo
+        @x = "foo filter"
+      end    
     end
+
+    class TestAfterFilter < Testing
+      after :foo
+
+      def index
+        "index action"
+      end
       
-    private
-    def foo
-      @body = "foo filter"
-    end        
-  end
+      private
+      def foo
+        @body = "foo filter"
+      end        
+    end
 
-  class TestSkipFilter < TestBeforeFilter
-    skip_before :foo
-  end
+    class TestSkipFilter < TestBeforeFilter
+      skip_before :foo
+    end
   
-  class TestBeforeFilterOrder < TestBeforeFilter
-    before :bar
+    class TestBeforeFilterOrder < TestBeforeFilter
+      before :bar
     
-    def index
-      "#{@x}"
-    end
+      def index
+        "#{@x}"
+      end
     
-    private
-    def bar
-      @x = "bar filter"
+      private
+      def bar
+        @x = "bar filter"
+      end
     end
-  end
   
-  class TestAfterFilterOrder < TestAfterFilter
-    after :bar
+    class TestAfterFilterOrder < TestAfterFilter
+      after :bar
     
-    def index
-      "index action"
-    end
+      def index
+        "index action"
+      end
     
-    private
-    def bar
-      @body = "bar filter"
+      private
+      def bar
+        @body = "bar filter"
+      end
     end
-  end
   
-  class TestProcFilter < AbstractTesting
-    before { @x = "proc filter1" }
-    before Proc.new { @y = "proc filter2" }
+    class TestProcFilter < Testing
+      before { @x = "proc filter1" }
+      before Proc.new { @y = "proc filter2" }
     
-    def index
-      "#{@x} #{@y}"
+      def index
+        "#{@x} #{@y}"
+      end
     end
-  end
   
-  class TestExcludeFilter < AbstractTesting
-    before :foo, :exclude => :index
-    before :bar, :exclude => [:index]
+    class TestExcludeFilter < Testing
+      before :foo, :exclude => :index
+      before :bar, :exclude => [:index]
     
-    def index
-      "#{@x} #{@y}"
-    end
+      def index
+        "#{@x} #{@y}"
+      end
     
-    def show
-      "#{@x} #{@y}"
-    end
+      def show
+        "#{@x} #{@y}"
+      end
     
-    private
-    def foo
-      @x = "foo filter"
-    end
+      private
+      def foo
+        @x = "foo filter"
+      end
     
-    def bar
-      @y = "bar filter"
+      def bar
+        @y = "bar filter"
+      end
     end
-  end
   
-  class TestOnlyFilter < AbstractTesting
-    before :foo, :only => :index
-    before :bar, :only => [:index]
+    class TestOnlyFilter < Testing
+      before :foo, :only => :index
+      before :bar, :only => [:index]
     
-    def index
-      "#{@x} #{@y}"
-    end
+      def index
+        "#{@x} #{@y}"
+      end
     
-    def show
-      "#{@x} #{@y}"
-    end
+      def show
+        "#{@x} #{@y}"
+      end
     
-    private
-    def foo
-      @x = "foo filter"
-    end
+      private
+      def foo
+        @x = "foo filter"
+      end
     
-    def bar
-      @y = "bar filter"
-    end
-  end  
-    
+      def bar
+        @y = "bar filter"
+      end
+    end  
+  end
 end

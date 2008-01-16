@@ -1,3 +1,4 @@
+gem "mongrel"
 require 'mongrel'
 require 'rack/handler/mongrel'
 

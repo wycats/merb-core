@@ -7,24 +7,24 @@ describe Merb::AbstractController, " rendering plain strings" do
   end
 
   it "should support rendering plain strings with no layout" do
-    dispatch_should_make_body("TestRenderString", "index")
+    dispatch_should_make_body("RenderString", "index")
   end
 
   it "should support rendering plain strings with custom layouts" do
-    dispatch_should_make_body("TestRenderStringCustomLayout", "Custom: index")
+    dispatch_should_make_body("RenderStringCustomLayout", "Custom: index")
   end
 
   it "should support rendering plain strings with the application layout" do
     layout_path = Merb.dir_for(:layout)
     Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layout_test")
-    dispatch_should_make_body("TestRenderStringAppLayout", "App: index")
+    dispatch_should_make_body("RenderStringAppLayout", "App: index")
     Merb.push_path(:layout, layout_path)    
   end
   
   it "should support rendering plain strings with the controller layout" do
     layout_path = Merb.dir_for(:layout)
     Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layout_test")
-    dispatch_should_make_body("TestRenderStringControllerLayout", "Controller: index")
+    dispatch_should_make_body("RenderStringControllerLayout", "Controller: index")
     Merb.push_path(:layout, layout_path)
   end
 
@@ -37,24 +37,24 @@ describe Merb::AbstractController, " rendering templates" do
   end
 
   it "should support rendering templates with no layout" do
-    dispatch_should_make_body("TestRenderTemplate", "index")
+    dispatch_should_make_body("RenderTemplate", "index")
   end
 
   it "should support rendering templates with custom layouts" do
-    dispatch_should_make_body("TestRenderStringCustomLayout", "Custom: index")
+    dispatch_should_make_body("RenderStringCustomLayout", "Custom: index")
   end
   
   it "should support rendering templates with the application layout" do
     layout_path = Merb.dir_for(:layout)
     Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layout_test")
-    dispatch_should_make_body("TestRenderTemplateAppLayout", "App: index")
+    dispatch_should_make_body("RenderTemplateAppLayout", "App: index")
     Merb.push_path(:layout, layout_path)    
   end
   
   it "should support rendering plain strings with the controller layout" do
     layout_path = Merb.dir_for(:layout)
     Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layout_test")
-    dispatch_should_make_body("TestRenderTemplateControllerLayout", "Controller: index")
+    dispatch_should_make_body("RenderTemplateControllerLayout", "Controller: index")
     Merb.push_path(:layout, layout_path)
   end
 
