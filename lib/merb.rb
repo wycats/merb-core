@@ -31,8 +31,6 @@ module Merb
         adapter = Merb::Rack::WEBrick
       when "fastcgi","fcgi"
         adapter = Merb::Rack::FastCGI
-      when "fcgi"
-        adapter = Merb::Rack::FastCGI  
       when "thin"
         adapter = Merb::Rack::Thin
       when "irb"
