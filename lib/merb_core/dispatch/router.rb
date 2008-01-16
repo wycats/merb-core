@@ -160,13 +160,9 @@ module Merb
         cond = []
         condition_string = proc do |key, value, regexp_string|
           max = Behavior.count_parens_up_to(value.source, value.source.size)
-          captures = if max == 0 then "" else
-            " && (" +
-              (1..max).to_a.map{ |n| "#{key}#{n}" }.join(", ") + " = " +
-              (1..max).to_a.map{ |n| "$#{n}"}.join(", ") +
-            ")"
-          end
-          "    (#{value.inspect} =~ #{regexp_string}" + captures + ")"
+          captures = max == 0 ? "" : (1..max).to_a.map{ |n| "#{key}#{n}" }.join(", ") + " = " +
+                                     (1..max).to_a.map{ |n| "$#{n}"}.join(", ")
+          "    #{value.inspect} =~ #{regexp_string}\n      #{captures}"
         end
         @conditions.each_pair do |key, value|
           

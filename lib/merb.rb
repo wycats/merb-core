@@ -4,7 +4,7 @@
 require 'rubygems'
 require 'set'
 require 'fileutils'
-require "assistance"
+# require "assistance"
 require 'socket'
 
 $LOAD_PATH.push File.dirname(__FILE__) unless 
@@ -41,7 +41,7 @@ module Merb
       else
         adapter = Merb::Rack.const_get(Merb::Config[:adapter].capitalize)
       end    
-      adapter.start_server(Merb::Config[:host], Merb::Config[:port])
+      adapter.start_server(Merb::Config[:host], Merb::Config[:port].to_i)
     end
     
     attr_accessor :environment, :load_paths

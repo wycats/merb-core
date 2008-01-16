@@ -24,7 +24,7 @@ require "lib/merb_core/version"
 ##############################################################################
 CLEAN.include ["**/.*.sw?", "*.gem", ".config"]
 
-windows = (PLATFORM =~ /win32|cygwin/)
+windows = (PLATFORM =~ /win32|cygwin/) rescue nil
 
 SUDO = windows ? "" : "sudo"
 
@@ -55,15 +55,14 @@ spec = Gem::Specification.new do |s|
   #s.rdoc_options     += RDOC_OPTS + ["--exclude", "^(app|uploads)"]
 
   # Dependencies
-  s.add_dependency "mongrel"
   s.add_dependency "erubis"
   s.add_dependency "mime-types"
   s.add_dependency "rubigen"
   s.add_dependency "rake"
-  s.add_dependency "ruby2ruby"
   s.add_dependency "json_pure"
-  s.add_dependency "assistance"
-  s.add_dependency "rspec"  
+  # s.add_dependency "assistance"
+  s.add_dependency "rspec"
+  s.add_dependency "rack"  
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
   s.required_ruby_version = ">= 1.8.4"
@@ -76,6 +75,11 @@ end
 desc "Run :package and install the resulting .gem"
 task :install => :package do
   sh %{#{SUDO} gem install pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+end
+
+desc "Run :package and install the resulting .gem with jruby"
+task :jinstall => :package do
+  sh %{#{SUDO} jruby -S gem install pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :clean and uninstall the .gem"

@@ -26,8 +26,6 @@ class Autotest::MerbsourceRspec < Autotest
     %w{.git}.each {|exception| at.exceptions.push exception}
   end
   
-  require 'ruby-debug'  
-
   Autotest.add_hook :run do |at|
     # See above for human-readable descriptions of these rules
       # 1 above

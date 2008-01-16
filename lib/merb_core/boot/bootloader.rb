@@ -190,7 +190,7 @@ class Merb::BootLoader::Libraries < Merb::BootLoader
     require first
   rescue LoadError
     raise LoadError if rest.empty?
-    require_first_working rest.unshift, *rest
+    require_first_working rest.shift, *rest
   end
 end
 

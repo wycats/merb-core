@@ -1,5 +1,4 @@
 __DIR__ = File.dirname(__FILE__)
-require 'ruby-debug'
 
 require File.join(__DIR__, "..", "..", "spec_helper")
 

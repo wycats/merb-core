@@ -46,9 +46,9 @@ module Kernel
   def dependencies(*args)
     args.each do |arg|
       case arg
-        when String : dependency(arg)
-        when Hash   : arg.each { |r,v| dependency(r, v) }
-        when Array  : arg.each { |r|   dependency(r)    }
+      when String then dependency(arg)
+      when Hash   then arg.each { |r,v| dependency(r, v) }
+      when Array  then arg.each { |r|   dependency(r)    }
       end
     end
   end
