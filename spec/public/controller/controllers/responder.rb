@@ -1,4 +1,4 @@
-module Merb::Test::Fixtures::Controller
+module Merb::Test::Fixtures::Controllers
   class Testing < Merb::Controller
     self._template_root = File.dirname(__FILE__) / "views"
   end
