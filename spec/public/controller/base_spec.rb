@@ -17,5 +17,25 @@ describe Merb::Controller, " callable actions" do
     calling { dispatch_to(Merb::Test::Fixtures::Controllers::Base, :hidden) }.
       should raise_error(Merb::ControllerExceptions::ActionNotFound)
   end
+  
+  it "should support hooks before dispatch with a proc" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::BeforeHook, :index)
+    controller.body.should == "Proc"
+  end
+
+  it "should support hooks before dispatch with a symbol (and inherit)" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::BeforeHookSymbol, :index)
+    controller.body.should == "Proc Symbol"
+  end
+  
+  it "should support hooks after dispatch with a proc" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::AfterHook, :index)
+    controller.body.should == "Proc"
+  end
+
+  it "should support hooks after dispatch with a symbol (and inherit)" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::AfterHookSymbol, :index)
+    controller.body.should == "Proc Symbol"
+  end
     
 end

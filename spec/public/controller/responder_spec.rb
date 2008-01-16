@@ -22,10 +22,10 @@ describe Merb::Controller, " responds" do
     calling { dispatch_to(Merb::Test::Fixtures::Controllers::ClassProvides, :index, {}, :http_accept => "application/json") }.
       should raise_error(Merb::ControllerExceptions::NotAcceptable)
   end
-  
+
   it "should use mime-types that are provided at the local level" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::LocalProvides, :index, {}, :http_accept => "application/xml")
     controller.body.should == "<XML:Local provides='true' />"    
   end
-    
+
 end
