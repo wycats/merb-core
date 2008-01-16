@@ -114,49 +114,7 @@ module Merb
 
 
            opts.on("-i", "--irb-console", "This flag will start merb in irb console mode. All your models and other classes will be available for you in an irb session.") do |console|
-             ::Merb::BootLoader.initialize_merb
-             _merb = Class.new do
-               class << self
-                 include Merb::GeneralControllerMixin
-                 def params() {} end
-               end  
-               def self.show_routes(all_opts = false)
-                 seen = []
-                 unless Merb::Router.named_routes.empty?
-                   puts "Named Routes"
-                   Merb::Router.named_routes.each do |name,route|
-                     puts "  #{name}: #{route}"
-                     seen << route
-                   end
-                 end
-                 puts "Anonymous Routes"
-                 (Merb::Router.routes - seen).each do |route|
-                   puts "  #{route}"
-                 end
-                 nil
-               end
-             end
-
-             Object.send(:define_method, :merb) {
-               _merb
-             }  
-             ARGV.clear # Avoid passing args to IRB 
-             require 'irb' 
-             require 'irb/completion' 
-             def exit
-               exit!
-             end   
-             if File.exists? ".irbrc"
-               ENV['IRBRC'] = ".irbrc"
-             end
-             IRB.start
-             exit!
-           end
-
-           opts.on("-s", "--start-drb PORTNUM", "This is the port number to run the drb daemon on for sessions and upload progress monitoring.") do |drb_port|
-             puts "Starting merb drb server on port: #{Merb::Config[:drb_server_port]}"
-             Merb::Server.start(drb_port, :drbserver_start)
-             exit if Merb::Config[:only_drb]
+              options[:adapter] = 'irb'
            end
 
            opts.on("-l", "--log-level LEVEL", "Log levels can be set to any of these options: DEBUG < INFO < WARN < ERROR < FATAL < UNKNOWN") do |loglevel|
@@ -198,17 +156,6 @@ module Merb
              options[:merb_config] = config
            end
 
-           opts.on("-w", "--webrick", "Run merb using Webrick Rack Adapter instead of mongrel.") do |webport|
-             puts "Starting merb webrick server on port: #{Merb::Config[:port]}"
-             trap('TERM') { exit }
-             Merb::Server.webrick_start(Merb::Config[:port])
-           end
-
-           opts.on("-F", "--fastcgi", "Run merb using FastCGI Rack Adapter instead of mongrel.") do
-             trap('TERM') { exit }
-             Merb::Server.fastcgi_start
-           end
-
            opts.on("-X", "--mutex on/off", "This flag is for turning the mutex lock on and off.") do |mutex|
              if mutex == 'off'
                options[:use_mutex] = false
@@ -233,14 +180,6 @@ module Merb
              puts opts  
              exit
            end
-         end
-
-         # If we run merb with no arguments and we are not inside a merb root
-         # show the help message
-         if !defined?(Merb.framework_root) && (argv.size == 0) && !File.exists?("#{options[:merb_root] || Merb::Config.defaults[:merb_root]}/config/merb_init.rb") 
-           puts "You are not in the root of a merb application...\n"
-           puts opts 
-           exit 
          end
 
          # Parse what we have on the command line
