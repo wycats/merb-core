@@ -1,21 +1,21 @@
-module Merb::Test::Fixtures
-  class ControllerTesting < Merb::Controller
+module Merb::Test::Fixtures::Controller
+  class Testing < Merb::Controller
     self._template_root = File.dirname(__FILE__) / "views"
   end
   
-  class TestResponder < ControllerTesting
+  class Responder < Testing
     def index
       render
     end
   end
   
-  class TestHtmlDefault < TestResponder; end
+  class HtmlDefault < Responder; end
   
-  class TestClassProvides < TestResponder; 
+  class ClassProvides < Responder; 
     provides :xml
   end
   
-  class TestLocalProvides < TestResponder; 
+  class LocalProvides < Responder; 
     def index
       provides :xml
       render

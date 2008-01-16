@@ -45,7 +45,7 @@ spec = Gem::Specification.new do |s|
   s.summary      = "Merb == Mongrel + Erb. Pocket rocket web framework."
   s.bindir       = "bin"
   s.description  = s.summary
-  s.executables  = %w( merb )
+  s.executables  = %w( merb.9 )
   s.require_path = "lib"
   s.files        = %w( LICENSE README Rakefile TODO ) + Dir["{bin,spec,lib,examples,app_generators,merb_generators,merb_default_generators,rspec_generators,test_unit_generators,script}/**/*"]
 

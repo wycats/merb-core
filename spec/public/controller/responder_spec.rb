@@ -10,7 +10,7 @@ describe Merb::Controller, " responds" do
   end
   
   it "should default the mime-type to HTML" do
-    dispatch_to(Merb::Test::Fixtures::TestHtmlDefault, :index).body.should == "HTML: Default"
+    dispatch_to(Merb::Test::Fixtures::Controller::HtmlDefault, :index).body.should == "HTML: Default"
   end
 
   it "should use other mime-types if they are provided on the class level" do
@@ -19,12 +19,12 @@ describe Merb::Controller, " responds" do
   end
 
   it "should fail if none of the acceptable mime-types are available" do
-    calling { dispatch_to(Merb::Test::Fixtures::TestClassProvides, :index, {}, :http_accept => "application/json") }.
+    calling { dispatch_to(Merb::Test::Fixtures::ClassProvides, :index, {}, :http_accept => "application/json") }.
       should raise_error(Merb::ControllerExceptions::NotAcceptable)
   end
   
   it "should use mime-types that are provided at the local level" do
-    controller = dispatch_to(Merb::Test::Fixtures::TestLocalProvides, :index, {}, :http_accept => "application/xml")
+    controller = dispatch_to(Merb::Test::Fixtures::LocalProvides, :index, {}, :http_accept => "application/xml")
     controller.body.should == "<XML:Local provides='true' />"    
   end
     
