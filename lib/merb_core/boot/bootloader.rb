@@ -48,6 +48,11 @@ class Merb::BootLoader::LoadInit < Merb::BootLoader
     elsif File.exists?(Merb.root / "application.rb")
       require Merb.root / "application"
     end
+    if File.exists?(Merb.root / "router.rb")
+      require Merb.root / "router"
+    elsif File.exists?(Merb.root / "config" / "router.rb")
+      require Merb.root / "config" / "router.rb"
+    end
   end
 end
 

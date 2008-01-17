@@ -1,0 +1,82 @@
+---
+# Hostname or IP address to bind to. 
+:host: 0.0.0.0
+
+# Port merb runs on or starting port for merb cluster.
+:port: "4000"
+
+# Set if your app will be hosted in some dir other than the root
+#:path_prefix: "/my_app"
+
+# In development mode your app's files are reloaded whenever Merb detects a
+# change. Templates are parsed each time and not cached.  In production mode
+# templates are cached, as well as all your classes
+:environment: development
+
+# Uncomment if you have more than one ORM or if you need to be specific about
+# which memory store to use. Built-in options are: memory, cookie, or mem_cache
+#:session_store: sequel
+
+#:memory_session_ttl: 3600 # one hour
+
+# A secret key is required when using the 'cookie' session store (default), 
+# change this value to something unique to your application and keep it private
+:session_secret_key: /USERS/EZ/MERB-CORE/SAMPLE/MERB052APP4508
+
+# Uncomment to use the merb upload progress. The 'path match' will be treated as
+# a regex for any URLs that should be considered for upload monitoring.
+#:upload_path_match: /files/\d
+#:upload_frequency: 3
+
+# Uncomment to cache templates in dev mode. Templates are cached
+# automatically in production mode.
+#:cache_templates: true
+
+# Uncomment to bundle assets in dev mode. Assets are automatically bundled in
+# production mode.
+#:bundle_assets: true
+
+# this is true if you want mongrel to emulate the X-Sendfile header internally,
+# false if you want it to fall thru to apache or whatever front end server you use.
+# true by default
+#:mongrel_x_sendfile: false
+
+# Uncomment and set this if you want to run a drb server for upload progress
+# or other drb services.
+#:start_drb: true
+#:drb_server_port: 32323
+
+# If you want to protect some or all of your app with  HTTP basic auth then
+# uncomment the following and fill in your credentials you want it to use.
+# You will then need to set a 'before' filter in a controller.  For example:
+#   before :basic_authentication
+#:basic_auth: 
+#  :username: ezra
+#  :password: test
+#  :domain: localhost
+
+# Uncomment this if you want merb to daemonize when you start it. You can also
+# just use merb -d for the same effect. Don't uncomment this if you use the
+# cluster option.
+#:daemonize: true
+
+# Uncomment this to set the number of members in your merb cluster. Don't set
+# this and :daemonize: at the same time.
+#:cluster: 3
+
+# Uncomment this if you want to force merb to show full InternalServerError
+# details, even when in production mode
+#:exception_details: true
+
+# It is often useful to use a differant layout from 'application' for errors
+# set this to the layout template (or :none) that you want to use by default
+#:exception_layout: :none
+
+# You can override settings for specific environments by creating a yaml
+# file for that environment in config/environments.  For example, to
+# change the configuration only for development create
+# config/environments/development.yml
+
+# If you don't intend to parse JSON, use ActiveSupport, or want to roll your own
+# set this to true, to disable the loading of the JSON gem
+# :disable_json_gem: true

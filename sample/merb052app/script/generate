@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+APP_ROOT = File.join(File.dirname(__FILE__), '..')
+
+# required to overcome a callback in rspec
+def at_exit
+end
+
+begin
+  require 'rubigen'
+rescue LoadError
+  require 'rubygems'
+  require 'rubigen'
+end
+
+require File.join(File.dirname(__FILE__), "..", 'config', 'boot')
+require File.join(Merb.root, 'config', 'dependencies')
+module Kernel
+  undef dependency if defined?(Kernel.dependency)
+end
+
+# Make the App's local gems available
+Gem.clear_paths
+Gem.path.unshift(APP_ROOT / "gems")
+
+require 'rubigen/scripts/generate'
+
+ARGV.shift if ['--help', '-h'].include?(ARGV[0])
+
+# Default is to use rspec generators in gems.  To change this to
+# Test::Unit use [:merb, :test_unit]
+RubiGen::Base.use_component_sources! Merb::GENERATOR_SCOPE
+RubiGen::Scripts::Generate.new.run(ARGV)
