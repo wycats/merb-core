@@ -77,8 +77,8 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
       end
       Merb.push_path(:application,    Merb.root_path("app/controllers/application.rb"))
-      Merb.push_path(:config,         Merb.root_path("config/router.rb"))
-      Merb.push_path(:lib,            Merb.root_path("lib"))    
+      Merb.push_path(:config,         Merb.root_path("config"), "*.rb")
+      Merb.push_path(:lib,            Merb.root_path("lib"), nil)
     end
   end
 end
@@ -94,9 +94,9 @@ class Merb::BootLoader::LoadPaths < Merb::BootLoader
       $LOAD_PATH.unshift Merb.load_paths[:lib].first        if Merb.load_paths[:lib]
     
       # Require all the files in the registered load paths
-      puts Merb.load_paths.inspect
       Merb.load_paths.each do |name, path|
-        Dir[path.first / path.last].each do |file| 
+        next unless path.last
+        Dir[path.first / path.last].each do |file|
           klasses = ObjectSpace.classes.dup
           require file
           LOADED_CLASSES[file] = ObjectSpace.classes - klasses
@@ -186,7 +186,6 @@ class Merb::BootLoader::Libraries < Merb::BootLoader
   end
 
   def self.require_first_working(first, *rest)
-    p first, rest
     require first
   rescue LoadError
     raise LoadError if rest.empty?

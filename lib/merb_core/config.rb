@@ -37,17 +37,23 @@ module Merb
         @configuration.to_yaml  
       end
       
-      def setup(global_merb_yml = nil)
-        @configuration ||= {}
+      def setup(settings = nil)
         if FileTest.exist? "#{defaults[:merb_root]}/framework"
           $LOAD_PATH.unshift( "#{defaults[:merb_root]}/framework" )
         end
-        global_merb_yml ||= "#{defaults[:merb_root]}/config/merb.yml"
-        apply_configuration_from_file defaults, global_merb_yml
+
+        return @configuration = 
+        if settings
+          defaults.merge(settings)
+        elsif File.exists?("#{defaults[:merb_root]}/config/merb.yml")
+          defaults.merge(YAML.load_file("#{defaults[:merb_root]}/config/merb.yml"))
+        else
+          defaults.dup
+        end
       end
 
       def apply_configuration_from_file(configuration, file)
-        if File.exists?(file)
+        if file && File.exists?(file)
           configuration.merge(Erubis.load_yaml_file(file))
         else
           configuration
