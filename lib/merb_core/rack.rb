@@ -2,10 +2,12 @@ require 'rack'
 module Merb
   module Rack
     autoload :Adapter,      "merb_core/rack/adapter"
+    autoload :FastCGI,      "merb_core/rack/adapter/fcgi"
+    autoload :Irb,          "merb_core/rack/adapter/irb"
     autoload :Mongrel,      "merb_core/rack/adapter/mongrel"
     autoload :Thin,         "merb_core/rack/adapter/thin"
     autoload :WEBrick,      "merb_core/rack/adapter/webrick"
-    autoload :FastCGI,      "merb_core/rack/adapter/fcgi"
+
     class RequestWrapper
       def initialize(env)
         @env = env
