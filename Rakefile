@@ -123,10 +123,24 @@ end
 desc "Run :specs, :rcov"
 task :aok => [:specs, :rcov]
 
+# desc "Run all specs"
+# Spec::Rake::SpecTask.new("specs") do |t|
+#   t.spec_opts = ["--format", "specdoc", "--colour"]
+#   t.spec_files = Dir["spec/**/*_spec.rb"].sort
+# end
+
 desc "Run all specs"
-Spec::Rake::SpecTask.new("specs") do |t|
-  t.spec_opts = ["--format", "specdoc", "--colour"]
-  t.spec_files = Dir["spec/**/*_spec.rb"].sort
+task :specs do
+  examples, failures, pending = 0, 0, 0
+  Dir["spec/**/*_spec.rb"].each do |spec|
+    response = `spec #{File.expand_path(spec)} -f s -c`
+    e, f, p = response.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) pending?)?/)[1..-1]
+    examples += e.to_i; failures += f.to_i; pending += p.to_i
+    puts response
+  end
+  puts
+  puts "*** TOTALS ***"
+  puts "#{examples} examples, #{failures} failures#{ ", #{pending} pending" if pending}"
 end
 
 desc "Run a specific spec with TASK=xxxx"
