@@ -89,9 +89,9 @@ class Merb::BootLoader::LoadPaths < Merb::BootLoader
   class << self
     def run
       # Add models, controllers, and lib to the load path
-      $LOAD_PATH.unshift Merb.load_paths[:model].first      if Merb.load_paths[:model]
-      $LOAD_PATH.unshift Merb.load_paths[:controller].first if Merb.load_paths[:controller]
-      $LOAD_PATH.unshift Merb.load_paths[:lib].first        if Merb.load_paths[:lib]
+      $LOAD_PATH.unshift Merb.dir_for(:model)      if Merb.load_paths[:model]
+      $LOAD_PATH.unshift Merb.dir_for(:controller) if Merb.load_paths[:controller]
+      $LOAD_PATH.unshift Merb.dir_for(:lib)        if Merb.load_paths[:lib]
     
       # Require all the files in the registered load paths
       Merb.load_paths.each do |name, path|
