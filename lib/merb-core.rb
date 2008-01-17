@@ -10,13 +10,13 @@ $LOAD_PATH.push File.dirname(__FILE__) unless
   $LOAD_PATH.include?(File.dirname(__FILE__)) || 
   $LOAD_PATH.include?(File.expand_path(File.dirname(__FILE__)))
 
-require 'merb_core/autoload'
-require 'merb_core/core_ext'
-require 'merb_core/gem_ext/erubis'
-require 'merb_core/logger'
-require 'merb_core/version'
-require 'merb_core/controller/mime'
-require 'merb_core/vendor/facets/inflect'
+require 'merb-core/autoload'
+require 'merb-core/core_ext'
+require 'merb-core/gem_ext/erubis'
+require 'merb-core/logger'
+require 'merb-core/version'
+require 'merb-core/controller/mime'
+require 'merb-core/vendor/facets/inflect'
 
 module Merb
   class << self
@@ -28,7 +28,7 @@ module Merb
       when "mongrel"
         adapter = Merb::Rack::Mongrel
       when "emongrel"
-        require 'merb_core/rack/adapter/evented_mongrel'        
+        require 'merb-core/rack/adapter/evented_mongrel'        
         adapter = Merb::Rack::Mongrel
       when "webrick"
         adapter = Merb::Rack::WEBrickengl

@@ -15,9 +15,9 @@ require __DIR__ + "/tools/annotation_extract"
 
 include FileUtils
 
-NAME = "merb"
+NAME = "merb-core"
 
-require "lib/merb_core/version"
+require "lib/merb-core/version"
 
 ##############################################################################
 # Packaging & Installation

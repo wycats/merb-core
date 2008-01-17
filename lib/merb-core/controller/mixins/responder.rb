@@ -1,5 +1,5 @@
 require 'enumerator'
-require 'merb_core/controller/mime'
+require 'merb-core/controller/mime'
 
 module Merb
   # The ResponderMixin adds methods that help you manage what

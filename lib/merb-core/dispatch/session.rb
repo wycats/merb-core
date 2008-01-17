@@ -21,7 +21,7 @@ module Merb
     module_function :rand_uuid, :needs_new_cookie!
   end
   
-  autoload :CookieSession,    "merb_core/dispatch/session/cookie"
-  autoload :MemCacheSession,  "merb_core/dispatch/session/cookie"            
-  autoload :MemorySession,    "merb_core/dispatch/session/cookie"
+  autoload :CookieSession,    "merb-core/dispatch/session/cookie"
+  autoload :MemCacheSession,  "merb-core/dispatch/session/memcached"            
+  autoload :MemorySession,    "merb-core/dispatch/session/memory"
 end

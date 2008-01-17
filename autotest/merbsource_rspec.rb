@@ -14,7 +14,7 @@ $VERBOSE = false
 # 4. Updating a file under controller/mixins (e.g. render) 
 #    reruns all specs under 
 #    (public|private)/(abstract_controller|controller)/render_spec.rb
-# 5. Updating a file directly under merb_core (e.g. core_ext.rb)
+# 5. Updating a file directly under merb-core (e.g. core_ext.rb)
 #    reruns all the specs under spec/(public|private)/core_ext
 # 6. Updating merb.rb reruns all specs
 
@@ -35,13 +35,13 @@ class Autotest::MerbsourceRspec < Autotest
       at.add_mapping(%r{^spec/(.*)/spec_helper\.rb$}) { |_, m| at.files_matching %r{^spec/#{m[1]}/.*_spec\.rb$} }
 
       # 3 above
-      at.add_mapping(%r{^lib/merb_core/controller/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec\/(public|private)\/#{m[1]}\/.*_spec\.rb} }
+      at.add_mapping(%r{^lib/merb-core/controller/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec\/(public|private)\/#{m[1]}\/.*_spec\.rb} }
 
       # 4 above
-      at.add_mapping(%r{^lib/merb_core/controller/mixins/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec/(public|private)/(abstract_)?controller/#{m[1]}_spec\.rb} }
+      at.add_mapping(%r{^lib/merb-core/controller/mixins/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec/(public|private)/(abstract_)?controller/#{m[1]}_spec\.rb} }
 
       # 5 above
-      at.add_mapping(%r{^lib/merb_core/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec/(public|private)/#{m[1]}/.*_spec\.rb} }
+      at.add_mapping(%r{^lib/merb-core/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec/(public|private)/#{m[1]}/.*_spec\.rb} }
 
       # 6 above
       at.add_mapping(%r{^lib/merb\.rb$}) { at.files_matching %r{^spec/[^/]*_spec\.rb$} }

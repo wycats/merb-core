@@ -1,5 +1,5 @@
 begin
-  require 'merb_core/gem_ext/albino' if Merb.environment != "production"
+  require 'merb-core/gem_ext/albino' if Merb.environment != "production"
 rescue LoadError => ex
 end
 
