@@ -60,7 +60,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "rubigen"
   s.add_dependency "rake"
   s.add_dependency "json_pure"
-  # s.add_dependency "assistance"
+  s.add_dependency "english"
   s.add_dependency "rspec"
   s.add_dependency "rack"  
   # Requirements

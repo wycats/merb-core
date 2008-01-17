@@ -16,6 +16,7 @@ require 'merb_core/gem_ext/erubis'
 require 'merb_core/logger'
 require 'merb_core/version'
 require 'merb_core/controller/mime'
+require 'merb_core/vendor/facets/inflect'
 
 module Merb
   class << self
@@ -30,7 +31,7 @@ module Merb
         require 'merb_core/rack/adapter/evented_mongrel'        
         adapter = Merb::Rack::Mongrel
       when "webrick"
-        adapter = Merb::Rack::WEBrick
+        adapter = Merb::Rack::WEBrickengl
       when "fastcgi","fcgi"
         adapter = Merb::Rack::FastCGI
       when "thin"
