@@ -8,7 +8,7 @@ module Merb::Hook
     # An empty _hooks hash
     def self.extended(mod)
       mod.class_inheritable_accessor :_hooks
-      mod._hooks = Hash.new {|h,k| h[k] = Hash.new{|h,k| h[k] = []}}      
+      mod._hooks = Hash.new {|h,k| h[k] = []}      
     end
     
     # Add a hook to the list of available hooks for the class
@@ -21,7 +21,8 @@ module Merb::Hook
     # ==== Returns
     # Hash{obj => <~to_s, Proc>}:: A Hash of all the registered hooks
     def add_hook(type, obj = nil, &block)
-      self._hooks[type][self] << (obj || block)
+      self._hooks[type] << [self] unless self._hooks[type].assoc(self)
+      self._hooks[type].assoc(self) << (obj || block)
     end
   end
 
@@ -34,7 +35,7 @@ module Merb::Hook
     # ==== Returns
     # Array<(~to_s, Proc)> An array of all the registered hooks.
     def hook(type)
-      self.class._hooks[type].each do |klass, objs| 
+      self.class._hooks[type].each do |klass, *objs| 
         if self.is_a?(klass)
           objs.each {|obj| obj.is_a?(Proc) ? instance_eval(&obj) : send(obj) }
         end

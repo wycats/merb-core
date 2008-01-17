@@ -17,7 +17,7 @@ module Merb::Test::Fixtures::Controllers
   class BeforeHook < Testing
     add_hook(:before_dispatch) do
       @stuff = "Proc"
-    end    
+    end
 
     def index
       @stuff
