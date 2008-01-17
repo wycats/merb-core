@@ -182,6 +182,7 @@ module Merb
            end
          end
 
+         
          # Parse what we have on the command line
          opts.parse!(argv)
 
@@ -204,29 +205,20 @@ module Merb
 
          @configuration = Merb::Config.apply_configuration_from_file options, environment_merb_yml
          
-         # case Merb::Config[:environment].to_s
-         # when 'production'
-         #   Merb::Config[:reloader] = Merb::Config.fetch(:reloader, false)
-         #   Merb::Config[:exception_details] = Merb::Config.fetch(:exception_details, false)
-         #   Merb::Config[:cache_templates] = true
-         # else
-         #   Merb::Config[:reloader] = Merb::Config.fetch(:reloader, true)
-         #   Merb::Config[:exception_details] = Merb::Config.fetch(:exception_details, true)
-         # end
-         # 
-         # Merb::Config[:reloader_time] ||= 0.5 if Merb::Config[:reloader] == true
-         # 
-         # 
-         # if Merb::Config[:reloader]
-         #   Thread.abort_on_exception = true
-         #   Thread.new do
-         #     loop do
-         #       sleep( Merb::Config[:reloader_time] )
-         #       ::Merb::BootLoader.reload if ::Merb::BootLoader.app_loaded?
-         #     end
-         #     Thread.exit
-         #   end
-         # end
+         case Merb::Config[:environment].to_s
+         when 'production'
+           Merb::Config[:reloader] = Merb::Config.fetch(:reloader, false)
+           Merb::Config[:exception_details] = Merb::Config.fetch(:exception_details, false)
+           Merb::Config[:cache_templates] = true
+         else
+           Merb::Config[:reloader] = Merb::Config.fetch(:reloader, true)
+           Merb::Config[:exception_details] = Merb::Config.fetch(:exception_details, true)
+         end
+         
+         Merb.environment = Merb::Config[:environment]
+         Merb.root = Merb::Config[:merb_root]
+         Merb::Config[:reloader_time] ||= 0.5 if Merb::Config[:reloader] == true
+
          @configuration
        end
        

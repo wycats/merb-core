@@ -17,6 +17,7 @@ module Merb
   autoload :SessionMixin,         "merb_core/dispatch/session"
 end
 
+
 # Require this rather than autoloading it so we can be sure the default templater
 # gets registered
 require "merb_core/controller/template"

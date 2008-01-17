@@ -20,9 +20,9 @@ class Merb::Dispatcher
       
       # user friendly error messages
       if request.route_params.empty?
-        raise ControllerExceptions::BadRequest, "No routes match the request"
+        raise ::Merb::ControllerExceptions::BadRequest, "No routes match the request"
       elsif request.controller_name.nil?
-        raise ControllerExceptions::BadRequest, "Route matched, but route did not specify a controller" 
+        raise ::Merb::ControllerExceptions::BadRequest, "Route matched, but route did not specify a controller" 
       end
       
       Merb.logger.debug("Routed to: #{request.route_params.inspect}")
