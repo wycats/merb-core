@@ -193,22 +193,20 @@ module Merb::RenderMixin
   #   raised if no layout was specified, and the default layouts were
   #   not found.
   def _get_layout(layout = nil)
+    layout = _layout.to_s if _layout    
     layout = layout.to_s if layout
-    layout = _layout.to_s if _layout
     
-    # We need to look for layout.html, for instance. You can easily specify
-    # an alternative content_type by simply doing :layout => "foo.json"
-    content_ext = layout && !layout.index(".") && content_type ? ".#{content_type}" : ""
-    
+    template = _template_location(layout, layout.index(".") ? content_type : nil, "layout")
+
     # If a layout was provided, throw an error if it's not found
     if layout
-      Merb::Template.template_for(Merb.dir_for(:layout) / layout) ||
-        (raise TemplateNotFound, "No layout found at #{Merb.dir_for(:layout)}/#{layout}#{content_ext}")
+      Merb::Template.template_for(_template_root / template) ||
+        (raise TemplateNotFound, "No layout found at #{_template_root / template}")
     
     # If a layout was not provided, try the default locations
     else
-      Merb::Template.template_for(Merb.dir_for(:layout) / "#{controller_name}#{content_ext}") ||
-        Merb::Template.template_for(Merb.dir_for(:layout) / "application#{content_ext}")
+      Merb::Template.template_for(_template_root / _template_location(controller_name, content_type, "layout")) ||
+        Merb::Template.template_for(_template_root / _template_location("application", content_type, "layout"))
     end    
   end
   

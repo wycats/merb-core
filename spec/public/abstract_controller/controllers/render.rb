@@ -14,9 +14,13 @@ module Merb::Test::Fixtures
       layout :custom
     end
   
-    class RenderStringAppLayout < RenderString;  end  
+    class RenderStringAppLayout < RenderString
+      self._template_root = File.dirname(__FILE__) / "alt_views"      
+    end  
 
-    class RenderStringControllerLayout < RenderString;  end
+    class RenderStringControllerLayout < RenderString
+      self._template_root = File.dirname(__FILE__) / "alt_views"
+    end
   
     class RenderTemplate < Testing
       def index
@@ -28,8 +32,12 @@ module Merb::Test::Fixtures
       layout :custom
     end
   
-    class RenderTemplateAppLayout < RenderString;  end  
+    class RenderTemplateAppLayout < RenderString
+      self._template_root = File.dirname(__FILE__) / "alt_views"      
+    end  
   
-    class RenderTemplateControllerLayout < RenderString;  end  
+    class RenderTemplateControllerLayout < RenderString
+      self._template_root = File.dirname(__FILE__) / "alt_views"      
+    end  
   end
 end

@@ -15,26 +15,16 @@ describe Merb::AbstractController, " rendering plain strings" do
   end
 
   it "should support rendering plain strings with the application layout" do
-    layout_path = Merb.dir_for(:layout)
-    Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layout_test")
     dispatch_should_make_body("RenderStringAppLayout", "App: index")
-    Merb.push_path(:layout, layout_path)    
   end
   
   it "should support rendering plain strings with the controller layout" do
-    layout_path = Merb.dir_for(:layout)
-    Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layout_test")
     dispatch_should_make_body("RenderStringControllerLayout", "Controller: index")
-    Merb.push_path(:layout, layout_path)
   end
 
 end
 
 describe Merb::AbstractController, " rendering templates" do
-
-  before do
-    Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layouts")
-  end
 
   it "should support rendering templates with no layout" do
     dispatch_should_make_body("RenderTemplate", "index")
@@ -45,17 +35,11 @@ describe Merb::AbstractController, " rendering templates" do
   end
   
   it "should support rendering templates with the application layout" do
-    layout_path = Merb.dir_for(:layout)
-    Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layout_test")
     dispatch_should_make_body("RenderTemplateAppLayout", "App: index")
-    Merb.push_path(:layout, layout_path)    
   end
   
   it "should support rendering plain strings with the controller layout" do
-    layout_path = Merb.dir_for(:layout)
-    Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layout_test")
     dispatch_should_make_body("RenderTemplateControllerLayout", "Controller: index")
-    Merb.push_path(:layout, layout_path)
   end
 
 end
