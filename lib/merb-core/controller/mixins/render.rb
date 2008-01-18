@@ -144,9 +144,10 @@ module Merb::RenderMixin
     if opts[:layout]
       # Look for the layout under the default layout directly. If it's not found, reraise
       # the TemplateNotFound error
-      (layout = Merb::Template.template_for(Merb.dir_for(:layout) / opts[:layout])) ||
-        (raise TemplateNotFound, "No layout found at #{Merb.dir_for(:layout)}/#{layout}")
-        
+      template = _template_location(opts[:layout], layout.index(".") ? content_type : nil, "layout")      
+      layout = Merb::Template.template_for(_template_root / template) ||
+        (raise TemplateNotFound, "No layout found at #{_template_root / template}.*")      
+              
       # If the layout was found, call it
       send(layout)
     
@@ -196,12 +197,11 @@ module Merb::RenderMixin
     layout = _layout.to_s if _layout    
     layout = layout.to_s if layout
     
-    template = _template_location(layout, layout.index(".") ? content_type : nil, "layout")
-
     # If a layout was provided, throw an error if it's not found
     if layout
+      template = _template_location(layout, layout.index(".") ? content_type : nil, "layout")      
       Merb::Template.template_for(_template_root / template) ||
-        (raise TemplateNotFound, "No layout found at #{_template_root / template}")
+        (raise TemplateNotFound, "No layout found at #{_template_root / template}.*")
     
     # If a layout was not provided, try the default locations
     else
