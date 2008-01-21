@@ -102,7 +102,4 @@ module Merb
     Merb.generator_scope = [:merb_default, :merb, :rspec]
   end
   
-  module GlobalHelpers
-  end
-
 end

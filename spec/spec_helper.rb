@@ -3,9 +3,6 @@ $TESTING=true
 require File.join(File.dirname(__FILE__), "..", "lib", "merb-core")
 require 'merb-core/test/fake_request'
 require 'merb-core/test/request_helper'
-Merb.environment = "test"
-Merb.logger = Merb::Logger.new(Merb.dir_for(:log) / "test_log")
-Merb.logger.level = Merb::Logger.const_get(Merb::Config[:log_level].upcase) rescue Merb::Logger::INFO
 
 # -- Global custom matchers --
 

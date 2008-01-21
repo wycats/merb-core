@@ -6,7 +6,7 @@ require File.join(__DIR__, "controllers", "render")
 
 Merb::Config[:framework] = {}
 
-Merb::BootLoader.run
+Merb.start %w( -e test )
 
 module Merb::Test::Behaviors
   def dispatch_should_make_body(klass, body, action = :index)
