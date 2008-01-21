@@ -4,9 +4,7 @@ require File.join(__DIR__, "..", "..", "spec_helper")
 require File.join(__DIR__, "controllers", "filters")
 require File.join(__DIR__, "controllers", "render")
 
-Merb::Config[:framework] = {}
-
-Merb.start %w( -e test )
+Merb.start %w( -e test -a runner )
 
 module Merb::Test::Behaviors
   def dispatch_should_make_body(klass, body, action = :index)
