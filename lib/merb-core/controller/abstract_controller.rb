@@ -81,6 +81,7 @@ class Merb::AbstractController
   # {{[
   #   def _template_location
   #     "#{params[:controller]}.#{prams[:action]}.#{content_type}"
+  #   end
   # ]}}
   #
   # This would look for templates at controller.action.mime.type instead
