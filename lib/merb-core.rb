@@ -46,7 +46,9 @@ module Merb
       when "thin"
         adapter = Merb::Rack::Thin
       when "irb"
-        adapter = Merb::Rack::Irb        
+        adapter = Merb::Rack::Irb   
+      when "runner"
+        adapter = Merb::Rack::Runner             
       else
         adapter = Merb::Rack.const_get(Merb::Config[:adapter].capitalize)
       end    
