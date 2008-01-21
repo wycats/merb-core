@@ -38,15 +38,13 @@ module Merb
       end
       
       def setup(settings = nil)
-        if FileTest.exist? "#{defaults[:merb_root]}/framework"
-          $LOAD_PATH.unshift( "#{defaults[:merb_root]}/framework" )
-        end
-
         return @configuration = 
         if settings
           defaults.merge(settings)
         elsif File.exists?("#{defaults[:merb_root]}/config/merb.yml")
           defaults.merge(YAML.load_file("#{defaults[:merb_root]}/config/merb.yml"))
+        elsif File.exists?("#{defaults[:merb_root]}/merb.yml")
+          defaults.merge(YAML.load_file("#{defaults[:merb_root]}/merb.yml"))          
         else
           defaults.dup
         end

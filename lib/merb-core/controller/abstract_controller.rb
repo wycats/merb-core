@@ -62,6 +62,7 @@
 class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
+  include Merb::GlobalHelpers
   is_hookable  
   
   class_inheritable_accessor :_before_filters, :_after_filters, :_template_root, :_layout
@@ -116,6 +117,7 @@ class Merb::AbstractController
     #   The controller that is being inherited from Merb::AbstractController
     def inherited(klass)
       _abstract_subclasses << klass.to_s
+      klass.send(:include, Object.full_const_get("#{klass}Helper") rescue nil
       super
     end
     
