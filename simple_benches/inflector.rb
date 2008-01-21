@@ -632,7 +632,7 @@ Benchmark.bmbm do |x|
     TIMES.times { "wives".english_singular }
   end
   
-  x.report("Rails wife => wives") do
+  x.report("Rails wives => wife") do
     TIMES.times { "wives".singularize }
   end
   
@@ -657,13 +657,18 @@ end
 #                                user     system      total        real
 # English boy => boys        1.310000   0.000000   1.310000 (  1.332678)
 # Rails boy => boys          2.830000   0.000000   2.830000 (  2.846847)
+#
 # English boys => boy        1.540000   0.010000   1.550000 (  1.576141)
 # Rails boy => boys          3.140000   0.010000   3.150000 (  3.201089)
+#
 # English wife => wives      0.250000   0.010000   0.260000 (  0.261200)
 # Rails wife => wives        2.150000   0.010000   2.160000 (  2.199219)
+#
 # English wives => wife      0.250000   0.000000   0.250000 (  0.264623)
-# Rails wife => wives        3.130000   0.020000   3.150000 (  3.192153)
+# Rails wives => wife        3.130000   0.020000   3.150000 (  3.192153)
+#
 # English dwarf => dwarves   1.120000   0.000000   1.120000 (  1.159888)
 # Rails dwarf => dwarves     2.150000   0.010000   2.160000 (  2.329601)
+#
 # English dwarves => dwarf   1.060000   0.010000   1.070000 (  1.338925)
 # Rails dwarves => dwarf     2.900000   0.020000   2.920000 (  2.931470)

@@ -23,6 +23,15 @@ module Merb
     
     def start(argv=ARGV)
       Merb::Config.parse_args(argv)
+
+      if Merb::Config[:init_file]
+        require(Merb.root / Merb::Config[:init_file])
+      elsif File.exists?(Merb.dir_for(:config) / "merb_init")
+        require(Merb.dir_for(:config) / "merb_init")
+      elsif File.file?(Merb.dir_for(:application))
+        require(Merb.dir_for(:application))
+      end
+      
       BootLoader.run
       case Merb::Config[:adapter]
       when "mongrel"

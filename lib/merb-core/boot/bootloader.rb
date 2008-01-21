@@ -37,22 +37,34 @@ module Merb
   
 end
 
-class Merb::BootLoader::LoadInit < Merb::BootLoader
+class Merb::BootLoader::BuildFramework < Merb::BootLoader
+  class << self
+    def run
+      build_framework
+    end
+  
+    # This method should be overridden in merb_init.rb before Merb.start to set up a different
+    # framework structure
+    def build_framework
+      unless Merb::Config[:framework]
+        %w[view model controller helper mailer part].each do |component|
+          Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
+        end
+        Merb.push_path(:application,    Merb.root_path("app/controllers/application.rb"))
+        Merb.push_path(:config,         Merb.root_path("config"), "*.rb")
+        Merb.push_path(:lib,            Merb.root_path("lib"), nil)
+      else
+        Merb::Config[:framework].each do |name, path|
+          Merb.push_path(name, Merb.root_path(path.first), path[1])
+        end
+      end
+    end
+  end
+end
+
+class Merb::BootLoader::LoadRouter < Merb::BootLoader
   def self.run
-    if Merb::Config[:init_file]
-      require Merb.root / Merb::Config[:init_file]
-    elsif File.exists?(Merb.root / "config" / "merb_init.rb")
-      require Merb.root / "config" / "merb_init"
-    elsif File.exists?(Merb.root / "merb_init.rb")
-      require Merb.root / "merb_init"
-    elsif File.exists?(Merb.root / "application.rb")
-      require Merb.root / "application"
-    end
-    if File.exists?(Merb.root / "router.rb")
-      require Merb.root / "router"
-    elsif File.exists?(Merb.root / "config" / "router.rb")
-      require Merb.root / "config" / "router.rb"
-    end
+    require(Merb.dir_for(:config) / "router") if File.exists?(Merb.dir_for(:config) / "router")
   end
 end
 
@@ -66,25 +78,6 @@ class Merb::BootLoader::Logger < Merb::BootLoader
   def self.run
     Merb.logger = Merb::Logger.new(Merb.dir_for(:log) / "test_log")
     Merb.logger.level = Merb::Logger.const_get(Merb::Config[:log_level].upcase) rescue Merb::Logger::INFO    
-  end
-end
-
-class Merb::BootLoader::BuildFramework < Merb::BootLoader
-  class << self
-    def run
-      build_framework
-    end
-  
-    # This method should be overridden in merb_init.rb before Merb.start to set up a different
-    # framework structure
-    def build_framework
-      %w[view model controller helper mailer part].each do |component|
-        Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
-      end
-      Merb.push_path(:application,    Merb.root_path("app/controllers/application.rb"))
-      Merb.push_path(:config,         Merb.root_path("config"), "*.rb")
-      Merb.push_path(:lib,            Merb.root_path("lib"), nil)
-    end
   end
 end
 
