@@ -101,5 +101,8 @@ module Merb
     attr_accessor :generator_scope
     Merb.generator_scope = [:merb_default, :merb, :rspec]
   end
+  
+  module GlobalHelpers
+  end
 
 end
