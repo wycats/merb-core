@@ -55,8 +55,7 @@ class Merb::Controller < Merb::AbstractController
   # Build a new controller.
   #
   # Sets the variables that came in through the dispatch as available to
-  # the controller. This is called by .build, so see it for more
-  # information.
+  # the controller. 
   #
   # This method uses the :session_id_cookie_only and :query_string_whitelist
   # configuration options. See CONFIG for more details.

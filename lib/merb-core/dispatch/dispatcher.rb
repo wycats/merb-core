@@ -1,4 +1,6 @@
 class Merb::Dispatcher
+  DEFAULT_ERROR_TEMPLATE = Merb.dir_for(:view) / 'exceptions/internal_server_error.html.erb'  
+  
   class << self
     
     attr_accessor :use_mutex
@@ -36,10 +38,10 @@ class Merb::Dispatcher
       [controller, action]
     # this is the custom dispatch_exception; it allows failures to still be dispatched
     # to the error controller
-    # rescue => exception
-    #   Merb.logger.error(Merb.exception(exception))
-    #   exception = controller_exception(exception)
-    #   dispatch_exception(request, response, exception)
+    rescue => exception
+      Merb.logger.error(Merb.exception(exception))
+      exception = controller_exception(exception)
+      dispatch_exception(request, response, exception)
     end
     
     private
@@ -59,6 +61,56 @@ class Merb::Dispatcher
       end
       [controller, action]
     end
+    
+    # Re-route the current request to the Exception controller
+    # if it is available, and try to render the exception nicely
+    # if it is not available then just render a simple text error
+    def dispatch_exception(request, response, exception)
+      klass = ::Exceptions rescue Merb::Controller
+      request.params[:original_params] = request.params.dup rescue {}
+      request.params[:original_session] = request.session.dup rescue {}
+      request.params[:original_cookies] = request.cookies.dup rescue {}
+      request.params[:exception] = exception
+      request.params[:action] = exception.name
+      dispatch_action(klass, exception.name, request, response, exception.class::STATUS)
+    rescue => dispatch_issue
+      dispatch_issue = controller_exception(dispatch_issue)  
+      # when no action/template exist for an exception, or an
+      # exception occurs on an InternalServerError the message is
+      # rendered as simple text.
+      # ControllerExceptions raised from exception actions are 
+      # dispatched back into the Exceptions controller
+      if dispatch_issue.is_a?(Merb::ControllerExceptions::NotFound)
+        dispatch_default_exception(klass, request, response, exception)
+      elsif dispatch_issue.is_a?(Merb::ControllerExceptions::InternalServerError)
+        dispatch_default_exception(klass, request, response, dispatch_issue)
+      else
+        exception = dispatch_issue
+        retry
+      end
+    end
+    
+    # if no custom actions are available to render an exception
+    # then the errors will end up here for processing
+    def dispatch_default_exception(klass, request, response, e)
+      controller = klass.new(request, response, e.class::STATUS)
+      if e.is_a? Merb::ControllerExceptions::Redirection
+        controller.headers.merge!('Location' => e.message)
+        controller.body = %{ } #fix
+      else
+        controller.instance_variable_set("@exception", e) # for ERB
+        controller.instance_variable_set("@exception_name", e.name.split("_").map {|x| x.capitalize}.join(" "))
+        controller.body = controller.send(Merb::Template.template_for(DEFAULT_ERROR_TEMPLATE))
+      end
+      [controller, e.name]
+    end
+    
+    # Wraps any non-ControllerException errors in an 
+    # InternalServerError ready for displaying over HTTP
+    def controller_exception(e)
+      e.kind_of?(Merb::ControllerExceptions::Base) ?
+        e : Merb::ControllerExceptions::InternalServerError.new(e) 
+    end    
     
   end
 end

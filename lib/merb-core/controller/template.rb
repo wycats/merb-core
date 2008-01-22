@@ -29,7 +29,10 @@ module Merb::Template
     # @semipublic
     def template_for(path)
       path = File.expand_path(path)      
-      METHOD_LIST[path]
+      METHOD_LIST[path] ||= begin
+        return nil unless File.exists?(path)
+        inline_template(path)
+      end
     end
     
     # Takes a template at a particular path and inlines it into
