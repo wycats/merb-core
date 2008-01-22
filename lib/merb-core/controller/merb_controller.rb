@@ -46,35 +46,14 @@ class Merb::Controller < Merb::AbstractController
       @callable_actions ||= Merb::SimpleSet.new((public_instance_methods - _hidden_actions).map {|x| x.to_s})
     end
     
-    # Build a new controller.
-    #
-    # ==== Parameters
-    # request<Merb::Request>:: The Merb::Request that came in from Mongrel
-    # response<IO>:: 
-    #   The response IO object to write the response to. This could be any
-    #   IO object, but is probably an HTTPResponse
-    # status<Integer>:: An integer code for the status
-    # headers<Hash{header => value}>:: 
-    #   A hash of headers to start the controller with. These headers
-    #   can be overridden later by the #headers method
-    #
-    # ==== Returns
-    # Merb::Controller::
-    #   The Merb::Controller that was built from the parameters
-    # 
-    #---
-    # @semipublic
-    def build(request, response = StringIO.new, status=200, headers={'Content-Type' => 'text/html; charset=utf-8'})
-      cont = new
-      cont.set_dispatch_variables(request, response, status, headers)
-      cont
-    end
   end
   
   def _template_location(action, type = nil, controller = controller_name)
     "#{controller}/#{action}.#{type}"
   end  
   
+  # Build a new controller.
+  #
   # Sets the variables that came in through the dispatch as available to
   # the controller. This is called by .build, so see it for more
   # information.
@@ -93,8 +72,13 @@ class Merb::Controller < Merb::AbstractController
   #   can be overridden later by the #headers method
   #
   # ==== Returns
-  # nil
-  def set_dispatch_variables(request, response, status, headers)
+  # Merb::Controller::
+  #   The Merb::Controller that was built from the parameters
+  # 
+  #---
+  # @semipublic
+  def initialize(request, response = StringIO.new, status=200, headers={'Content-Type' => 'text/html; charset=utf-8'})
+    super()
     if request.params.key?(_session_id_key)
       if Merb::Config[:session_id_cookie_only]
         # This condition allows for certain controller/action paths to allow

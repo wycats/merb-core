@@ -51,7 +51,7 @@ class Merb::Dispatcher
     #   status<Integer>         the status code to respond with
     def dispatch_action(klass, action, request, response, status=200)
       # build controller
-      controller = klass.build(request, response, status)
+      controller = klass.new(request, response, status)
       if use_mutex
         @@mutex.synchronize { controller._dispatch(action) }
       else

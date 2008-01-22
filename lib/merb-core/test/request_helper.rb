@@ -30,7 +30,7 @@ module Merb::Test::RequestHelper
     request = fake_request(env, 
       :query_string => Merb::Responder.params_to_query_string(params))
 
-    controller = controller_klass.build(request)
+    controller = controller_klass.new(request)
     controller.instance_eval(&blk) if block_given?
     controller._dispatch(action)
     
