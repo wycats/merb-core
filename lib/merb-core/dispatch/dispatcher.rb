@@ -1,5 +1,5 @@
 class Merb::Dispatcher
-  DEFAULT_ERROR_TEMPLATE = Merb.dir_for(:view) / 'exceptions/internal_server_error.html.erb'  
+  DEFAULT_ERROR_TEMPLATE = File.expand_path(File.dirname(__FILE__) / 'exceptions.html.erb')
   
   class << self
     
