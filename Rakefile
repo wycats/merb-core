@@ -129,18 +129,32 @@ task :aok => [:specs, :rcov]
 #   t.spec_files = Dir["spec/**/*_spec.rb"].sort
 # end
 
+require 'open3'
+
 desc "Run all specs"
 task :specs do
   examples, failures, pending = 0, 0, 0
   Dir["spec/**/*_spec.rb"].each do |spec|
-    response = `spec #{File.expand_path(spec)} -f s -c`
-    e, f, p = response.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) pending?)?/)[1..-1]
-    examples += e.to_i; failures += f.to_i; pending += p.to_i
-    puts response
+    response = Open3.popen3("spec #{File.expand_path(spec)} -f s -c") do |i,o,e|
+      while out = o.gets
+        STDOUT.puts out
+        STDOUT.flush
+        if out =~ /\d+ example/
+          e, f, p = out.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) pending?)?/)[1..-1]
+          examples += e.to_i; failures += f.to_i; pending += p.to_i          
+        end
+      end
+    end
   end
   puts
   puts "*** TOTALS ***"
+  if failures == 0
+    print "\e[32m"
+  else
+    print "\e[31m"
+  end
   puts "#{examples} examples, #{failures} failures#{ ", #{pending} pending" if pending}"
+  print "\e[0m"
 end
 
 desc "Run a specific spec with TASK=xxxx"

@@ -19,8 +19,7 @@ describe "The reloader" do
       f.puts @text
     end
     
-    puts "  * Sleeping 500ms to wait for reloader"
-    sleep 0.5
+    sleep 0.6
   end
   
   it "should reload files that were changed" do
@@ -28,8 +27,7 @@ describe "The reloader" do
     defined?(Reloader).should_not be_nil
     defined?(Reloader2).should be_nil
     
-    puts "  * Sleeping 500ms to wait for mtime to update to next second"    
-    sleep 0.5
+    sleep 0.6
     
     File.open(@reload_file, "w") do |f|
       f.puts <<-END
@@ -41,8 +39,7 @@ describe "The reloader" do
       END
     end
 
-    puts "  * Sleeping 500ms to wait for reloader"
-    sleep 0.5
+    sleep 0.6
     
     defined?(Hello).should be_nil
     defined?(Reloader).should_not be_nil
@@ -60,8 +57,7 @@ describe "The reloader" do
       END
     end
     
-    puts "  * Sleeping 500ms to wait for reloader"    
-    sleep 0.5
+    sleep 0.6
     
     Merb::AbstractController._abstract_subclasses.should include("Reloader")
     Merb::AbstractController._abstract_subclasses.should include("Reloader2")    
@@ -71,8 +67,7 @@ describe "The reloader" do
   end
   
   after :each do
-    puts "  * Sleeping 500ms to wait for mtime to update to next second"    
-    sleep 0.5
+    sleep 0.6
     File.open(@reload_file, "w") do |f|
       f.puts @text
     end
