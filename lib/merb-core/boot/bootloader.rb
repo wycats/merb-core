@@ -291,26 +291,7 @@ end
 # Choose the Rack adapter/server to use and set Merb.adapter
 class Merb::BootLoader::ChooseAdapter < Merb::BootLoader
   def self.run
-    ::Merb.adapter = 
-      case Merb::Config[:adapter]
-      when "mongrel"
-        Merb::Rack::Mongrel
-      when "emongrel"
-        require 'merb-core/rack/adapter/evented_mongrel'        
-        Merb::Rack::Mongrel
-      when "webrick"
-        Merb::Rack::WEBrickengl
-      when "fastcgi","fcgi"
-        Merb::Rack::FastCGI
-      when "thin"
-        Merb::Rack::Thin
-      when "irb"
-        Merb::Rack::Irb   
-      when "runner"
-        Merb::Rack::Runner             
-      else
-        Merb::Rack.const_get(Merb::Config[:adapter].capitalize)
-      end
+    ::Merb.adapter = Merb::Rack::Adapter.get(Merb::Config[:adapter])
   end
 end
 
@@ -323,7 +304,7 @@ class Merb::BootLoader::RackUpApplication < Merb::BootLoader
   def self.run
     if File.exists?(Merb.root / "rack.rb")
       Merb::Config[:app] =  eval("Rack::Builder.new {( #{IO.read(Merb.root / 'rack')}\n )}.to_app")
-    elsif File.exists?(Merb.root / "config" / "rack.rbrb")
+    elsif File.exists?(Merb.root / "config" / "rack.rb")
       Merb::Config[:app] =  eval("Rack::Builder.new {( #{IO.read(Merb.root / 'config' / 'rack')}\n )}.to_app") 
     else
       Merb::Config[:app] = ::Merb::Rack::Application.new
