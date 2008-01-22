@@ -19,7 +19,7 @@ module Merb
     # Register some Rack adapters
     Adapter.register %w{emongrel},     :EventedMongrel
     Adapter.register %w{fastcgi fcgi}, :FastCGI
-    Adapter.register %w{irb},          :IRB
+    Adapter.register %w{irb},          :Irb
     Adapter.register %w{mongrel},      :Mongrel  
     Adapter.register %w{runner},       :Runner
     Adapter.register %w{thin},         :Thin
