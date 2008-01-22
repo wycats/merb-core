@@ -172,6 +172,21 @@ class Hash
     self
   end
   
+  # Convert hashes with keys that are real references to classes into keys
+  # that are strings. This is used during reloading to prevent the GC from
+  # barfing when we remove classes that still 
+  def protect_keys!
+    keys.each {|key| self[key.to_s] = delete(key) }
+  end
+  
+  # Convert Hashes with String keys into Hashes with Class keys. We run this
+  # after reloading to convert protected hashes back into usable hashes.
+  def unprotect_keys!
+    keys.each do |key| 
+      (self[Object.full_const_get(key)] = delete(key)) rescue nil
+    end
+  end
+  
   # Destructively and non-recursively convert each key to an uppercase string.
   # 
   #   { :name => "Bob", "age" => 12, "nick" => "Bobinator" }.environmentize_keys!

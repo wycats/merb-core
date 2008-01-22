@@ -16,21 +16,19 @@ require 'merb-core/gem_ext/erubis'
 require 'merb-core/logger'
 require 'merb-core/version'
 require 'merb-core/controller/mime'
-require 'merb-core/vendor/facets/inflect'
+require 'merb-core/vendor/facets'
+
+begin
+  require "json/ext"
+rescue LoadError
+  require "json/pure"
+end
 
 module Merb
   class << self
     
     def start(argv=ARGV)
       Merb::Config.parse_args(argv)
-
-      if Merb::Config[:init_file]
-        require(Merb.root / Merb::Config[:init_file])
-      elsif File.exists?(Merb.dir_for(:config) / "merb_init")
-        require(Merb.dir_for(:config) / "merb_init")
-      elsif File.file?(Merb.dir_for(:application))
-        require(Merb.dir_for(:application))
-      end
       
       BootLoader.run
       case Merb::Config[:adapter]
@@ -99,9 +97,10 @@ module Merb
 		# Framework paths
 		def framework_root()  @framework_root ||= File.dirname(__FILE__)          end
 		  
-    # Set up default generator scope
-    attr_accessor :generator_scope
+    # Set up default variables under Merb
+    attr_accessor :generator_scope, :klass_hashes
     Merb.generator_scope = [:merb_default, :merb, :rspec]
+    Merb.klass_hashes = []
   end
   
 end

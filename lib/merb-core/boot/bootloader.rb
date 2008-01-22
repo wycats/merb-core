@@ -2,25 +2,27 @@ module Merb
   
   class BootLoader
     
-    cattr_accessor :subclasses
+    cattr_accessor :subclasses, :after_load_callbacks
     self.subclasses = []
+    self.after_load_callbacks = []
     class_inheritable_accessor :_after, :_before
     
     class << self
-      
       def inherited(klass)
         if !klass._before && !klass._after
           subclasses << klass.to_s
-        elsif klass._before
+        elsif klass._before && subclasses.index(klass._before)
           subclasses.insert(subclasses.index(klass._before), klass.to_s)
-        else
-          subclasses.insert(subclasses.index(klass._before) + 1, klass.to_s)          
+        elsif klass._after && subclasses.index(klass._after)
+          subclasses.insert(subclasses.index(klass._after) + 1, klass.to_s)
         end
         super
       end
       
       def run
-        subclasses.each {|klass| Object.full_const_get(klass).run }
+        subklasses = subclasses.dup
+        Object.full_const_get(subclasses.shift).run until subclasses.empty?
+        subclasses = subklasses
       end
       
       def after(klass)
@@ -31,12 +33,82 @@ module Merb
         self._before = klass.to_s
       end
       
+      def after_app_loads(&block)
+        after_load_callbacks << block
+      end
     end
     
   end
   
 end
 
+# At this point, the config from the command-line will have been parsed, but 
+# the init-file will not have.
+
+# Load the correct environment.
+# 
+# Set Merb.environment to Merb::Config[:environment], which is set by the -e
+# command-line flag. 
+class Merb::BootLoader::Environment < Merb::BootLoader
+  def self.run
+    Merb.environment = Merb::Config[:environment]
+  end
+end
+
+# Load the init-file.
+# 
+# The file will be searched for in the following order:
+# * A relative path provided via a -I command line switch
+# * merb_init.rb, relative to the root
+# * merb_init.rb, relative to the config directory
+# * application.rb, relative to the root
+class Merb::BootLoader::InitFile < Merb::BootLoader
+  def self.run
+    if Merb::Config[:init_file] && File.exists?(Merb.root / Merb::Config[:init_file])
+      require(Merb.root / Merb::Config[:init_file])
+    elsif File.exists?(Merb.root / "merb_init.rb")
+      require(Merb.root / "merb_init")
+    elsif File.exists?(Merb.root / "config" / "merb_init.rb")
+      require(Merb.root / "config" / "merb_init")  
+    elsif File.file?(Merb.root / "application")
+      require(Merb.root / "application")
+    end
+  end
+end
+
+# Build the framework paths.
+#
+# By default, the following paths will be used:
+# application:: Merb.root/app/controller/application.rb
+# config:: Merb.root/config
+# lib:: Merb.root/lib
+# log:: Merb.root/log
+# view:: Merb.root/app/views
+# model:: Merb.root/app/models
+# controller:: Merb.root/app/controllers
+# helper:: Merb.root/app/helpers
+# mailer:: Merb.root/app/mailers
+# part:: Merb.root/app/parts
+#
+# To override the default, set Merb::Config[:framework] in your initialization file.
+# Merb::Config[:framework] takes a Hash whose key is the name of the path, and whose
+# values can be passed into Merb.push_path (see Merb.push_path for full details).
+#
+# ==== Note
+# All paths will default to Merb.root, so you can get a flat-file structure by doing
+# Merb::Config[:framework] = {}
+# 
+# ==== Example
+# {{[
+#   Merb::Config[:framework] = {
+#     :view => Merb.root / "views"
+#     :model => Merb.root / "models"
+#     :lib => Merb.root / "lib"
+#   }
+# ]}}
+# 
+# That will set up a flat directory structure with the config files and controller files
+# under Merb.root, but with models, views, and lib with their own folders off of Merb.root.
 class Merb::BootLoader::BuildFramework < Merb::BootLoader
   class << self
     def run
@@ -53,6 +125,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         Merb.push_path(:application,    Merb.root_path("app/controllers/application.rb"))
         Merb.push_path(:config,         Merb.root_path("config"), "*.rb")
         Merb.push_path(:lib,            Merb.root_path("lib"), nil)
+        Merb.push_path(:log,            Merb.root_path("log"), nil)
       else
         Merb::Config[:framework].each do |name, path|
           Merb.push_path(name, Merb.root_path(path.first), path[1])
@@ -62,34 +135,56 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
   end
 end
 
+# Load the dependencies file, which registers the list of necessary dependencies and
+# an after_
+class Merb::BootLoader::Dependencies < Merb::BootLoader
+  def self.run
+    if File.exists?(Merb.dir_for(:config) / "dependencies.rb")
+      require Merb.dir_for(:config) / "dependencies"
+    end
+  end
+end
+
+# Set up the logger.
+#
+# Place the logger inside of the Merb log directory (set up in
+# Merb::BootLoader::BuildFramework)
+class Merb::BootLoader::Logger < Merb::BootLoader
+  def self.run
+    FileUtils.mkdir Merb.dir_for(:log) unless File.directory?(Merb.dir_for(:log))
+    FileUtils.touch Merb.dir_for(:log) / "test_log"
+    Merb.logger = Merb::Logger.new(Merb.dir_for(:log) / "test_log")
+    Merb.logger.level = Merb::Logger.const_get(Merb::Config[:log_level].upcase) rescue Merb::Logger::INFO    
+  end
+end
+
+# Load the router.
+#
+# This will attempt to load router.rb from the Merb configuration directory (set up in
+# Merb::BootLoader::BuildFramework)
 class Merb::BootLoader::LoadRouter < Merb::BootLoader
   def self.run
     require(Merb.dir_for(:config) / "router") if File.exists?(Merb.dir_for(:config) / "router")
   end
 end
 
-class Merb::BootLoader::Environment < Merb::BootLoader
-  def self.run
-    Merb.environment = Merb::Config[:environment]
-  end
-end
-
-class Merb::BootLoader::Logger < Merb::BootLoader
-  def self.run
-    Merb.logger = Merb::Logger.new(Merb.dir_for(:log) / "test_log")
-    Merb.logger.level = Merb::Logger.const_get(Merb::Config[:log_level].upcase) rescue Merb::Logger::INFO    
-  end
-end
-
-class Merb::BootLoader::LoadPaths < Merb::BootLoader
+# Load all classes inside the load paths.
+#
+# This is used in conjunction with Merb::BootLoader::ReloadClasses to track files that
+# need to be reloaded, and which constants need to be removed in order to reload a file.
+#
+# This also adds the model, controller, and lib directories to the load path, so they
+# can be required in order to avoid load-order issues.
+class Merb::BootLoader::LoadClasses < Merb::BootLoader
   LOADED_CLASSES = {}
+  MTIMES = {}
   
   class << self
     def run
       # Add models, controllers, and lib to the load path
-      $LOAD_PATH.unshift Merb.dir_for(:model)      if Merb.load_paths[:model]
-      $LOAD_PATH.unshift Merb.dir_for(:controller) if Merb.load_paths[:controller]
-      $LOAD_PATH.unshift Merb.dir_for(:lib)        if Merb.load_paths[:lib]
+      $LOAD_PATH.unshift Merb.dir_for(:model)      
+      $LOAD_PATH.unshift Merb.dir_for(:controller)
+      $LOAD_PATH.unshift Merb.dir_for(:lib)        
     
       # Require all the files in the registered load paths
       Merb.load_paths.each do |name, path|
@@ -98,17 +193,20 @@ class Merb::BootLoader::LoadPaths < Merb::BootLoader
           klasses = ObjectSpace.classes.dup
           require file
           LOADED_CLASSES[file] = ObjectSpace.classes - klasses
+          MTIMES[file] = File.mtime(file)
         end
       end
     end
 
     def reload(file)
+      Merb.klass_hashes.each {|x| x.protect_keys!}
       if klasses = LOADED_CLASSES[file]
         klasses.each do |klass|
           remove_constant(klass)
         end
       end
       load file
+      Merb.klass_hashes.each {|x| x.unprotect_keys!}      
     end
   
     def remove_constant(const)
@@ -131,6 +229,7 @@ class Merb::BootLoader::LoadPaths < Merb::BootLoader
   
 end
 
+# Loads the templates into the Merb::InlineTemplates module.
 class Merb::BootLoader::Templates < Merb::BootLoader
   class << self
     def run
@@ -159,50 +258,18 @@ class Merb::BootLoader::Templates < Merb::BootLoader
   end
 end
 
-class Merb::BootLoader::Libraries < Merb::BootLoader
-  @@libraries = {:disable_json_gem => %w[json/ext json/pure]}
-
-  # Add other libraries to load in early in the boot process
-  # 
-  # ==== Parameters
-  # hsh<Hash[exclude, tries]>:: A hash or libraries to add
-  #
-  # ==== Hash
-  # exclude<Symbol>:: 
-  #   Exclude this library if Merb::Config[exclude] is true
-  # tries<Array[String]>::
-  #   Try to require each item in the Array in succesion. If the item is not found,
-  #   try the next one. If none of the items are found, raise a LoadError.
-  def self.add_libraries(hsh)
-    @@libraries.merge!(hsh)
-  end
-
-  def self.run
-    @@libraries.each do |exclude, choices|
-      require_first_working(*choices) unless Merb::Config[exclude]
-    end
-  end
-
-  def self.require_first_working(first, *rest)
-    require first
-  rescue LoadError
-    raise LoadError if rest.empty?
-    require_first_working rest.shift, *rest
-  end
-end
-
+# Register the default MIME types:
+#
+# By default, the mime-types include:
+# :all:: no transform, */*
+# :yaml:: to_yaml, application/x-yaml or text/yaml
+# :text:: to_text, text/plain
+# :html:: to_html, text/html or application/xhtml+xml or application/html
+# :xml:: to_xml, application/xml or text/xml or application/x-xml, adds "Encoding: UTF-8" response header
+# :js:: to_json, text/javascript ot application/javascript or application/x-javascript
+# :json:: to_json, application/json or text/x-json
 class Merb::BootLoader::MimeTypes < Merb::BootLoader
   def self.run
-    # Sets the default mime-types
-    # 
-    # By default, the mime-types include:
-    # :all:: no transform, */*
-    # :yaml:: to_yaml, application/x-yaml or text/yaml
-    # :text:: to_text, text/plain
-    # :html:: to_html, text/html or application/xhtml+xml or application/html
-    # :xml:: to_xml, application/xml or text/xml or application/x-xml, adds "Encoding: UTF-8" response header
-    # :js:: to_json, text/javascript ot application/javascript or application/x-javascript
-    # :json:: to_json, application/json or text/x-json
     Merb.available_mime_types.clear
     Merb.add_mime_type(:all,  nil,      %w[*/*])
     Merb.add_mime_type(:yaml, :to_yaml, %w[application/x-yaml text/yaml])
@@ -211,5 +278,28 @@ class Merb::BootLoader::MimeTypes < Merb::BootLoader
     Merb.add_mime_type(:xml,  :to_xml,  %w[application/xml text/xml application/x-xml], :Encoding => "UTF-8")
     Merb.add_mime_type(:js,   :to_json, %w[text/javascript application/javascript application/x-javascript])
     Merb.add_mime_type(:json, :to_json, %w[application/json text/x-json])      
+  end
+end
+
+# Call any after_app_loads hooks that were registered via after_app_loads in dependencies.rb.
+class Merb::BootLoader::AfterAppLoads < Merb::BootLoader
+  def self.run
+    Merb::BootLoader.after_load_callbacks.each {|x| x.call }
+  end
+end
+
+# If the :reload_classes option is on, setup the class reloader.
+if Merb::Config[:reload_classes]
+  class Merb::BootLoader::ReloadClasses < Merb:BootLoader
+    def self.run
+      files = Merb.load_paths.inject do |accum, path_name, file_info|
+        path, glob = file_info
+        accum << Dir[path / glob]
+        accum
+      end.flatten.each do |file|
+        next if Merb::BootLoader::LoadPaths::MTIMES[file] && Merb::BootLoader::LoadPaths::MTIMES[file] == File.mtime(file)
+        Merb::BootLoader::LoadPaths.reload(file)
+      end
+    end
   end
 end
