@@ -66,16 +66,25 @@ module Merb
 		
 		def log_path
 		  if $TESTING
-        "#{Merb.root}/log/merb_test.log"
+        Merb.dir_for(:log) / "merb_test.log"
       elsif !(Merb::Config[:daemonize] || Merb::Config[:cluster] )
         STDOUT
       else
-        "#{Merb.root}/log/merb.#{Merb::Config[:port]}.log"
+        Merb.dir_for(:log) / "#{Merb::Config[:port]}.log"
 		  end
 		end
 		
 		# Framework paths
 		def framework_root()  @framework_root ||= File.dirname(__FILE__)          end
+		  
+		def flat!(&block)
+      Merb::Config[:framework] = {}
+
+      Merb::Router.prepare do |r|
+        r.default_routes
+        block.call(r) if block_given?
+      end		  
+	  end
 		  
     # Set up default variables under Merb
     attr_accessor :generator_scope, :klass_hashes

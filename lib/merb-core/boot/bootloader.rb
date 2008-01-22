@@ -70,7 +70,7 @@ class Merb::BootLoader::InitFile < Merb::BootLoader
       require(Merb.root / "merb_init")
     elsif File.exists?(Merb.root / "config" / "merb_init.rb")
       require(Merb.root / "config" / "merb_init")  
-    elsif File.file?(Merb.root / "application")
+    elsif File.file?(Merb.root / "application.rb")
       require(Merb.root / "application")
     end
   end
@@ -152,8 +152,7 @@ end
 class Merb::BootLoader::Logger < Merb::BootLoader
   def self.run
     FileUtils.mkdir Merb.dir_for(:log) unless File.directory?(Merb.dir_for(:log))
-    FileUtils.touch Merb.dir_for(:log) / "test_log"
-    Merb.logger = Merb::Logger.new(Merb.dir_for(:log) / "test_log")
+    Merb.logger = Merb::Logger.new(Merb.log_path)
     Merb.logger.level = Merb::Logger.const_get(Merb::Config[:log_level].upcase) rescue Merb::Logger::INFO    
   end
 end
