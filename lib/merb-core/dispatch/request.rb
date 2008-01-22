@@ -240,10 +240,6 @@ module Merb
       @env['HTTP_ACCEPT_LANGUAGE']
     end
 
-    def host
-      @env['HTTP_HOST']
-    end
-
     def server_software
       @env['SERVER_SOFTWARE']
     end

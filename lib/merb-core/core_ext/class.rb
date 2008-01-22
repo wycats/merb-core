@@ -3,34 +3,7 @@
 # to, for example, an array without those additions being shared with either their parent, siblings, or
 # children, which is unlike the regular class-level attributes that are shared across the entire hierarchy.
 class Class # :nodoc:
-    
-  def _attr_reader(*syms)
-    syms.flatten.each do |sym|
-      class_eval <<-EOS
-        def #{sym}
-          @_sym
-        end
-      EOS
-    end
-  end
 
-  def _attr_writer(*syms)
-    syms.flatten.each do |sym|
-      class_eval <<-EOS
-        def #{sym}=(val)
-          @_sym = val
-        end
-      EOS
-    end
-  end
-  
-  def _attr_accessor(*syms)
-    syms.flatten.each do |sym|
-      _attr_reader sym
-      _attr_writer sym
-    end
-  end
-  
   def cattr_reader(*syms)
     syms.flatten.each do |sym|
       next if sym.is_a?(Hash)
