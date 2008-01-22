@@ -138,7 +138,7 @@ class Merb::AbstractController
   # @semipublic
   attr_accessor :body
   
-  _attr_accessor :action_name
+  attr_accessor :action_name
   
   # ==== Parameters
   # *args<Object>:: The args are ignored
