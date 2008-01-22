@@ -1,5 +1,3 @@
-
-
 module Merb
   module Rack
     class Irb

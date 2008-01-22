@@ -135,13 +135,7 @@ module Merb
 
            opts.on("-r", "--script-runner ['RUBY CODE'| FULL_SCRIPT_PATH]", 
              "Command-line option to run scripts and/or code in the merb app.") do |code_or_file|
-               ::Merb::BootLoader.initialize_merb
-               if File.exists?(code_or_file)
-                 eval(File.read(code_or_file))
-               else
-                 eval(code_or_file)
-               end
-               exit!
+              options[:runner_code] = code_or_file
            end
 
            opts.on("-P","--generate-plugin PATH", "Generate a fresh merb plugin at PATH.") do |path|

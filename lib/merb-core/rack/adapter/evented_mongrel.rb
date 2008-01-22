@@ -1,2 +1,8 @@
-require 'swiftcore/evented_mongrel' 
-require File.dirname(__FILE__) + '/mongrel'
+require 'swiftcore/evented_mongrel'
+
+module Merb
+  module Rack
+    class EventedMongrel < Mongrel
+    end
+  end
+end
