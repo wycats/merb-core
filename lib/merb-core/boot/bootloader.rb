@@ -190,22 +190,24 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb.load_paths.each do |name, path|
         next unless path.last
         Dir[path.first / path.last].each do |file|
-          klasses = ObjectSpace.classes.dup
-          require file
-          LOADED_CLASSES[file] = ObjectSpace.classes - klasses
-          MTIMES[file] = File.mtime(file)
+          load_file file
         end
       end
     end
 
+    def load_file(file)
+      klasses = ObjectSpace.classes.dup
+      load file
+      LOADED_CLASSES[file] = ObjectSpace.classes - klasses
+      MTIMES[file] = File.mtime(file)      
+    end
+
     def reload(file)
       Merb.klass_hashes.each {|x| x.protect_keys!}
-      if klasses = LOADED_CLASSES[file]
-        klasses.each do |klass|
-          remove_constant(klass)
-        end
+      if klasses = LOADED_CLASSES.delete(file)
+        klasses.each { |klass| remove_constant(klass) }
       end
-      load file
+      load_file file
       Merb.klass_hashes.each {|x| x.unprotect_keys!}      
     end
   
@@ -214,15 +216,19 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       # their subclasses in a class variable. Classes that wish to use this
       # functionality are required to alias it to _subclasses_list. Plugins
       # for ORMs and other libraries should keep this in mind.
-      if klass.superclass.respond_to?(:_subclasses_list)
-        klass.superclass.send(:_subclasses_list).delete(klass)
-        klass.superclass.send(:_subclasses_list).delete(klass.to_s)          
+      
+      superklass = const
+      until (superklass = superklass.superclass).nil?
+        if superklass.respond_to?(:_subclasses_list)
+          superklass.send(:_subclasses_list).delete(klass)
+          superklass.send(:_subclasses_list).delete(klass.to_s)          
+        end
       end
   
       parts = const.to_s.split("::")
       base = parts.size == 1 ? Object : Object.full_const_get(parts[0..-2].join("::"))
       object = parts[-1].intern
-      Merb.logger.debugger("Removing constant #{object} from #{base}")
+      Merb.logger.debug("Removing constant #{object} from #{base}")
       base.send(:remove_const, object) if object
     end
   end
@@ -314,7 +320,6 @@ class Merb::BootLoader::ChooseAdapter < Merb::BootLoader
   end
 end
 
-
 # Setup the Merb Rack App or read a rack.rb config file located at the Merb.root 
 # or Merb.root / config / rack.rb with the same syntax as the rackup tool that 
 # comes with rack. Automatically evals the rack.rb file in the context of a
@@ -331,20 +336,32 @@ class Merb::BootLoader::RackUpApplication < Merb::BootLoader
   end
 end
 
-
-
-# If the :reload_classes option is on, setup the class reloader.
-if Merb::Config[:reload_classes]
-  class Merb::BootLoader::ReloadClasses < Merb:BootLoader
-    def self.run
-      files = Merb.load_paths.inject do |accum, path_name, file_info|
-        path, glob = file_info
-        accum << Dir[path / glob]
-        accum
-      end.flatten.each do |file|
-        next if Merb::BootLoader::LoadPaths::MTIMES[file] && Merb::BootLoader::LoadPaths::MTIMES[file] == File.mtime(file)
-        Merb::BootLoader::LoadPaths.reload(file)
+# Setup the class reloader.
+class Merb::BootLoader::ReloadClasses < Merb::BootLoader
+  def self.run
+    return unless Merb::Config[:reload_classes]
+    
+    Thread.abort_on_exception = true
+    Thread.new do
+      loop do
+        sleep( Merb::Config[:reload_time] || 0.5 )
+        reload
       end
+      Thread.exit
     end
+  end
+  
+  def self.reload
+    paths = []
+    Merb.load_paths.each do |path_name, file_info|
+      path, glob = file_info
+      next unless glob
+      paths << Dir[path / glob]
+    end
+    
+    paths.flatten.each do |file|
+      next if Merb::BootLoader::LoadClasses::MTIMES[file] && Merb::BootLoader::LoadClasses::MTIMES[file] == File.mtime(file)      
+      Merb::BootLoader::LoadClasses.reload(file)
+    end    
   end
 end
