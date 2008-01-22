@@ -12,7 +12,7 @@ module Merb
         cached_path = (path.empty? ? 'index' : path) + '.html'
         
         if file_exist?(path)              # Serve the file if it's there
-          serve_staic(env)
+          serve_static(env)
         elsif file_exist?(cached_path)    # Serve the page cache if it's there
           env['PATH_INFO'] = cached_path
           serve_static(env)
