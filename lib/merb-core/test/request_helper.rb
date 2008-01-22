@@ -33,6 +33,10 @@ module Merb::Test::RequestHelper
     controller = controller_klass.build(request)
     controller.instance_eval(&blk) if block_given?
     controller._dispatch(action)
+    
+    Merb.logger.info controller._benchmarks.inspect
+    Merb.logger.flush    
+    
     controller
   end
 end

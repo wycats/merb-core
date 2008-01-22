@@ -29,8 +29,11 @@ class Merb::Dispatcher
 
       # set controller class and the action to call
       klass = request.controller_class
-      dispatch_action(klass, request.action, request, response)
+      controller, action = dispatch_action(klass, request.action, request, response)
+      Merb.logger.info controller._benchmarks.inspect
+      Merb.logger.flush
 
+      [controller, action]
     # this is the custom dispatch_exception; it allows failures to still be dispatched
     # to the error controller
     # rescue => exception

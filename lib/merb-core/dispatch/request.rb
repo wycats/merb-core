@@ -14,7 +14,7 @@ module Merb
     # http_request<~params:~[], ~body:IO>:: 
     #   An object like an HTTP Request.
     def initialize(http_request)
-      @env = http_request.params
+      @env  = http_request.params
       @body = http_request.body
     end
     
