@@ -1,9 +1,8 @@
 module Merb
   module Rack
-    class FastCGI < Adapter
-      def self.start_server(host=nil, port=nil)
-        app = new
-        Rack::Handler::FastCGI.run(app)
+    class FastCGI
+      def self.start(opts={})
+        Rack::Handler::FastCGI.run(opts[:app])
       end
     end
   end

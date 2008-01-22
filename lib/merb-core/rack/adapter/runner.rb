@@ -1,7 +1,7 @@
 module Merb
   module Rack
     class Runner
-      def self.start_server(host, port)
+      def self.start(opts={})
         #noop
       end
     end

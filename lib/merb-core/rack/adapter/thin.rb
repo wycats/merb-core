@@ -4,11 +4,9 @@ module Merb
   module Rack
     class Thin < Adapter
       # start a Thin server on given host and port.
-      def self.start_server(host, port)
-        app = new
-        server = ::Thin::Server.new(host, port.to_i, app)
+      def self.start(opts={})
+        server = ::Thin::Server.new(opts[:host], opts[:port], opts[:app])
         server.silent = true
-        server.timeout = 3
         server.start!
       end
     end

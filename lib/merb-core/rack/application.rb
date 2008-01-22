@@ -1,10 +1,7 @@
-# for OSX compatibility
-Socket.do_not_reverse_lookup = true
-
 module Merb
   module Rack
 
-    class Adapter
+    class Application
       def initialize(options={})
         @static_server = ::Rack::File.new(::File.join(Merb.root, "public"))
       end
@@ -18,9 +15,16 @@ module Merb
           serve_staic(env)
         elsif file_exist?(cached_path)    # Serve the page cache if it's there
           env['PATH_INFO'] = cached_path
-          serve_staic(env)
+          serve_static(env)
         else                              # No static file, let Merb handle it
-          serve_dynamic(env)
+          request = RequestWrapper.new(env)
+          response = StringIO.new
+          begin
+            controller, action = ::Merb::Dispatcher.handle(request, response)
+          rescue Object => e
+            return [500, {"Content-Type"=>"text/html"}, e.message + "<br/>" + e.backtrace.join("<br/>")]
+          end
+          [controller.status, controller.headers, controller.body]
         end
       end
       
@@ -30,21 +34,9 @@ module Merb
         ::File.file?(full_path) && ::File.readable?(full_path)
       end
       
-      def serve_staic(env)
+      def serve_static(env)
         @static_server.call(env)
       end
-      
-      def serve_dynamic(env)
-        request = RequestWrapper.new(env)
-        response = StringIO.new
-        begin
-          controller, action = ::Merb::Dispatcher.handle(request, response)
-        rescue Object => e
-          return [500, {"Content-Type"=>"text/html"}, e.message + "<br/>" + e.backtrace.join("<br/>")]
-        end
-        [controller.status, controller.headers, controller.body]
-      end
-
       
     end
   end  

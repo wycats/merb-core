@@ -28,32 +28,12 @@ module Merb
   class << self
     
     def start(argv=ARGV)
-      Merb::Config.parse_args(argv)
-      
+      Merb::Config.parse_args(argv)      
       BootLoader.run
-      case Merb::Config[:adapter]
-      when "mongrel"
-        adapter = Merb::Rack::Mongrel
-      when "emongrel"
-        require 'merb-core/rack/adapter/evented_mongrel'        
-        adapter = Merb::Rack::Mongrel
-      when "webrick"
-        adapter = Merb::Rack::WEBrickengl
-      when "fastcgi","fcgi"
-        adapter = Merb::Rack::FastCGI
-      when "thin"
-        adapter = Merb::Rack::Thin
-      when "irb"
-        adapter = Merb::Rack::Irb   
-      when "runner"
-        adapter = Merb::Rack::Runner             
-      else
-        adapter = Merb::Rack.const_get(Merb::Config[:adapter].capitalize)
-      end    
-      adapter.start_server(Merb::Config[:host], Merb::Config[:port].to_i)
+      Merb.adapter.start(Merb::Config.to_hash)
     end
     
-    attr_accessor :environment, :load_paths
+    attr_accessor :environment, :load_paths, :adapter
     Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)
       		
 		# This is the core mechanism for setting up your application layout

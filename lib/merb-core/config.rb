@@ -33,6 +33,10 @@ module Merb
         @configuration.fetch key, default
       end
       
+      def to_hash
+        @configuration
+      end
+      
       def to_yaml
         @configuration.to_yaml  
       end

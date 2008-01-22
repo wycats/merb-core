@@ -3,7 +3,7 @@
 module Merb
   module Rack
     class Irb
-      def self.start_server(host, port)
+      def self.start(opts={})
         _merb = Class.new do
           class << self
             def params() {} end

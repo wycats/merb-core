@@ -1,7 +1,7 @@
 require 'rack'
 module Merb
   module Rack
-    autoload :Adapter,      "merb-core/rack/adapter"
+    autoload :Application,  "merb-core/rack/application"
     autoload :FastCGI,      "merb-core/rack/adapter/fcgi"
     autoload :Irb,          "merb-core/rack/adapter/irb"
     autoload :Mongrel,      "merb-core/rack/adapter/mongrel"
@@ -22,20 +22,6 @@ module Merb
         @env['rack.input']
       end
     end
-    
-    class << self
-        
-      def start(host, ports)
-        ports.each do |port|
-          start_server(host, port)
-          trap("INT"){ Merb.stop }
-        end  
-      end
-      
-      def stop  
-      end
-      
-    end # class << self
-    
+
   end # Rack
 end # Merb

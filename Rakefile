@@ -171,7 +171,7 @@ end
 
 STATS_DIRECTORIES = [
   ['Code', 'lib/'],
-  ['Unit tests', 'specs']
+  ['Unit tests', 'spec']
 ].collect { |name, dir| [ name, "./#{dir}" ] }.
   select  { |name, dir| File.directory?(dir) }
 
