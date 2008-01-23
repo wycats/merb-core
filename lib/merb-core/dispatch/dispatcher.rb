@@ -19,9 +19,9 @@ class Merb::Dispatcher
     #   The rack environment, which is used to instantiate a Merb::Request
     # response<IO>::
     #   An IO object to hold the response
-    def handle(http_request, response)
+    def handle(rack_env, response)
       start   = Time.now
-      request = Merb::Request.new(http_request)
+      request = Merb::Request.new(rack_env)
       Merb.logger.info("Params: #{request.params.inspect}")
       Merb.logger.info("Cookies: #{request.cookies.inspect}")
       
