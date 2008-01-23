@@ -15,10 +15,14 @@ class Merb::Dispatcher
     # ControllerExceptions are rescued here and redispatched.
     #
     # ==== Parameters
-    # http_request<Rack::Environment>::
+    # rack_env<Rack::Environment>::
     #   The rack environment, which is used to instantiate a Merb::Request
     # response<IO>::
     #   An IO object to hold the response
+    #
+    # ==== Returns
+    # Array[Merb::Controller, Symbol]::
+    #   An array containing the Merb::Controller and the action that was dispatched to.
     def handle(rack_env, response)
       start   = Time.now
       request = Merb::Request.new(rack_env)
@@ -50,12 +54,18 @@ class Merb::Dispatcher
     end
     
     private
-    # setup the controller and call the chosen action 
-    #   klass<Merb::Controller>:: the class to dispatch to
-    #   action<Symbol>::          the action to dispatch
-    #   request<Merb::Request>::  the Merb::Request object that was created in #handle
-    #   response<IO>::            the response object passed in from Mongrel
-    #   status<Integer>::         the status code to respond with
+    # Setup the controller and call the chosen action 
+    #
+    # ==== Parameters
+    # klass<Merb::Controller>:: the class to dispatch to
+    # action<Symbol>::          the action to dispatch
+    # request<Merb::Request>::  the Merb::Request object that was created in #handle
+    # response<IO>::            the response object passed in from Mongrel
+    # status<Integer>::         the status code to respond with
+    #
+    # ==== Returns
+    # Array[Merb::Controller, Symbol]::
+    #   An array containing the Merb::Controller and the action that was dispatched to.
     def dispatch_action(klass, action, request, response, status=200)
       # build controller
       controller = klass.new(request, response, status)
@@ -68,8 +78,24 @@ class Merb::Dispatcher
     end
     
     # Re-route the current request to the Exception controller
-    # if it is available, and try to render the exception nicely
-    # if it is not available then just render a simple text error
+    # if it is available, and try to render the exception nicely.
+    #
+    # If it is not available then just render a simple text error.
+    #
+    # ==== Parameters
+    # request<Merb::Request>:: 
+    #   The request object associated with the failed request
+    # response<IO>::
+    #   The response object to put the response into
+    # exception<Object>::
+    #   The exception object that was created when trying to dispatch the
+    #   original controller.
+    #
+    # ==== Returns
+    # Array[Merb::Controller, String]::
+    #   An array containing the Merb::Controller and the name of the exception
+    #   that triggrered #dispatch_exception. For instance, a NotFound exception
+    #   will be "not_found".
     def dispatch_exception(request, response, exception)
       klass = ::Exceptions rescue Merb::Controller
       request.params[:original_params] = request.params.dup rescue {}
@@ -95,8 +121,24 @@ class Merb::Dispatcher
       end
     end
     
-    # if no custom actions are available to render an exception
+    # If no custom actions are available to render an exception
     # then the errors will end up here for processing
+    #
+    # ==== Parameters
+    # klass<Merb::Controller>:: 
+    #   The class of the controller to use for exception dispatch
+    # request<Merb::Request>::
+    #   The Merb request that produced the original error
+    # response<IO>::
+    #   The response object that the response will be put into
+    # e<Exception>::
+    #   The exception that caused #dispatch_exception to be called
+    #
+    # ==== Returns
+    # Array[Merb::Controller, String]::
+    #   An array containing the Merb::Controller that was dispatched to
+    #   and the error's name. For instance, a NotFound error's name is
+    #   "not_found".
     def dispatch_default_exception(klass, request, response, e)
       controller = klass.new(request, response, e.class::STATUS)
       if e.is_a? Merb::ControllerExceptions::Redirection
@@ -112,6 +154,14 @@ class Merb::Dispatcher
     
     # Wraps any non-ControllerException errors in an 
     # InternalServerError ready for displaying over HTTP
+    #
+    # ==== Parameters
+    # e<Exception>::
+    #   The exception that caused #dispatch_exception to be called
+    #
+    # ==== Returns
+    # Merb::InternalServerError::
+    #   An internal server error wrapper for the exception.
     def controller_exception(e)
       e.kind_of?(Merb::ControllerExceptions::Base) ?
         e : Merb::ControllerExceptions::InternalServerError.new(e) 
