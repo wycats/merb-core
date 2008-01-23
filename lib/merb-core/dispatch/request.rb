@@ -13,9 +13,9 @@ module Merb
     # ==== Parameters
     # http_request<~params:~[], ~body:IO>:: 
     #   An object like an HTTP Request.
-    def initialize(http_request)
-      @env  = http_request.params
-      @body = http_request.body
+    def initialize(rack_env)
+      @env  = rack_env
+      @body = rack_env['rack.input']
     end
     
     METHODS = %w{get post put delete head}

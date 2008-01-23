@@ -14,9 +14,9 @@ class Merb::Dispatcher
     #
     # ControllerExceptions are rescued here and redispatched.
     # Exceptions still return [controller, action]
-    def handle(http_request, response)
+    def handle(rack_env, response)
       start   = Time.now
-      request = Merb::Request.new(http_request)
+      request = Merb::Request.new(rack_env)
       Merb.logger.info("Params: #{request.params.inspect}")
       Merb.logger.info("Cookies: #{request.cookies.inspect}")
       

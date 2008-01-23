@@ -17,10 +17,8 @@ module Merb
           env['PATH_INFO'] = cached_path
           serve_static(env)
         else                              # No static file, let Merb handle it
-          request = RequestWrapper.new(env)
-          response = StringIO.new
           begin
-            controller, action = ::Merb::Dispatcher.handle(request, response)
+            controller, action = ::Merb::Dispatcher.handle(env, StringIO.new)
           rescue Object => e
             return [500, {"Content-Type"=>"text/html"}, e.message + "<br/>" + e.backtrace.join("<br/>")]
           end

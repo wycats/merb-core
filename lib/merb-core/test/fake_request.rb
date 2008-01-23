@@ -7,9 +7,8 @@ module Merb
     class FakeRequest < Request
       def initialize(env = {}, req = StringIO.new)
         env.environmentize_keys!
-        
-        fake_request = Struct.new(:params, :body).new(DEFAULT_ENV.merge(env), req)
-        super(fake_request)
+        env['rack.input'] = req
+        super(DEFAULT_ENV.merge(env))
       end
       
       private    
