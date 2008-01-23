@@ -13,7 +13,12 @@ class Merb::Dispatcher
     # Returns a 2 element tuple of: [controller, action]
     #
     # ControllerExceptions are rescued here and redispatched.
-    # Exceptions still return [controller, action]
+    #
+    # ==== Parameters
+    # http_request<Rack::Environment>::
+    #   The rack environment, which is used to instantiate a Merb::Request
+    # response<IO>::
+    #   An IO object to hold the response
     def handle(http_request, response)
       start   = Time.now
       request = Merb::Request.new(http_request)
@@ -46,11 +51,11 @@ class Merb::Dispatcher
     
     private
     # setup the controller and call the chosen action 
-    #   klass<Merb::Controller> the class to dispatch to
-    #   action<Symbol>          the action to dispatch
-    #   request<Merb::Request>  the Merb::Request object that was created in #handle
-    #   response<HTTPResponse>  the response object passed in from Mongrel
-    #   status<Integer>         the status code to respond with
+    #   klass<Merb::Controller>:: the class to dispatch to
+    #   action<Symbol>::          the action to dispatch
+    #   request<Merb::Request>::  the Merb::Request object that was created in #handle
+    #   response<IO>::            the response object passed in from Mongrel
+    #   status<Integer>::         the status code to respond with
     def dispatch_action(klass, action, request, response, status=200)
       # build controller
       controller = klass.new(request, response, status)
