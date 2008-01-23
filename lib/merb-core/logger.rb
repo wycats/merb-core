@@ -129,15 +129,15 @@ module Merb
     
     # Generate the following logging methods for Merb.logger:
     #
-    #   Merb.logger.info(message<string>,&block)
-    #   Merb.logger.emergency(message<string>)
-    #   Merb.logger.alert(message<string>)
-    #   Merb.logger.critical(message<string>)
-    #   Merb.logger.error(message<string>)
-    #   Merb.logger.warning(message<string>)
-    #   Merb.logger.notice(message<string>)
-    #   Merb.logger.info(message<string>)
-    #   Merb.logger.debug(message<string>)
+    #   Merb.logger.info(message<string>, &block)
+    #   Merb.logger.emergency(message<string>, &block)
+    #   Merb.logger.alert(message<string>, &block)
+    #   Merb.logger.critical(message<string>, &block)
+    #   Merb.logger.error(message<string>, &block)
+    #   Merb.logger.warning(message<string>, &block)
+    #   Merb.logger.notice(message<string>, &block)
+    #   Merb.logger.info(message<string>, &block)
+    #   Merb.logger.debug(message<string>, &block)
     Levels.each_with_index do |level,index|
       class_eval <<-LEVELMETHODS
         def #{level}(message = nil, &block)
@@ -163,14 +163,14 @@ module Merb
     #   The string message to be logged
     # block<&block>
     #   An optional block that will be evaluated and added to the logging message after the string message.
-    def buffer(log_level, string = nil, &block)
+    def buffer(log_level, string = nil)
       return if level > log_level
       message = Time.now.httpdate
       message << delimiter
       message << string if string
       if block_given?
         message << delimiter
-        message << block.call.to_s
+        message << yield
       end
       message << "\n" unless message[-1] == ?\n
       @buffer << message
