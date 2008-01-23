@@ -97,11 +97,13 @@ module Merb
       
       # The idea here is that instead of performing an 'if' conditional check
       # on each logging we do it once when the log object is setup
-      undef write_method if defined? write_method
-      if aio
-        alias :write_method :write_nonblock
-      else
-        alias :write_method :write
+      @log.instance_eval do
+        undef write_method if defined? write_method
+        if @aio
+          alias :write_method :write_nonblock
+        else
+          alias :write_method :write
+        end
       end
 
       Merb.logger = self
