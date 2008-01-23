@@ -39,6 +39,7 @@ module Merb
       end
       
       def compile
+        puts "compiled route: #{compiled_statement}" if $DEBUG
         meta_def(:match, &eval(compiled_statement))
       end
       

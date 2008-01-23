@@ -88,7 +88,7 @@ module Merb
           max = Behavior.count_parens_up_to(value.source, value.source.size)
           captures = max == 0 ? "" : (1..max).to_a.map{ |n| "#{key}#{n}" }.join(", ") + " = " +
                                      (1..max).to_a.map{ |n| "$#{n}"}.join(", ")
-          "    #{value.inspect} =~ #{regexp_string}\n      #{captures}"
+          " (#{value.inspect} =~ #{regexp_string}) #{" && (" + captures + ")" unless captures.empty?}"
         end
         @conditions.each_pair do |key, value|
           
@@ -119,8 +119,8 @@ module Merb
         end
         params_as_string = params.keys.map { |k| "#{k.inspect} => #{get_value[k]}" }.join(', ')
         code << "  els" unless first
-        code << "if  # #{@behavior.merged_original_conditions.inspect}\n  "
-        code << if_conditions(params_as_string).join(" &&\n  ") << "\n"
+        code << "if  # #{@behavior.merged_original_conditions.inspect}  \n"
+        code << if_conditions(params_as_string).join(" && ") << "\n"
         code << "    # then\n"
         if @conditional_block
           code << "    [#{@index.inspect}, block_result]\n"

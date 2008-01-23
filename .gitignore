@@ -1,3 +1,4 @@
 test_log
 pkg
 pkg/*
+*.log
