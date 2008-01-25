@@ -75,7 +75,7 @@ module Merb
 		end
 		
 		# Framework paths
-		def framework_root()  @framework_root ||= File.dirname(__FILE__)          end
+		def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
 		  
 		def flat!(&block)
       Merb::Config[:framework] = {}

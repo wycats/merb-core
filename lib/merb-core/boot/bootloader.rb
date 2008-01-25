@@ -296,7 +296,7 @@ end
 # Choose the Rack adapter/server to use and set Merb.adapter
 class Merb::BootLoader::ChooseAdapter < Merb::BootLoader
   def self.run
-    ::Merb.adapter = Merb::Rack::Adapter.get(Merb::Config[:adapter])
+    Merb.adapter = Merb::Rack::Adapter.get(Merb::Config[:adapter])
   end
 end
 
