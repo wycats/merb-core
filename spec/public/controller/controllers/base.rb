@@ -42,6 +42,12 @@ module Merb::Test::Fixtures
       end
     end
   
+    class BeforeHookInherit < BeforeHook
+      def index
+        @stuff
+      end
+    end
+  
     class BeforeHookSymbol < BeforeHook
       add_hook :before_dispatch, :stuff
       def index

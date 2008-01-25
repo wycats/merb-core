@@ -32,6 +32,11 @@ describe Merb::Controller, " callable actions" do
     controller.body.should == "Proc"
   end
 
+  it "should support hooks before dispatch with a proc" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::BeforeHookInherit, :index)
+    controller.body.should == "Proc"
+  end
+
   it "should support hooks before dispatch with a symbol (and inherit)" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::BeforeHookSymbol, :index)
     controller.body.should == "Proc Symbol"
