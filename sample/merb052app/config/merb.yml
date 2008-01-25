@@ -15,7 +15,7 @@
 
 # Uncomment if you have more than one ORM or if you need to be specific about
 # which memory store to use. Built-in options are: memory, cookie, or mem_cache
-#:session_store: sequel
+:session_store: cookie
 
 #:memory_session_ttl: 3600 # one hour
 

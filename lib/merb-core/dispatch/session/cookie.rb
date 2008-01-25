@@ -8,8 +8,9 @@ module Merb
   module SessionMixin #:nodoc:
     def self.included(base)
       base.add_hook :before_dispatch do
+        raise "F U!"
         Merb.logger.info("Setting Up Cookie Store Sessions")
-        request.session = Merb::CookieSession.new(cookies[_session_id_key], session_secret_key)
+        request.session = Merb::CookieSession.new(cookies[_session_id_key], _session_secret_key)
         @original_session = request.session.read_cookie
       end  
       
