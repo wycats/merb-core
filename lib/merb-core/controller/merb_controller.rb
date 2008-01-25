@@ -10,7 +10,7 @@ class Merb::Controller < Merb::AbstractController
   self._session_expiry = Time.now + Merb::Const::WEEK * 2
   
   include Merb::ResponderMixin
-  include Merb::Hook
+  include Merb::ControllerMixin
   
   class << self
     
@@ -128,9 +128,7 @@ class Merb::Controller < Merb::AbstractController
   def _dispatch(action=:index)
     start = Time.now
     if self.class.callable_actions.include?(action.to_s)
-      hook :before_dispatch
       super(action)
-      hook :after_dispatch
     else
       raise ActionNotFound, "Action '#{action}' was not found in #{self.class}"
     end

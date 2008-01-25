@@ -31,7 +31,7 @@ module Merb::Test::Fixtures
       end
       hide_action :hidden
     end
-  
+    
     class BeforeHook < Testing
       add_hook(:before_dispatch) do
         @stuff = "Proc"
@@ -47,7 +47,7 @@ module Merb::Test::Fixtures
         @stuff
       end
     end
-  
+    
     class BeforeHookSymbol < BeforeHook
       add_hook :before_dispatch, :stuff
       def index

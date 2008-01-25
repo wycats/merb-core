@@ -7,7 +7,7 @@ module Merb::Hook
     # ==== Returns
     # An empty _hooks hash
     def self.extended(mod)
-      mod.class_inheritable_accessor :_hooks
+      mod.cattr_accessor :_hooks
       mod._hooks = Hash.new {|h,k| h[k] = Dictionary.new {|h,k| h[k] = []}}      
     end
     

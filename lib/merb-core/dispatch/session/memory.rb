@@ -2,14 +2,13 @@ module Merb
   
   module SessionMixin #:nodoc:
     
-    def self.included(base)
+    def self.included(base)            
       base.add_hook :before_dispatch do
         Merb.logger.info("Setting up session")
         before = cookies[_session_id_key]
         request.session , cookies[_session_id_key] = Merb::MemorySession.persist(cookies[_session_id_key])
         @_new_cookie = cookies[_session_id_key] != before
-      end  
-      
+      end
       
       base.add_hook :after_dispatch do
         Merb.logger.info("Finalize session")

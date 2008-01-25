@@ -4,6 +4,7 @@ module Merb
   autoload :Config,               "merb-core/config"
   autoload :Const,                "merb-core/constants"
   autoload :Controller,           "merb-core/controller/merb_controller"
+  autoload :ControllerMixin,      "merb-core/controller/mixins/controller"
   autoload :ControllerExceptions, "merb-core/controller/exceptions"
   autoload :Dispatcher,           "merb-core/dispatch/dispatcher"
   autoload :ErubisCaptureMixin,   "merb-core/controller/mixins/erubis_capture"

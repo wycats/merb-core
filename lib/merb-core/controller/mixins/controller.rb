@@ -1,3 +1,5 @@
+require "cgi"
+
 module Merb
   # Module that is mixed in to all implemented controllers.
   module ControllerMixin
@@ -178,7 +180,7 @@ module Merb
     def set_cookie(name, value, expires)
       (headers['Set-Cookie'] ||='') << (Merb::Const::SET_COOKIE % [
         name.to_s, 
-        escape(value.to_s), 
+        CGI.escape(value.to_s), 
         # Cookie expiration time must be GMT. See RFC 2109
         expires.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
       ])

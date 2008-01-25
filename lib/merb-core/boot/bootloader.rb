@@ -304,13 +304,15 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie",
       "Using 'share-nothing' cookie sessions (4kb limit per client)")
 
+    Merb::Config[:session_store] = "memory"
+
     Merb::Controller.class_eval do
       lib = File.join(Merb.framework_root, 'merb')
       session_store = Merb::Config[:session_store].to_s
       if ["", "false", "none"].include?(session_store)
         Merb.logger.info "Not Using Sessions"
       elsif reg = Merb.registered_session_types[session_store]
-        if session_store == "cookie" 
+        if session_store == "cookie"
           Merb::BootLoader::MixinSessionContainer.check_for_secret_key
         end
         require reg[:file]
@@ -325,7 +327,7 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
         Merb.logger.info "(plugin not installed?)"
       end
     end
-    
+        
     Merb.logger.flush  
   end
   

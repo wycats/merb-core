@@ -63,7 +63,7 @@ class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
   include Merb::GlobalHelpers rescue nil
-  is_hookable  
+  is_hookable
   
   class_inheritable_accessor :_before_filters, :_after_filters, :_template_root, :_layout
 
@@ -341,6 +341,6 @@ class Merb::AbstractController
   end
   
   def method_missing(sym, *args, &blk)
-    @_merb_partial_locals[sym] || super
+    (@_merb_partial_locals || {})[sym] || super
   end  
 end
