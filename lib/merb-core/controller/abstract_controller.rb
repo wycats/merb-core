@@ -339,4 +339,8 @@ class Merb::AbstractController
     opts[:exclude] = [opts[:exclude]] if opts[:exclude].is_a?(Symbol)
     return opts
   end
+  
+  def method_missing(sym, *args, &blk)
+    @_merb_partial_locals[sym] || super
+  end  
 end

@@ -157,6 +157,59 @@ module Merb::RenderMixin
     end
   end
   
+  # Render a partial template.
+  #
+  # ==== Parameters
+  # template<~to_s>::
+  #   The path to the template, relative to the current controller or the 
+  #   template root. If the template contains a "/", Merb will search
+  #   for it relative to the template root; otherwise, Merb will search for
+  #   it relative to the current controller.
+  # opts<Hash>::
+  #   A hash of options (see below)
+  #
+  # ==== Options
+  # :with<Object>::
+  #   An object that will be passed into the partial.
+  # :with<Array[Object]>::
+  #   An Array of objects that will be sequentially passed into the partial.
+  # :as<~to_sym>::
+  #   The local name of the :with Object inside of the partial.
+  # others::
+  #   A Hash object names and values that will be the local names and values
+  #   inside the partial.
+  #
+  # ==== Example
+  # {{[partial :foo, :hello => @object]}}
+  #
+  # The "_foo" partial will be called, relative to the current controller,
+  # with a local variable of +hello+ inside of it, assigned to @object.
+  def partial(template, opts={})
+
+    # partial :foo becomes "#{controller_name}/_foo"
+    # partial "foo/bar" becomes "foo/_bar"
+    template = "_#{File.basename(template.to_s)}"
+    kontroller = (m = template.match(/.*(?=\/)/)) ? m[0] : controller_name
+
+    # Find a template path to look up (_template_location adds flexibility here)
+    template_location = _template_root / _template_location(template, content_type, kontroller)
+    
+    # Get the method name from the previously inlined list
+    template_method = Merb::Template.template_for(template_location)    
+
+    if with = opts.delete(:with)
+      as = opts.delete(:as) || template_location.match(%r[.*/_([^\.]*)])[1]
+      @_merb_partial_locals = opts
+      sent_template = [with].flatten.map do |temp|
+        @_merb_partial_locals[as.to_sym] = temp
+        send(template_method)
+      end.join
+    else
+      @_merb_partial_locals = opts
+      send(template_method)
+    end
+  end      
+  
   # Take the options hash and handle it as appropriate.
   # 
   # ==== Parameters
@@ -205,8 +258,8 @@ module Merb::RenderMixin
     
     # If a layout was not provided, try the default locations
     else
-      Merb::Template.template_for(_template_root / _template_location(controller_name, content_type, "layout")) ||
-        Merb::Template.template_for(_template_root / _template_location("application", content_type, "layout"))
+      Merb::Template.template_for(_template_root / _template_location(controller_name, content_type, "layout")) rescue
+        Merb::Template.template_for(_template_root / _template_location("application", content_type, "layout")) rescue nil
     end    
   end
   

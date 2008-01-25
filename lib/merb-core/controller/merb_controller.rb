@@ -1,6 +1,6 @@
 class Merb::Controller < Merb::AbstractController
   
-  class_inheritable_accessor :_session_id_key, :_session_expiry, :_hidden_actions
+  class_inheritable_accessor :_session_id_key, :_session_expiry, :_hidden_actions, :_shown_actions
   cattr_accessor :_subclasses, :_session_secret_key
   self._subclasses = Set.new
   def self.subclasses_list() _subclasses end
@@ -36,14 +36,31 @@ class Merb::Controller < Merb::AbstractController
     def hide_action(*names)
       self._hidden_actions = self._hidden_actions | names.map { |n| n.to_s }
     end
+    
+    def show_action(*names)
+      self._shown_actions = self._shown_actions | names.map {|n| n.to_s}
+    end
 
     def _hidden_actions
       actions = read_inheritable_attribute(:_hidden_actions)
       actions ? actions : write_inheritable_attribute(:_hidden_actions, [])
     end
+    
+    def _shown_actions
+      actions = read_inheritable_attribute(:_shown_actions)
+      actions ? actions : write_inheritable_attribute(:_shown_actions, [])      
+    end
 
     def callable_actions
-      @callable_actions ||= Merb::SimpleSet.new((public_instance_methods - _hidden_actions).map {|x| x.to_s})
+      @callable_actions ||= Merb::SimpleSet.new(begin
+        callables = []
+        klass = self
+        begin
+          callables << (klass.public_instance_methods(false) + klass._shown_actions) - klass._hidden_actions
+          klass = klass.superclass
+        end until klass == Merb::Controller || klass == Object
+        callables
+      end.flatten)
     end
     
   end
