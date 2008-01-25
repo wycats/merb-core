@@ -6,18 +6,22 @@ require 'openssl'       # to generate the HMAC message digest
 module Merb
   
   module SessionMixin #:nodoc:
-    def setup_session
-      Merb.logger.info("Setting Up Cookie Store Sessions")
-      request.session = Merb::CookieSession.new(cookies[_session_id_key], session_secret_key)
-      @original_session = request.session.read_cookie
-    end
-    
-    def finalize_session
-      Merb.logger.info("Finalize Cookie Store Session")
-      new_session = request.session.read_cookie
-
-      if @original_session != new_session
-        set_cookie(_session_id_key, new_session, _session_expiry) 
+    def self.included(base)
+      base.add_hook :before_dispatch do
+        raise "F U!"
+        Merb.logger.info("Setting Up Cookie Store Sessions")
+        request.session = Merb::CookieSession.new(cookies[_session_id_key], _session_secret_key)
+        @original_session = request.session.read_cookie
+      end  
+      
+      
+      base.add_hook :after_dispatch do
+        Merb.logger.info("Finalize Cookie Store Session")
+        new_session = request.session.read_cookie
+      
+        if @original_session != new_session
+          set_cookie(_session_id_key, new_session, _session_expiry) 
+        end
       end
     end
     

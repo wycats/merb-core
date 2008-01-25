@@ -4,20 +4,24 @@ module Merb
 
   module SessionMixin #:nodoc:
 
-    def setup_session
-      Merb.logger.info("Setting up session")
-      before = cookies[_session_id_key]
-      request.session, cookies[_session_id_key] = Merb::MemCacheSession.persist(cookies[_session_id_key])
-      @_fingerprint = Marshal.dump(request.session.data).hash
-      @_new_cookie = cookies[_session_id_key] != before
-    end
-
-    def finalize_session
-      Merb.logger.info("Finalize session")
-      if @_fingerprint != Marshal.dump(request.session.data).hash
-        ::Cache.put("session:#{@_session.session_id}", request.session.data)
+    
+    def self.included(base)
+      base.add_hook :before_dispatch do
+        Merb.logger.info("Setting up session")
+        before = cookies[_session_id_key]
+        request.session, cookies[_session_id_key] = Merb::MemCacheSession.persist(cookies[_session_id_key])
+        @_fingerprint = Marshal.dump(request.session.data).hash
+        @_new_cookie = cookies[_session_id_key] != before
+      end  
+      
+      
+      base.add_hook :after_dispatch do
+        Merb.logger.info("Finalize session")
+        if @_fingerprint != Marshal.dump(request.session.data).hash
+          ::Cache.put("session:#{@_session.session_id}", request.session.data)
+        end
+        set_cookie(_session_id_key, request.session.session_id, _session_expiry) if (@_new_cookie || request.session.needs_new_cookie)
       end
-      set_cookie(_session_id_key, request.session.session_id, _session_expiry) if (@_new_cookie || request.session.needs_new_cookie)
     end
 
     def session_store_type

@@ -294,9 +294,55 @@ class Merb::BootLoader::AfterAppLoads < Merb::BootLoader
 end
 
 # Choose the Rack adapter/server to use and set Merb.adapter
+class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
+  def self.run
+    Merb.register_session_type('memory',
+      Merb.framework_root / "merb-core" / "dispatch" / "session" / "memory",
+      "Using in-memory sessions; sessions will be lost whenever the server stops.")
+
+    Merb.register_session_type('cookie', # Last session type becomes the default
+      Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie",
+      "Using 'share-nothing' cookie sessions (4kb limit per client)")
+
+    Merb::Controller.class_eval do
+      lib = File.join(Merb.framework_root, 'merb')
+      session_store = Merb::Config[:session_store].to_s
+      if ["", "false", "none"].include?(session_store)
+        Merb.logger.info "Not Using Sessions"
+      elsif reg = Merb.registered_session_types[session_store]
+        if session_store == "cookie" 
+          Merb::BootLoader::MixinSessionContainer.check_for_secret_key
+        end
+        require reg[:file]
+        include ::Merb::SessionMixin
+        Merb.logger.info reg[:description]
+      else
+        Merb.logger.info "Session store not found, '#{Merb::Config[:session_store]}'."
+        Merb.logger.info "Defaulting to CookieStore Sessions"
+        Merb::BootLoader::MixinSessionContainer.check_for_secret_key
+        require Merb.registered_session_types['cookie'][:file]
+        include ::Merb::SessionMixin
+        Merb.logger.info "(plugin not installed?)"
+      end
+    end
+    
+    Merb.logger.flush  
+  end
+  
+  
+  def self.check_for_secret_key
+    unless Merb::Config[:session_secret_key] && (Merb::Config[:session_secret_key].length >= 16)
+      Merb.logger.info("You must specify a session_secret_key in your merb.yml, and it must be at least 16 characters\nbailing out...")
+      exit! 
+    end            
+    Merb::Controller._session_secret_key = Merb::Config[:session_secret_key]
+  end
+end
+
+# Choose the Rack adapter/server to use and set Merb.adapter
 class Merb::BootLoader::ChooseAdapter < Merb::BootLoader
   def self.run
-    ::Merb.adapter = Merb::Rack::Adapter.get(Merb::Config[:adapter])
+    Merb.adapter = Merb::Rack::Adapter.get(Merb::Config[:adapter])
   end
 end
 

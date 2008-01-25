@@ -13,7 +13,7 @@ class Merb::SimpleSet < Hash
   end
   
   def inspect
-    "#<FasterSet: {#{keys.map {|x| x.inspect}.join(", ")}}>"
+    "#<SimpleSet: {#{keys.map {|x| x.inspect}.join(", ")}}>"
   end
   
   alias_method :to_a, :keys

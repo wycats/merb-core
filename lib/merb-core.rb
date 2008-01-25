@@ -75,7 +75,7 @@ module Merb
 		end
 		
 		# Framework paths
-		def framework_root()  @framework_root ||= File.dirname(__FILE__)          end
+		def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
 		  
 		def flat!(&block)
       Merb::Config[:framework] = {}
@@ -90,6 +90,16 @@ module Merb
     attr_accessor :generator_scope, :klass_hashes
     Merb.generator_scope = [:merb_default, :merb, :rspec]
     Merb.klass_hashes = []
+    
+    attr_reader :registered_session_types
+    def register_session_type(name, file, description = nil)
+      @registered_session_types ||= Dictionary.new
+      @registered_session_types[name] = {
+        :file => file,
+        :description => (description || "Using #{name} sessions")
+      }
+    end
+    
   end
   
 end

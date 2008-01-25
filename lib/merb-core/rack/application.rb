@@ -18,10 +18,11 @@ module Merb
           serve_static(env)
         else                              # No static file, let Merb handle it
           begin
-            controller, action = ::Merb::Dispatcher.handle(env, StringIO.new)
+            controller, action = ::Merb::Dispatcher.handle(env, ::Rack::Response.new)
           rescue Object => e
             return [500, {"Content-Type"=>"text/html"}, e.message + "<br/>" + e.backtrace.join("<br/>")]
           end
+          Merb.logger.flush
           [controller.status, controller.headers, controller.body]
         end
       end
