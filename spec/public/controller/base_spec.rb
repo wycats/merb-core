@@ -18,6 +18,15 @@ describe Merb::Controller, " callable actions" do
       should raise_error(Merb::ControllerExceptions::ActionNotFound)
   end
   
+  it "should dispatch to included methods with show_action called" do
+    dispatch_to(Merb::Test::Fixtures::Controllers::Base, :baz).body.should == "baz"
+  end
+
+  it "should not dispatch to included methods with show_action not called" do
+    calling { dispatch_to(Merb::Test::Fixtures::Controllers::Base, :bat) }.
+      should raise_error(Merb::ControllerExceptions::ActionNotFound)
+  end
+  
   it "should support hooks before dispatch with a proc" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::BeforeHook, :index)
     controller.body.should == "Proc"

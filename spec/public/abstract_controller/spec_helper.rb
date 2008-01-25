@@ -3,6 +3,7 @@ require File.join(__DIR__, "..", "..", "spec_helper")
 
 require File.join(__DIR__, "controllers", "filters")
 require File.join(__DIR__, "controllers", "render")
+require File.join(__DIR__, "controllers", "partial")
 
 Merb.start %w( -e test -a runner )
 
