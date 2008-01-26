@@ -304,10 +304,7 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie",
       "Using 'share-nothing' cookie sessions (4kb limit per client)")
 
-    Merb::Config[:session_store] = "memory"
-
     Merb::Controller.class_eval do
-      lib = File.join(Merb.framework_root, 'merb')
       session_store = Merb::Config[:session_store].to_s
       if ["", "false", "none"].include?(session_store)
         Merb.logger.info "Not Using Sessions"
