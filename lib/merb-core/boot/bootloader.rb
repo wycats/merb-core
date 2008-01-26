@@ -55,27 +55,6 @@ class Merb::BootLoader::Environment < Merb::BootLoader
   end
 end
 
-# Load the init-file.
-# 
-# The file will be searched for in the following order:
-# * A relative path provided via a -I command line switch
-# * merb_init.rb, relative to the root
-# * merb_init.rb, relative to the config directory
-# * application.rb, relative to the root
-class Merb::BootLoader::InitFile < Merb::BootLoader
-  def self.run
-    if Merb::Config[:init_file] && File.exists?(Merb.root / Merb::Config[:init_file])
-      require(Merb.root / Merb::Config[:init_file])
-    elsif File.exists?(Merb.root / "merb_init.rb")
-      require(Merb.root / "merb_init")
-    elsif File.exists?(Merb.root / "config" / "merb_init.rb")
-      require(Merb.root / "config" / "merb_init")  
-    elsif File.file?(Merb.root / "application.rb")
-      require(Merb.root / "application")
-    end
-  end
-end
-
 # Build the framework paths.
 #
 # By default, the following paths will be used:
@@ -136,7 +115,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
 end
 
 # Load the dependencies file, which registers the list of necessary dependencies and
-# an after_
+# any after_app_loads hooks.
 class Merb::BootLoader::Dependencies < Merb::BootLoader
   def self.run
     if File.exists?(Merb.dir_for(:config) / "dependencies.rb")
@@ -163,7 +142,7 @@ end
 # Merb::BootLoader::BuildFramework)
 class Merb::BootLoader::LoadRouter < Merb::BootLoader
   def self.run
-    require(Merb.dir_for(:config) / "router") if File.exists?(Merb.dir_for(:config) / "router")
+    require(Merb.dir_for(:config) / "router") if File.exists?(Merb.dir_for(:config) / "router.rb")
   end
 end
 
@@ -293,7 +272,7 @@ class Merb::BootLoader::AfterAppLoads < Merb::BootLoader
   end
 end
 
-# Choose the Rack adapter/server to use and set Merb.adapter
+# Mixin the correct session container.
 class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
   def self.run
     Merb.register_session_type('memory',
@@ -303,8 +282,6 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
     Merb.register_session_type('cookie', # Last session type becomes the default
       Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie",
       "Using 'share-nothing' cookie sessions (4kb limit per client)")
-
-    Merb::Config[:session_store] = "memory"
 
     Merb::Controller.class_eval do
       lib = File.join(Merb.framework_root, 'merb')
@@ -354,10 +331,8 @@ end
 # Rack::Builder.new { } block. Allows for mounting additional apps or middleware
 class Merb::BootLoader::RackUpApplication < Merb::BootLoader
   def self.run
-    if File.exists?(Merb.root / "rack.rb")
-      Merb::Config[:app] =  eval("Rack::Builder.new {( #{IO.read(Merb.root / 'rack')}\n )}.to_app")
-    elsif File.exists?(Merb.root / "config" / "rack.rb")
-      Merb::Config[:app] =  eval("Rack::Builder.new {( #{IO.read(Merb.root / 'config' / 'rack')}\n )}.to_app") 
+    if File.exists?(Merb.dir_for(:config) / "rack.rb")
+      Merb::Config[:app] =  eval("Rack::Builder.new {( #{IO.read(Merb.dir_for(:config) / 'rack')}\n )}.to_app")
     else
       Merb::Config[:app] = ::Merb::Rack::Application.new
     end

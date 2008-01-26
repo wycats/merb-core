@@ -47,7 +47,7 @@ spec = Gem::Specification.new do |s|
   s.description  = s.summary
   s.executables  = %w( merb.9 )
   s.require_path = "lib"
-  s.files        = %w( LICENSE README Rakefile TODO ) + Dir["{bin,spec,lib,examples,app_generators,merb_generators,merb_default_generators,rspec_generators,test_unit_generators,script}/**/*"]
+  s.files        = %w( LICENSE README Rakefile TODO ) + Dir["{docs,bin,spec,lib,examples,app_generators,merb_generators,merb_default_generators,rspec_generators,test_unit_generators,script}/**/*"]
 
   # rdoc
   s.has_rdoc         = true
