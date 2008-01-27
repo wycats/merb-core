@@ -102,7 +102,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
           Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
         end
         Merb.push_path(:application,    Merb.root_path("app/controllers/application.rb"))
-        Merb.push_path(:config,         Merb.root_path("config"), "*.rb")
+        Merb.push_path(:config,         Merb.root_path("config"), nil)
         Merb.push_path(:lib,            Merb.root_path("lib"), nil)
         Merb.push_path(:log,            Merb.root_path("log"), nil)
       else
@@ -331,7 +331,7 @@ end
 class Merb::BootLoader::RackUpApplication < Merb::BootLoader
   def self.run
     if File.exists?(Merb.dir_for(:config) / "rack.rb")
-      Merb::Config[:app] =  eval("Rack::Builder.new {( #{IO.read(Merb.dir_for(:config) / 'rack')}\n )}.to_app")
+      Merb::Config[:app] =  eval("::Rack::Builder.new {( #{IO.read(Merb.dir_for(:config) / 'rack.rb')}\n )}.to_app")
     else
       Merb::Config[:app] = ::Merb::Rack::Application.new
     end
