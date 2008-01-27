@@ -39,7 +39,7 @@ class Merb::Dispatcher
       
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
-      if request.controller_name.nil?
+      if controller_name.nil?
         raise ::Merb::ControllerExceptions::BadRequest, "Route matched, but route did not specify a controller" 
       end
       
