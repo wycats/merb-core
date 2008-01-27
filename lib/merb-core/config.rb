@@ -121,7 +121,6 @@ module Merb
              options[:adapter] = adapter
            end
 
-
            opts.on("-i", "--irb-console", "This flag will start merb in irb console mode. All your models and other classes will be available for you in an irb session.") do |console|
               options[:adapter] = 'irb'
            end
@@ -137,12 +136,7 @@ module Merb
            opts.on("-r", "--script-runner ['RUBY CODE'| FULL_SCRIPT_PATH]", 
              "Command-line option to run scripts and/or code in the merb app.") do |code_or_file|
               options[:runner_code] = code_or_file
-           end
-
-           opts.on("-P","--generate-plugin PATH", "Generate a fresh merb plugin at PATH.") do |path|
-             require 'merb/generators/merb_plugin'
-             ::Merb::PluginGenerator.run path || Dir.pwd
-             exit
+              options[:adapter] = 'runner'
            end
 
            opts.on("-K", "--graceful PORT or all", "Gracefully kill one merb proceses by port number.  Use merb -K all to gracefully kill all merbs.") do |ports|
@@ -189,24 +183,13 @@ module Merb
          # Parse what we have on the command line
          opts.parse!(argv)
 
-         # merb <argument> is same as merb -g <argument>
-         if argv.size == 1
-           require 'merb/generators/merb_app/merb_app'
-           ::Merb::AppGenerator.run File.expand_path(argv.last)
-           exit!
-         end
-
          # Load up the configuration from file, but keep the command line
          # options that may have been chosen. Also, pass-through if we have
          # a new merb_config path.
          options = Merb::Config.setup(options[:merb_config]).merge(options)
-
+         @configuration = options
          # Finally, if all else fails... set the environment to 'development'
          options[:environment] ||= 'development'
-
-         environment_merb_yml = "#{options[:merb_root]}/config/environments/#{options[:environment]}.yml"        
-
-         @configuration = Merb::Config.apply_configuration_from_file options, environment_merb_yml
          
          case Merb::Config[:environment].to_s
          when 'production'
@@ -221,8 +204,6 @@ module Merb
          Merb.environment = Merb::Config[:environment]
          Merb.root = Merb::Config[:merb_root]
          Merb::Config[:reloader_time] ||= 0.5 if Merb::Config[:reloader] == true
-
-         @configuration
        end
        
     end # class << self
