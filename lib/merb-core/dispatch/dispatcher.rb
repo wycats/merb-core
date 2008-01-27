@@ -44,7 +44,7 @@ class Merb::Dispatcher
       Merb.logger.info controller._benchmarks.inspect
       Merb.logger.flush
 
-      [controller, action]
+      controller
     # this is the custom dispatch_exception; it allows failures to still be dispatched
     # to the error controller
     rescue => exception
@@ -74,7 +74,7 @@ class Merb::Dispatcher
       else
         controller._dispatch(action)
       end
-      [controller, action]
+      controller
     end
     
     # Re-route the current request to the Exception controller
@@ -149,7 +149,7 @@ class Merb::Dispatcher
         controller.instance_variable_set("@exception_name", e.name.split("_").map {|x| x.capitalize}.join(" "))
         controller.body = controller.send(Merb::Template.template_for(DEFAULT_ERROR_TEMPLATE))
       end
-      [controller, e.name]
+      controller
     end
     
     # Wraps any non-ControllerException errors in an 

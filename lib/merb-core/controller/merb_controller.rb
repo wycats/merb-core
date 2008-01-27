@@ -138,7 +138,7 @@ class Merb::Controller < Merb::AbstractController
   attr_reader :request, :response, :headers
   attr_accessor :status
   def params()  request.params  end
-  def cookies() @_cookies ||= Cookies.new(request.cookies, @_headers)  end
+  def cookies() @_cookies ||= ::Merb::Cookies.new(request.cookies, @_headers)  end
   def session() request.session end
   def route()   request.route   end
 end
