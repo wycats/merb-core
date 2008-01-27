@@ -331,7 +331,7 @@ end
 class Merb::BootLoader::RackUpApplication < Merb::BootLoader
   def self.run
     if File.exists?(Merb.dir_for(:config) / "rack.rb")
-      Merb::Config[:app] =  eval("::Rack::Builder.new {( #{IO.read(Merb.dir_for(:config) / 'rack.rb')}\n )}.to_app")
+      Merb::Config[:app] =  eval("::Rack::Builder.new {( #{IO.read(Merb.dir_for(:config) / 'rack.rb')}\n )}.to_app", TOPLEVEL_BINDING)
     else
       Merb::Config[:app] = ::Merb::Rack::Application.new
     end
