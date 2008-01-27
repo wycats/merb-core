@@ -94,9 +94,9 @@ module Kernel
   #   $ ruby script/generate model MyModel # will use the appropriate generator for your ORM
   
   def use_orm(orm)
-    raise "Don't call use_orm more than once" unless Merb::GENERATOR_SCOPE.delete(:merb_default)
+    raise "Don't call use_orm more than once" unless Merb.generator_scope.delete(:merb_default)
     orm_plugin = orm.to_s.match(/^merb_/) ? orm.to_s : "merb_#{orm}"
-    Merb::GENERATOR_SCOPE.unshift(orm.to_sym) unless Merb::GENERATOR_SCOPE.include?(orm.to_sym)
+    Merb.generator_scope.unshift(orm.to_sym) unless Merb.generator_scope.include?(orm.to_sym)
     Kernel.dependency(orm_plugin)
   end
   
@@ -112,9 +112,9 @@ module Kernel
   def use_test(test_framework)
     raise "use_test only supports :rspec and :test_unit currently" unless 
       [:rspec, :test_unit].include?(test_framework.to_sym)
-    Merb::GENERATOR_SCOPE.delete(:rspec)
-    Merb::GENERATOR_SCOPE.delete(:test_unit)
-    Merb::GENERATOR_SCOPE.push(test_framework.to_sym)
+    Merb.generator_scope.delete(:rspec)
+    Merb.generator_scope.delete(:test_unit)
+    Merb.generator_scope.push(test_framework.to_sym)
   end
   
   # Returns an array with a stack trace of the application's files.
