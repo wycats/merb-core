@@ -30,7 +30,8 @@ module Merb
       end
       
       def compiled_statement
-        @@compiled_statement = "lambda { |request, params|\n"
+        @@compiled_statement = "lambda { |request|\n"
+        @@compiled_statement << "  params = request.params\n"
         @@compiled_statement << "  cached_path = request.path\n  cached_method = request.method.to_s\n  "
         @@routes.each_with_index { |route, i| @@compiled_statement << route.compile(i == 0) }
         @@compiled_statement << "  else\n    [nil, {}]\n"

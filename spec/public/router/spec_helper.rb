@@ -4,6 +4,9 @@ class SimpleRequest < OpenStruct
   def method
     @table[:method]
   end
+  def params
+    @table
+  end
 end
 
 def prepare_route(from, to)
@@ -11,7 +14,7 @@ def prepare_route(from, to)
 end
 
 def route_to(path, args = {}, protocol = "http://")
-  Merb::Router.match(SimpleRequest.new({:protocol => protocol, :path => path}.merge(args)), args)[1]
+  Merb::Router.match(SimpleRequest.new({:protocol => protocol, :path => path}.merge(args)))[1]
 end
 
 module Merb

@@ -29,17 +29,41 @@ class Merb::Dispatcher
       Merb.logger.info("Params: #{request.params.inspect}")
       Merb.logger.info("Cookies: #{request.cookies.inspect}")
       
-      # user friendly error messages
-      if request.route_params.empty?
+      route_index, route_params = Merb::Router.match(request)
+      route = Merb::Router.routes[route_index]
+      
+      if route_params.empty?
         raise ::Merb::ControllerExceptions::BadRequest, "No routes match the request"
-      elsif request.controller_name.nil?
+      end
+      request.route_params = route_params
+      
+      controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
+      
+      if request.controller_name.nil?
         raise ::Merb::ControllerExceptions::BadRequest, "Route matched, but route did not specify a controller" 
       end
       
       Merb.logger.debug("Routed to: #{request.route_params.inspect}")
 
-      # set controller class and the action to call
-      klass = request.controller_class
+      begin
+        cnt = controller_name.to_const_string
+      rescue ::String::InvalidPathConversion
+        raise ControllerExceptions::NotFound, 
+          "Controller '#{controller_name}' could not be converted to a class"
+      end
+      if !Controller._subclasses.include?(cnt)
+        raise ControllerExceptions::NotFound, "Controller '#{cnt}' not found"
+      end
+      if cnt == "Application"
+        raise ControllerExceptions::NotFound, "The 'Application' controller has no public actions"
+      end
+
+      begin
+        klass = Object.full_const_get(cnt)
+      rescue NameError
+        raise ControllerExceptions::NotFound
+      end
+
       controller, action = dispatch_action(klass, request.action, request, response)
       Merb.logger.info controller._benchmarks.inspect
       Merb.logger.flush

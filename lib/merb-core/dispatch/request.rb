@@ -1,6 +1,6 @@
 module Merb
   class Request
-    attr_accessor :env, :session
+    attr_accessor :env, :session, :route_params
     
     # by setting these to false, auto-parsing is disabled; this way you can do your own parsing instead
     cattr_accessor :parse_multipart_params, :parse_json_params, :parse_xml_params
@@ -16,6 +16,7 @@ module Merb
     def initialize(rack_env)
       @env  = rack_env
       @body = rack_env['rack.input']
+      @route_params = {}
     end
     
     METHODS = %w{get post put delete head}
@@ -118,52 +119,7 @@ module Merb
     def cookies
       @cookies ||= self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
     end
-    
-    def route
-      @route ||= Merb::Router.routes[route_index]
-    end
-    
-    # returns two objects, route_index and route_params
-    def route_match
-      @route_match ||= Merb::Router.match(self, body_and_query_params)
-    end
-    private :route_match
-    
-    def route_index
-      route_match.first
-    end
-    
-    def route_params
-      route_match.last
-    end
-    
-    def controller_name
-      (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
-    end
-    
-    def controller_class
-      begin
-        cnt = controller_name.to_const_string
-      rescue ::String::InvalidPathConversion
-        raise ControllerExceptions::NotFound, 
-          "Controller '#{controller_name}' could not be converted to a class"
-      end
-      if !Controller._subclasses.include?(cnt)
-        raise ControllerExceptions::NotFound, "Controller '#{cnt}' not found"
-      end
-      
-      begin
-        return Object.full_const_get(cnt) unless cnt == "Application"
-        raise ControllerExceptions::NotFound, "The 'Application' controller has no public actions"
-      rescue NameError
-        raise ControllerExceptions::NotFound
-      end
-    end
-    
-    def action
-      route_params[:action]
-    end
-    
+        
     def raw_post
       @body.rewind
       res = @body.read
