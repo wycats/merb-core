@@ -1,4 +1,5 @@
 require 'optparse'
+require 'yaml'
 module Merb
   class Config
     class << self
