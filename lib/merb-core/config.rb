@@ -80,19 +80,19 @@ module Merb
            opts.separator 'If no flags are given, Merb starts in the foreground on port 4000.'
            opts.separator '*'*80
 
-           opts.on("-u", "--user USER", "This flag is for having merb run as a user other than the one currently logged in. Note: if you set this you must also provide a --group option for it to take effect.") do |config|
-             options[:user] = config
+           opts.on("-u", "--user USER", "This flag is for having merb run as a user other than the one currently logged in. Note: if you set this you must also provide a --group option for it to take effect.") do |user|
+             options[:user] = user
            end
 
-           opts.on("-G", "--group GROUP", "This flag is for having merb run as a group other than the one currently logged in. Note: if you set this you must also provide a --user option for it to take effect.") do |config|
-             options[:group] = config
+           opts.on("-G", "--group GROUP", "This flag is for having merb run as a group other than the one currently logged in. Note: if you set this you must also provide a --user option for it to take effect.") do |group|
+             options[:group] = group
            end
 
-           opts.on("-f", "--config-file FILENAME", "This flag is for adding extra config files for things like the upload progress module.") do |config|
-             options[:config] = config
+           opts.on("-f", "--config-file FILENAME", "This flag is for adding extra config files for things like the upload progress module.") do |file|
+             options[:config] = file
            end
 
-           opts.on("-d", "--daemonize", "This will run a single merb in the background.") do |config|
+           opts.on("-d", "--daemonize", "This will run a single merb in the background.") do |daemon|
              options[:daemonize] = true
            end
 
@@ -112,11 +112,11 @@ module Merb
              options[:host] = host
            end
 
-           opts.on("-m", "--merb-root Merb.root", "The path to the Merb.root for the app you want to run (default is current working dir).") do |root|
+           opts.on("-m", "--merb-root /path/to/approot", "The path to the Merb.root for the app you want to run (default is current working dir).") do |root|
              options[:merb_root] = File.expand_path(root)
            end
 
-           opts.on("-a", "--adapter mongrel", "The rack adapter to use to run merb[mongrel, emongrel, thin, fastcgi, webrick]") do |adapter|
+           opts.on("-a", "--adapter mongrel", "The rack adapter to use to run merb[mongrel, emongrel, thin, fastcgi, webrick, runner, irb]") do |adapter|
              options[:adapter] = adapter
            end
 

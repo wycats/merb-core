@@ -6,6 +6,7 @@ module Merb
   autoload :Controller,           "merb-core/controller/merb_controller"
   autoload :ControllerMixin,      "merb-core/controller/mixins/controller"
   autoload :ControllerExceptions, "merb-core/controller/exceptions"
+  autoload :Cookies,                "merb-core/dispatch/cookies"
   autoload :Dispatcher,           "merb-core/dispatch/dispatcher"
   autoload :ErubisCaptureMixin,   "merb-core/controller/mixins/erubis_capture"
   autoload :Hook,                 "merb-core/hook"

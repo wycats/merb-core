@@ -176,7 +176,7 @@ module Merb
     # value<~to_s>:: A value for the cookie
     # expires<~gmtime:~strftime>:: An expiration time for the cookie
     def set_cookie(name, value, expires)
-      (headers['Set-Cookie'] ||='') << (Merb::Const::SET_COOKIE % [
+      (headers['Set-Cookie'] ||=[]) << (Merb::Const::SET_COOKIE % [
         name.to_s, 
         ::Merb::Request.escape(value.to_s), 
         # Cookie expiration time must be GMT. See RFC 2109
