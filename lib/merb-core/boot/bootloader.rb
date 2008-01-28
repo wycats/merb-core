@@ -103,6 +103,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         end
         Merb.push_path(:application,    Merb.root_path("app/controllers/application.rb"))
         Merb.push_path(:config,         Merb.root_path("config"), nil)
+        Merb.push_path(:environments),  Merb.dir_for(:config) / "environments"
         Merb.push_path(:lib,            Merb.root_path("lib"), nil)
         Merb.push_path(:log,            Merb.root_path("log"), nil)
       else
@@ -114,13 +115,14 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
   end
 end
 
-# Load the dependencies file, which registers the list of necessary dependencies and
-# any after_app_loads hooks.
+# Load the init.rb file, and any environment files, which register the
+# list of necessary dependencies and any after_app_loads hooks.
 class Merb::BootLoader::Dependencies < Merb::BootLoader
   def self.run
-    if File.exists?(Merb.dir_for(:config) / "dependencies.rb")
-      require Merb.dir_for(:config) / "dependencies"
+    if File.exists?(Merb.dir_for(:environments) / (Merb.environment + ".rb"))
+      require Merb.dir_for(:environments) / Merb.environment
     end
+    require Merb.dir_for(:config) / "init" if File.exists?(Merb.dir_for(:config) / "init.rb")
   end
 end
 
