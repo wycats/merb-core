@@ -115,6 +115,13 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
   end
 end
 
+class Merb::BootLoader::DropPidFile <  Merb::BootLoader
+  class << self
+    def run
+      Merb::Server.store_pid(Merb::Config[:port])
+    end
+  end
+end    
 # Load the init.rb file, and any environment files, which register the
 # list of necessary dependencies and any after_app_loads hooks.
 class Merb::BootLoader::Dependencies < Merb::BootLoader

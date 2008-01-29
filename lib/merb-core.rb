@@ -11,7 +11,7 @@ $LOAD_PATH.push File.dirname(__FILE__) unless
   $LOAD_PATH.include?(File.expand_path(File.dirname(__FILE__)))
 
 require 'merb-core/autoload'
-require 'merb-core/daemons'
+require 'merb-core/server'
 require 'merb-core/core_ext'
 require 'merb-core/gem_ext/erubis'
 require 'merb-core/logger'
@@ -30,12 +30,12 @@ module Merb
     
     def start(argv=ARGV)
       Merb::Config.parse_args(argv)
-      Merb::Daemons.new(Merb::Config[:port], Merb::Config[:cluster])
+      Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
     end
     
     attr_accessor :environment, :load_paths, :adapter
     Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)
-      		
+
 		# This is the core mechanism for setting up your application layout
 		# merb-core won't set a default application layout, but merb-more will
 		# use the app/:type layout that is in use in Merb 0.5
@@ -70,7 +70,7 @@ module Merb
       elsif !(Merb::Config[:daemonize] || Merb::Config[:cluster] )
         STDOUT
       else
-        Merb.dir_for(:log) / "#{Merb::Config[:port]}.log"
+        Merb.dir_for(:log) / "merb.#{Merb::Config[:port]}.log"
 		  end
 		end
 		

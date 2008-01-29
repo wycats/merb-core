@@ -8,7 +8,7 @@ require 'rake/testtask'
 require 'spec/rake/spectask'
 require 'fileutils'
 
-require File.dirname(__FILE__)+'/config/boot.rb'
+
 require Merb::framework_root+'/tasks'
 include FileUtils
 

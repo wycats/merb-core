@@ -144,9 +144,9 @@ module Merb
              Merb::Server.kill(ports, 1)
            end
            
-           opts.on("-k", "--kill PORT or all", "Kill one merb proceses by port number.  Use merb -k all to kill all merbs.") do |ports|
+           opts.on("-k", "--kill PORT or all", "Kill one merb proceses by port number.  Use merb -k all to kill all merbs.") do |port|
              @configuration = defaults.merge(options)
-             Merb::Server.kill(ports, 9)
+             Merb::Server.kill(port, 9)
            end
 
            opts.on("-M", "--merb-config FILENAME", "This flag is for explicitly declaring the merb app's config file.") do |config|
