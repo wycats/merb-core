@@ -74,6 +74,7 @@ module Merb
          # Build a parser for the command line arguments
          opts = OptionParser.new do |opts|
            opts.version = Merb::VERSION
+           opts.release = Merb::RELEASE
 
            opts.banner = "Usage: merb [fdcepghmisluMG] [argument]"
            opts.define_head "Merb Mongrel+ Erb. Lightweight replacement for ActionPack."
