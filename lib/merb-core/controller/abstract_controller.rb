@@ -335,8 +335,8 @@ class Merb::AbstractController
   # :only<Symbol, Array[Symbol]>:: A list of actions
   # :exclude<Symbol, Array[Symbol]>:: A list of actions
   def self.normalize_filters!(opts={})
-    opts[:only] = [opts[:only]] if opts[:only].is_a?(Symbol)       
-    opts[:exclude] = [opts[:exclude]] if opts[:exclude].is_a?(Symbol)
+    opts[:only]     = Array(opts[:only]).map {|x| x.to_s} if opts[:only]
+    opts[:exclude]  = Array(opts[:exclude]).map {|x| x.to_s} if opts[:exclude]
     return opts
   end
   
