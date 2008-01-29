@@ -10,7 +10,7 @@ Merb.start %w( -e test -a runner )
 module Merb::Test::Behaviors
   def dispatch_should_make_body(klass, body, action = :index)
     controller = Merb::Test::Fixtures::Abstract.const_get(klass).new
-    controller._dispatch(action)
+    controller._dispatch(action.to_s)
     controller.body.should == body
   end
 end
