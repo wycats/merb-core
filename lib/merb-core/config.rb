@@ -14,8 +14,7 @@ module Merb
           :merb_root              => Dir.pwd,
           :use_mutex              => true,
           :session_id_cookie_only => true,
-          :query_string_whitelist => [],
-          :mongrel_x_sendfile     => true
+          :query_string_whitelist => []
         }
       end
       

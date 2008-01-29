@@ -11,6 +11,7 @@ $LOAD_PATH.push File.dirname(__FILE__) unless
   $LOAD_PATH.include?(File.expand_path(File.dirname(__FILE__)))
 
 require 'merb-core/autoload'
+require 'merb-core/daemons'
 require 'merb-core/core_ext'
 require 'merb-core/gem_ext/erubis'
 require 'merb-core/logger'
@@ -28,9 +29,8 @@ module Merb
   class << self
     
     def start(argv=ARGV)
-      Merb::Config.parse_args(argv)      
-      BootLoader.run
-      Merb.adapter.start(Merb::Config.to_hash)
+      Merb::Config.parse_args(argv)
+      Merb::Daemons.new(Merb::Config[:port], Merb::Config[:cluster])
     end
     
     attr_accessor :environment, :load_paths, :adapter

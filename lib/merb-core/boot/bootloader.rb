@@ -103,7 +103,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         end
         Merb.push_path(:application,    Merb.root_path("app/controllers/application.rb"))
         Merb.push_path(:config,         Merb.root_path("config"), nil)
-        Merb.push_path(:environments),  Merb.dir_for(:config) / "environments"
+        Merb.push_path(:environments,  Merb.dir_for(:config) / "environments")
         Merb.push_path(:lib,            Merb.root_path("lib"), nil)
         Merb.push_path(:log,            Merb.root_path("log"), nil)
       else

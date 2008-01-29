@@ -24,10 +24,6 @@ $LOAD_PATH.unshift(Merb.root / "lib")
 # use_test :test_unit
 #use_test :rspec
 
-# Load environment-specific configuration
-environment_config = File.join(Merb.root, 'config', 'environments', Merb.environment + '.rb')
-require environment_config if File.exist?(environment_config)
-
 ### Add your other dependencies here
 
 # These are some examples of how you might specify dependencies.
