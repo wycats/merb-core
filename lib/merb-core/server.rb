@@ -86,6 +86,7 @@ module Merb
       end
       
       def store_pid(port)
+        FileUtils.mkdir_p(Merb.dir_for(:log)) unless File.directory?(Merb.dir_for(:log))
         File.open(("#{Merb.dir_for(:log)}" / "merb.#{port}.pid"), 'w'){|f| f.write("#{Process.pid}")}
       end
           

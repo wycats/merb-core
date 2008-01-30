@@ -139,9 +139,8 @@ end
 # Merb::BootLoader::BuildFramework)
 class Merb::BootLoader::Logger < Merb::BootLoader
   def self.run
-    FileUtils.mkdir Merb.dir_for(:log) unless File.directory?(Merb.dir_for(:log))
-    Merb.logger = Merb::Logger.new(Merb.log_path)
-    Merb.logger.level = Merb::Logger.const_get(Merb::Config[:log_level].upcase) rescue Merb::Logger::INFO    
+    Merb.logger = Merb::Logger.new("#{Merb.dir_for(:log)}" / "merb.#{Merb::Config[:port]}.log")
+    Merb.logger.level = Merb::Logger::Levels[Merb::Config[:log_level]] || Merb::Logger::Levels[:info]    
   end
 end
 
