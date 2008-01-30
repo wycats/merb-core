@@ -8,7 +8,7 @@ module Merb
         @defaults ||= {
           :host                   => "0.0.0.0",
           :port                   => "4000",
-          :adapter                => 'mongrel',
+          :adapter                => "mongrel",
           :reloader               => true,
           :cache_templates        => false,
           :merb_root              => Dir.pwd,
@@ -108,6 +108,10 @@ module Merb
            opts.on("-p", "--port PORTNUM", "Port to run merb on, defaults to 4000.") do |port|
              options[:port] = port
            end
+           
+           opts.on("-P", "--pid PIDFILE", "PID file, defaults to [Merb.root]/log/merb.[port_number].pid") do |pid_file|
+             options[:pid_file] = pid_file
+           end
 
            opts.on("-h", "--host HOSTNAME", "Host to bind to (default is all IP's).") do |host|
              options[:host] = host
@@ -125,8 +129,8 @@ module Merb
               options[:adapter] = 'irb'
            end
 
-           opts.on("-l", "--log-level LEVEL", "Log levels can be set to any of these options: DEBUG < INFO < WARN < ERROR < FATAL < UNKNOWN") do |loglevel|
-             options[:log_level] = loglevel
+           opts.on("-l", "--log-level LEVEL", "Log levels can be set to any of these options: :debug < :info < :warn < :error < :fatal") do |log_level|
+             options[:log_level] = log_level
            end
 
            opts.on("-e", "--environment STRING", "Run merb in the correct mode(development, production, testing)") do |env|

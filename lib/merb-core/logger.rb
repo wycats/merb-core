@@ -82,7 +82,8 @@ module Merb
     # delimiter<String>
     #   Delimiter to use between message sections
     def set_log(log, log_level = :debug, delimiter = " ~ ")
-      @level     = Levels[log_level]
+      @level = Levels[log_level] || 
+               (Merb.environment == "production") ? Levels[:error] : Levels[:debug]
       @buffer    = []
       @delimiter = delimiter
 

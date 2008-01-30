@@ -139,8 +139,10 @@ end
 # Merb::BootLoader::BuildFramework)
 class Merb::BootLoader::Logger < Merb::BootLoader
   def self.run
-    Merb.logger = Merb::Logger.new("#{Merb.dir_for(:log)}" / "merb.#{Merb::Config[:port]}.log")
-    Merb.logger.level = Merb::Logger::Levels[Merb::Config[:log_level]] || Merb::Logger::Levels[:info]    
+    Merb.logger = Merb::Logger.new(
+      "#{Merb.dir_for(:log)}" / "merb.#{Merb::Config[:port]}.log",
+      Merb::Config[:log_level]
+    )
   end
 end
 
