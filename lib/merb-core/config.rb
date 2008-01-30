@@ -9,8 +9,7 @@ module Merb
           :host                   => "0.0.0.0",
           :port                   => "4000",
           :adapter                => "mongrel",
-          :reloader               => true,
-          :cache_templates        => false,
+          :reload_classes         => true,
           :merb_root              => Dir.pwd,
           :use_mutex              => true,
           :session_id_cookie_only => true,
@@ -18,6 +17,10 @@ module Merb
         }
       end
       
+      def use
+        yield @configuration
+      end
+        
       def [](key)
         (@configuration||={})[key]
       end
@@ -113,7 +116,7 @@ module Merb
              options[:pid_file] = pid_file
            end
 
-           opts.on("-h", "--host HOSTNAME", "Host to bind to (default is all IP's).") do |host|
+           opts.on("-h", "--host HOSTNAME", "Host to bind to (default is 0.0.0.0).") do |host|
              options[:host] = host
            end
 
@@ -130,11 +133,11 @@ module Merb
            end
 
            opts.on("-l", "--log-level LEVEL", "Log levels can be set to any of these options: :debug < :info < :warn < :error < :fatal") do |log_level|
-             options[:log_level] = log_level
+             options[:log_level] = log_level.to_sym
            end
 
            opts.on("-e", "--environment STRING", "Run merb in the correct mode(development, production, testing)") do |env|
-             options[:environment] ||= env
+             options[:environment] = env
            end
 
            opts.on("-r", "--script-runner ['RUBY CODE'| FULL_SCRIPT_PATH]", 
@@ -190,24 +193,12 @@ module Merb
          # Load up the configuration from file, but keep the command line
          # options that may have been chosen. Also, pass-through if we have
          # a new merb_config path.
-         options = Merb::Config.setup(options[:merb_config]).merge(options)
-         @configuration = options
+         @configuration = Merb::Config.setup(options[:merb_config]).merge(options)
          # Finally, if all else fails... set the environment to 'development'
          options[:environment] ||= 'development'
-         
-         case Merb::Config[:environment].to_s
-         when 'production'
-           Merb::Config[:reloader] = Merb::Config.fetch(:reloader, false)
-           Merb::Config[:exception_details] = Merb::Config.fetch(:exception_details, false)
-           Merb::Config[:cache_templates] = true
-         else
-           Merb::Config[:reloader] = Merb::Config.fetch(:reloader, true)
-           Merb::Config[:exception_details] = Merb::Config.fetch(:exception_details, true)
-         end
-         
+
          Merb.environment = Merb::Config[:environment]
          Merb.root = Merb::Config[:merb_root]
-         Merb::Config[:reloader_time] ||= 0.5 if Merb::Config[:reloader] == true
        end
        
     end # class << self

@@ -96,23 +96,13 @@ class Merb::Controller < Merb::AbstractController
   def initialize(request, response = StringIO.new, status=200, headers={'Content-Type' => 'text/html; charset=utf-8'})
     super()
     if request.params.key?(_session_id_key)
-      if Merb::Config[:session_id_cookie_only]
-        # This condition allows for certain controller/action paths to allow
-        # a session ID to be passed in a query string. This is needed for
-        # Flash Uploads to work since flash will not pass a Session Cookie
-        # Recommend running session.regenerate after any controller taking
-        # advantage of this in case someone is attempting a session fixation
-        # attack
-        if Merb::Config[:query_string_whitelist].include?("#{request.controller_name}/#{request.action}")
-        # FIXME to use routes not controller and action names -----^
-          request.cookies[_session_id_key] = request.params[_session_id_key]
-        end
-      else
+      # Checks to see if a route allows fixation: 
+      # r.match('/foo').to(:controller => 'foo').fixatable 
+      if request.route.allow_fixation?
         request.cookies[_session_id_key] = request.params[_session_id_key]
       end
     end
     @request, @response, @status, @headers = request, response, status, headers
-    nil
   end
   
   # Dispatch the action

@@ -45,7 +45,8 @@ module Merb
 		# path<String>:: The full path
 		# file_glob<String>:: 
 		#   A glob that will be used to autoload files under the path
-		def push_path(type, path, file_glob = "**/*.rb") enforce!(type => Symbol)
+		def push_path(type, path, file_glob = "**/*.rb") 
+		  enforce!(type => Symbol)
 		  load_paths[type] = [path, file_glob]
 		end
 		

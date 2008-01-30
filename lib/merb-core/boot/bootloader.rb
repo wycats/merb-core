@@ -21,7 +21,11 @@ module Merb
       
       def run
         subklasses = subclasses.dup
-        Object.full_const_get(subclasses.shift).run until subclasses.empty?
+        until subclasses.empty?
+          bootloader = subclasses.shift
+          puts "Loading: #{bootloader}" if ENV['DEBUG']
+          Object.full_const_get(bootloader).run
+        end  
         subclasses = subklasses
       end
       
@@ -42,18 +46,6 @@ module Merb
   
 end
 
-# At this point, the config from the command-line will have been parsed, but 
-# the init-file will not have.
-
-# Load the correct environment.
-# 
-# Set Merb.environment to Merb::Config[:environment], which is set by the -e
-# command-line flag. 
-class Merb::BootLoader::Environment < Merb::BootLoader
-  def self.run
-    Merb.environment = Merb::Config[:environment]
-  end
-end
 
 # Build the framework paths.
 #
@@ -103,7 +95,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         end
         Merb.push_path(:application,    Merb.root_path("app/controllers/application.rb"))
         Merb.push_path(:config,         Merb.root_path("config"), nil)
-        Merb.push_path(:environments,  Merb.dir_for(:config) / "environments")
+        Merb.push_path(:environments,   Merb.dir_for(:config) / "environments", nil)
         Merb.push_path(:lib,            Merb.root_path("lib"), nil)
         Merb.push_path(:log,            Merb.root_path("log"), nil)
       else
@@ -112,6 +104,19 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         end
       end
     end
+  end
+end
+
+# Set up the logger.
+#
+# Place the logger inside of the Merb log directory (set up in
+# Merb::BootLoader::BuildFramework)
+class Merb::BootLoader::Logger < Merb::BootLoader
+  def self.run
+    Merb.logger = Merb::Logger.new(
+      "#{Merb.dir_for(:log)}" / "merb.#{Merb::Config[:port]}.log",
+      Merb::Config[:log_level]
+    )
   end
 end
 
@@ -126,23 +131,10 @@ end
 # list of necessary dependencies and any after_app_loads hooks.
 class Merb::BootLoader::Dependencies < Merb::BootLoader
   def self.run
-    if File.exists?(Merb.dir_for(:environments) / (Merb.environment + ".rb"))
+    require Merb.dir_for(:config) / "init" if File.exists?(Merb.dir_for(:config) / "init.rb")
+    if File.exist?(Merb.dir_for(:environments) / (Merb.environment + ".rb"))
       require Merb.dir_for(:environments) / Merb.environment
     end
-    require Merb.dir_for(:config) / "init" if File.exists?(Merb.dir_for(:config) / "init.rb")
-  end
-end
-
-# Set up the logger.
-#
-# Place the logger inside of the Merb log directory (set up in
-# Merb::BootLoader::BuildFramework)
-class Merb::BootLoader::Logger < Merb::BootLoader
-  def self.run
-    Merb.logger = Merb::Logger.new(
-      "#{Merb.dir_for(:log)}" / "merb.#{Merb::Config[:port]}.log",
-      Merb::Config[:log_level]
-    )
   end
 end
 

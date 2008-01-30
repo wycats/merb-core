@@ -12,7 +12,16 @@ module Merb
           @segments = segments_from_path(path)
         end
       end
-      
+      def allow_fixation? 
+        @fixation
+      end 
+         
+      # Used to disable/enable fixation on a route 
+      def fixatable(enable=true) 
+        @fixation = enable 
+        self
+      end
+       	
       def to_s
         segments.inject('') do |str,seg|
           str << (seg.is_a?(Symbol) ? ":#{seg}" : seg)
