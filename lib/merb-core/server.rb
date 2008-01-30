@@ -81,12 +81,22 @@ module Merb
       end
       
       def remove_pid_file(port)
-        pidfile = "#{Merb.dir_for(:log)}" / "merb.#{port}.pid"
+        if Merb::Config[:pid_file]
+          pidfile = Merb::Config[:pid_file]
+        else
+          pidfile = Merb.dir_for(:log) / "merb.#{port}.pid"
+        end
         FileUtils.rm(pidfile) if File.exist?(pidfile)
       end
       
       def store_pid(port)
-        File.open(("#{Merb.dir_for(:log)}" / "merb.#{port}.pid"), 'w'){|f| f.write("#{Process.pid}")}
+        FileUtils.mkdir_p(Merb.dir_for(:log)) unless File.directory?(Merb.dir_for(:log))
+        if Merb::Config[:pid_file]
+          pidfile = Merb::Config[:pid_file]
+        else
+          pidfile = Merb.dir_for(:log) / "merb.#{port}.pid"
+        end
+        File.open(pidfile, 'w'){ |f| f.write("#{Process.pid}") }
       end
           
       # Change privileges of the process
