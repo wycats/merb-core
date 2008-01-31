@@ -38,7 +38,7 @@ module Merb
     attr_accessor :delimiter
     attr_reader   :buffer
     attr_reader   :log
-    
+
     # Note:
     #   Ruby (standard) logger levels:
     #     fatal: an unhandleable error that results in a program crash
@@ -56,6 +56,47 @@ module Merb
       :info  => 3,
       :debug => 0
     }
+
+    private
+
+    # The idea here is that instead of performing an 'if' conditional check
+    # on each logging we do it once when the log object is setup
+    def set_write_method
+      @log.instance_eval do
+        def aio?
+          @aio = !Merb.environment.match(/development|test/) && 
+          !RUBY_PLATFORM.match(/java|mswin/) &&
+          !(@log == STDOUT) &&
+          @log.respond_to?(:write_nonblock)
+        end
+
+        undef write_method if defined? write_method
+        if aio?
+          alias :write_method :write_nonblock
+        else
+          alias :write_method :write
+        end
+      end
+    end
+
+    def initialize_log(log)
+      close if @log # be sure that we don't leave open files laying around.
+
+      if log.respond_to?(:write)
+        @log = log
+      elsif File.exist?(log)
+        @log = open(log, (File::WRONLY | File::APPEND))
+        @log.sync = true
+      else
+        FileUtils.mkdir_p(File.dirname(log)) unless File.directory?(File.dirname(log))
+        @log = open(log, (File::WRONLY | File::APPEND | File::CREAT))
+        @log.sync = true
+        @log.write("#{Time.now.httpdate} #{delimiter} info #{delimiter} Logfile created\n")
+      end
+      set_write_method
+    end
+
+    public
 
     # To initialize the logger you create a new object, proxies to set_log.
     #   Merb::Logger.new(log{String, IO},level{Symbol, String})
@@ -81,41 +122,13 @@ module Merb
     #   A symbol representing the log level from {:fatal, :error, :warn, :info, :debug}
     # delimiter<String>
     #   Delimiter to use between message sections
-    def set_log(log, log_level = :debug, delimiter = " ~ ")
-      @level = Levels[log_level] || 
-               (Merb.environment == "production") ? Levels[:error] : Levels[:debug]
+    def set_log(log, log_level = nil, delimiter = " ~ ")
+      @level = Levels[log_level]
+      @level ||= (Merb.environment == "production") ? Levels[:error] : Levels[:debug]
       @buffer    = []
       @delimiter = delimiter
 
-      close if @log # be sure that we don't leave open files laying around.
-
-      if log.respond_to?(:write)
-        @log = log
-      elsif File.exist?(log)
-        @log = open(log, (File::WRONLY | File::APPEND))
-        @log.sync = true
-      else
-        FileUtils.mkdir_p(File.dirname(log)) unless File.directory?(File.dirname(log))
-        @log = open(log, (File::WRONLY | File::APPEND | File::CREAT))
-        @log.sync = true
-        @log.write("#{Time.now.httpdate} #{delimiter} info #{delimiter} Logfile created\n")
-      end
-
-      @aio = !Merb.environment.match(/development|test/) && 
-             !RUBY_PLATFORM.match(/java|mswin/) &&
-             !(@log == STDOUT) &&
-             @log.respond_to?(:write_nonblock)
-
-      # The idea here is that instead of performing an 'if' conditional check
-      # on each logging we do it once when the log object is setup
-      @log.instance_eval do
-        undef write_method if defined? write_method
-        if @aio
-          alias :write_method :write_nonblock
-        else
-          alias :write_method :write
-        end
-      end
+      initialize_log(log)
 
       Merb.logger = self
     end
@@ -137,20 +150,6 @@ module Merb
       flush
       @log.close if @log.respond_to?(:close)
       @log = nil
-    end
-
-    # Generate the following logging methods for Merb.logger as described in the api:
-    #  :fatal, :error, :warn, :info, :debug 
-    Levels.each_pair do |name, number|
-      class_eval <<-LEVELMETHODS
-      def #{name}(message = nil, &block)
-        self.<<(message, &block) if #{name}?
-      end
-
-      def #{name}?
-        #{number} >= level
-      end
-      LEVELMETHODS
     end
 
     # Appends a string and log level to logger's buffer. 
@@ -178,5 +177,20 @@ module Merb
     end
     alias :push :<<
 
+    # Generate the following logging methods for Merb.logger as described in the api:
+    #  :fatal, :error, :warn, :info, :debug 
+    Levels.each_pair do |name, number|
+      class_eval <<-LEVELMETHODS
+      def #{name}(message = nil, &block)
+        self.<<(message, &block) if #{name}?
+      end
+
+      def #{name}?
+        #{number} >= level
+      end
+      LEVELMETHODS
+    end
+
   end
+  
 end
