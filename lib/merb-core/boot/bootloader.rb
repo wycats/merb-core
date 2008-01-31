@@ -129,7 +129,7 @@ end
 class Merb::BootLoader::Dependencies < Merb::BootLoader
   def self.run
     require Merb.dir_for(:config) / "init" if File.exists?(Merb.dir_for(:config) / "init.rb")
-    if File.exist?(Merb.dir_for(:environments) / (Merb.environment + ".rb"))
+    if !Merb.environment.nil? && File.exist?(Merb.dir_for(:environments) / (Merb.environment + ".rb"))
       require Merb.dir_for(:environments) / Merb.environment
     end
   end

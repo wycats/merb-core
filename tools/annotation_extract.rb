@@ -64,6 +64,11 @@ end
 
 desc "Enumerate all annotations"
 task :notes do
+  desc "Enumerate all DOC annotations"
+  task :doc do
+    SourceAnnotationExtractor.enumerate "DOC"
+  end
+  
   SourceAnnotationExtractor.enumerate "OPTIMIZE|FIXME|TODO", :tag => true
 end
 

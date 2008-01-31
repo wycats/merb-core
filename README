@@ -1,1 +1,16 @@
-hello merb-core
+merb-core is a new branch of Merb (also referred to as merb-next or the 0.9 series) which aims to provide a stable, stripped down API for a future Merb 1.0 release.
+
+This branch is based off the 0.5 release series but with significant rewrites.
+
+Goals of this release:
+
+  * Stabilize the @public interface methods to provide for a more consistent application development experience.
+  * Remove features until nothing except a central application API is left
+  * Improve comments on methods using a standard documentation methodology as described in DOCUMENTATION_STANDARDS
+  * Separate the tests into two sections... "private" and "public"
+    * Public methods are methods tagged with @public that will be part of the standard, stable Merb API
+    * Private methods are implementation methods that might 
+  * Implement a new render API
+  * Build more extensions to regain selected features when needed
+  
+To familiarize yourself with how a merb-core application might look, reference the /sample directory
