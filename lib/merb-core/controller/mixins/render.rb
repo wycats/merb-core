@@ -197,7 +197,8 @@ module Merb::RenderMixin
     # Get the method name from the previously inlined list
     template_method = Merb::Template.template_for(template_location)    
 
-    if with = opts.delete(:with)
+    if opts.key?(:with)
+      with = opts.delete(:with)
       as = opts.delete(:as) || template_location.match(%r[.*/_([^\.]*)])[1]
       @_merb_partial_locals = opts
       sent_template = [with].flatten.map do |temp|

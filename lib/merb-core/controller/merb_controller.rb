@@ -28,7 +28,7 @@ class Merb::Controller < Merb::AbstractController
     # *names<~to-s>:: Actions that should be added to the list 
     #
     # ==== Returns
-    # Array<String::
+    # Array[String]::
     #   An array of actions that should not be possible to dispatch to
     # 
     #---
@@ -36,21 +36,70 @@ class Merb::Controller < Merb::AbstractController
     def hide_action(*names)
       self._hidden_actions = self._hidden_actions | names.map { |n| n.to_s }
     end
-    
+
+    # Makes each of the given methods being callable as actions.
+    # You can use this to make methods included from modules callable
+    # as actions.
+    #
+    # ==== Example
+    # {{[
+    #   module Foo
+    #     def self.included(base)
+    #       base.show_action(:foo)
+    #     end
+    #     
+    #     def foo
+    #       # some actiony stuff
+    #     end
+    #   
+    #     def foo_helper
+    #       # this should not be an action
+    #     end
+    #   end
+    # ]}}
+    #
+    # ==== Parameters
+    # *names<~to-s>:: Actions that should be added to the list 
+    #
+    # ==== Returns
+    # Array[String]::
+    #   An array of actions that should be dispatched to even if they
+    #   would not otherwise be.
+    # 
+    #---
+    # @public    
     def show_action(*names)
       self._shown_actions = self._shown_actions | names.map {|n| n.to_s}
     end
 
+    # This list of actions that should not be callable
+    # 
+    # ==== Returns
+    # Array[String]::
+    #   An array of actions that should not be dispatchable
     def _hidden_actions
       actions = read_inheritable_attribute(:_hidden_actions)
       actions ? actions : write_inheritable_attribute(:_hidden_actions, [])
     end
-    
+
+    # This list of actions that should be callable
+    # 
+    # ==== Returns
+    # Array[String]::
+    #   An array of actions that should be dispatched to even if they
+    #   would not otherwise be.
     def _shown_actions
       actions = read_inheritable_attribute(:_shown_actions)
       actions ? actions : write_inheritable_attribute(:_shown_actions, [])      
     end
 
+    # The list of actions that are callable, after taking defaults, _hidden_actions
+    # and _shown_actions into consideration. It is calculated once, the first time 
+    # an action is dispatched for this controller.
+    #
+    # ==== Returns
+    # Array[String]::
+    #   A list of actions that should be callable.
     def callable_actions
       @callable_actions ||= Merb::SimpleSet.new(begin
         callables = []
@@ -65,6 +114,21 @@ class Merb::Controller < Merb::AbstractController
     
   end
   
+  # The location to look for a template for a particular controller, action, and
+  # mime-type. This is overridden from AbstractController, which defines a version
+  # of this that does not involve mime-types.
+  #
+  # ==== Parameters
+  # action<~to_s>:: The name of the action that will be rendered
+  # type<~to_s>:: The mime-type of the template that will be rendered
+  # controller<~to_s>:: The name of the controller that will be rendered
+  #
+  # ==== Note
+  # By default, this renders ":controller/:action.:type". To change this, override
+  # it in your application class or in individual controllers.
+  #
+  #---
+  # @public
   def _template_location(action, type = nil, controller = controller_name)
     "#{controller}/#{action}.#{type}"
   end  
@@ -127,8 +191,26 @@ class Merb::Controller < Merb::AbstractController
   
   attr_reader :request, :response, :headers
   attr_accessor :status
+  
+  # ==== Returns
+  # Hash:: The parameters from the request object
   def params()  request.params  end
+    
+  # ==== Returns
+  # Merb::Cookies:: 
+  #   A new Merb::Cookies instance representing the cookies that came in
+  #   from the request object
+  #
+  # ==== Note
+  # headers are passed into the cookie object so that you can do:
+  #   cookies[:foo] = "bar"
   def cookies() @_cookies ||= ::Merb::Cookies.new(request.cookies, @_headers)  end
+    
+  # ==== Returns
+  # Hash:: The session that was extracted from the request object
   def session() request.session end
+
+  # ==== Returns
+  # Hash:: The route that was extracted from the request object    
   def route()   request.route   end
 end

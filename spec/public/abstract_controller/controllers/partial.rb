@@ -21,6 +21,12 @@ module Merb::Test::Fixtures
       end
     end
 
+    class WithNilPartial < RenderIt
+      def index
+        render
+      end      
+    end
+
     class WithAsPartial < RenderIt
       def index
         @foo = "With and As"
@@ -35,12 +41,34 @@ module Merb::Test::Fixtures
       end
     end
     
+    class PartialWithCollectionsAndAs < RenderIt
+      def index
+        @foo = %w{ c o l l e c t i o n }
+        render
+      end
+    end    
+    
     class PartialWithLocals < RenderIt
       def index
         @foo, @bar = %w{ local variables }
         render
       end
-    end    
+    end
+    
+    class PartialWithBoth < RenderIt
+      def index
+        @foo = %w{ c o l l e c t i o n }
+        @delimiter = "-"
+        render
+      end
+    end
+    
+    class PartialWithWithAndLocals < RenderIt
+      def index
+        @foo, @bar = "with", "and locals"
+        render
+      end
+    end
     
   end
 end

@@ -341,6 +341,7 @@ class Merb::AbstractController
   end
   
   def method_missing(sym, *args, &blk)
-    (@_merb_partial_locals || {})[sym] || super
+    return @_merb_partial_locals[sym] if @_merb_partial_locals && @_merb_partial_locals.key?(sym)
+    super
   end  
 end

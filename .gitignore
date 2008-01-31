@@ -2,3 +2,8 @@ test_log
 pkg
 pkg/*
 *.log
+log
+!log*.rb
+*/log
+log/*
+*/log/*
