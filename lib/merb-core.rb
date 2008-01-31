@@ -65,13 +65,25 @@ module Merb
 		# Logger settings
 		attr_accessor :logger
 		
-		def log_path
-		  if $TESTING
-        Merb.dir_for(:log) / "merb_test.log"
+		def log_file
+		  if Merb::Config[:log_file]
+		    Merb::Config[:log_file]
+		  elsif $TESTING
+		    log_path / "merb_test.log"
       elsif !(Merb::Config[:daemonize] || Merb::Config[:cluster] )
         STDOUT
       else
-        Merb.dir_for(:log) / "merb.#{Merb::Config[:port]}.log"
+        log_path / "merb.#{Merb::Config[:port]}.log"
+      end
+	  end
+	  
+		def log_path
+		  if Merb::Config[:log_file]
+		    File.dirname(Merb::Config[:log_file])
+		  #elsif $TESTING
+      #  Merb.root_path("log")
+      else
+        Merb.root_path("log")
 		  end
 		end
 		

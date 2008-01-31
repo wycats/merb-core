@@ -93,11 +93,11 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         %w[view model controller helper mailer part].each do |component|
           Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
         end
-        Merb.push_path(:application,    Merb.root_path("app/controllers/application.rb"))
-        Merb.push_path(:config,         Merb.root_path("config"), nil)
-        Merb.push_path(:environments,   Merb.dir_for(:config) / "environments", nil)
-        Merb.push_path(:lib,            Merb.root_path("lib"), nil)
-        Merb.push_path(:log,            Merb.root_path("log"), nil)
+        Merb.push_path(:application,  Merb.root_path("app/controllers/application.rb"))
+        Merb.push_path(:config,       Merb.root_path("config"), nil)
+        Merb.push_path(:environments, Merb.dir_for(:config) / "environments", nil)
+        Merb.push_path(:lib,          Merb.root_path("lib"), nil)
+        Merb.push_path(:log,          Merb.log_path, nil)
       else
         Merb::Config[:framework].each do |name, path|
           Merb.push_path(name, Merb.root_path(path.first), path[1])
@@ -113,10 +113,7 @@ end
 # Merb::BootLoader::BuildFramework)
 class Merb::BootLoader::Logger < Merb::BootLoader
   def self.run
-    Merb.logger = Merb::Logger.new(
-      "#{Merb.dir_for(:log)}" / "merb.#{Merb::Config[:port]}.log",
-      Merb::Config[:log_level]
-    )
+    Merb.logger = Merb::Logger.new(Merb.log_file, Merb::Config[:log_level])
   end
 end
 

@@ -64,7 +64,7 @@ module Merb
     def set_write_method
       @log.instance_eval do
         def aio?
-          @aio = !Merb.environment.match(/development|test/) && 
+          @aio = !Merb.environment.to_s.match(/development|test/) && 
           !RUBY_PLATFORM.match(/java|mswin/) &&
           !(@log == STDOUT) &&
           @log.respond_to?(:write_nonblock)
@@ -123,7 +123,7 @@ module Merb
     # delimiter<String>
     #   Delimiter to use between message sections
     def set_log(log, log_level = nil, delimiter = " ~ ")
-      @level = Levels[log_level]
+      @level = Levels[log_level.to_sym]
       @level ||= (Merb.environment == "production") ? Levels[:error] : Levels[:debug]
       @buffer    = []
       @delimiter = delimiter

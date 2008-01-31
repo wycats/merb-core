@@ -132,8 +132,12 @@ module Merb
               options[:adapter] = 'irb'
            end
 
-           opts.on("-l", "--log-level LEVEL", "Log levels can be set to any of these options: :debug < :info < :warn < :error < :fatal") do |log_level|
+           opts.on("-l", "--log-level LEVEL", "Log levels can be set to any of these options: debug < info < warn < error < fatal") do |log_level|
              options[:log_level] = log_level.to_sym
+           end
+
+           opts.on("-L", "--log LOGFILE", "A string representing the logfile to use.") do |log_file|
+             options[:log_file] = log_file
            end
 
            opts.on("-e", "--environment STRING", "Run merb in the correct mode(development, production, testing)") do |env|
@@ -195,7 +199,7 @@ module Merb
          # a new merb_config path.
          @configuration = Merb::Config.setup(options[:merb_config]).merge(options)
          # Finally, if all else fails... set the environment to 'development'
-         options[:environment] ||= 'development'
+         options[:environment] ||= "development"
 
          Merb.environment = Merb::Config[:environment]
          Merb.root = Merb::Config[:merb_root]

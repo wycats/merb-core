@@ -1,35 +1,54 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
 
-Merb.environment = "development" # Temporary hack-fix to nil environment default bug
+Merb.environment = "testing" # Temporary hack-fix to nil environment default bug
+
+describe Merb do
+
+  describe "Command Line Options" do
+    
+    it "should allow -l / --log_level to set the log_level" do
+      pending("How do we spec these?")
+    end
+    
+    it "should allow -L / --log_file  to set the log_file" do
+      pending("How do we spec these?")
+      # Run an instance of merb from the command line 
+      # using system and test if the file was created?
+    end
+    
+  end
+
+end
 
 describe Merb::Logger do
 
   describe "#new" do
-    it "should call set_log with the arguments it was passed."
-    # do
-    #  Merb::Logger.new("merb_test.log").should_receive(:set_log).with("merb_test.log").and_return(true)
-    #end
+    it "should call set_log with the arguments it was passed." do
+      pending("How do we catch an initialize in a spec?")
+      # Merb::Logger.should_receive(:set_log).with(Merb.log_file).and_return(true)
+      # Merb::Logger.new(Merb.log_file)
+    end
   end
   
   describe "#set_log" do
 
     before(:each) do
-      @logger = Merb::Logger.new("merb_test.log")
+      @logger = Merb::Logger.new(Merb.log_file)
     end
 
-    it "should set the log level to '4' when second parameter is :warn" do
-      Merb::Logger.new("merb_test.log", :warn).level.should eql(4)
+    it "should set the log level to :warn (4) when second parameter is :warn" do
+      Merb::Logger.new(Merb.log_file, :warn).level.should eql(4)
     end
 
     it "should set the log level to :debug (0) when Merb.environment is development" do
       Merb.should_receive(:environment).twice.and_return("development")
-      @logger.set_log("merb_test2.log")
+      @logger.set_log(Merb.log_path / "merb_test2.log")
       @logger.level.should == 0
     end
     
     it "should set the log level to :error (6) when Merb.environment is production" do
       Merb.should_receive(:environment).twice.and_return("production")
-      @logger.set_log("merb_test2.log")
+      @logger.set_log(Merb.log_path / "merb_test2.log")
       @logger.level.should == 6
     end
     
@@ -48,7 +67,7 @@ describe Merb::Logger do
   describe "#flush" do
 
     before(:each) do
-      @logger = Merb::Logger.new("merb_test.log")
+      @logger = Merb::Logger.new(Merb.log_file)
     end
     
     it "should immediately return if the buffer is empty" do
@@ -69,7 +88,7 @@ describe Merb::Logger do
   
   describe "#close" do
     before(:each) do
-      @logger = Merb::Logger.new("merb_test.log")
+      @logger = Merb::Logger.new(Merb.log_file)
     end
 
     it "should flush the buffer before closing" do
@@ -98,7 +117,7 @@ describe Merb::Logger do
   describe "level methods" do
 
     before(:all) do
-      @logger = Merb::Logger.new("merb_test.log")
+      @logger = Merb::Logger.new(Merb.log_file)
     end
 
     it "should provide a #debug method which can be used to log" do
