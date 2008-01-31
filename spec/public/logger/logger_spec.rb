@@ -1,7 +1,5 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
 
-Merb.environment = "testing" # Temporary hack-fix to nil environment default bug
-
 describe Merb do
 
   describe "Command Line Options" do
@@ -42,14 +40,14 @@ describe Merb::Logger do
 
     it "should set the log level to :debug (0) when Merb.environment is development" do
       Merb.should_receive(:environment).twice.and_return("development")
-      @logger.set_log(Merb.log_path / "merb_test2.log")
-      @logger.level.should == 0
+      @logger.set_log(Merb.log_path / "development.log")
+      @logger.level.should eql(0)
     end
     
     it "should set the log level to :error (6) when Merb.environment is production" do
       Merb.should_receive(:environment).twice.and_return("production")
-      @logger.set_log(Merb.log_path / "merb_test2.log")
-      @logger.level.should == 6
+      @logger.set_log(Merb.log_path / "production.log")
+      @logger.level.should eql(6)
     end
     
     it "should initialize the buffer to an empty array" do
@@ -60,7 +58,10 @@ describe Merb::Logger do
       @logger.delimiter.should eql(" ~ ")
     end
     
-    it "should assign the newly created object to Merb.logger"
+    it "should assign the newly created object to Merb.logger" do
+      @logger = Merb::Logger.new(Merb.log_file)
+      Merb.logger.should eql(@logger)
+    end
     
   end
   
