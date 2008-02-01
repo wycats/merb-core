@@ -91,7 +91,6 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
   
     # This method should be overridden in merb_init.rb before Merb.start to set up a different
     # framework structure
-
     def build_framework
       unless Merb::Config[:framework]
         %w[view model controller helper mailer part].each do |component|
@@ -129,10 +128,10 @@ class Merb::BootLoader::DropPidFile <  Merb::BootLoader
       Merb::Server.store_pid(Merb::Config[:port])
     end
   end
-end    
+end
+
 # Load the init.rb file, and any environment files, which register the
 # list of necessary dependencies and any after_app_loads hooks.
-
 class Merb::BootLoader::Dependencies < Merb::BootLoader
   
   def self.run
@@ -204,7 +203,6 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       # their subclasses in a class variable. Classes that wish to use this
       # functionality are required to alias it to _subclasses_list. Plugins
       # for ORMs and other libraries should keep this in mind.
-      
       superklass = const
       until (superklass = superklass.superclass).nil?
         if superklass.respond_to?(:_subclasses_list)

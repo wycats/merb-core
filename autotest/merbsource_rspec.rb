@@ -17,7 +17,6 @@ $VERBOSE = false
 # 5. Updating a file directly under merb-core (e.g. core_ext.rb)
 #    reruns all the specs under spec/(public|private)/core_ext
 # 6. Updating merb.rb reruns all specs
-
 class RspecCommandError < StandardError; end
 
 class Autotest::MerbsourceRspec < Autotest
@@ -119,7 +118,6 @@ class Autotest::MerbsourceRspec < Autotest
   #
   #   * bin/spec
   #   * default spec bin/loader installed in Rubygems
-
   def spec_commands
     if (spec = `which spec`.chomp) && !spec.empty?
       return [spec]
