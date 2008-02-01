@@ -1,12 +1,15 @@
 
 
+# DOC: Ezra Zygmuntowicz FAILED
 module Merb
   
+  # DOC: Ezra Zygmuntowicz FAILED
   class Router
     
     # The Behavior class is an interim route-building class that ties 
     # pattern-matching +conditions+ to output parameters, +params+.
 
+    # DOC: Ezra Zygmuntowicz FAILED
     class Behavior
       attr_reader :placeholders, :conditions, :params
       attr_accessor :parent
@@ -14,12 +17,14 @@ module Merb
       class << self
         # Count the number of open parentheses in +string+, up to and including +pos+
 
+        # DOC: Ezra Zygmuntowicz FAILED
         def count_parens_up_to(string, pos)
           string[0..pos].gsub(/[^\(]/, '').size
         end
         
         # Concatenate strings and remove regexp end caps
 
+        # DOC: Ezra Zygmuntowicz FAILED
         def concat_without_endcaps(string1, string2)
           return nil if !string1 and !string2
           return string1 if string2.nil?
@@ -32,6 +37,7 @@ module Merb
         # Join an array's elements into a string using " + " as a joiner, and
         # surround string elements in quotes.
 
+        # DOC: Ezra Zygmuntowicz FAILED
         def array_to_code(arr)
           code = ''
           arr.each_with_index do |part, i|
@@ -49,6 +55,7 @@ module Merb
         end
       end # class << self
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def initialize(conditions = {}, params = {}, parent = nil)
         # Must wait until after deducing placeholders to set @params !
         @conditions, @params, @parent = conditions, {}, parent
@@ -59,6 +66,7 @@ module Merb
         @params.merge! params
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def add(path, params = {})
         match(path).to(params)
       end
@@ -76,6 +84,7 @@ module Merb
         match_without_path(conditions, &block)
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def match_without_path(conditions = {})
         new_behavior = self.class.new(conditions, {}, self)
         conditions.delete :path if ['', '^$'].include?(conditions[:path])
@@ -83,6 +92,7 @@ module Merb
         new_behavior
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def to_route(params = {}, &conditional_block)
         @params.merge! params
         Route.new compiled_conditions, compiled_params, self, &conditional_block
@@ -124,14 +134,17 @@ module Merb
         route
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def default_routes(params = {}, &block)
         match(%r{/:controller(/:action(/:id)?)?(\.:format)?}).to(params, &block)
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def namespace(name_or_path, &block)
         yield self.class.new(:namespace => name_or_path.to_s)
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def resources(name, options = {})
         namespace = options[:namespace] || merged_params[:namespace] || conditions[:namespace]
         
@@ -191,6 +204,7 @@ module Merb
         routes
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def resource(name, options = {})
         namespace  = options[:namespace] || merged_params[:namespace] || conditions[:namespace]        
         match_path = namespace ? "/#{namespace}/#{name}" : "/#{name}"
@@ -218,14 +232,17 @@ module Merb
         routes
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def to_resources(params = {}, &block)
         many_behaviors_to resources_behaviors, params, &block
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def to_resource(params = {}, &block)
         many_behaviors_to resource_behaviors, params, &block
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def merged_original_conditions
         if parent.nil?
           @original_conditions
@@ -239,6 +256,7 @@ module Merb
         end
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def merged_conditions
         if parent.nil?
           @conditions
@@ -252,6 +270,7 @@ module Merb
         end
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def merged_params
         if parent.nil?
           @params
@@ -260,6 +279,7 @@ module Merb
         end
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def merged_placeholders
         placeholders = {}
         (ancestors.reverse + [self]).each do |a|
@@ -271,20 +291,24 @@ module Merb
         placeholders
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def inspect
         "[captures: #{path_captures.inspect}, conditions: #{@original_conditions.inspect}, params: #{@params.inspect}, placeholders: #{@placeholders.inspect}]"
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def regexp?
         @conditions_have_regexp
       end
       
     protected
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def namespace_to_name_prefix(name_or_path)
         name_or_path.to_s.tr('/', '_') + '_'
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def resources_behaviors(parent = self)
         [
           Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :get },    { :action => "index" },   parent),
@@ -298,6 +322,7 @@ module Merb
         ]
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def resource_behaviors(parent = self)
         [
           Behavior.new({ :path => %r{^[;/]new$},        :method => :get },    { :action => "new" },     parent),
@@ -319,6 +344,7 @@ module Merb
       
       # Convert conditions to regular expression string sources for consistency
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def stringify_conditions
         @conditions_have_regexp = false
         @conditions.each_pair do |k,v|
@@ -338,6 +364,7 @@ module Merb
         end
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def copy_original_conditions
         @original_conditions = {}
         @conditions.each_pair do |key, value|
@@ -346,6 +373,7 @@ module Merb
         @original_conditions
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def deduce_placeholders
         @conditions.each_pair do |match_key, source|
           while match = SEGMENT_REGEXP.match(source)
@@ -361,6 +389,7 @@ module Merb
         end
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def ancestors(list = [])
         if parent.nil?
           list
@@ -373,11 +402,13 @@ module Merb
       
       # Count the number of regexp captures in the :path condition
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def path_captures
         return 0 unless conditions[:path]
         Behavior.count_parens_up_to(conditions[:path], conditions[:path].size)
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def total_previous_captures
         ancestors.map{|a| a.path_captures}.inject(0){|sum, n| sum + n}
       end

@@ -1,7 +1,9 @@
 
 
+# DOC: Yehuda Katz FAILED
 module Merb::Hook
   
+  # DOC: Yehuda Katz FAILED
   module ClassMethods
     
     # ==== Parameters
@@ -29,6 +31,7 @@ module Merb::Hook
     end
   end
 
+  # DOC: Yehuda Katz FAILED
   module InstanceMethods
     # Call all of the registered hooks for the passed in type.
     #
@@ -48,6 +51,7 @@ module Merb::Hook
   
 end
 
+# DOC: Yehuda Katz FAILED
 class Class
   
   # Make the class hookable, by giving it .add_hook and #hook

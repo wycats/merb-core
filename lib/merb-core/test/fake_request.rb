@@ -1,12 +1,16 @@
 require 'ostruct'
+# DOC: Yehuda Katz FAILED
 module Merb
   
+  # DOC: Yehuda Katz FAILED
   module Test
     # FakeRequest sets up a default enviroment which can be overridden either
     # by passing and env into initialize or using request['HTTP_VAR'] = 'foo'
 
+    # DOC: Yehuda Katz FAILED
     class FakeRequest < Request
 
+      # DOC: Yehuda Katz FAILED
       def initialize(env = {}, req = StringIO.new)
         env.environmentize_keys!
         env['rack.input'] = req

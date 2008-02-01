@@ -1,9 +1,12 @@
 
 
+# DOC: Ezra Zygmuntowicz FAILED
 module Merb
 
+  # DOC: Ezra Zygmuntowicz FAILED
   module SessionMixin #:nodoc:
 
+    # DOC: Yehuda Katz FAILED
     def self.included(base)            
       base.add_hook :before_dispatch do
         Merb.logger.info("Setting up session")
@@ -18,6 +21,7 @@ module Merb
       end
     end
 
+    # DOC: Ezra Zygmuntowicz FAILED
     def session_store_type
       "memory"
     end
@@ -40,6 +44,7 @@ module Merb
     attr_accessor :data
     attr_accessor :needs_new_cookie
 
+    # DOC: Ezra Zygmuntowicz FAILED
     def initialize(session_id)
       @session_id = session_id
       @data = {}
@@ -48,6 +53,7 @@ module Merb
     class << self
       # Generates a new session ID and creates a row for the new session in the database.
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def generate
         sid = Merb::SessionMixin::rand_uuid
         MemorySessionContainer[sid] = new(sid)
@@ -56,6 +62,7 @@ module Merb
       # Gets the existing session based on the <tt>session_id</tt> available in cookies.
       # If none is found, generates a new session.
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def persist(session_id)
         if session_id
           session = MemorySessionContainer[session_id]
@@ -70,6 +77,7 @@ module Merb
 
     # Regenerate the Session ID
 
+     # DOC
      def regenerate
        new_sid = Merb::SessionMixin::rand_uuid 
        old_sid = @session_id
@@ -82,47 +90,56 @@ module Merb
      # Recreates the cookie with the default expiration time 
      # Useful during log in for pushing back the expiration date
 
+     # DOC
      def refresh_expiration 
        self.needs_new_cookie=true 
      end 
      
      # Lazy-delete of session data
 
+     # DOC
      def delete
        @data = {} 
      end
      
     # Has the session been loaded yet?
 
+    # DOC: Ezra Zygmuntowicz FAILED
     def loaded?
       !! @data
     end
     
     # assigns a key value pair
 
+    # DOC: Ezra Zygmuntowicz FAILED
     def []=(k, v) 
       @data[k] = v
     end
 
+    # DOC: Ezra Zygmuntowicz FAILED
     def [](k) 
       @data[k] 
     end
 
+    # DOC: Ezra Zygmuntowicz FAILED
     def each(&b) 
       @data.each(&b) 
     end
     
     private
 
+    # DOC: Ezra Zygmuntowicz FAILED
     def method_missing(name, *args, &block)
       @data.send(name, *args, &block)
     end
 
   end
 
+  # DOC: Ezra Zygmuntowicz FAILED
   class MemorySessionContainer
     class << self
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def setup(ttl=nil)
         @sessions = Hash.new
         @timestamps = Hash.new
@@ -132,10 +149,12 @@ module Merb
         self
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def create(opts={})
         self[opts[:session_id]] = opts[:data]
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def [](key)
         @mutex.synchronize {
           @timestamps[key] = Time.now
@@ -143,6 +162,7 @@ module Merb
         }
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def []=(key, val) 
         @mutex.synchronize {
           @timestamps[key] = Time.now
@@ -150,6 +170,7 @@ module Merb
         } 
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def delete(key)
         @mutex.synchronize {
           @sessions.delete(key)
@@ -157,6 +178,7 @@ module Merb
         }
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def reap_old_sessions
         @timestamps.each do |key,stamp|
           if stamp + @session_ttl < Time.now
@@ -166,6 +188,7 @@ module Merb
         GC.start
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def start_timer
         Thread.new do
           loop {
@@ -175,6 +198,7 @@ module Merb
         end  
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def sessions
         @sessions
       end  

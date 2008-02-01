@@ -1,11 +1,14 @@
 require 'optparse'
 require 'yaml'
 
+# DOC
 module Merb
   
+  # DOC
   class Config
     class << self
 
+      # DOC
       def defaults
         @defaults ||= {
           :host                   => "0.0.0.0",
@@ -20,38 +23,47 @@ module Merb
         }
       end
 
+      # DOC
       def use
         yield @configuration
       end
 
+      # DOC
       def [](key)
         (@configuration||={})[key]
       end
 
+      # DOC
       def []=(key,val)
         @configuration[key] = val
       end
 
+      # DOC
       def delete(key)
         @configuration.delete key
       end
 
+      # DOC
       def fetch(key, default)
         @configuration.fetch key, default
       end
 
+      # DOC
       def to_hash
         @configuration
       end
 
+      # DOC
       def to_yaml
         @configuration.to_yaml  
       end
 
+      # DOC
       def setup(settings = {})
         @configuration = defaults.merge(settings)
       end
 
+      # DOC
       def parse_args(argv = ARGV)
          @configuration ||= {}
          # Our primary configuration hash for the length of this method

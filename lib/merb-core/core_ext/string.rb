@@ -1,6 +1,8 @@
 require 'strscan'
+# DOC: Yehuda Katz FAILED
 class String
   
+  # DOC: Yehuda Katz FAILED
   class InvalidPathConversion < Exception; end
 
   # Escapes any characters in the string that would have special meaning in a 
@@ -13,12 +15,14 @@ class String
   
   # "FooBar".snake_case #=> "foo_bar"
 
+  # DOC: Yehuda Katz FAILED
   def snake_case
     gsub(/\B[A-Z]/, '_\&').downcase
   end
 
   # "foo_bar".camel_case #=> "FooBar"
 
+  # DOC: Yehuda Katz FAILED
   def camel_case
     split('_').map{|e| e.capitalize}.join
   end
@@ -54,6 +58,7 @@ class String
   # Concatenates a path
   #   $ "merb"/"core_ext" #=> "merb/core_ext"
 
+  # DOC: Yehuda Katz FAILED
   def /(o)
     File.join(self, o.to_s)
   end

@@ -31,6 +31,7 @@ module Merb
     attr_accessor :logger
   end
 
+  # DOC
   class Logger
 
     attr_accessor :aio
@@ -62,9 +63,11 @@ module Merb
     # The idea here is that instead of performing an 'if' conditional check
     # on each logging we do it once when the log object is setup
 
+    # DOC
     def set_write_method
       @log.instance_eval do
 
+        # DOC
         def aio?
           @aio = !Merb.environment.to_s.match(/development|test/) && 
           !RUBY_PLATFORM.match(/java|mswin/) &&
@@ -72,6 +75,7 @@ module Merb
           @log.respond_to?(:write_nonblock)
         end
 
+        # DOC
         undef write_method if defined? write_method
         if aio?
           alias :write_method :write_nonblock
@@ -81,6 +85,7 @@ module Merb
       end
     end
 
+    # DOC
     def initialize_log(log)
       close if @log # be sure that we don't leave open files laying around.
 
@@ -189,10 +194,12 @@ module Merb
     Levels.each_pair do |name, number|
       class_eval <<-LEVELMETHODS
 
+      # DOC
       def #{name}(message = nil, &block)
         self.<<(message, &block) if #{name}?
       end
 
+      # DOC
       def #{name}?
         #{number} >= level
       end

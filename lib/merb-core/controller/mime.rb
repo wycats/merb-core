@@ -1,10 +1,12 @@
 
 
+# DOC: Yehuda Katz FAILED
 module Merb
   class << self
 
     # An alias for ResponderMixin::TYPES
 
+    # DOC: Yehuda Katz FAILED
     def available_mime_types
       ResponderMixin::TYPES
     end
@@ -43,6 +45,7 @@ module Merb
 
       Merb::RenderMixin.class_eval <<-EOS
 
+        # DOC: Yehuda Katz FAILED
         def render_#{key}(thing = nil, opts = {})
           content_type = :#{key}
           render thing, opts

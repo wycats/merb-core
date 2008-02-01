@@ -1,11 +1,13 @@
 
 
+# DOC: Yehuda Katz FAILED
 class Merb::Controller < Merb::AbstractController
   
   class_inheritable_accessor :_session_id_key, :_session_expiry, :_hidden_actions, :_shown_actions
   cattr_accessor :_subclasses, :_session_secret_key
   self._subclasses = Set.new
 
+  # DOC: Yehuda Katz FAILED
   def self.subclasses_list() _subclasses end
   
   self._session_secret_key = nil
@@ -208,6 +210,7 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The parameters from the request object
 
+  # DOC: Yehuda Katz FAILED
   def params()  request.params  end
     
   # ==== Returns
@@ -224,10 +227,12 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The session that was extracted from the request object
 
+  # DOC: Yehuda Katz FAILED
   def session() request.session end
 
   # ==== Returns
   # Hash:: The route that was extracted from the request object
 
+  # DOC: Yehuda Katz FAILED
   def route()   request.route   end
 end

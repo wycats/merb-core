@@ -69,8 +69,10 @@ class Merb::AbstractController
 
   # Controller name is part of the public API
 
+  # DOC: Yehuda Katz FAILED
   def self.controller_name() @controller_name ||= self.name.to_const_path end
 
+  # DOC: Yehuda Katz FAILED
   def controller_name()      self.class.controller_name                   end
 
   self._before_filters, self._after_filters = [], []
@@ -148,6 +150,7 @@ class Merb::AbstractController
   # ==== Parameters
   # *args<Object>:: The args are ignored
 
+  # DOC: Yehuda Katz FAILED
   def initialize(*args)
     @_benchmarks = {}
     @_caught_content = {}
@@ -156,6 +159,7 @@ class Merb::AbstractController
   # ==== Parameters
   # action<~to_s>:: The action to dispatch to. This will be #send'ed in _call_action
 
+  # DOC: Yehuda Katz FAILED
   def _dispatch(action=:to_s)
     hook :before_dispatch
     self.action_name = action
@@ -269,10 +273,13 @@ class Merb::AbstractController
   #---
   # Defaults that can be overridden by plugins, other mixins, or subclasses
 
+  # DOC: Yehuda Katz FAILED
   def _filters_halted()   "<html><body><h1>Filter Chain Halted!</h1></body></html>"  end
 
+  # DOC
   def _setup_session()                                                               end
 
+  # DOC: Yehuda Katz FAILED
   def _finalize_session()                                                            end
 
   # Stub so content-type support in RenderMixin doesn't throw errors
@@ -291,6 +298,7 @@ class Merb::AbstractController
   
   # Resets the template_path_cache to an empty hash
 
+  # DOC: Yehuda Katz FAILED
   def self.reset_template_path_cache!
     self._template_path_cache = {}
   end  
@@ -357,6 +365,7 @@ class Merb::AbstractController
     return opts
   end
 
+  # DOC: Yehuda Katz FAILED
   def method_missing(sym, *args, &blk)
     return @_merb_partial_locals[sym] if @_merb_partial_locals && @_merb_partial_locals.key?(sym)
     super

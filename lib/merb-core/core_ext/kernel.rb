@@ -1,5 +1,6 @@
 
 
+# DOC: Yehuda Katz FAILED
 module Kernel
   # Loads the given string as a gem.
   # An optional second parameter of a version string can be specified and is passed to rubygems.
@@ -58,6 +59,7 @@ module Kernel
   # Requires the library string passed in.
   # If the library fails to load then it will display a helpful message.
 
+  # DOC: Yehuda Katz FAILED
   def requires(library)
     # TODO: Extract messages out into a messages file. This will also be the first step towards internationalization.
     # TODO: adjust this message once logging refactor is complete.
@@ -80,6 +82,7 @@ module Kernel
   # does a basic require, and prints the message passed as an optional
   # second parameter if an error occurs.
 
+  # DOC: Yehuda Katz FAILED
   def rescue_require(sym, message = nil)
     require sym
   rescue LoadError, RuntimeError
@@ -121,6 +124,7 @@ module Kernel
   
   # Returns an array with a stack trace of the application's files.
 
+  # DOC
   def __app_file_trace__
     caller.select do |call| 
       call.include?(Merb.root) && !call.include?(Merb.root + "/framework")

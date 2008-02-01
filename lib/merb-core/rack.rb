@@ -1,7 +1,9 @@
 require 'rack'
 
+# DOC: Ezra Zygmuntowicz FAILED
 module Merb
   
+  # DOC: Ezra Zygmuntowicz FAILED
   module Rack
     autoload :Application,    "merb-core/rack/application"
     autoload :Adapter,        "merb-core/rack/adapter"

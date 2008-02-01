@@ -1,5 +1,6 @@
 
 
+# DOC: Yehuda Katz FAILED
 class Merb::Dispatcher
   DEFAULT_ERROR_TEMPLATE = File.expand_path(File.dirname(__FILE__) / 'exceptions.html.erb')
   

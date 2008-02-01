@@ -1,9 +1,12 @@
 require 'etc'
+# DOC: Ezra Zygmuntowicz FAILED
 module Merb
   
+  # DOC: Ezra Zygmuntowicz FAILED
   class Server
     class << self
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def start(port, cluster=nil)
         @port = port
         @cluster = cluster
@@ -31,6 +34,7 @@ module Merb
         end
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def alive?(port)
         f = "#{Merb.dir_for(:log)}" / "merb.#{port}.pid"
         pid = IO.read(f).chomp.to_i
@@ -40,6 +44,7 @@ module Merb
         false
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def kill(port, sig=9)
         Merb::BootLoader::BuildFramework.run
         begin
@@ -57,6 +62,7 @@ module Merb
         end
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def daemonize(port)
         fork do
           Process.setsid
@@ -81,6 +87,7 @@ module Merb
         end
       end
 
+      # DOC: Ezra Zygmuntowicz FAILED
       def remove_pid_file(port)
         if Merb::Config[:pid_file]
           pidfile = Merb::Config[:pid_file]
@@ -90,6 +97,7 @@ module Merb
         FileUtils.rm(pidfile) if File.exist?(pidfile)
       end
 
+      # DOC
       def store_pid(port)
         FileUtils.mkdir_p(Merb.dir_for(:log)) unless File.directory?(Merb.dir_for(:log))
         if Merb::Config[:pid_file]
@@ -103,6 +111,7 @@ module Merb
       # Change privileges of the process
       # to the specified user and group.
 
+      # DOC
       def change_privilege(user, group=user)
         Merb.logger.info "Changing privileges to #{user}:#{group}"
         

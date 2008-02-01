@@ -1,5 +1,6 @@
 
 
+# DOC: Yehuda Katz FAILED
 module Merb::Template
   
   EXTENSIONS  = {} unless defined?(EXTENSIONS)
@@ -101,6 +102,7 @@ module Merb::Template
   
   require 'erubis'
 
+  # DOC: Yehuda Katz FAILED
   class Erubis    
     # ==== Parameters
     # path<String>:: A full path to the template
@@ -112,10 +114,12 @@ module Merb::Template
       name     
     end
 
+    # DOC: Yehuda Katz FAILED
     module Mixin
       
       # Provides direct acccess to the buffer for this view context
 
+      # DOC: Yehuda Katz FAILED
       def _buffer( the_binding )
         @_buffer = eval( "_buf", the_binding )
       end

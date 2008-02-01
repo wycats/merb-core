@@ -1,5 +1,6 @@
 
 
+# DOC: Yehuda Katz FAILED
 module Merb::RenderMixin
   # So we can do raise TemplateNotFound
   include Merb::ControllerExceptions

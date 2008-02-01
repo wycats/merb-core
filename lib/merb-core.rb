@@ -25,9 +25,11 @@ rescue LoadError
   require "json/pure"
 end
 
+# DOC: Yehuda Katz FAILED
 module Merb
   class << self
 
+    # DOC: Ezra Zygmuntowicz FAILED
     def start(argv=ARGV)
       Merb::Config.parse_args(argv)
       Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
@@ -50,12 +52,15 @@ module Merb
       load_paths[type] = [path, file_glob]
     end
 
+    # DOC
     def dir_for(type)  Merb.load_paths[type].first end
 
+    # DOC
     def glob_for(type) Merb.load_paths[type][1]    end
     
     # Application paths
 
+    # DOC
     def root()          @root || Merb::Config[:merb_root] || Dir.pwd  end
     # ==== Parameters
     # value<String>:: the path to the root of the directory
@@ -69,6 +74,7 @@ module Merb
     # Logger settings
     attr_accessor :logger
 
+    # DOC
     def log_file
       if Merb::Config[:log_file]
         Merb::Config[:log_file]
@@ -81,6 +87,7 @@ module Merb
       end
     end
 
+    # DOC
     def log_path
       if Merb::Config[:log_file]
         File.dirname(Merb::Config[:log_file])
@@ -93,8 +100,10 @@ module Merb
     
     # Framework paths
 
+    # DOC
     def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
 
+    # DOC
     def flat!(&block)
       Merb::Config[:framework] = {}
 
@@ -111,6 +120,7 @@ module Merb
     
     attr_reader :registered_session_types
 
+    # DOC
     def register_session_type(name, file, description = nil)
       @registered_session_types ||= Dictionary.new
       @registered_session_types[name] = {

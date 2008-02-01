@@ -1,8 +1,10 @@
 
 
+# DOC: Yehuda Katz FAILED
 module Merb
   # Module that is mixed in to all implemented controllers.
   
+  # DOC: Yehuda Katz FAILED
   module ControllerMixin
     
     # Renders the block given as a parameter using chunked

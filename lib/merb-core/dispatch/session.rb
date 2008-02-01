@@ -1,9 +1,12 @@
 
 
+# DOC: Ezra Zygmuntowicz FAILED
 module Merb
   
+  # DOC: Ezra Zygmuntowicz FAILED
   module SessionMixin
 
+    # DOC: Ezra Zygmuntowicz FAILED
     def rand_uuid
       values = [
         rand(0x0010000),
@@ -17,6 +20,7 @@ module Merb
       "%04x%04x%04x%04x%04x%06x%06x" % values
     end
 
+    # DOC: Ezra Zygmuntowicz FAILED
     def needs_new_cookie!
       @_new_cookie = true
     end
