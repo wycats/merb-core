@@ -62,7 +62,7 @@ module Merb
            opts.version = Merb::VERSION
            opts.release = Merb::RELEASE
 
-           opts.banner = "Usage: merb [fdcepghmisluMG] [argument]"
+           opts.banner = "Usage: merb [uGdcIpPhmailLerkKX] [argument]"
            opts.define_head "Merb Mongrel+ Erb. Lightweight replacement for ActionPack."
            opts.separator '*'*80
            opts.separator 'If no flags are given, Merb starts in the foreground on port 4000.'
@@ -138,10 +138,6 @@ module Merb
            opts.on("-k", "--kill PORT or all", "Kill one merb proceses by port number.  Use merb -k all to kill all merbs.") do |port|
              @configuration = defaults.merge(options)
              Merb::Server.kill(port, 9)
-           end
-
-           opts.on("-M", "--merb-config FILENAME", "This flag is for explicitly declaring the merb app's config file.") do |config|
-             options[:merb_config] = config
            end
 
            opts.on("-X", "--mutex on/off", "This flag is for turning the mutex lock on and off.") do |mutex|
