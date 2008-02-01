@@ -38,17 +38,6 @@ describe Merb::Config do
   it "should be able to dump to YAML" do
     Merb::Config.to_yaml.should == Merb::Config.instance_variable_get("@configuration").to_yaml
   end
-  
-  it "should be able to apply configuration from a file (if it exists)" do
-    File.stub!(:exists?).with("foo").and_return(true)
-    Erubis.should_receive(:load_yaml_file).and_return({:apply_config => true})
-    Merb::Config.apply_configuration_from_file({}, "foo").should == {:apply_config => true}
-  end
-
-  it "should be able to apply configuration from a file (if does not exist)" do
-    File.stub!(:exists?).with("foo").and_return(false)
-    Merb::Config.apply_configuration_from_file({}, "foo").should == {}
-  end
 
   it "should support -u to set the user to run Merb as" do
     Merb::Config.parse_args(["-u", "tester"])
