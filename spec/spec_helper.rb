@@ -1,5 +1,6 @@
 $TESTING=true
 
+require "rubygems"
 require "spec"
 require File.join(File.dirname(__FILE__), "..", "lib", "merb-core")
 require 'merb-core/test/fake_request'

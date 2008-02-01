@@ -164,7 +164,8 @@ end
 desc "Run coverage suite"
 task :rcov do
   require 'fileutils'
-  FileUtils.mkdir("coverage") unless File.directory?("coverage")
+  FileUtils.rm_rf("coverage") if File.directory?("coverage")
+  FileUtils.mkdir("coverage")
   path = File.expand_path(Dir.pwd)
   files = Dir["spec/**/*_spec.rb"]
   files.each do |spec|
