@@ -2,9 +2,12 @@ require 'webrick'
 require 'rack/handler/webrick'
 
 module Merb
+
   module Rack
+
     class WEBrick
       # start WEBrick server on given host and port.
+
       def self.start(opts={})
         options = {
           :Port        => opts[:port],

@@ -1,3 +1,5 @@
+
+
 module Merb
 
   # Cookies are read and written through Merb::Controller#cookies. The cookies
@@ -36,6 +38,7 @@ module Merb
 
     # Returns the value of the cookie by +name+ or nil if no such cookie
     # exists. You set new cookies using cookies[]=
+
     def [](name)
       @_cookies[name]
     end
@@ -72,6 +75,7 @@ module Merb
 
     # Removes the cookie on the client machine by setting the value to an empty string
     # and setting its expiration date into the past.
+
     def delete(name, options = {})
       cookie = @_cookies.delete(name)
       options = Mash.new(options)
@@ -82,6 +86,7 @@ module Merb
     end
 
     private
+
       def set_cookie(name, value, options)
         options[:path] = '/' unless options[:path]
         if expiry = options[:expires]

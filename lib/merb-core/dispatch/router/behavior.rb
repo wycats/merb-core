@@ -1,19 +1,25 @@
+
+
 module Merb
+  
   class Router
     
     # The Behavior class is an interim route-building class that ties 
     # pattern-matching +conditions+ to output parameters, +params+.
+
     class Behavior
       attr_reader :placeholders, :conditions, :params
       attr_accessor :parent
       
       class << self
         # Count the number of open parentheses in +string+, up to and including +pos+
+
         def count_parens_up_to(string, pos)
           string[0..pos].gsub(/[^\(]/, '').size
         end
         
         # Concatenate strings and remove regexp end caps
+
         def concat_without_endcaps(string1, string2)
           return nil if !string1 and !string2
           return string1 if string2.nil?
@@ -25,6 +31,7 @@ module Merb
         
         # Join an array's elements into a string using " + " as a joiner, and
         # surround string elements in quotes.
+
         def array_to_code(arr)
           code = ''
           arr.each_with_index do |part, i|
@@ -41,7 +48,7 @@ module Merb
           code
         end
       end # class << self
-      
+
       def initialize(conditions = {}, params = {}, parent = nil)
         # Must wait until after deducing placeholders to set @params !
         @conditions, @params, @parent = conditions, {}, parent
@@ -51,7 +58,7 @@ module Merb
         deduce_placeholders
         @params.merge! params
       end
-      
+
       def add(path, params = {})
         match(path).to(params)
       end
@@ -59,6 +66,7 @@ module Merb
       # Matches a +path+ and any number of optional request methods as conditions of a route.
       # Alternatively, +path+ can be a hash of conditions, in which case +conditions+ is ignored.
       # Yields a new instance so that sub-matching may occur.
+
       def match(path = '', conditions = {}, &block)
         if path.is_a? Hash
           conditions = path
@@ -67,14 +75,14 @@ module Merb
         end
         match_without_path(conditions, &block)
       end
-      
+
       def match_without_path(conditions = {})
         new_behavior = self.class.new(conditions, {}, self)
         conditions.delete :path if ['', '^$'].include?(conditions[:path])
         yield new_behavior if block_given?
         new_behavior
       end
-      
+
       def to_route(params = {}, &conditional_block)
         @params.merge! params
         Route.new compiled_conditions, compiled_params, self, &conditional_block
@@ -115,15 +123,15 @@ module Merb
         Router.routes << (route = to_route(params, &conditional_block))
         route
       end
-      
+
       def default_routes(params = {}, &block)
         match(%r{/:controller(/:action(/:id)?)?(\.:format)?}).to(params, &block)
       end
-      
+
       def namespace(name_or_path, &block)
         yield self.class.new(:namespace => name_or_path.to_s)
       end
-      
+
       def resources(name, options = {})
         namespace = options[:namespace] || merged_params[:namespace] || conditions[:namespace]
         
@@ -182,7 +190,7 @@ module Merb
         
         routes
       end
-      
+
       def resource(name, options = {})
         namespace  = options[:namespace] || merged_params[:namespace] || conditions[:namespace]        
         match_path = namespace ? "/#{namespace}/#{name}" : "/#{name}"
@@ -209,15 +217,15 @@ module Merb
         
         routes
       end
-      
+
       def to_resources(params = {}, &block)
         many_behaviors_to resources_behaviors, params, &block
       end
-      
+
       def to_resource(params = {}, &block)
         many_behaviors_to resource_behaviors, params, &block
       end
-      
+
       def merged_original_conditions
         if parent.nil?
           @original_conditions
@@ -230,7 +238,7 @@ module Merb
           end
         end
       end
-      
+
       def merged_conditions
         if parent.nil?
           @conditions
@@ -243,7 +251,7 @@ module Merb
           end
         end
       end
-      
+
       def merged_params
         if parent.nil?
           @params
@@ -251,7 +259,7 @@ module Merb
           parent.merged_params.merge(@params)
         end
       end
-      
+
       def merged_placeholders
         placeholders = {}
         (ancestors.reverse + [self]).each do |a|
@@ -262,20 +270,21 @@ module Merb
         end
         placeholders
       end
-      
+
       def inspect
         "[captures: #{path_captures.inspect}, conditions: #{@original_conditions.inspect}, params: #{@params.inspect}, placeholders: #{@placeholders.inspect}]"
       end
-      
+
       def regexp?
         @conditions_have_regexp
       end
       
     protected
+
       def namespace_to_name_prefix(name_or_path)
         name_or_path.to_s.tr('/', '_') + '_'
       end
-      
+
       def resources_behaviors(parent = self)
         [
           Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :get },    { :action => "index" },   parent),
@@ -288,7 +297,7 @@ module Merb
           Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :delete }, { :action => "destroy" }, parent)
         ]
       end
-      
+
       def resource_behaviors(parent = self)
         [
           Behavior.new({ :path => %r{^[;/]new$},        :method => :get },    { :action => "new" },     parent),
@@ -303,11 +312,13 @@ module Merb
       # Creates a series of routes from an array of Behavior objects.
       # You can pass in optional +params+, and an optional block that will be
       # passed along to the #to method.
+
       def many_behaviors_to(behaviors, params = {}, &conditional_block)
         behaviors.map { |b| b.to params, &conditional_block }
       end
       
       # Convert conditions to regular expression string sources for consistency
+
       def stringify_conditions
         @conditions_have_regexp = false
         @conditions.each_pair do |k,v|
@@ -326,7 +337,7 @@ module Merb
           end
         end
       end
-      
+
       def copy_original_conditions
         @original_conditions = {}
         @conditions.each_pair do |key, value|
@@ -334,7 +345,7 @@ module Merb
         end
         @original_conditions
       end
-      
+
       def deduce_placeholders
         @conditions.each_pair do |match_key, source|
           while match = SEGMENT_REGEXP.match(source)
@@ -349,7 +360,7 @@ module Merb
           end
         end
       end
-      
+
       def ancestors(list = [])
         if parent.nil?
           list
@@ -361,19 +372,20 @@ module Merb
       end
       
       # Count the number of regexp captures in the :path condition
+
       def path_captures
         return 0 unless conditions[:path]
         Behavior.count_parens_up_to(conditions[:path], conditions[:path].size)
       end
-      
+
       def total_previous_captures
         ancestors.map{|a| a.path_captures}.inject(0){|sum, n| sum + n}
       end
-      
+
       # def merge_with_ancestors
       #   self.class.new(merged_conditions, merged_params)
       # end
-      
+
       def compiled_conditions(conditions = merged_conditions)
         conditions.inject({}) do |compiled,(k,v)|
           compiled.merge k => Regexp.new(v)
@@ -388,6 +400,7 @@ module Merb
       # 
       #   { :controller => "'admin/' + matches[:path][1]" }
       #
+
       def compiled_params(params = merged_params, placeholders = merged_placeholders)
         compiled = {}
         params.each_pair do |key, value|

@@ -25,15 +25,19 @@ require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 
 # A small structure to hold the templates so we can test the templating system in isolation
 # from the framework
+
 module Merb::Test::Fixtures
   # This is a fake templating engine that just copies the text of the template
   # exactly from the file
+  
   class MyTemplateEngine
+    
     def self.compile_template(path, name, mod)
       text = File.read(path)
       table = { "\r"=>"\\r", "\n"=>"\\n", "\t"=>"\\t", '"'=>'\\"', "\\"=>"\\\\" }      
       text = (text.split("\n").map {|x| '"' + (x.gsub(/[\r\n\t"\\]/) { |m| table[m] }) + '"'}).join(" +\n")
       mod.class_eval <<-EOS, path
+        
         def #{name}
           #{text}
         end
@@ -43,7 +47,7 @@ module Merb::Test::Fixtures
 
   module MyHelpers
   end
-  
+
   class Environment
     include MyHelpers
   end
@@ -58,6 +62,7 @@ describe Merb::Template do
   end
   
   # @semipublic
+  
   def rendering_template(template_path)
     Merb::Template.inline_template(template_path, Merb::Test::Fixtures::MyHelpers)
     Merb::Test::Fixtures::Environment.new.

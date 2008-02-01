@@ -2,13 +2,16 @@ require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 require "mongrel"
 
 module Merb
+  
   module Test
+    
     module Multipart
       require 'rubygems'
       require 'mime/types'
 
       class Param
         attr_accessor :key, :value
+        
         def initialize(key, value)
           @key   = key
           @value = value
@@ -21,6 +24,7 @@ module Merb
 
       class FileParam
         attr_accessor :key, :filename, :content
+        
         def initialize(key, filename, content)
           @key      = key
           @filename = filename
@@ -31,7 +35,7 @@ module Merb
           return %(Content-Disposition: form-data; name="#{key}"; filename="#{filename}"\r\n) + "Content-Type: #{MIME::Types.type_for(@filename)}\r\n\r\n" + content + "\r\n"
         end
       end
-      
+
       class Post
         BOUNDARY = '----------0xKhTmLbOuNdArY'
         CONTENT_TYPE = "multipart/form-data, boundary=" + BOUNDARY
@@ -40,7 +44,7 @@ module Merb
           @multipart_params = []
           push_params(params)
         end
-        
+
         def push_params(params, prefix = nil)
           params.sort_by {|k| k.to_s}.each do |key, value|
             param_key = prefix.nil? ? key : "#{prefix}[#{key}]"

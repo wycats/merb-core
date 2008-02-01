@@ -20,7 +20,6 @@ end
 #  ERGO  ASCII art for other module header
 #  ERGO  why FreeRIDE can't see Rakefile??
 
-
 require 'doc/rdoc_patch'  #  ERGO  move this inside task!
 
 #:stopdoc:

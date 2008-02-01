@@ -36,6 +36,7 @@ class Class # :nodoc:
         end
 
         #{"
+
         def #{sym}=(obj)
           @@#{sym} = obj
         end
@@ -48,10 +49,12 @@ class Class # :nodoc:
     cattr_reader(*syms)
     cattr_writer(*syms)
   end
+
   def class_inheritable_reader(*syms)
     syms.each do |sym|
       next if sym.is_a?(Hash)
       class_eval <<-EOS
+
         def self.#{sym}
           read_inheritable_attribute(:#{sym})
         end
@@ -67,11 +70,13 @@ class Class # :nodoc:
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
       class_eval <<-EOS
+
         def self.#{sym}=(obj)
           write_inheritable_attribute(:#{sym}, obj)
         end
 
         #{"
+
         def #{sym}=(obj)
           self.class.#{sym} = obj
         end
@@ -84,11 +89,13 @@ class Class # :nodoc:
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
       class_eval <<-EOS
+
         def self.#{sym}=(obj)
           write_inheritable_array(:#{sym}, obj)
         end
 
         #{"
+
         def #{sym}=(obj)
           self.class.#{sym} = obj
         end
@@ -101,11 +108,13 @@ class Class # :nodoc:
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
       class_eval <<-EOS
+
         def self.#{sym}=(obj)
           write_inheritable_hash(:#{sym}, obj)
         end
 
         #{"
+
         def #{sym}=(obj)
           self.class.#{sym} = obj
         end
@@ -132,14 +141,14 @@ class Class # :nodoc:
   def inheritable_attributes
     @inheritable_attributes ||= EMPTY_INHERITABLE_ATTRIBUTES
   end
-  
+
   def write_inheritable_attribute(key, value)
     if inheritable_attributes.equal?(EMPTY_INHERITABLE_ATTRIBUTES)
       @inheritable_attributes = {}
     end
     inheritable_attributes[key] = value
   end
-  
+
   def write_inheritable_array(key, elements)
     write_inheritable_attribute(key, []) if read_inheritable_attribute(key).nil?
     write_inheritable_attribute(key, read_inheritable_attribute(key) + elements)
@@ -153,7 +162,7 @@ class Class # :nodoc:
   def read_inheritable_attribute(key)
     inheritable_attributes[key]
   end
-  
+
   def reset_inheritable_attributes
     @inheritable_attributes = EMPTY_INHERITABLE_ATTRIBUTES
   end

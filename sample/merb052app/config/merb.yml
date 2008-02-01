@@ -8,7 +8,6 @@
 # Set if your app will be hosted in some dir other than the root
 #:path_prefix: "/my_app"
 
-
 # Uncomment if you have more than one ORM or if you need to be specific about
 # which memory store to use. Built-in options are: memory, cookie, or mem_cache
 :session_store: cookie

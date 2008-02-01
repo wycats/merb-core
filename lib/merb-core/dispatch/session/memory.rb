@@ -1,7 +1,9 @@
+
+
 module Merb
-  
+
   module SessionMixin #:nodoc:
-    
+
     def self.included(base)            
       base.add_hook :before_dispatch do
         Merb.logger.info("Setting up session")
@@ -15,7 +17,7 @@ module Merb
         set_cookie(_session_id_key, request.session.session_id, _session_expiry) if (@_new_cookie || request.session.needs_new_cookie)
       end
     end
-     
+
     def session_store_type
       "memory"
     end
@@ -31,13 +33,13 @@ module Merb
   #
   # Sessions will remain in memory until the server is stopped or the time
   # as set in :memory_session_ttl expires.
-  
+
   class MemorySession
 
     attr_accessor :session_id
     attr_accessor :data
     attr_accessor :needs_new_cookie
-    
+
     def initialize(session_id)
       @session_id = session_id
       @data = {}
@@ -45,6 +47,7 @@ module Merb
 
     class << self
       # Generates a new session ID and creates a row for the new session in the database.
+
       def generate
         sid = Merb::SessionMixin::rand_uuid
         MemorySessionContainer[sid] = new(sid)
@@ -52,6 +55,7 @@ module Merb
 
       # Gets the existing session based on the <tt>session_id</tt> available in cookies.
       # If none is found, generates a new session.
+
       def persist(session_id)
         if session_id
           session = MemorySessionContainer[session_id]
@@ -64,55 +68,61 @@ module Merb
 
     end
 
-    # Regenerate the Session ID  
-   	def regenerate
-   	  new_sid = Merb::SessionMixin::rand_uuid 
-   	  old_sid = @session_id
-   	  MemorySessionContainer[new_sid] = MemorySessionContainer[old_sid]
-   	  @session_id = new_sid
-   	  MemorySessionContainer.delete(old_sid)
-   	  self.needs_new_cookie=true 
-   	end 
-   	 
-   	# Recreates the cookie with the default expiration time 
-   	# Useful during log in for pushing back the expiration date 
-   	def refresh_expiration 
-   	  self.needs_new_cookie=true 
-   	end 
-   	
-   	# Lazy-delete of session data 
-   	def delete
-   	  @data = {} 
-   	end
-   	
+    # Regenerate the Session ID
+
+     def regenerate
+       new_sid = Merb::SessionMixin::rand_uuid 
+       old_sid = @session_id
+       MemorySessionContainer[new_sid] = MemorySessionContainer[old_sid]
+       @session_id = new_sid
+       MemorySessionContainer.delete(old_sid)
+       self.needs_new_cookie=true 
+     end 
+      
+     # Recreates the cookie with the default expiration time 
+     # Useful during log in for pushing back the expiration date
+
+     def refresh_expiration 
+       self.needs_new_cookie=true 
+     end 
+     
+     # Lazy-delete of session data
+
+     def delete
+       @data = {} 
+     end
+     
     # Has the session been loaded yet?
+
     def loaded?
       !! @data
     end
     
-    # assigns a key value pair 
+    # assigns a key value pair
+
     def []=(k, v) 
       @data[k] = v
     end
-    
+
     def [](k) 
       @data[k] 
-    end 
-     
+    end
+
     def each(&b) 
       @data.each(&b) 
     end
     
     private
+
     def method_missing(name, *args, &block)
       @data.send(name, *args, &block)
     end
 
   end
-  
+
   class MemorySessionContainer
     class << self
-      
+
       def setup(ttl=nil)
         @sessions = Hash.new
         @timestamps = Hash.new
@@ -121,33 +131,32 @@ module Merb
         start_timer
         self
       end
-      
+
       def create(opts={})
         self[opts[:session_id]] = opts[:data]
-      end  
+      end
 
-      
       def [](key)
         @mutex.synchronize {
           @timestamps[key] = Time.now
           @sessions[key]
         }
-      end  
-      
+      end
+
       def []=(key, val) 
         @mutex.synchronize {
           @timestamps[key] = Time.now
           @sessions[key] = val
         } 
       end
-      
+
       def delete(key)
         @mutex.synchronize {
           @sessions.delete(key)
           @timestamps.delete(key)
         }
       end
-      
+
       def reap_old_sessions
         @timestamps.each do |key,stamp|
           if stamp + @session_ttl < Time.now
@@ -155,8 +164,8 @@ module Merb
           end  
         end
         GC.start
-      end  
-      
+      end
+
       def start_timer
         Thread.new do
           loop {
@@ -164,8 +173,8 @@ module Merb
             reap_old_sessions
           } 
         end  
-      end  
-      
+      end
+
       def sessions
         @sessions
       end  

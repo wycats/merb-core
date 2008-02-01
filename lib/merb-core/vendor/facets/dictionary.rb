@@ -102,6 +102,7 @@ class Dictionary
 
     # Like #new but the block sets the order.
     #
+
     def new_by(*args, &blk)
       new(*args).order_by(&blk)
     end
@@ -127,6 +128,7 @@ class Dictionary
     #   d = Dictionary.auto
     #   d["a"]["b"]["c"] = "abc"  #=> { "a"=>{"b"=>{"c"=>"abc"}}}
     #
+
     def auto(*args)
       #AutoDictionary.new(*args)
       leet = lambda { |hsh, key| hsh[key] = new(&leet) }

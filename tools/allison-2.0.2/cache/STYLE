@@ -13,15 +13,6 @@ padding: 0;
 border: none;
 }
 
-
-
-
-
-
-
-
-
-
 .clear {
 clear: both;
 }
@@ -94,10 +85,6 @@ padding: 0;
 height: 1px;
 overflow: hidden /* again, ie problem */;
 }
-
-
-
-
 
 #preheader_curve_5{border-left: 1px solid #fff; border-right: 1px solid #fff; width: 898px; _width: 888px; }
 #preheader_curve_4{border-left: 1px solid #fff; border-right: 1px solid #fff; width: 898px; _width: 888px; }

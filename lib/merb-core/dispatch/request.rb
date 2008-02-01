@@ -1,4 +1,7 @@
+
+
 module Merb
+  
   class Request
     attr_accessor :env, :session, :route_params
     
@@ -13,6 +16,7 @@ module Merb
     # ==== Parameters
     # http_request<~params:~[], ~body:IO>:: 
     #   An object like an HTTP Request.
+
     def initialize(rack_env)
       @env  = rack_env
       @body = rack_env['rack.input']
@@ -20,7 +24,7 @@ module Merb
     end
     
     METHODS = %w{get post put delete head}
-    
+
     def method
       @method ||= begin
         request_method = @env['REQUEST_METHOD'].downcase.to_sym
@@ -44,12 +48,14 @@ module Merb
     # create predicate methods for querying the REQUEST_METHOD
     # get? post? head? put? etc
     METHODS.each do |m|
+
       class_eval "def #{m}?() method == :#{m} end"
     end
     
     private
     
     # A hash of parameters passed from the URL like ?blah=hello
+
     def query_params
       @query_params ||= self.class.query_parse(query_string || '')
     end
@@ -58,6 +64,7 @@ module Merb
     #
     # Ajax calls from prototype.js and other libraries 
     # pass content this way.
+
     def body_params
       @body_params ||= begin
         if content_type && content_type.match(Merb::Const::FORM_URL_ENCODED_REGEXP) # or content_type.nil?
@@ -65,7 +72,7 @@ module Merb
         end
       end
     end
-    
+
     def body_and_query_params
       # ^-- FIXME a better name for this method
       @body_and_query_params ||= begin
@@ -74,7 +81,7 @@ module Merb
         h.to_mash
       end
     end
-    
+
     def multipart_params
       @multipart_params ||= 
         begin
@@ -87,7 +94,7 @@ module Merb
           raise e
         end
     end
-    
+
     def json_params
       @json_params ||= begin
         if Merb::Const::JSON_MIME_TYPE_REGEXP.match(content_type)
@@ -95,7 +102,7 @@ module Merb
         end
       end
     end
-    
+
     def xml_params
       @xml_params ||= begin
         if Merb::Const::XML_MIME_TYPE_REGEXP.match(content_type)
@@ -105,7 +112,7 @@ module Merb
     end
     
     public
-    
+
     def params
       @params ||= begin
         h = body_and_query_params.merge(route_params)      
@@ -115,11 +122,11 @@ module Merb
         h
       end
     end
-    
+
     def cookies
       @cookies ||= self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
     end
-        
+
     def raw_post
       @body.rewind
       res = @body.read
@@ -130,6 +137,7 @@ module Merb
     # Returns true if the request is an Ajax request.
     #
     # Also aliased as the more memorable ajax? and xhr?.
+
     def xml_http_request?
       not /XMLHttpRequest/i.match(@env['HTTP_X_REQUESTED_WITH']).nil?
     end
@@ -137,6 +145,7 @@ module Merb
     alias ajax? :xml_http_request?
     
     # returns the remote IP address if it can find it.
+
     def remote_ip
       return @env['HTTP_CLIENT_IP'] if @env.include?('HTTP_CLIENT_IP')
     
@@ -153,25 +162,29 @@ module Merb
     
     # returns either 'https://' or 'http://' depending on
     # the HTTPS header
+
     def protocol
       ssl? ? 'https://' : 'http://'
     end
     
     # returns true if the request is an SSL request
+
     def ssl?
       @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
     end
     
     # returns the request HTTP_REFERER.
+
     def referer
       @env['HTTP_REFERER']
     end
     
     # returns he request uri.
+
     def uri
       @env['REQUEST_URI']
     end
-    
+
     def user_agent
       @env['HTTP_USER_AGENT']
     end
@@ -227,17 +240,18 @@ module Merb
     def query_string
       @env['QUERY_STRING']  
     end
-    
+
     def content_type
       @env['CONTENT_TYPE']
     end
-    
+
     def content_length
       @content_length ||= @env[Merb::Const::CONTENT_LENGTH].to_i
     end
     
     # Returns the uri without the query string. Strips trailing '/' and reduces
     # duplicate '/' to a single '/'
+
     def path
       path = (uri ? uri.split('?').first : '').squeeze("/")
       path = path[0..-2] if (path[-1] == ?/) && path.size > 1
@@ -245,27 +259,32 @@ module Merb
     end
     
     # returns the PATH_INFO
+
     def path_info
       @path_info ||= Mongrel::HttpRequest.unescape(@env['PATH_INFO'])
     end
     
     # returns the port the server is running on
+
     def port
       @env['SERVER_PORT'].to_i
     end
     
     # returns the full hostname including port
+
     def host
       @env['HTTP_X_FORWARDED_HOST'] || @env['HTTP_HOST'] 
     end
     
     # returns an array of all the subdomain parts of the host.
+
     def subdomains(tld_length = 1)
       parts = host.split('.')
       parts[0..-(tld_length+2)]
     end
     
     # returns the full domain name without the port number.
+
     def domain(tld_length = 1)
       host.split('.').last(1 + tld_length).join('.').sub(/:\d+$/,'')
     end
@@ -277,6 +296,7 @@ module Merb
       #
       # +s+ - String to URL escape.
       #
+
       def escape(s)
         s.to_s.gsub(/([^ a-zA-Z0-9_.-]+)/n) {
           '%'+$1.unpack('H2'*$1.size).join('%').upcase
@@ -289,6 +309,7 @@ module Merb
       #
       # +s+ - String to unescape.
       #
+
       def unescape(s)
         s.tr('+', ' ').gsub(/((?:%[0-9a-fA-F]{2})+)/n){
           [$1.delete('%')].pack('H*')
@@ -311,6 +332,7 @@ module Merb
       FILENAME_REGEX = /Content-Disposition:.* filename="?([^\";]*)"?/ni.freeze
       CRLF = "\r\n".freeze
       EOL = CRLF
+
       def parse_multipart(request,boundary, content_length)
         boundary = "--#{boundary}"
         paramhsh = {}
@@ -386,7 +408,7 @@ module Merb
         }
         paramhsh
       end
-      
+
       def normalize_params(parms, name, val=nil)
         name =~ %r([\[\]]*([^\[\]]+)\]*)
         key = $1 || ''

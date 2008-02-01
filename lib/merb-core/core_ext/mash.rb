@@ -2,7 +2,8 @@
 # This class has dubious semantics and we only have it so that 
 # people can write params[:key] instead of params['key'] 
  
-class Mash < Hash 
+class Mash < Hash
+
   def initialize(constructor = {}) 
     if constructor.is_a?(Hash) 
       super() 
@@ -10,8 +11,8 @@ class Mash < Hash
     else 
       super(constructor) 
     end 
-  end 
- 
+  end
+
   def default(key = nil) 
     if key.is_a?(Symbol) && include?(key = key.to_s) 
       self[key] 
@@ -21,60 +22,63 @@ class Mash < Hash
   end 
  
   alias_method :regular_writer, :[]= unless method_defined?(:regular_writer) 
-  alias_method :regular_update, :update unless method_defined?(:regular_update) 
- 
+  alias_method :regular_update, :update unless method_defined?(:regular_update)
+
   def []=(key, value) 
     regular_writer(convert_key(key), convert_value(value)) 
-  end 
- 
+  end
+
   def update(other_hash) 
     other_hash.each_pair { |key, value| regular_writer(convert_key(key), convert_value(value)) } 
     self 
   end 
  
-  alias_method :merge!, :update 
- 
+  alias_method :merge!, :update
+
   def key?(key) 
     super(convert_key(key)) 
   end 
  
   alias_method :include?, :key? 
   alias_method :has_key?, :key? 
-  alias_method :member?, :key? 
- 
+  alias_method :member?, :key?
+
   def fetch(key, *extras) 
     super(convert_key(key), *extras) 
-  end 
- 
+  end
+
   def values_at(*indices) 
     indices.collect {|key| self[convert_key(key)]} 
-  end 
- 
+  end
+
   def dup 
     Mash.new(self) 
-  end 
- 
+  end
+
   def merge(hash) 
     self.dup.update(hash) 
-  end 
- 
+  end
+
   def delete(key) 
     super(convert_key(key)) 
-  end 
- 
-  def stringify_keys!; self end 
+  end
+
+  def stringify_keys!; self end
+
   def symbolize_keys!; self end 
  
-  # Convert to a Hash with String keys. 
+  # Convert to a Hash with String keys.
+
   def to_hash 
     Hash.new(default).merge(self) 
   end 
  
-  protected 
+  protected
+
     def convert_key(key) 
       key.kind_of?(Symbol) ? key.to_s : key 
-    end 
- 
+    end
+
     def convert_value(value) 
       case value 
       when Hash 

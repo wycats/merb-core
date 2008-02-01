@@ -19,10 +19,13 @@ require 'merb-core/test/request_helper'
 #   "expected File but got Tempfile"
 
 module Merb
-  module Test
-    module RspecMatchers
-      class BeKindOf
   
+  module Test
+    
+    module RspecMatchers
+      
+      class BeKindOf
+
         def initialize(expected) # + args
           @expected = expected
         end
@@ -50,11 +53,15 @@ module Merb
         BeKindOf.new(expected)
       end
     end
-        
+
     module Helper
+      
       def running(&blk) blk; end
+      
       def executing(&blk) blk; end
+      
       def doing(&blk) blk; end
+      
       def calling(&blk) blk; end      
     end
   end

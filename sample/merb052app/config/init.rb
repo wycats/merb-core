@@ -18,7 +18,6 @@ $LOAD_PATH.unshift(Merb.root / "lib")
 ### Uncomment for Sequel ORM
 # use_orm :sequel
 
-
 ### This defines which test framework the generators will use
 ### rspec is turned on by default
 # use_test :test_unit

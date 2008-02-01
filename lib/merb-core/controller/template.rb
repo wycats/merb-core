@@ -1,3 +1,5 @@
+
+
 module Merb::Template
   
   EXTENSIONS  = {} unless defined?(EXTENSIONS)
@@ -16,6 +18,7 @@ module Merb::Template
     # We might want to replace this with something that varies the
     # character replaced based on the non-alphanumeric character
     # to avoid edge-case collisions.
+
     def template_name(path)
       path = File.expand_path(path)      
       path.gsub(/[^\.a-zA-Z0-9]/, "__").gsub(/\./, "_")
@@ -27,6 +30,7 @@ module Merb::Template
     # path<String>:: A full path to find a template method for
     #---
     # @semipublic
+
     def template_for(path)
       path = File.expand_path(path)      
       METHOD_LIST[path] ||= begin
@@ -53,6 +57,7 @@ module Merb::Template
     # that will use it.
     #---
     # @public
+
     def inline_template(path, mod = Merb::InlineTemplates)
       path = File.expand_path(path)
       METHOD_LIST[path.gsub(/\.[^\.]*$/, "")] = 
@@ -65,6 +70,7 @@ module Merb::Template
     # path<String>:: The path of the file to find an engine for
     #---
     # @semipublic
+
     def engine_for(path)
       path = File.expand_path(path)      
       EXTENSIONS[path.match(/\.([^\.]*)$/)[1]]
@@ -85,6 +91,7 @@ module Merb::Template
     # ]}}
     #---
     # @public
+
     def register_extensions(engine, extensions) 
       raise ArgumentError, "The class you are registering does not have a compile_template method" unless
         engine.respond_to?(:compile_template)
@@ -93,6 +100,7 @@ module Merb::Template
   end
   
   require 'erubis'
+
   class Erubis    
     # ==== Parameters
     # path<String>:: A full path to the template
@@ -103,10 +111,11 @@ module Merb::Template
       template.def_method(mod, name, path) 
       name     
     end
-    
+
     module Mixin
       
       # Provides direct acccess to the buffer for this view context
+
       def _buffer( the_binding )
         @_buffer = eval( "_buf", the_binding )
       end

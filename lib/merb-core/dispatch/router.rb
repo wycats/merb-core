@@ -3,6 +3,7 @@ require 'merb-core/dispatch/router/behavior'
 require 'merb-core/dispatch/router/route'
 
 module Merb
+
   class Router
     SEGMENT_REGEXP = /(:([a-z_][a-z0-9_]*|:))/
     SEGMENT_REGEXP_WITH_BRACKETS = /(:[a-z_]+)(\[(\d+)\])?/
@@ -14,21 +15,22 @@ module Merb
     cattr_accessor :routes, :named_routes
     
     class << self
+
       def append(&block)
         prepare(@@routes, [], &block)
       end
-      
+
       def prepend(&block)
         prepare([], @@routes, &block)
       end
-      
+
       def prepare(first = [], last = [], &block)
         @@routes = []
         yield Behavior.new({}, { :action => 'index' }) # defaults
         @@routes = first + @@routes + last
         compile
       end
-      
+
       def compiled_statement
         @@compiled_statement = "lambda { |request|\n"
         @@compiled_statement << "  params = request.params\n"
@@ -38,12 +40,12 @@ module Merb
         @@compiled_statement << "  end\n"
         @@compiled_statement << "}"
       end
-      
+
       def compile
         puts "compiled route: #{compiled_statement}" if $DEBUG
         meta_def(:match, &eval(compiled_statement))
       end
-      
+
       def generate(name, params = {}, fallback = {})
         name = name.to_sym
         unless @@named_routes.key? name

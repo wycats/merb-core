@@ -1,13 +1,17 @@
+
+
 module Merb
+  
   module Rack
+    
     class Adapter
 
       class << self
-        
+
         def get(id)
           Object.full_const_get(@adapters[id])
         end
-        
+
         def register(ids, adapter_class)
           @adapters ||= Hash.new
           ids.each { |id| @adapters[id] = "Merb::Rack::#{adapter_class}" }

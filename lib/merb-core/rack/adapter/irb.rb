@@ -1,7 +1,13 @@
+
+
 module Merb
+  
   module Rack
+    
     class Console
+
       def params() {} end
+
       def show_routes
         seen = []
         unless Merb::Router.named_routes.empty?
@@ -18,8 +24,9 @@ module Merb
         nil
       end
     end
-    
+
     class Irb
+
       def self.start(opts={})
         m = Merb::Rack::Console.new
         Object.send(:define_method, :merb) {
@@ -37,6 +44,3 @@ module Merb
     end
   end
 end
-
-
-

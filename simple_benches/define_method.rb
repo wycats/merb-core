@@ -8,11 +8,12 @@ class Foo
   end
 
   class_eval <<-EOS
+
     def #{:bar}(x)
       x
     end
   EOS
-  
+
   def baz(x)
     x
   end

@@ -61,8 +61,10 @@ module Merb
 
     # The idea here is that instead of performing an 'if' conditional check
     # on each logging we do it once when the log object is setup
+
     def set_write_method
       @log.instance_eval do
+
         def aio?
           @aio = !Merb.environment.to_s.match(/development|test/) && 
           !RUBY_PLATFORM.match(/java|mswin/) &&
@@ -186,6 +188,7 @@ module Merb
     #  :fatal, :error, :warn, :info, :debug 
     Levels.each_pair do |name, number|
       class_eval <<-LEVELMETHODS
+
       def #{name}(message = nil, &block)
         self.<<(message, &block) if #{name}?
       end

@@ -5,7 +5,7 @@ end
 Merb.push_path(:view, File.dirname(__FILE__) / "views")
 
 class Foo < Merb::Controller
-  
+
   def _template_location(action, type = nil, controller = controller_name)
     "#{action}.#{type}"
   end
@@ -13,7 +13,7 @@ class Foo < Merb::Controller
   def index
     "Hello"
   end
-  
+
   def foo
     render
   end

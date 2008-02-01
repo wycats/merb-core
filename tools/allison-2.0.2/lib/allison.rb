@@ -1,6 +1,8 @@
 
 # RDoc workarounds
+
 class String
+  
   def if_exists (item = nil)
     unless item
       self unless self =~ /(%(\w+)%)/
@@ -9,12 +11,14 @@ class String
       "\nIF:#{item}\n#{self}\nENDIF:#{item}\n"
     end
   end
+  
   def loop(item)
     "\nSTART:#{item}\n#{self}\nEND:#{item}\n"
   end
 end
 
 module RDoc
+  
   module Page
 
     puts "Allison 2 template (c) 2007 Cloudburst, LLC"
@@ -30,6 +34,7 @@ module RDoc
       require 'base64'
 
       # Markaby page says Markaby is better in its own module
+      
       module Allison
         
         FONTS = METHOD_LIST = SRC_PAGE = FILE_PAGE = CLASS_PAGE = ""

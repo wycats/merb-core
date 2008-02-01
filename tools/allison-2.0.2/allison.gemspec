@@ -24,7 +24,6 @@ Gem::Specification.new do |s|
   s.summary = %q{A modern, pretty RDoc template.}
 end
 
-
 # # Original Rakefile source (requires the Echoe gem):
 # 
 # 

@@ -1,9 +1,11 @@
 require 'optparse'
 require 'yaml'
+
 module Merb
+  
   class Config
     class << self
-      
+
       def defaults
         @defaults ||= {
           :host                   => "0.0.0.0",
@@ -17,34 +19,35 @@ module Merb
           :query_string_whitelist => [],
         }
       end
-      
+
       def use
         yield @configuration
       end
-        
+
       def [](key)
         (@configuration||={})[key]
       end
-      
+
       def []=(key,val)
         @configuration[key] = val
       end
+
       def delete(key)
         @configuration.delete key
       end
-      
+
       def fetch(key, default)
         @configuration.fetch key, default
       end
-      
+
       def to_hash
         @configuration
       end
-      
+
       def to_yaml
         @configuration.to_yaml  
       end
-      
+
       def setup(settings = {})
         @configuration = defaults.merge(settings)
       end

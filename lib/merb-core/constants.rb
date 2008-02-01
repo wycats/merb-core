@@ -1,5 +1,7 @@
 # Most of this list is simply constants frozen for efficiency
+
 module Merb
+  
   module Const
     
     ESCAPE_TABLE = {

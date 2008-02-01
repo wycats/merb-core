@@ -1,6 +1,9 @@
+
+
 module Merb
+  
   module SessionMixin
-    
+
     def rand_uuid
       values = [
         rand(0x0010000),
@@ -13,7 +16,7 @@ module Merb
       ]
       "%04x%04x%04x%04x%04x%06x%06x" % values
     end
-    
+
     def needs_new_cookie!
       @_new_cookie = true
     end

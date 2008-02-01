@@ -1,6 +1,11 @@
+
+
 module Merb
+  
   module Rack
+    
     class Runner
+
       def self.start(opts={})
         if opts[:runner_code]
           if File.exists?(opts[:runner_code])
@@ -14,5 +19,3 @@ module Merb
     end
   end
 end
-
-

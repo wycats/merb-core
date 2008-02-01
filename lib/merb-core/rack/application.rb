@@ -1,12 +1,15 @@
+
+
 module Merb
+  
   module Rack
 
     class Application
+
       def initialize(options={})
         @static_server = ::Rack::File.new(::File.join(Merb.root, "public"))
       end
-      
-      
+
       def call(env)
         path        = env['PATH_INFO'].chomp('/')
         cached_path = (path.empty? ? 'index' : path) + '.html'
@@ -28,11 +31,12 @@ module Merb
       end
       
       # TODO refactor this in File#can_serve?(path) ??
+
       def file_exist?(path)
         full_path = ::File.join(@static_server.root, ::Rack::Utils.unescape(path))
         ::File.file?(full_path) && ::File.readable?(full_path)
       end
-      
+
       def serve_static(env)
         @static_server.call(env)
       end

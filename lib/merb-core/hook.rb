@@ -1,4 +1,7 @@
+
+
 module Merb::Hook
+  
   module ClassMethods
     
     # ==== Parameters
@@ -6,6 +9,7 @@ module Merb::Hook
     #
     # ==== Returns
     # An empty _hooks hash
+
     def self.extended(mod)
       mod.cattr_accessor :_hooks
       mod._hooks = Hash.new {|h,k| h[k] = Dictionary.new {|h,k| h[k] = []}}      
@@ -50,6 +54,7 @@ class Class
   #
   # ==== Returns
   # nil
+
   def is_hookable
     self.send(:extend, Merb::Hook::ClassMethods)
     self.send(:include, Merb::Hook::InstanceMethods)

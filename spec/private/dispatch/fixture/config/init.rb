@@ -5,12 +5,10 @@ Gem.path.unshift(Merb.root / "gems")
 # Make the app's "lib" directory a place where ruby files get "require"d from
 $LOAD_PATH.unshift(Merb.root / "lib")
 
-
 Merb::Config.use { |c|
   c[:session_store]      = 'cookie'
   c[:session_secret_key] = "2c24532b38b8c46d8acf1b5ed71bdd5426dadd9b"
 }
-
 
 ### Merb doesn't come with database support by default.  You need
 ### an ORM plugin.  Install one, and uncomment one of the following lines,
@@ -24,7 +22,6 @@ Merb::Config.use { |c|
 
 ### Uncomment for Sequel ORM
 # use_orm :sequel
-
 
 ### This defines which test framework the generators will use
 ### rspec is turned on by default

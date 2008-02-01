@@ -1,5 +1,7 @@
 require 'rack'
+
 module Merb
+  
   module Rack
     autoload :Application,    "merb-core/rack/application"
     autoload :Adapter,        "merb-core/rack/adapter"

@@ -1,3 +1,4 @@
+
 module Merb
   autoload :AbstractController,   "merb-core/controller/abstract_controller"
   autoload :BootLoader,           "merb-core/bootloader"
@@ -19,12 +20,12 @@ module Merb
   autoload :SessionMixin,         "merb-core/dispatch/session"
 end
 
-
 # Require this rather than autoloading it so we can be sure the default template
 # gets registered
 require "merb-core/controller/template"
 require "merb-core/hook"
 
 module Merb
+  
   module InlineTemplates; end
 end

@@ -95,14 +95,16 @@ module Merb
   #
   # Once +content_type+ has been called, the output format is frozen,
   # and none of the provides methods can be used.
+
   module ResponderMixin
     
     TYPES = {}
-    
+
     class ContentTypeAlreadySet < StandardError; end
     
     # ==== Parameters
     # base<Module>:: The module that ResponderMixin was mixed into
+
     def self.included(base) # :nodoc:
       base.extend(ClassMethods)
       base.class_eval do
@@ -111,7 +113,7 @@ module Merb
       end
       base.reset_provides
     end
-    
+
     module ClassMethods
       
       # Adds symbols representing formats to the controller's
@@ -129,6 +131,7 @@ module Merb
       #
       #---
       # @public
+
       def provides(*formats)
         formats.each do |fmt|
           self.class_provided_formats << fmt unless class_provided_formats.include?(fmt)
@@ -146,6 +149,7 @@ module Merb
       #
       #---
       # @public
+
       def only_provides(*formats)
         clear_provides
         provides(*formats)
@@ -162,6 +166,7 @@ module Merb
       #
       #---
       # @public
+
       def does_not_provide(*formats)
         self.class_provided_formats -= formats
       end
@@ -170,6 +175,7 @@ module Merb
       #
       # ==== Returns
       # Array:: An empty Array
+
       def clear_provides
         self.class_provided_formats.clear
       end
@@ -178,6 +184,7 @@ module Merb
       #
       # ==== Returns
       # Array:: [:html]
+
       def reset_provides
         only_provides(:html)
       end
@@ -204,6 +211,7 @@ module Merb
     #
     # ==== Returns
     # Array:: List of formats passed in
+
     def _set_provided_formats(*formats)
       if @_content_type
         raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
@@ -230,6 +238,7 @@ module Merb
     #
     #---
     # @public
+
     def provides(*formats)
       if @_content_type
         raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
@@ -253,6 +262,7 @@ module Merb
     #
     #---
     # @public
+
     def only_provides(*formats)
       self._provided_formats = *formats
     end
@@ -269,7 +279,8 @@ module Merb
     # Array:: List of formats that remain after removing the ones not to provide
     #
     #---
-    # @public      
+    # @public
+
     def does_not_provide(*formats)
       formats.flatten!
       self._provided_formats -= formats
@@ -315,6 +326,7 @@ module Merb
     #
     #---
     # @public
+
     def content_type(fmt = nil)
       @_content_type = (fmt || _perform_content_negotiation) unless @_content_type
       @_content_type
@@ -335,6 +347,7 @@ module Merb
     #
     #---
     # @semipublic
+
     def content_type=(type)
       unless Merb.available_mime_types.has_key?(type)
         raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
@@ -348,6 +361,7 @@ module Merb
   class Responder
   
     protected
+
     def self.parse(accept_header)
       # parse the raw accept header into a unique, sorted array of AcceptType objects
       list = accept_header.to_s.split(/,/).enum_for(:each_with_index).map do |entry,index|
@@ -365,6 +379,7 @@ module Merb
     end
     
     public
+
     def self.params_to_query_string(value, prefix = nil)
       case value
       when Array
@@ -385,7 +400,7 @@ module Merb
   class AcceptType
 
     attr_reader :media_range, :quality, :index, :type, :sub_type
-    
+
     def initialize(entry,index)
       @index = index
       @media_range, quality = entry.split(/;\s*q=/).map{|a| a.strip }
@@ -393,41 +408,40 @@ module Merb
       quality ||= 0.0 if @media_range == '*/*'
       @quality = ((quality || 1.0).to_f * 100).to_i
     end
-  
+
     def <=>(entry)
       c = entry.quality <=> quality
       c = index <=> entry.index if c == 0
       c
     end
-  
+
     def eql?(entry)
       synonyms.include?(entry.media_range)
     end
-  
+
     def ==(entry); eql?(entry); end
-  
+
     def hash; super_range.hash; end
-  
+
     def synonyms
       @syns ||= Merb.available_mime_types.values.map do |e| 
         e[:request_headers] if e[:request_headers].include?(@media_range)
       end.compact.flatten
     end
-  
+
     def super_range
       synonyms.first || @media_range
     end
-  
+
     def to_sym
       Merb.available_mime_types.select{|k,v| 
         v[:request_headers] == synonyms || v[:request_headers][0] == synonyms[0]}.flatten.first
     end
-  
+
     def to_s
       @media_range
     end
   
   end
 
-    
 end
