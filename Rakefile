@@ -146,7 +146,7 @@ task :specs do
           examples += e.to_i; failures += f.to_i; pending += p.to_i          
         end
       end
-      e += 1 if e.is_a?(IO)
+      errors += 1 if e.is_a?(IO)
       STDOUT.puts e.read if e.is_a?(IO)
     end
   end

@@ -45,27 +45,10 @@ module Merb
         @configuration.to_yaml  
       end
       
-      def setup(settings = nil)
-        return @configuration = 
-        if settings
-          defaults.merge(settings)
-        elsif File.exists?("#{defaults[:merb_root]}/config/merb.yml")
-          defaults.merge(YAML.load_file("#{defaults[:merb_root]}/config/merb.yml"))
-        elsif File.exists?("#{defaults[:merb_root]}/merb.yml")
-          defaults.merge(YAML.load_file("#{defaults[:merb_root]}/merb.yml"))          
-        else
-          defaults.dup
-        end
+      def setup(settings = {})
+        @configuration = defaults.merge(settings)
       end
 
-      def apply_configuration_from_file(configuration, file)
-        if file && File.exists?(file)
-          configuration.merge(Erubis.load_yaml_file(file))
-        else
-          configuration
-        end
-      end
-      
       def parse_args(argv = ARGV)
          @configuration ||= {}
          # Our primary configuration hash for the length of this method
@@ -91,10 +74,6 @@ module Merb
 
            opts.on("-G", "--group GROUP", "This flag is for having merb run as a group other than the one currently logged in. Note: if you set this you must also provide a --user option for it to take effect.") do |group|
              options[:group] = group
-           end
-
-           opts.on("-f", "--config-file FILENAME", "This flag is for adding extra config files for things like the upload progress module.") do |file|
-             options[:config] = file
            end
 
            opts.on("-d", "--daemonize", "This will run a single merb in the background.") do |daemon|
@@ -191,17 +170,9 @@ module Merb
            end
          end
 
-         
          # Parse what we have on the command line
          opts.parse!(argv)
-
-         # Load up the configuration from file, but keep the command line
-         # options that may have been chosen. Also, pass-through if we have
-         # a new merb_config path.
-         @configuration = Merb::Config.setup(options[:merb_config]).merge(options)
-         # Finally, if all else fails... set the environment to 'development'
-         options[:environment] ||= "development"
-
+         @configuration = Merb::Config.setup(options)
          Merb.environment = Merb::Config[:environment]
          Merb.root = Merb::Config[:merb_root]
        end

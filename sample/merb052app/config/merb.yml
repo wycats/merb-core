@@ -8,10 +8,6 @@
 # Set if your app will be hosted in some dir other than the root
 #:path_prefix: "/my_app"
 
-# In development mode your app's files are reloaded whenever Merb detects a
-# change. Templates are parsed each time and not cached.  In production mode
-# templates are cached, as well as all your classes
-:environment: development
 
 # Uncomment if you have more than one ORM or if you need to be specific about
 # which memory store to use. Built-in options are: memory, cookie, or mem_cache
