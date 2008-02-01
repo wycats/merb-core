@@ -10,6 +10,7 @@ module Merb
           :port                   => "4000",
           :adapter                => "mongrel",
           :reload_classes         => true,
+          :environment            => 'development',
           :merb_root              => Dir.pwd,
           :use_mutex              => true,
           :session_id_cookie_only => true,
