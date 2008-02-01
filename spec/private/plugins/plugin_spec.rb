@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), "..", "..", "..", "lib", "merb-core")
+require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 
 describe "Plugins", "default GENERATOR_SCOPE" do
   it "should have :merb_default first" do
