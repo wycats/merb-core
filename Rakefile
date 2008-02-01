@@ -133,7 +133,9 @@ require 'open3'
 
 desc "Run all specs"
 task :specs do
-  examples, failures, pending = 0, 0, 0
+  require "optparse"
+  require "spec"
+  examples, failures, errors, pending = 0, 0, 0, 0
   Dir["spec/**/*_spec.rb"].each do |spec|
     response = Open3.popen3("spec #{File.expand_path(spec)} -f s -c") do |i,o,e|
       while out = o.gets
@@ -144,6 +146,7 @@ task :specs do
           examples += e.to_i; failures += f.to_i; pending += p.to_i          
         end
       end
+      errors += 1 if e.is_a?(IO)
       STDOUT.puts e.read if e.is_a?(IO)
     end
   end
@@ -154,9 +157,25 @@ task :specs do
   else
     print "\e[31m"
   end
-  puts "#{examples} examples, #{failures} failures#{ ", #{pending} pending" if pending}"
+  puts "#{examples} examples, #{failures} failures, #{errors} errors, #{pending} pending"
   print "\e[0m"
 end
+
+desc "Run coverage suite"
+task :rcov do
+  require 'fileutils'
+  FileUtils.rm_rf("coverage") if File.directory?("coverage")
+  FileUtils.mkdir("coverage")
+  path = File.expand_path(Dir.pwd)
+  files = Dir["spec/**/*_spec.rb"]
+  files.each do |spec|
+    puts "Getting coverage for #{File.expand_path(spec)}"
+    command = %{rcov #{File.expand_path(spec)} --aggregate #{path}/coverage/data.data --exclude ".*" --include-file "lib/merb-core(?!\/vendor)"}
+    command += " --no-html" unless spec == files.last
+    `#{command} 2>&1`
+  end
+end
+
 
 desc "Run a specific spec with TASK=xxxx"
 Spec::Rake::SpecTask.new("spec") do |t|
@@ -174,15 +193,14 @@ Spec::Rake::SpecTask.new("specs_html") do |t|
   t.spec_files = Dir["spec/**/*_spec.rb"].sort
 end
 
-desc "RCov"
-Spec::Rake::SpecTask.new("rcov") do |t|
-  t.rcov_opts = ["--exclude", "gems", "--exclude", "spec"]
-  t.spec_opts = ["--format", "specdoc", "--colour"]
-  t.rcov_opts = ["--exclude","gems"]
-  t.spec_files = Dir["spec/**/*_spec.rb"].sort
-  t.libs = ["lib", "server/lib" ]
-  t.rcov = true
-end
+# desc "RCov"
+# Spec::Rake::SpecTask.new("rcov") do |t|
+#   t.rcov_opts = ["--exclude", "gems", "--exclude", "spec"]
+#   t.spec_opts = ["--format", "specdoc", "--colour"]
+#   t.spec_files = Dir["spec/**/*_spec.rb"].sort
+#   t.libs = ["lib", "server/lib"]
+#   t.rcov = true
+# end
 
 STATS_DIRECTORIES = [
   ['Code', 'lib/'],

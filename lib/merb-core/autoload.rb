@@ -1,6 +1,6 @@
 module Merb
   autoload :AbstractController,   "merb-core/controller/abstract_controller"
-  autoload :BootLoader,           "merb-core/boot/bootloader"
+  autoload :BootLoader,           "merb-core/bootloader"
   autoload :Config,               "merb-core/config"
   autoload :Const,                "merb-core/constants"
   autoload :Controller,           "merb-core/controller/merb_controller"
@@ -20,7 +20,7 @@ module Merb
 end
 
 
-# Require this rather than autoloading it so we can be sure the default templater
+# Require this rather than autoloading it so we can be sure the default template
 # gets registered
 require "merb-core/controller/template"
 require "merb-core/hook"

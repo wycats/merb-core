@@ -239,7 +239,7 @@ module Merb
     # Returns the uri without the query string. Strips trailing '/' and reduces
     # duplicate '/' to a single '/'
     def path
-      path = (uri ? uri.split('?').first : '').sub(/\/+/, '/')
+      path = (uri ? uri.split('?').first : '').squeeze("/")
       path = path[0..-2] if (path[-1] == ?/) && path.size > 1
       path
     end

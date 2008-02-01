@@ -10,10 +10,11 @@ module Merb
           :port                   => "4000",
           :adapter                => "mongrel",
           :reload_classes         => true,
+          :environment            => 'development',
           :merb_root              => Dir.pwd,
           :use_mutex              => true,
           :session_id_cookie_only => true,
-          :query_string_whitelist => []
+          :query_string_whitelist => [],
         }
       end
       
@@ -44,27 +45,10 @@ module Merb
         @configuration.to_yaml  
       end
       
-      def setup(settings = nil)
-        return @configuration = 
-        if settings
-          defaults.merge(settings)
-        elsif File.exists?("#{defaults[:merb_root]}/config/merb.yml")
-          defaults.merge(YAML.load_file("#{defaults[:merb_root]}/config/merb.yml"))
-        elsif File.exists?("#{defaults[:merb_root]}/merb.yml")
-          defaults.merge(YAML.load_file("#{defaults[:merb_root]}/merb.yml"))          
-        else
-          defaults.dup
-        end
+      def setup(settings = {})
+        @configuration = defaults.merge(settings)
       end
 
-      def apply_configuration_from_file(configuration, file)
-        if file && File.exists?(file)
-          configuration.merge(Erubis.load_yaml_file(file))
-        else
-          configuration
-        end
-      end
-      
       def parse_args(argv = ARGV)
          @configuration ||= {}
          # Our primary configuration hash for the length of this method
@@ -78,7 +62,7 @@ module Merb
            opts.version = Merb::VERSION
            opts.release = Merb::RELEASE
 
-           opts.banner = "Usage: merb [fdcepghmisluMG] [argument]"
+           opts.banner = "Usage: merb [uGdcIpPhmailLerkKX] [argument]"
            opts.define_head "Merb Mongrel+ Erb. Lightweight replacement for ActionPack."
            opts.separator '*'*80
            opts.separator 'If no flags are given, Merb starts in the foreground on port 4000.'
@@ -90,10 +74,6 @@ module Merb
 
            opts.on("-G", "--group GROUP", "This flag is for having merb run as a group other than the one currently logged in. Note: if you set this you must also provide a --user option for it to take effect.") do |group|
              options[:group] = group
-           end
-
-           opts.on("-f", "--config-file FILENAME", "This flag is for adding extra config files for things like the upload progress module.") do |file|
-             options[:config] = file
            end
 
            opts.on("-d", "--daemonize", "This will run a single merb in the background.") do |daemon|
@@ -160,10 +140,6 @@ module Merb
              Merb::Server.kill(port, 9)
            end
 
-           opts.on("-M", "--merb-config FILENAME", "This flag is for explicitly declaring the merb app's config file.") do |config|
-             options[:merb_config] = config
-           end
-
            opts.on("-X", "--mutex on/off", "This flag is for turning the mutex lock on and off.") do |mutex|
              if mutex == 'off'
                options[:use_mutex] = false
@@ -190,17 +166,9 @@ module Merb
            end
          end
 
-         
          # Parse what we have on the command line
          opts.parse!(argv)
-
-         # Load up the configuration from file, but keep the command line
-         # options that may have been chosen. Also, pass-through if we have
-         # a new merb_config path.
-         @configuration = Merb::Config.setup(options[:merb_config]).merge(options)
-         # Finally, if all else fails... set the environment to 'development'
-         options[:environment] ||= "development"
-
+         @configuration = Merb::Config.setup(options)
          Merb.environment = Merb::Config[:environment]
          Merb.root = Merb::Config[:merb_root]
        end

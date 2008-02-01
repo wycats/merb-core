@@ -21,9 +21,9 @@ module Merb::Test::RequestHelper
       req = opt[:post_body]
       env.merge!(:content_type => "application/x-www-form-urlencoded")
     else
-      req = opt[:req] || ""
+      req = opt[:req]
     end
-    Merb::Test::FakeRequest.new(env, StringIO.new(req))
+    Merb::Test::FakeRequest.new(env, req ? StringIO.new(req) : nil)
   end
   
   def dispatch_to(controller_klass, action, params = {}, env = {}, &blk)

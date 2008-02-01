@@ -134,7 +134,7 @@ class Hash
   # 
   def to_xml_attributes
     map do |k,v|
-      %{#{k.to_s.camelize.sub(/^(.{1,1})/) { |m| m.downcase }}="#{v}"} 
+      %{#{k.to_s.camel_case.sub(/^(.{1,1})/) { |m| m.downcase }}="#{v}"} 
     end.join(' ')
   end
   
@@ -229,7 +229,7 @@ class REXMLUtilityNode # :nodoc:
     else
       #change repeating groups into an array
       # group by the first key of each element of the array to find repeating groups
-      groups = @children.group_by{ |c| c.name }
+      groups = @children.inject({}) { |s,e| (s[e.name] ||= []) << e; s }
       
       hash = {}
       groups.each do |key, values|

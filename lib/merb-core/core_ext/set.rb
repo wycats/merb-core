@@ -1,6 +1,6 @@
 class Merb::SimpleSet < Hash
 
-  def initialize(arr)
+  def initialize(arr = [])
     arr.each {|x| self[x] = true}
   end
   
