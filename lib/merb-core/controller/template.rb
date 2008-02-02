@@ -5,6 +5,7 @@ module Merb::Template
   
   EXTENSIONS  = {} unless defined?(EXTENSIONS)
   METHOD_LIST = {} unless defined?(METHOD_LIST)
+  MTIMES      = {} unless defined?(MTIMES)
   
   class << self
     # Get the template's method name from a full path. This replaces
@@ -33,12 +34,11 @@ module Merb::Template
     # @semipublic
 
     def template_for(path)
-      path = File.expand_path(path)      
-      METHOD_LIST[path] ||= begin
-        unless File.exists?(path)        
-          return nil
-        end
-        inline_template(path)
+      path = File.expand_path(path)
+      if Merb::Config[:reload_templates]
+        METHOD_LIST[path] = File.exists?(path) ? inline_template(path) : nil
+      else
+        METHOD_LIST[path] ||= File.exists?(path) ? inline_template(path) : nil        
       end
     end
     

@@ -347,7 +347,7 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
   def self.check_for_secret_key
     unless Merb::Config[:session_secret_key] && (Merb::Config[:session_secret_key].length >= 16)
       Merb.logger.info("You must specify a session_secret_key in your merb.yml, and it must be at least 16 characters\nbailing out...")
-      exit! 
+      exit!
     end            
     Merb::Controller._session_secret_key = Merb::Config[:session_secret_key]
   end
@@ -409,5 +409,13 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
       next if Merb::BootLoader::LoadClasses::MTIMES[file] && Merb::BootLoader::LoadClasses::MTIMES[file] == File.mtime(file)      
       Merb::BootLoader::LoadClasses.reload(file)
     end    
+  end
+end
+
+class Merb::BootLoader::ReloadTemplates < Merb::BootLoader
+  def self.run
+    unless Merb::Config.key?(:reload_templates)
+      Merb::Config[:reload_templates] = (Merb.environment == "development")
+    end
   end
 end

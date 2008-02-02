@@ -28,6 +28,10 @@ module Merb
         yield @configuration
       end
 
+      def key?(key)
+        @configuration.key?(key)
+      end
+
       # DOC
       def [](key)
         (@configuration||={})[key]
