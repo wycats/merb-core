@@ -31,7 +31,7 @@ module Merb::Template
       path = File.expand_path(path)      
       METHOD_LIST[path] ||= begin
         unless File.exists?(path)        
-          raise ArgumentError, "Could not find a template at #{path}.*"
+          return nil
         end
         inline_template(path)
       end

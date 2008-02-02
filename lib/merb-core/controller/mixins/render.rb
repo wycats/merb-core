@@ -82,7 +82,7 @@ module Merb::RenderMixin
     _handle_options!(opts)
     
     # If we find a layout, use it. Otherwise, just render the content thrown for layout.
-    layout = _get_layout(opts[:layout])
+    layout = opts[:layout] != false && _get_layout(opts[:layout])
     layout ? send(layout) : catch_content(:for_layout)
   end
   
@@ -259,8 +259,8 @@ module Merb::RenderMixin
     
     # If a layout was not provided, try the default locations
     else
-      Merb::Template.template_for(_template_root / _template_location(controller_name, content_type, "layout")) rescue
-        Merb::Template.template_for(_template_root / _template_location("application", content_type, "layout")) rescue nil
+      Merb::Template.template_for(_template_root / _template_location(controller_name, content_type, "layout")) ||
+      Merb::Template.template_for(_template_root / _template_location("application", content_type, "layout")) || nil
     end    
   end
   
