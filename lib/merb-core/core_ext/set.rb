@@ -1,5 +1,3 @@
-
-
 # DOC: Yehuda Katz FAILED
 class Merb::SimpleSet < Hash
 

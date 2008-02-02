@@ -1,6 +1,3 @@
-
-
-# DOC: Yehuda Katz FAILED
 class Object
 
   # Extracts the singleton class, so that metaprogramming can be done on it.
@@ -49,7 +46,6 @@ class Object
   #
   # For more information, you can check out _why's excellent article at:
   # http://whytheluckystiff.net/articles/seeingMetaclassesClearly.html
-
   def meta_class() class << self; self end end
   
   # Runs instance_eval on the metaclass (see Object#meta_class).
@@ -61,7 +57,6 @@ class Object
   #   end
   #
   #   String.zoo # => "zoo"
-
   def meta_eval(&blk) meta_class.instance_eval( &blk ) end
   
   # Defines a method on the metaclass (see Object#meta_class).
@@ -89,7 +84,6 @@ class Object
   #
 
   # See Object#class_def for a comprehensive example containing meta_def
-
   def meta_def(name, &blk) meta_eval { define_method name, &blk } end
   
   # Defines a method on new instances of the class.

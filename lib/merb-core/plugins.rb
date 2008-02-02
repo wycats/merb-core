@@ -1,5 +1,3 @@
-
-
 # DOC: Ezra Zygmuntowicz FAILED
 module Merb
   

@@ -1,5 +1,3 @@
-
-
 # DOC: Yehuda Katz FAILED
 module ObjectSpace
   
