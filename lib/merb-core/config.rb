@@ -1,9 +1,14 @@
 require 'optparse'
 require 'yaml'
+
+# DOC
 module Merb
+  
+  # DOC
   class Config
     class << self
-      
+
+      # DOC
       def defaults
         @defaults ||= {
           :host                   => "0.0.0.0",
@@ -17,38 +22,48 @@ module Merb
           :query_string_whitelist => [],
         }
       end
-      
+
+      # DOC
       def use
         yield @configuration
       end
-        
+
+      # DOC
       def [](key)
         (@configuration||={})[key]
       end
-      
+
+      # DOC
       def []=(key,val)
         @configuration[key] = val
       end
+
+      # DOC
       def delete(key)
         @configuration.delete key
       end
-      
+
+      # DOC
       def fetch(key, default)
         @configuration.fetch key, default
       end
-      
+
+      # DOC
       def to_hash
         @configuration
       end
-      
+
+      # DOC
       def to_yaml
         @configuration.to_yaml  
       end
-      
+
+      # DOC
       def setup(settings = {})
         @configuration = defaults.merge(settings)
       end
 
+      # DOC
       def parse_args(argv = ARGV)
          @configuration ||= {}
          # Our primary configuration hash for the length of this method
@@ -62,7 +77,7 @@ module Merb
            opts.version = Merb::VERSION
            opts.release = Merb::RELEASE
 
-           opts.banner = "Usage: merb [fdcepghmisluMG] [argument]"
+           opts.banner = "Usage: merb [uGdcIpPhmailLerkKX] [argument]"
            opts.define_head "Merb Mongrel+ Erb. Lightweight replacement for ActionPack."
            opts.separator '*'*80
            opts.separator 'If no flags are given, Merb starts in the foreground on port 4000.'
@@ -138,10 +153,6 @@ module Merb
            opts.on("-k", "--kill PORT or all", "Kill one merb proceses by port number.  Use merb -k all to kill all merbs.") do |port|
              @configuration = defaults.merge(options)
              Merb::Server.kill(port, 9)
-           end
-
-           opts.on("-M", "--merb-config FILENAME", "This flag is for explicitly declaring the merb app's config file.") do |config|
-             options[:merb_config] = config
            end
 
            opts.on("-X", "--mutex on/off", "This flag is for turning the mutex lock on and off.") do |mutex|

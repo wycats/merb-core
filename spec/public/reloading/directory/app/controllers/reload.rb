@@ -1,5 +1,6 @@
-        class Reloader < Application
-        end
         
-        class Hello < Application
-        end
+class Reloader < Application
+end
+
+class Hello < Application
+end

@@ -1,9 +1,10 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
-
 class SimpleRequest < OpenStruct
+  
   def method
     @table[:method]
   end
+  
   def params
     @table
   end
@@ -18,22 +19,25 @@ def route_to(path, args = {}, protocol = "http://")
 end
 
 module Merb
+  
   module Test
+    
     module RspecMatchers
 
       class HaveRoute
+        
         def self.build(expected)
           this = new
           this.instance_variable_set("@expected", expected)
           this
         end
-    
+
         def matches?(target)
           @target = target
           @errors = []
           @expected.all? { |param, value| @target[param] == value }
         end
-    
+
         def failure_message
           @target.each do |param, value|
             @errors << "Expected :#{param} to be #{@expected[param].inspect}, but was #{value.inspect}" unless
@@ -42,14 +46,14 @@ module Merb
           @errors << "Got #{@target.inspect}"
           @errors.join("\n")
         end
-    
+
         def negative_failure_message
           "Expected #{@expected.inspect} not to be #{@target.inspect}, but it was."
         end
-    
+
         def description() "have_route #{@target.inspect}" end
       end
-  
+
       def have_route(expected)
         HaveRoute.build(expected)
       end  

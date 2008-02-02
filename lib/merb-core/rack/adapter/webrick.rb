@@ -1,10 +1,17 @@
 require 'webrick'
 require 'rack/handler/webrick'
 
+# DOC: Ezra Zygmuntowicz FAILED
 module Merb
+
+  # DOC: Ezra Zygmuntowicz FAILED
   module Rack
+
+    # DOC: Ezra Zygmuntowicz FAILED
     class WEBrick
       # start WEBrick server on given host and port.
+
+      # DOC: Ezra Zygmuntowicz FAILED
       def self.start(opts={})
         options = {
           :Port        => opts[:port],

@@ -163,7 +163,6 @@ describe Merb::Request, " misc" do
     request.domain(2).should == "foo.co.uk"
   end
 
-  
   it "should get the host (with X_FORWARDED_HOST)" do
     request = fake_request({:http_x_forwarded_host => "www.example.com"})
     request.host.should == "www.example.com"

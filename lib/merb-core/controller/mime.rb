@@ -1,7 +1,12 @@
+
+
+# DOC: Yehuda Katz FAILED
 module Merb
   class << self
 
     # An alias for ResponderMixin::TYPES
+
+    # DOC: Yehuda Katz FAILED
     def available_mime_types
       ResponderMixin::TYPES
     end
@@ -19,6 +24,7 @@ module Merb
     # type and calls render.
     # 
     # By default this does: def render_all, def render_yaml, def render_text,
+
     # def render_html, def render_xml, def render_js, and def render_yaml
     #
     # ==== Parameters
@@ -38,6 +44,8 @@ module Merb
          :response_headers  => new_response_headers })
 
       Merb::RenderMixin.class_eval <<-EOS
+
+        # DOC: Yehuda Katz FAILED
         def render_#{key}(thing = nil, opts = {})
           content_type = :#{key}
           render thing, opts
@@ -49,6 +57,7 @@ module Merb
     #
     # ==== Parameters
     # key<Symbol>:: The key that represents the mime-type to remove
+
     def remove_mime_type(key)
       # :all is the key for */*; it can't be removed
       return false if key == :all
@@ -59,6 +68,7 @@ module Merb
     #
     # ==== Parameters
     # key<Symbol>:: The key that represents the mime-type
+
     def mime_transform_method(key)
       raise ArgumentError, ":#{key} is not a valid MIME-type" unless ResponderMixin::TYPES.has?(key)
       ResponderMixin::TYPES[key][:transform_method]
@@ -68,6 +78,7 @@ module Merb
     #
     # ==== Parameters
     # header<String>:: The name of the header you want to find the mime-type for
+
     def mime_by_request_header(header)
       available_mime_types.find {|key,info| info[request_headers].include?(header)}.first
     end

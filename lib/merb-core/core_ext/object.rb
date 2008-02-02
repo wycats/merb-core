@@ -1,3 +1,6 @@
+
+
+# DOC: Yehuda Katz FAILED
 class Object
 
   # Extracts the singleton class, so that metaprogramming can be done on it.
@@ -46,6 +49,7 @@ class Object
   #
   # For more information, you can check out _why's excellent article at:
   # http://whytheluckystiff.net/articles/seeingMetaclassesClearly.html
+
   def meta_class() class << self; self end end
   
   # Runs instance_eval on the metaclass (see Object#meta_class).
@@ -57,10 +61,12 @@ class Object
   #   end
   #
   #   String.zoo # => "zoo"
+
   def meta_eval(&blk) meta_class.instance_eval( &blk ) end
   
   # Defines a method on the metaclass (see Object#meta_class).
   #
+
   #   String.meta_def :zoo do
   #     puts "zoo"
   #   end
@@ -68,22 +74,27 @@ class Object
   #   String.zoo #=> "zoo"
   #
   # If the class inherits from another class, it will only be defined
+
   # on the direct class meta_def is called on.
   #
   #   class Foo; end
   #   class Bar < Foo; end
   #   class Baz < Foo; end
   #
+
   #   Bar.meta_def :q do; "Q"; end
   #   Foo.q #=> undefined method `r' for Foo:Class
   #   Bar.q #=> "Q"
   #   Baz.q #=> undefined method `r' for Baz:Class
   #
+
   # See Object#class_def for a comprehensive example containing meta_def
+
   def meta_def(name, &blk) meta_eval { define_method name, &blk } end
   
   # Defines a method on new instances of the class.
   #
+
   #   String.class_def :zoo do
   #     puts "zoo"
   #   end
@@ -95,14 +106,18 @@ class Object
   #
   # require 'merb_object'
   # class Foo
+
   #   def self.var
   #     @var
   #   end
+
   #   def self.make_var baz
   #     attr_accessor baz
+
   #     meta_def baz do |val|
   #       @var = val
   #     end
+
   #     class_def :initialize do
   #       instance_variable_set("@#{baz}", self.class.var)
   #     end
@@ -161,6 +176,7 @@ class Object
     end
   end
 
+  # DOC: Yehuda Katz FAILED
   def full_const_get(name)
     list = name.split("::")
     obj = Object

@@ -1,12 +1,20 @@
+
+
+# DOC: Ezra Zygmuntowicz FAILED
 module Merb
+  
+  # DOC: Ezra Zygmuntowicz FAILED
   module Rack
 
+    # DOC: Ezra Zygmuntowicz FAILED
     class Application
+
+      # DOC: Ezra Zygmuntowicz FAILED
       def initialize(options={})
         @static_server = ::Rack::File.new(::File.join(Merb.root, "public"))
       end
-      
-      
+
+      # DOC: Ezra Zygmuntowicz FAILED
       def call(env)
         path        = env['PATH_INFO'].chomp('/')
         cached_path = (path.empty? ? 'index' : path) + '.html'
@@ -28,11 +36,14 @@ module Merb
       end
       
       # TODO refactor this in File#can_serve?(path) ??
+
+      # DOC: Ezra Zygmuntowicz FAILED
       def file_exist?(path)
         full_path = ::File.join(@static_server.root, ::Rack::Utils.unescape(path))
         ::File.file?(full_path) && ::File.readable?(full_path)
       end
-      
+
+      # DOC: Ezra Zygmuntowicz FAILED
       def serve_static(env)
         @static_server.call(env)
       end

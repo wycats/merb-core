@@ -11,5 +11,4 @@ Spec::Runner.configure do |config|
     config.include(Merb::Test::RspecMatchers)
 end
 
-
 ### METHODS BELOW THIS LINE SHOULD BE EXTRACTED TO MERB ITSELF

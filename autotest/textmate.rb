@@ -1,4 +1,5 @@
 if ENV["TM_RUBY"]
+
   module Autotest::HtmlConsole
     MAX = 30
     STATUS = {}

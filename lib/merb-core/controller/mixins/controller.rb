@@ -1,5 +1,10 @@
+
+
+# DOC: Yehuda Katz FAILED
 module Merb
   # Module that is mixed in to all implemented controllers.
+  
+  # DOC: Yehuda Katz FAILED
   module ControllerMixin
     
     # Renders the block given as a parameter using chunked
@@ -7,6 +12,7 @@ module Merb
     #
     # ==== Examples
     #
+
     #   def stream
     #     prefix = '<p>'
     #     suffix = "</p>\r\n"
@@ -47,6 +53,7 @@ module Merb
     #
     # ==== Parameters
     # data<String>:: a chunk of data to return
+
     def send_chunk(data)
       response.write('%x' % data.size + "\r\n")
       response.write(data + "\r\n")
@@ -92,6 +99,7 @@ module Merb
     # url<String>:: URL to redirect to; it can be either a relative or 
     #               fully-qualified URL.
     #
+
     def redirect(url)
       Merb.logger.info("Redirecting to: #{url}")
       set_status(302)
@@ -105,6 +113,7 @@ module Merb
     # ==== Parameters
     # file<String>:: Path to file to send to the client.
     #
+
     def send_file(file, opts={})
       opts.update(Merb::Const::DEFAULT_SEND_FILE_OPTIONS.merge(opts))
       disposition = opts[:disposition].dup || 'attachment'
@@ -161,6 +170,7 @@ module Merb
     #
     # ==== Parameters
     # file<String>:: Path to file to send to the client
+
     def nginx_send_file(file)
       headers['X-Accel-Redirect'] = File.expand_path(file)
       return
@@ -191,6 +201,7 @@ module Merb
     #
     # ==== Parameters
     # name<~to_s>:: A name for the cookie to delete
+
     def delete_cookie(name)
       set_cookie(name, nil, Merb::Const::COOKIE_EXPIRED_TIME)
     end

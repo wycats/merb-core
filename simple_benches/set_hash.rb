@@ -4,7 +4,6 @@ require 'forwardable'
 
 TIMES = (ARGV[0] || 100_000).to_i
 
-
 hsh = {:x => true, :y => true}
 set = Set.new([:x, :y])
 fst = FasterSet.new([:x, :y])

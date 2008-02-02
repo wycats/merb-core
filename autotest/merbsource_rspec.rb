@@ -17,7 +17,6 @@ $VERBOSE = false
 # 5. Updating a file directly under merb-core (e.g. core_ext.rb)
 #    reruns all the specs under spec/(public|private)/core_ext
 # 6. Updating merb.rb reruns all specs
-
 class RspecCommandError < StandardError; end
 
 class Autotest::MerbsourceRspec < Autotest
@@ -46,8 +45,8 @@ class Autotest::MerbsourceRspec < Autotest
       # 6 above
       at.add_mapping(%r{^lib/merb\.rb$}) { at.files_matching %r{^spec/[^/]*_spec\.rb$} }
 
-  end  
-  
+  end
+
   def initialize(kernel = Kernel, separator = File::SEPARATOR, alt_separator = File::ALT_SEPARATOR) # :nodoc:
     super() # need parens so that Ruby doesn't pass our args
     # to the superclass version which takes none..    
@@ -57,17 +56,17 @@ class Autotest::MerbsourceRspec < Autotest
   end
   
   attr_accessor :failures
-  
+
   def tests_for_file(filename)
     super.select { |f| @files.has_key? f }
   end
   
   alias :specs_for_file :tests_for_file
-  
+
   def failed_results(results)
     results.scan(/^\d+\)\n(?:\e\[\d*m)?(?:.*?Error in )?'([^\n]*)'(?: FAILED)?(?:\e\[\d*m)?\n(.*?)\n\n/m)
   end
-  
+
   def handle_results(results)
     @failures = failed_results(results)
     @files_to_test = consolidate_failures @failures
@@ -80,7 +79,7 @@ class Autotest::MerbsourceRspec < Autotest
     end
     @tainted = true unless @files_to_test.empty?
   end
-  
+
   def consolidate_failures(failed)
     filters = Hash.new { |h,k| h[k] = [] }
     failed.each do |spec, failed_trace|
@@ -93,11 +92,11 @@ class Autotest::MerbsourceRspec < Autotest
     end
     filters
   end
-  
+
   def make_test_cmd(files_to_test)
     "#{ruby} -S #{@spec_command} #{test_cmd_options} #{files_to_test.keys.flatten.join(' ')}"
   end
-  
+
   def test_cmd_options
     '-O specs/spec.opts' if File.exist?('specs/spec.opts')
   end

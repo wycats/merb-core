@@ -4,11 +4,9 @@ def make(makedir)
   end
 end
 
-
 def extconf(dir)
   Dir.chdir(dir) do ruby "extconf.rb" end
 end
-
 
 def setup_tests
   Rake::TestTask.new do |t|
@@ -18,12 +16,10 @@ def setup_tests
   end
 end
 
-
 def setup_clean otherfiles
   files = ['build/*', '**/*.o', '**/*.so', '**/*.a', 'lib/*-*', '**/*.log'] + otherfiles
   CLEAN.include(files)
 end
-
 
 def setup_rdoc files
   Rake::RDocTask.new do |rdoc|
@@ -32,7 +28,6 @@ def setup_rdoc files
     rdoc.rdoc_files.add(files)
   end
 end
-
 
 def setup_extension(dir, extension)
   ext = "ext/#{dir}"
@@ -61,7 +56,6 @@ def setup_extension(dir, extension)
     cp ext_so, "lib"
   end
 end
-
 
 def base_gem_spec(pkg_name, pkg_version)
   rm_rf "test/coverage"

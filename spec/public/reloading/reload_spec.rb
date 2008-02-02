@@ -2,7 +2,7 @@ require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 Merb.start %W( -e test -a runner -m #{File.dirname(__FILE__) / "directory"} )
 
 describe "The reloader" do
-  
+
   def reload!
     Merb::BootLoader::ReloadClasses.reload
   end
@@ -11,9 +11,10 @@ describe "The reloader" do
     @reload_file = File.dirname(__FILE__) / "directory" / "app" / "controllers" / "reload.rb"
     File.open(@reload_file, "w") do |f|
       @text = <<-END
+        
         class Reloader < Application
         end
-        
+
         class Hello < Application
         end
       END
@@ -32,9 +33,10 @@ describe "The reloader" do
     
     File.open(@reload_file, "w") do |f|
       f.puts <<-END
+        
         class Reloader < Application
         end
-        
+
         class Reloader2
         end
       END
@@ -50,9 +52,10 @@ describe "The reloader" do
   it "should remove classes for _abstract_subclasses" do
     File.open(@reload_file, "w") do |f|
       f.puts <<-END
+        
         class Reloader < Application
         end
-        
+
         class Reloader2 < Application
         end
       END

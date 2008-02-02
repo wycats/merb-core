@@ -1,3 +1,5 @@
+
+
 class CodeStatistics #:nodoc:
 
   TEST_TYPES = %w(Units Functionals Unit\ tests Functional\ tests Integration\ tests)
@@ -22,6 +24,7 @@ class CodeStatistics #:nodoc:
   end
 
   private
+    
     def calculate_statistics
       @pairs.inject({}) { |stats, pair| stats[pair.first] = calculate_directory_statistics(pair.last); stats }
     end
@@ -42,6 +45,7 @@ class CodeStatistics #:nodoc:
         while line = f.gets
           stats["lines"]     += 1
           stats["classes"]   += 1 if line =~ /class [A-Z]/
+          
           stats["methods"]   += 1 if line =~ /def [a-z]/
           stats["codelines"] += 1 unless line =~ /^\s*$/ || line =~ /^\s*#/
         end

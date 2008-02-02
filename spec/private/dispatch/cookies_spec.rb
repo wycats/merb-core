@@ -1,6 +1,8 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
 Merb.start %w( -e test -a runner )
+
 module CookiesSpecModule
+  
   def cookie_time(time)
     time.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
   end

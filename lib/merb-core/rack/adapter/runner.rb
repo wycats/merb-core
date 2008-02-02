@@ -1,6 +1,15 @@
+
+
+# DOC: Ezra Zygmuntowicz FAILED
 module Merb
+  
+  # DOC: Ezra Zygmuntowicz FAILED
   module Rack
+    
+    # DOC: Ezra Zygmuntowicz FAILED
     class Runner
+
+      # DOC: Ezra Zygmuntowicz FAILED
       def self.start(opts={})
         if opts[:runner_code]
           if File.exists?(opts[:runner_code])
@@ -14,5 +23,3 @@ module Merb
     end
   end
 end
-
-

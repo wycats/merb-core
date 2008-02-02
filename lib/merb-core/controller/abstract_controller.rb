@@ -67,8 +67,12 @@ class Merb::AbstractController
   
   class_inheritable_accessor :_before_filters, :_after_filters, :_template_root, :_layout
 
-  # Controller name is part of the public API  
+  # Controller name is part of the public API
+
+  # DOC: Yehuda Katz FAILED
   def self.controller_name() @controller_name ||= self.name.to_const_path end
+
+  # DOC: Yehuda Katz FAILED
   def controller_name()      self.class.controller_name                   end
 
   self._before_filters, self._after_filters = [], []
@@ -79,6 +83,7 @@ class Merb::AbstractController
   #
   # ==== Examples
   # {{[
+
   #   def _template_location
   #     "#{params[:controller]}.#{prams[:action]}.#{content_type}"
   #   end
@@ -98,6 +103,7 @@ class Merb::AbstractController
   # the superclass.
   #---
   # @public
+
   def _template_location(action, type = nil, controller = controller_name)
     "#{controller}/#{action}"
   end
@@ -109,13 +115,14 @@ class Merb::AbstractController
   # uniqueness.
   self._abstract_subclasses = Set.new
   self._template_root = Merb.dir_for(:view)
-  
+
   def self.subclasses_list() _abstract_subclasses end
   
   class << self
     # ==== Parameters
     # klass<Merb::AbstractController>::
     #   The controller that is being inherited from Merb::AbstractController
+
     def inherited(klass)
       _abstract_subclasses << klass.to_s
       klass.send(:include, Object.full_const_get("#{klass}Helper")) rescue nil
@@ -142,6 +149,8 @@ class Merb::AbstractController
   
   # ==== Parameters
   # *args<Object>:: The args are ignored
+
+  # DOC: Yehuda Katz FAILED
   def initialize(*args)
     @_benchmarks = {}
     @_caught_content = {}
@@ -149,6 +158,8 @@ class Merb::AbstractController
   
   # ==== Parameters
   # action<~to_s>:: The action to dispatch to. This will be #send'ed in _call_action
+
+  # DOC: Yehuda Katz FAILED
   def _dispatch(action=:to_s)
     hook :before_dispatch
     self.action_name = action
@@ -179,6 +190,7 @@ class Merb::AbstractController
   #
   # ==== Parameters
   # action<~to_s>:: the action method to dispatch to
+
   def _call_action(action)
     send(action)
   end
@@ -221,6 +233,7 @@ class Merb::AbstractController
   # ==== Note
   # If the filter already exists, its options will be replaced
   # with opts
+
   def self.after(filter = nil, opts = {}, &block)
     add_filter(self._after_filters, filter, opts)
   end
@@ -233,7 +246,8 @@ class Merb::AbstractController
   # See class documentation under <tt>Filter Options</tt>
   #
   # ==== Note
-  # If the filter already exists, its options will be replaced with opts  
+  # If the filter already exists, its options will be replaced with opts
+
   def self.before(filter = nil, opts = {}, &block)
     add_filter(self._before_filters, filter || block, opts)
   end
@@ -242,6 +256,7 @@ class Merb::AbstractController
   #
   # ==== Parameters
   # filter<Symbol>:: A filter name to skip
+
   def self.skip_after(filter)
     skip_filter(self._after_filters, filter)
   end
@@ -249,16 +264,22 @@ class Merb::AbstractController
   # Skip a before filter that has been previously defined (perhaps in a superclass)
   #
   # ==== Parameters
-  # filter<Symbol>:: A filter name to skip  
+  # filter<Symbol>:: A filter name to skip
+
   def self.skip_before(filter)
     skip_filter(self._before_filters , filter)
   end  
   
   #---
   # Defaults that can be overridden by plugins, other mixins, or subclasses
-  
+
+  # DOC: Yehuda Katz FAILED
   def _filters_halted()   "<html><body><h1>Filter Chain Halted!</h1></body></html>"  end
-  def _setup_session()                                                               end    
+
+  # DOC
+  def _setup_session()                                                               end
+
+  # DOC: Yehuda Katz FAILED
   def _finalize_session()                                                            end
 
   # Stub so content-type support in RenderMixin doesn't throw errors
@@ -268,6 +289,7 @@ class Merb::AbstractController
   #
   # ==== Parameters
   # template<String>:: The full path to a template to add to the list of available templates
+
   def self.add_path_to_template_cache(template)
     return false if template.blank? || template.split("/").last.split(".").size != 3
     key = template.match(/(.*)\.(.*)$/)[1]
@@ -275,6 +297,8 @@ class Merb::AbstractController
   end
   
   # Resets the template_path_cache to an empty hash
+
+  # DOC: Yehuda Katz FAILED
   def self.reset_template_path_cache!
     self._template_path_cache = {}
   end  
@@ -334,12 +358,14 @@ class Merb::AbstractController
   # ==== Options
   # :only<Symbol, Array[Symbol]>:: A list of actions
   # :exclude<Symbol, Array[Symbol]>:: A list of actions
+
   def self.normalize_filters!(opts={})
     opts[:only]     = Array(opts[:only]).map {|x| x.to_s} if opts[:only]
     opts[:exclude]  = Array(opts[:exclude]).map {|x| x.to_s} if opts[:exclude]
     return opts
   end
-  
+
+  # DOC: Yehuda Katz FAILED
   def method_missing(sym, *args, &blk)
     return @_merb_partial_locals[sym] if @_merb_partial_locals && @_merb_partial_locals.key?(sym)
     super

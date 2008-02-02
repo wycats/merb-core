@@ -1,9 +1,13 @@
+
+
 module Language
+
 module English
 
   # = English Nouns Number Inflection.
   #
   # This module provides english singular <-> plural noun inflections.
+
   module Inflect
 
     @singular_of = {}
@@ -14,6 +18,7 @@ module English
 
     class << self
       # Define a general exception.
+
       def word(singular, plural=nil)
         plural = singular unless plural
         singular_word(singular, plural)
@@ -21,32 +26,38 @@ module English
       end
 
       # Define a singularization exception.
+
       def singular_word(singular, plural)
         @singular_of[plural] = singular
       end
 
       # Define a pluralization exception.
+
       def plural_word(singular, plural)
         @plural_of[singular] = plural
       end
 
       # Define a general rule.
+
       def rule(singular, plural)
         singular_rule(singular, plural)
         plural_rule(singular, plural)
       end
 
       # Define a singularization rule.
+
       def singular_rule(singular, plural)
         @singular_rules << [singular, plural]
       end
 
       # Define a plurualization rule.
+
       def plural_rule(singular, plural)
         @plural_rules << [singular, plural]
       end
 
       # Read prepared singularization rules.
+
       def singularization_rules
         return @singularization_rules if @singularization_rules
         sorted = @singular_rules.sort_by{ |s, p| "#{p}".size }.reverse
@@ -56,6 +67,7 @@ module English
       end
 
       # Read prepared pluralization rules.
+
       def pluralization_rules
         return @pluralization_rules if @pluralization_rules
         sorted = @plural_rules.sort_by{ |s, p| "#{s}".size }.reverse
@@ -65,11 +77,13 @@ module English
       end
 
       #
+
       def plural_of
         @plural_of
       end
 
       #
+
       def singular_of
         @singular_of
       end
@@ -79,6 +93,7 @@ module English
       #   "boys".singular      #=> boy
       #   "tomatoes".singular  #=> tomato
       #
+
       def singular(word)
         if result = singular_of[word]
           return result.dup
@@ -99,6 +114,7 @@ module English
       #   "boy".plural     #=> boys
       #   "tomato".plural  #=> tomatoes
       #
+
       def plural(word)
         if result = plural_of[word]
           return result.dup
@@ -201,8 +217,8 @@ module English
 end
 end
 
-
 class String
+
   def english_singular
     Language::English::Inflect.singular(self)
   end
@@ -233,6 +249,7 @@ module Inflector
   # New rules are added at the top. So in the example above, the irregular rule for octopus will now be the first of the
   # pluralization and singularization rules that is runs. This guarantees that your rules run before any of the rules that may
   # already have been loaded.
+
   class Inflections
     include Singleton
 
@@ -244,12 +261,14 @@ module Inflector
 
     # Specifies a new pluralization rule and its replacement. The rule can either be a string or a regular expression.
     # The replacement should always be a string that may include references to the matched data from the rule.
+
     def plural(rule, replacement)
       @plurals.insert(0, [rule, replacement])
     end
 
     # Specifies a new singularization rule and its replacement. The rule can either be a string or a regular expression.
     # The replacement should always be a string that may include references to the matched data from the rule.
+
     def singular(rule, replacement)
       @singulars.insert(0, [rule, replacement])
     end
@@ -260,6 +279,7 @@ module Inflector
     # Examples:
     #   irregular 'octopus', 'octopi'
     #   irregular 'person', 'people'
+
     def irregular(singular, plural)
       plural(Regexp.new("(#{singular[0,1]})#{singular[1..-1]}$", "i"), '\1' + plural[1..-1])
       singular(Regexp.new("(#{plural[0,1]})#{plural[1..-1]}$", "i"), '\1' + singular[1..-1])
@@ -281,6 +301,7 @@ module Inflector
     # Examples:
     #   clear :all
     #   clear :plurals
+
     def clear(scope = :all)
       case scope
         when :all
@@ -368,6 +389,7 @@ module Inflector
   # Examples
   #   "man from the boondocks".titleize #=> "Man From The Boondocks"
   #   "x-men: the last stand".titleize #=> "X Men: The Last Stand"
+
   def titleize(word)
     humanize(underscore(word)).gsub(/\b([a-z])/) { $1.capitalize }
   end
@@ -379,6 +401,7 @@ module Inflector
   # Examples
   #   "ActiveRecord".underscore #=> "active_record"
   #   "ActiveRecord::Errors".underscore #=> active_record/errors
+
   def underscore(camel_cased_word)
     camel_cased_word.to_s.gsub(/::/, '/').
       gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
@@ -391,6 +414,7 @@ module Inflector
   #
   # Example
   #   "puni_puni" #=> "puni-puni"
+
   def dasherize(underscored_word)
     underscored_word.gsub(/_/, '-')
   end
@@ -401,6 +425,7 @@ module Inflector
   # Examples
   #   "employee_salary" #=> "Employee salary"
   #   "author_id" #=> "Author"
+
   def humanize(lower_case_and_underscored_word)
     lower_case_and_underscored_word.to_s.gsub(/_id$/, "").gsub(/_/, " ").capitalize
   end
@@ -410,6 +435,7 @@ module Inflector
   # Examples
   #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize #=> "Inflections"
   #   "Inflections".demodulize #=> "Inflections"
+
   def demodulize(class_name_in_module)
     class_name_in_module.to_s.gsub(/^.*::/, '')
   end
@@ -432,6 +458,7 @@ module Inflector
   # Examples
   #   "egg_and_hams".classify #=> "EggAndHam"
   #   "post".classify #=> "Post"
+
   def classify(table_name)
     # strip out any leading schema name
     camelize(singularize(table_name.to_s.sub(/.*\./, '')))
@@ -456,6 +483,7 @@ module Inflector
   # Examples
   #   "Module".constantize #=> Module
   #   "Class".constantize #=> Class
+
   def constantize(camel_cased_word)
     unless /\A(?:::)?([A-Z]\w*(?:::[A-Z]\w*)*)\z/ =~ camel_cased_word
       raise NameError, "#{camel_cased_word.inspect} is not a valid constant name!"

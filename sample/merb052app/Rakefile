@@ -8,7 +8,6 @@ require 'rake/testtask'
 require 'spec/rake/spectask'
 require 'fileutils'
 
-
 require Merb::framework_root+'/tasks'
 include FileUtils
 

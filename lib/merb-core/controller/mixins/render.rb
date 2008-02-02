@@ -1,9 +1,13 @@
+
+
+# DOC: Yehuda Katz FAILED
 module Merb::RenderMixin
   # So we can do raise TemplateNotFound
   include Merb::ControllerExceptions
   
   # ==== Parameters
   # base<Module>:: Module that is including RenderMixin (probably a controller)
+
   def self.included(base)
     base.class_eval do
       class_inheritable_accessor :_layout, :_cached_templates
@@ -45,6 +49,7 @@ module Merb::RenderMixin
   #
   #---
   # @public
+
   def render(thing = nil, opts = {})
     # render :format => :xml means render nil, :format => :xml
     opts, thing = thing, nil if thing.is_a?(Hash)
@@ -122,6 +127,7 @@ module Merb::RenderMixin
   # ==== Note
   # The transformed object will not be used in a layout unless a :layout
   # is explicitly passed in the opts.
+
   def display(object, thing = nil, opts = {})
     # display @object, "path/to/foo" means display @object, nil, :template => "path/to/foo"
     # display @object, :template => "path/to/foo" means display @object, nil, :template => "path/to/foo"
@@ -184,6 +190,7 @@ module Merb::RenderMixin
   #
   # The "_foo" partial will be called, relative to the current controller,
   # with a local variable of +hello+ inside of it, assigned to @object.
+
   def partial(template, opts={})
 
     # partial :foo becomes "#{controller_name}/_foo"
@@ -275,6 +282,7 @@ module Merb::RenderMixin
   #
   #---
   # @public
+
   def catch_content(obj = :layout)
     @_caught_content[obj]
   end
@@ -295,6 +303,7 @@ module Merb::RenderMixin
   #
   #---
   # @public
+
   def throw_content(obj, string = nil, &block)
     unless string || block_given?
       raise ArgumentError, "You must pass a block or a string into throw_content"

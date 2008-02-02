@@ -1,6 +1,9 @@
 # thanks Jamis!
+
 class SourceAnnotationExtractor
+  
   class Annotation < Struct.new(:line, :tag, :text)
+    
     def to_s(options={})
       s = "[%3d] " % line
       s << "[#{tag}] " if options[:tag]
@@ -64,15 +67,15 @@ end
 
 desc "Enumerate all annotations"
 task :notes do
-  desc "Enumerate all DOC annotations"
-  task :doc do
-    SourceAnnotationExtractor.enumerate "DOC"
-  end
-  
   SourceAnnotationExtractor.enumerate "OPTIMIZE|FIXME|TODO", :tag => true
 end
 
 namespace :notes do
+  desc "Enumerate all DOC annotations"
+  task :doc do
+    SourceAnnotationExtractor.enumerate "DOC"
+  end
+
   desc "Enumerate all OPTIMIZE annotations"
   task :optimize do
     SourceAnnotationExtractor.enumerate "OPTIMIZE"

@@ -1,3 +1,6 @@
+
+
+# DOC: Yehuda Katz FAILED
 module Kernel
   # Loads the given string as a gem.
   # An optional second parameter of a version string can be specified and is passed to rubygems.
@@ -5,7 +8,7 @@ module Kernel
   
   # Note that this new version tries to load the file via ROOT/gems first before moving off to
   # the system gems (so if you have a lower version of a gem in ROOT/gems, it'll still get loaded)
-  
+
   def dependency(name, *ver)
     begin
       # If it's not in ROOT/gems, skip to the next attempt
@@ -42,7 +45,7 @@ module Kernel
   #   String - single dependency
   #   Hash   - name => version
   #   Array  - string dependencies
-  
+
   def dependencies(*args)
     args.each do |arg|
       case arg
@@ -55,7 +58,8 @@ module Kernel
     
   # Requires the library string passed in.
   # If the library fails to load then it will display a helpful message.
-  
+
+  # DOC: Yehuda Katz FAILED
   def requires(library)
     # TODO: Extract messages out into a messages file. This will also be the first step towards internationalization.
     # TODO: adjust this message once logging refactor is complete.
@@ -77,7 +81,8 @@ module Kernel
   
   # does a basic require, and prints the message passed as an optional
   # second parameter if an error occurs.
-  
+
+  # DOC: Yehuda Katz FAILED
   def rescue_require(sym, message = nil)
     require sym
   rescue LoadError, RuntimeError
@@ -92,7 +97,7 @@ module Kernel
   #   $ sudo gem install merb_datamapper # or merb_activerecord or merb_sequel
   #   use_orm :datamapper # this line goes in dependencies.yml
   #   $ ruby script/generate model MyModel # will use the appropriate generator for your ORM
-  
+
   def use_orm(orm)
     raise "Don't call use_orm more than once" unless Merb.generator_scope.delete(:merb_default)
     orm_plugin = orm.to_s.match(/^merb_/) ? orm.to_s : "merb_#{orm}"
@@ -108,7 +113,7 @@ module Kernel
   #   $ sudo gem install rspec
   #   use_test :rspec # this line goes in dependencies.yml (or use_test :test_unit)
   #   $ ruby script/generate controller MyController # will use the appropriate generator for tests
-  
+
   def use_test(test_framework)
     raise "use_test only supports :rspec and :test_unit currently" unless 
       [:rspec, :test_unit].include?(test_framework.to_sym)
@@ -119,6 +124,7 @@ module Kernel
   
   # Returns an array with a stack trace of the application's files.
 
+  # DOC
   def __app_file_trace__
     caller.select do |call| 
       call.include?(Merb.root) && !call.include?(Merb.root + "/framework")
@@ -195,7 +201,7 @@ module Kernel
   #   end
   # Assuming that the total time taken for #puts calls was less than 5% of the total time to run, #puts won't appear
   # in the profilel report.
-  
+
   def __profile__(name, min=1)
     require 'ruby-prof' unless defined?(RubyProf)
     return_result = ''
@@ -215,9 +221,10 @@ module Kernel
   # Used internally in methods that take *args
   #
   # Example
+
   #   def render(*args,&blk)
   #     opts = extract_options_from_args!(args) || {}
-  
+
   def extract_options_from_args!(args)
     args.pop if Hash === args.last
   end
@@ -242,6 +249,7 @@ module Kernel
     # define debugger method so that code even works if debugger was not
     # requested
     # Drops a not to the logs that Debugger was not available
+
     def debugger
        Merb.logger.info "\n***** Debugger requested, but was not " + 
                         "available: Start server with --debugger " +

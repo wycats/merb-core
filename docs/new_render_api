@@ -37,7 +37,6 @@ render :symbol, :status => 202
 # :layout sets the layout to use; default: controller.to_path || :application; :none means no layout
 render :symbol, :layout => :none
 
-
 ## PARTIALS
 
 # Render a partial

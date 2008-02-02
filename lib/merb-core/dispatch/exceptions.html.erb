@@ -183,7 +183,7 @@
 						<td class="collapse">
 						</td>
 						<td class="code" colspan="2"><% (__caller_lines__(file, lineno, 5) rescue []).each do |llineno, lcode, lcurrent| %>
-<a href="txmt://open?url=file://<%=file%>&amp;line=<%=llineno%>"><%= llineno %></a><%='<em>' if llineno==lineno.to_i %><%= lcode.size > 90 ? CGI.escapeHTML(lcode[0..90])+'<span class="more">......</span>' : CGI.escapeHTML(lcode) %><%='</em>' if llineno==lineno.to_i %>
+<a href="txmt://open?url=file://<%=file%>&amp;line=<%=llineno%>"><%= llineno %></a><%='<em>' if llineno==lineno.to_i %><%= lcode.size > 90 ? Erubis::XmlHelper.escape_xml(lcode[0..90])+'<span class="more">......</span>' : Erubis::XmlHelper.escape_xml(lcode) %><%='</em>' if llineno==lineno.to_i %>
 <% end %>
 
 </td>

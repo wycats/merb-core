@@ -176,7 +176,6 @@ task :rcov do
   end
 end
 
-
 desc "Run a specific spec with TASK=xxxx"
 Spec::Rake::SpecTask.new("spec") do |t|
   t.spec_opts = ["--format", "specdoc", "--colour"]
