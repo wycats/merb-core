@@ -356,7 +356,7 @@ module Merb
       unless Merb.available_mime_types.has_key?(type)
         raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
       end        
-      headers['Content-Type'] = Merb.available_mime_types[type].first        
+      headers['Content-Type'] = Merb.available_mime_types[type][:request_headers].first
       @_content_type = type
     end
     
