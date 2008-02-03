@@ -1,6 +1,8 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
-Merb.start %W( -e test -a runner -m #{File.dirname(__FILE__) / "directory"} )
-
+Merb.start :environment => 'test',
+           :adapter =>  'runner',
+           :merb_root => File.dirname(__FILE__) / "directory"
+           
 describe "The reloader" do
 
   def reload!

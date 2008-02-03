@@ -1,7 +1,9 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
 require 'rack/mock'
 require 'stringio'
-Merb.start ['-e', 'test', '-a', 'runner', '-m' , File.dirname(__FILE__) / 'fixture']
+Merb.start :environment => 'test', 
+           :adapter =>  'runner', 
+           :merb_root => File.dirname(__FILE__) / 'fixture'
 
 describe Merb::Dispatcher do
 

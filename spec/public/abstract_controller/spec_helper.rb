@@ -5,7 +5,7 @@ require File.join(__DIR__, "controllers", "filters")
 require File.join(__DIR__, "controllers", "render")
 require File.join(__DIR__, "controllers", "partial")
 
-Merb.start %w( -e test -a runner )
+Merb.start :environment => 'test', :adapter =>  'runner'
 
 module Merb::Test::Behaviors
   

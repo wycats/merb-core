@@ -25,13 +25,18 @@ rescue LoadError
   require "json/pure"
 end
 
-# DOC: Yehuda Katz FAILED
 module Merb
   class << self
 
-    # DOC: Ezra Zygmuntowicz FAILED
+    # 
     def start(argv=ARGV)
-      Merb::Config.parse_args(argv)
+      if Hash === argv
+        Merb::Config.setup(argv)
+      else  
+        Merb::Config.parse_args(argv)
+      end
+      Merb.environment = Merb::Config[:environment]
+      Merb.root = Merb::Config[:merb_root]
       Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
     end
     

@@ -25,6 +25,7 @@ module Merb
 
       # DOC
       def use
+        @configuration ||= {}
         yield @configuration
       end
 
@@ -187,9 +188,7 @@ module Merb
 
          # Parse what we have on the command line
          opts.parse!(argv)
-         @configuration = Merb::Config.setup(options)
-         Merb.environment = Merb::Config[:environment]
-         Merb.root = Merb::Config[:merb_root]
+         Merb::Config.setup(options)
        end
        
     end # class << self
