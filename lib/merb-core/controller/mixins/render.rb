@@ -134,7 +134,7 @@ module Merb::RenderMixin
     opts[:template], thing = thing, nil if thing.is_a?(String) || thing.is_a?(Hash)
     
     # Try to render without the object
-    render(thing, opts)
+    render(thing || action_name.to_sym, opts)
   
   # If the render fails (i.e. a template was not found)
   rescue TemplateNotFound
