@@ -70,7 +70,7 @@ module Merb
     # key<Symbol>:: The key that represents the mime-type
 
     def mime_transform_method(key)
-      raise ArgumentError, ":#{key} is not a valid MIME-type" unless ResponderMixin::TYPES.has?(key)
+      raise ArgumentError, ":#{key} is not a valid MIME-type" unless ResponderMixin::TYPES.key?(key)
       ResponderMixin::TYPES[key][:transform_method]
     end
 
