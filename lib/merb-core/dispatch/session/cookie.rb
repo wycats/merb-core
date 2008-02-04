@@ -104,6 +104,10 @@ module Merb
       @data.each(&b) 
     end
     
+    def delete  
+      @data = {} 
+    end
+    
     private
 
     # DOC: Ezra Zygmuntowicz FAILED
@@ -123,7 +127,7 @@ module Merb
     # DOC: Ezra Zygmuntowicz FAILED
     def marshal(session)
       data = Base64.encode64(Marshal.dump(session)).chop
-      Mongrel::HttpRequest.escape "#{data}--#{generate_digest(data)}"
+      Merb::Request.escape "#{data}--#{generate_digest(data)}"
     end
     
     # Unmarshal cookie data to a hash and verify its integrity.
@@ -131,7 +135,7 @@ module Merb
     # DOC: Ezra Zygmuntowicz FAILED
     def unmarshal(cookie)
       if cookie
-        data, digest = Mongrel::HttpRequest.unescape(cookie).split('--')
+        data, digest = Merb::Request.unescape(cookie).split('--')
         unless digest == generate_digest(data)
           raise TamperedWithCookie, "Maybe the site's session_secret_key has changed?"
         end

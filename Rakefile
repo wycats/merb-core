@@ -42,7 +42,7 @@ spec = Gem::Specification.new do |s|
   s.author       = "Ezra Zygmuntowicz"
   s.email        = "ez@engineyard.com"
   s.homepage     = "http://merb.devjavu.com"
-  s.summary      = "Merb == Mongrel + Erb. Pocket rocket web framework."
+  s.summary      = "Merb. Pocket rocket web framework."
   s.bindir       = "bin"
   s.description  = s.summary
   s.executables  = %w( merb )
@@ -56,11 +56,8 @@ spec = Gem::Specification.new do |s|
 
   # Dependencies
   s.add_dependency "erubis"
-  s.add_dependency "mime-types"
-  s.add_dependency "rubigen"
   s.add_dependency "rake"
   s.add_dependency "json_pure"
-  s.add_dependency "english"
   s.add_dependency "rspec"
   s.add_dependency "rack"  
   # Requirements
