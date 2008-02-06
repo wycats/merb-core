@@ -35,11 +35,11 @@ module Merb::Template
 
     def template_for(path)
       path = File.expand_path(path)
+      file = Dir["#{path}.{#{Merb::Template::EXTENSIONS.keys.join(',')}}"].first      
       if Merb::Config[:reload_templates]
-        file = Dir["#{path}.{#{Merb::Template::EXTENSIONS.keys.join(',')}}"].first
         METHOD_LIST[path] = file ? inline_template(file) : nil
       else
-        METHOD_LIST[path] ||= File.exists?(path) ? inline_template(path) : nil        
+        METHOD_LIST[path] ||= file ? inline_template(file) : nil        
       end
     end
     
