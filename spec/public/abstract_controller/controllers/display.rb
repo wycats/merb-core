@@ -4,25 +4,30 @@ module Merb::Test::Fixtures
 
   module Abstract
     
+    class SomeModel; end
+    
     class Testing < Merb::AbstractController
       self._template_root = File.dirname(__FILE__) / "views"
     end
     
-    class DisplayObject < Testing      
+    class DisplayObject < Testing
       def index
+        @obj = SomeModel.new
         display @obj
       end
     end
     
-    class DisplayObjectWithSymbol < Testing
+    class DisplayObjectWithAction < Testing
       def create
+        @obj = SomeModel.new
         display @obj, :new
       end
     end
     
-    class DisplayObjectWithString < Testing
+    class DisplayObjectWithPath < Testing
       def index
-        display @obj, "full/path/to/template"
+        @obj = SomeModel.new
+        display @obj, "test_display/foo.html"
       end
     end
     

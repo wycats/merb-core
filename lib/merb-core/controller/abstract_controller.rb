@@ -156,10 +156,10 @@ class Merb::AbstractController
     @_caught_content = {}
   end
   
+  # This will dispatch the request, calling before and after dispatch hooks
+  # 
   # ==== Parameters
   # action<~to_s>:: The action to dispatch to. This will be #send'ed in _call_action
-
-  # DOC: Yehuda Katz FAILED
   def _dispatch(action=:to_s)
     hook :before_dispatch
     self.action_name = action

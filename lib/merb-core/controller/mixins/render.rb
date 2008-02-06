@@ -142,10 +142,10 @@ module Merb::RenderMixin
     # Figure out what to transform and raise NotAcceptable unless there's a transform method assigned
     transform = Merb.mime_transform_method(content_type)
     raise NotAcceptable unless transform && object.respond_to?(transform)
-
+    
     # Throw the transformed object for later consumption by the layout
     throw_content(:for_layout, object.send(transform))
-
+  
     # Only use a layout if one was specified
     if opts[:layout]
       # Look for the layout under the default layout directly. If it's not found, reraise

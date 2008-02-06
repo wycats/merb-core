@@ -11,7 +11,7 @@ module Merb::Test::Fixtures
     class RenderString < Testing
       
       def index
-        render "index"
+        render "the index"
       end
     end
 
