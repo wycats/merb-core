@@ -18,6 +18,10 @@ def route_to(path, args = {}, protocol = "http://")
   Merb::Router.match(SimpleRequest.new({:protocol => protocol, :path => path}.merge(args)))[1]
 end
 
+def generate(*args)
+  Merb::Router.generate *args
+end
+
 module Merb
   
   module Test

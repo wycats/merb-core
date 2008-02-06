@@ -1,6 +1,7 @@
 require 'merb-core/dispatch/router/cached_proc'
 require 'merb-core/dispatch/router/behavior'
 require 'merb-core/dispatch/router/route'
+require 'merb-core/controller/mixins/responder'
 
 # DOC: Yehuda Katz FAILED
 module Merb
@@ -55,12 +56,42 @@ module Merb
 
       # DOC
       def generate(name, params = {}, fallback = {})
+        if name.is_a? Hash
+          return generate_for_default_route(name.merge(params), fallback)
+        end
         name = name.to_sym
         unless @@named_routes.key? name
           raise "Named route not found: #{name}"
         else
           @@named_routes[name].generate(params, fallback)
         end
+      end
+      
+      def generate_for_default_route(params, fallback)
+        query_params = params.reject do |k,v|
+          [:controller, :action, :id, :format].include?(k)
+        end
+
+        controller = params[:controller] || fallback[:controller]
+        raise "Controller Not Specified" unless controller
+        url = "/#{controller}"
+
+        if params[:action] || params[:id] || params[:format] || !query_params.empty?
+          action = params[:action] || fallback[:action]
+          raise "Action Not Specified" unless action
+          url += "/#{action}"
+        end
+        if params[:id]
+          url += "/#{params[:id]}"
+        end
+        if format = params[:format]
+          format = fallback[:format] if format == :current
+          url += ".#{format}"
+        end
+        unless query_params.empty?
+          url += "?" + Merb::Responder.params_to_query_string(query_params)
+        end
+        url
       end
     end # self
     
