@@ -4,6 +4,7 @@ require File.join(__DIR__, "..", "..", "spec_helper")
 require File.join(__DIR__, "controllers", "filters")
 require File.join(__DIR__, "controllers", "render")
 require File.join(__DIR__, "controllers", "partial")
+require File.join(__DIR__, "controllers", "display")
 
 Merb.start :environment => 'test', :adapter =>  'runner'
 
