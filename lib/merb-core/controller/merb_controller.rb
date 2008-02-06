@@ -222,7 +222,7 @@ class Merb::Controller < Merb::AbstractController
   # headers are passed into the cookie object so that you can do:
   #   cookies[:foo] = "bar"
 
-  def cookies() @_cookies ||= ::Merb::Cookies.new(request.cookies, @_headers)  end
+  def cookies() @_cookies ||= ::Merb::Cookies.new(request.cookies, @headers)  end
     
   # ==== Returns
   # Hash:: The session that was extracted from the request object
