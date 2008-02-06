@@ -1,18 +1,17 @@
-
-
-# DOC: Ezra Zygmuntowicz FAILED
 module Merb
-  
-  # DOC: Ezra Zygmuntowicz FAILED
   module Rack
-    
-    # DOC: Ezra Zygmuntowicz FAILED
     class Console
-
-      # DOC: Ezra Zygmuntowicz FAILED
       def params() {} end
-
-      # DOC: Ezra Zygmuntowicz FAILED
+      
+      def url(name, params={})
+        Merb::Router.generate(name, params,
+          { :controller => controller_name,
+            :action => action_name,
+            :format => params[:format]
+          }
+        )
+      end
+      
       def show_routes
         seen = []
         unless Merb::Router.named_routes.empty?
