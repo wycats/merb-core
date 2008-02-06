@@ -1,4 +1,4 @@
-
+require 'merb-core/controller/mixins/responder'
 
 # DOC: Ezra Zygmuntowicz FAILED
 module Merb
@@ -91,11 +91,14 @@ module Merb
 
       # DOC: Ezra Zygmuntowicz FAILED
       def generate(params = {}, fallback = {})
+        raise "Cannot generate regexp Routes" if regexp?
+        query_params = params.dup
         url = @segments.map do |segment|
           value =
             if segment.is_a? Symbol
               if params.is_a? Hash
                 params[segment] || fallback[segment]
+                query_params.delete segment
               else
                 if segment == :id && params.respond_to?(:to_param) 
                   params.to_param
@@ -112,6 +115,10 @@ module Merb
             end
           (value.respond_to?(:to_param) ? value.to_param : value).to_s
         end.join
+        unless query_params.empty?
+          url += "?" + Merb::Responder.params_to_query_string(query_params)
+        end
+        url
       end
 
       # DOC: Ezra Zygmuntowicz FAILED

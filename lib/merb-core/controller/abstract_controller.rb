@@ -85,7 +85,7 @@ class Merb::AbstractController
   # {{[
 
   #   def _template_location
-  #     "#{params[:controller]}.#{prams[:action]}.#{content_type}"
+  #     "#{params[:controller]}.#{params[:action]}.#{content_type}"
   #   end
   # ]}}
   #

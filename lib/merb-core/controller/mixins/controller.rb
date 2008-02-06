@@ -205,5 +205,14 @@ module Merb
     def delete_cookie(name)
       set_cookie(name, nil, Merb::Const::COOKIE_EXPIRED_TIME)
     end
+    
+    def url(name, params)
+      Merb::Router.generate(name, params,
+        { :controller => controller_name,
+          :action => action_name,
+          :format => params[:format]
+        }
+      )
+    end
   end
 end
