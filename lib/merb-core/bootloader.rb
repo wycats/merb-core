@@ -109,6 +109,10 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         Merb.push_path(:environments, Merb.dir_for(:config) / "environments", nil)
         Merb.push_path(:lib,          Merb.root_path("lib"), nil)
         Merb.push_path(:log,          Merb.log_path, nil)
+        Merb.push_path(:public,       Merb.root_path("public"), nil)
+        Merb.push_path(:stylesheet,   Merb.dir_for(:public) / "stylesheets", nil)
+        Merb.push_path(:javascript,   Merb.dir_for(:public) / "javascripts", nil)
+        Merb.push_path(:image,        Merb.dir_for(:public) / "images", nil)        
       else
         Merb::Config[:framework].each do |name, path|
           Merb.push_path(name, Merb.root_path(path.first), path[1])

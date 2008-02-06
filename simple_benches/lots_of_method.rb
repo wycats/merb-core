@@ -23,9 +23,7 @@ Benchmark.bmbm do |x|
   x.report("lots") { TIMES.times { Bar.new.meth1  }}
 end
 
-puts Bar.new.meth10
-
 # TIMES == 1_000_000
-#               user     system      total        real
-# squeeze   1.480000   0.010000   1.490000 (  1.491509)
-# gsub      3.090000   0.010000   3.100000 (  3.107455)
+#              user     system      total        real
+# single   0.640000   0.000000   0.640000 (  0.638838)
+# lots     0.640000   0.000000   0.640000 (  0.635349)
