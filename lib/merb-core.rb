@@ -96,8 +96,6 @@ module Merb
     def log_path
       if Merb::Config[:log_file]
         File.dirname(Merb::Config[:log_file])
-      #elsif $TESTING
-      #  Merb.root_path("log")
       else
         Merb.root_path("log")
       end
