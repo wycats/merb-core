@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'merb-core'
-Merb.push_path(:view, File.dirname(__FILE__) / "views")
+Merb.push_path(:view, Merb.root / "views")
 Merb::Router.prepare do |r|
   r.default_routes
 end
