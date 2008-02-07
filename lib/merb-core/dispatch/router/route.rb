@@ -92,7 +92,7 @@ module Merb
       # DOC: Ezra Zygmuntowicz FAILED
       def generate(params = {}, fallback = {})
         raise "Cannot generate regexp Routes" if regexp?
-        query_params = params.dup
+        query_params = params.dup if params.is_a? Hash
         url = @segments.map do |segment|
           value =
             if segment.is_a? Symbol
@@ -115,7 +115,7 @@ module Merb
             end
           (value.respond_to?(:to_param) ? value.to_param : value).to_s
         end.join
-        unless query_params.empty?
+        if query_params && !query_params.empty?
           url += "?" + Merb::Responder.params_to_query_string(query_params)
         end
         url
