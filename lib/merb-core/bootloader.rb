@@ -191,9 +191,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       $LOAD_PATH.unshift Merb.dir_for(:controller)
       $LOAD_PATH.unshift Merb.dir_for(:lib)        
     
+      load_file Merb.dir_for(:application) if File.exists?(Merb.dir_for(:application))
+    
       # Require all the files in the registered load paths
       Merb.load_paths.each do |name, path|
-        next unless path.last
+        next unless path.last && name != :application
         Dir[path.first / path.last].each do |file|
           load_file file
         end
