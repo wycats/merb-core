@@ -3,20 +3,17 @@ require File.join(File.dirname(__FILE__), "spec_helper")
 describe Merb::Controller, " displaying objects based on mime type" do
 
   before do
-    Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layouts")    
     Merb::Router.prepare do |r|
       r.default_routes
     end
   end
   
-  it "should default the mime-type to HTML" do
-    #dispatch_to(Merb::Test::Fixtures::Controllers::DisplayHtmlDefault, :index).body.should == "HTML: Default"
-    pending "Decide if there will be a to_html method on model instances?"
+  it "should default the mime-type to HTML (and raise since there's no to_html)" do
+    running { dispatch_to(Merb::Test::Fixtures::Controllers::DisplayHtmlDefault, :index) }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
   end
   
   it "should use a template if specified" do
-    # dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplate, :index).body.should == "HTML: Default"
-    pending "Decide if there will be a to_html method on model instances?"
+    dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplate, :index).body.should == "Custom: Template"
   end
 
   it "should use other mime-types if they are provided on the class level" do

@@ -260,7 +260,7 @@ module Merb::RenderMixin
     
     # If a layout was provided, throw an error if it's not found
     if layout
-      template = _template_location(layout, layout.index(".") ? content_type : nil, "layout")      
+      template = _template_location(layout, layout.index(".") ? nil : content_type, "layout")      
       Merb::Template.template_for(_template_root / template) ||
         (raise TemplateNotFound, "No layout found at #{_template_root / template}.*")
     

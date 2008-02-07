@@ -20,11 +20,11 @@ module Merb::Test::Fixtures::Controllers
 
   class DisplayHtmlDefault < Display; end
 
-  class DisplayClassProvides < Display; 
+  class DisplayClassProvides < Display
     provides :xml
   end
 
-  class DisplayLocalProvides < Display; 
+  class DisplayLocalProvides < Display
     
     def index
       @obj = SomeModel.new
@@ -33,7 +33,7 @@ module Merb::Test::Fixtures::Controllers
     end
   end
   
-  class DisplayWithTemplate < DisplayClassProvides
+  class DisplayWithTemplate < Display
     layout :custom
   end
   

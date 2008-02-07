@@ -128,12 +128,11 @@ task :aok => [:specs, :rcov]
 
 require 'open3'
 
-desc "Run all specs"
-task :specs do
+def run_specs(glob)
   require "optparse"
   require "spec"
   examples, failures, errors, pending = 0, 0, 0, 0
-  Dir["spec/**/*_spec.rb"].each do |spec|
+  Dir[glob].each do |spec|
     response = Open3.popen3("spec #{File.expand_path(spec)} -f s -c") do |i,o,e|
       while out = o.gets
         STDOUT.puts out
@@ -155,67 +154,22 @@ task :specs do
     print "\e[31m"
   end
   puts "#{examples} examples, #{failures} failures, #{errors} errors, #{pending} pending"
-  print "\e[0m"
+  print "\e[0m"  
+end
+
+desc "Run all specs"
+task :specs do
+  run_specs("spec/**/*_spec.rb")
 end
 
 desc "Run private specs"
 task "specs:private" do
-  require "optparse"
-  require "spec"
-  examples, failures, errors, pending = 0, 0, 0, 0
-  Dir["spec/private/**/*_spec.rb"].each do |spec|
-    response = Open3.popen3("spec #{File.expand_path(spec)} -f s -c") do |i,o,e|
-      while out = o.gets
-        STDOUT.puts out
-        STDOUT.flush
-        if out =~ /\d+ example/
-          e, f, p = out.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) pending?)?/)[1..-1]
-          examples += e.to_i; failures += f.to_i; pending += p.to_i          
-        end
-      end
-      errors += 1 if e.is_a?(IO)
-      STDOUT.puts e.read if e.is_a?(IO)
-    end
-  end
-  puts
-  puts "*** TOTALS ***"
-  if failures == 0
-    print "\e[32m"
-  else
-    print "\e[31m"
-  end
-  puts "#{examples} examples, #{failures} failures, #{errors} errors, #{pending} pending"
-  print "\e[0m"
+  run_specs("spec/private/**/*_spec.rb")
 end
 
 desc "Run public specs"
 task "specs:public" do
-  require "optparse"
-  require "spec"
-  examples, failures, errors, pending = 0, 0, 0, 0
-  Dir["spec/public/**/*_spec.rb"].each do |spec|
-    response = Open3.popen3("spec #{File.expand_path(spec)} -f s -c") do |i,o,e|
-      while out = o.gets
-        STDOUT.puts out
-        STDOUT.flush
-        if out =~ /\d+ example/
-          e, f, p = out.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) pending?)?/)[1..-1]
-          examples += e.to_i; failures += f.to_i; pending += p.to_i          
-        end
-      end
-      errors += 1 if e.is_a?(IO)
-      STDOUT.puts e.read if e.is_a?(IO)
-    end
-  end
-  puts
-  puts "*** TOTALS ***"
-  if failures == 0
-    print "\e[32m"
-  else
-    print "\e[31m"
-  end
-  puts "#{examples} examples, #{failures} failures, #{errors} errors, #{pending} pending"
-  print "\e[0m"
+  run_specs("spec/public/**/*_spec.rb")
 end
 
 desc "Run coverage suite"

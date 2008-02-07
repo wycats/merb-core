@@ -1,0 +1,419 @@
+diff --git a/Rakefile b/Rakefile
+index 1a62f22..fa5ad9a 100644
+--- a/Rakefile
++++ b/Rakefile
+@@ -161,6 +161,66 @@ task :specs do
+   print "\e[0m"
+ end
+ 
++desc "Run private specs"
++task "specs:private" do
++  require "optparse"
++  require "spec"
++  examples, failures, errors, pending = 0, 0, 0, 0
++  Dir["spec/private/**/*_spec.rb"].each do |spec|
++    response = Open3.popen3("spec #{File.expand_path(spec)} -f s -c") do |i,o,e|
++      while out = o.gets
++        STDOUT.puts out
++        STDOUT.flush
++        if out =~ /\d+ example/
++          e, f, p = out.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) pending?)?/)[1..-1]
++          examples += e.to_i; failures += f.to_i; pending += p.to_i          
++        end
++      end
++      errors += 1 if e.is_a?(IO)
++      STDOUT.puts e.read if e.is_a?(IO)
++    end
++  end
++  puts
++  puts "*** TOTALS ***"
++  if failures == 0
++    print "\e[32m"
++  else
++    print "\e[31m"
++  end
++  puts "#{examples} examples, #{failures} failures, #{errors} errors, #{pending} pending"
++  print "\e[0m"
++end
++
++desc "Run public specs"
++task "specs:public" do
++  require "optparse"
++  require "spec"
++  examples, failures, errors, pending = 0, 0, 0, 0
++  Dir["spec/public/**/*_spec.rb"].each do |spec|
++    response = Open3.popen3("spec #{File.expand_path(spec)} -f s -c") do |i,o,e|
++      while out = o.gets
++        STDOUT.puts out
++        STDOUT.flush
++        if out =~ /\d+ example/
++          e, f, p = out.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) pending?)?/)[1..-1]
++          examples += e.to_i; failures += f.to_i; pending += p.to_i          
++        end
++      end
++      errors += 1 if e.is_a?(IO)
++      STDOUT.puts e.read if e.is_a?(IO)
++    end
++  end
++  puts
++  puts "*** TOTALS ***"
++  if failures == 0
++    print "\e[32m"
++  else
++    print "\e[31m"
++  end
++  puts "#{examples} examples, #{failures} failures, #{errors} errors, #{pending} pending"
++  print "\e[0m"
++end
++
+ desc "Run coverage suite"
+ task :rcov do
+   require 'fileutils'
+diff --git a/lib/merb-core/controller/abstract_controller.rb b/lib/merb-core/controller/abstract_controller.rb
+index cf87589..e4f2ed5 100644
+--- a/lib/merb-core/controller/abstract_controller.rb
++++ b/lib/merb-core/controller/abstract_controller.rb
+@@ -156,10 +156,10 @@ class Merb::AbstractController
+     @_caught_content = {}
+   end
+   
++  # This will dispatch the request, calling before and after dispatch hooks
++  # 
+   # ==== Parameters
+   # action<~to_s>:: The action to dispatch to. This will be #send'ed in _call_action
+-
+-  # DOC: Yehuda Katz FAILED
+   def _dispatch(action=:to_s)
+     hook :before_dispatch
+     self.action_name = action
+diff --git a/lib/merb-core/controller/mixins/render.rb b/lib/merb-core/controller/mixins/render.rb
+index 5718c76..345bc6f 100644
+--- a/lib/merb-core/controller/mixins/render.rb
++++ b/lib/merb-core/controller/mixins/render.rb
+@@ -142,10 +142,10 @@ module Merb::RenderMixin
+     # Figure out what to transform and raise NotAcceptable unless there's a transform method assigned
+     transform = Merb.mime_transform_method(content_type)
+     raise NotAcceptable unless transform && object.respond_to?(transform)
+-
++    
+     # Throw the transformed object for later consumption by the layout
+     throw_content(:for_layout, object.send(transform))
+-
++  
+     # Only use a layout if one was specified
+     if opts[:layout]
+       # Look for the layout under the default layout directly. If it's not found, reraise
+diff --git a/spec/public/abstract_controller/controllers/display.rb b/spec/public/abstract_controller/controllers/display.rb
+new file mode 100644
+index 0000000..78b3c93
+--- /dev/null
++++ b/spec/public/abstract_controller/controllers/display.rb
+@@ -0,0 +1,36 @@
++
++
++module Merb::Test::Fixtures
++
++  module Abstract
++    
++    class SomeModel; end
++    
++    class Testing < Merb::AbstractController
++      self._template_root = File.dirname(__FILE__) / "views"
++    end
++    
++    class DisplayObject < Testing
++      def index
++        @obj = SomeModel.new
++        display @obj
++      end
++    end
++    
++    class DisplayObjectWithAction < Testing
++      def create
++        @obj = SomeModel.new
++        display @obj, :new
++      end
++    end
++    
++    class DisplayObjectWithPath < Testing
++      def index
++        @obj = SomeModel.new
++        display @obj, "test_display/foo.html"
++      end
++    end
++    
++  end
++
++end
+\ No newline at end of file
+diff --git a/spec/public/abstract_controller/controllers/render.rb b/spec/public/abstract_controller/controllers/render.rb
+index 2e2ba05..d43788b 100644
+--- a/spec/public/abstract_controller/controllers/render.rb
++++ b/spec/public/abstract_controller/controllers/render.rb
+@@ -11,7 +11,7 @@ module Merb::Test::Fixtures
+     class RenderString < Testing
+       
+       def index
+-        render "index"
++        render "the index"
+       end
+     end
+ 
+diff --git a/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/display_object/index.erb b/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/display_object/index.erb
+new file mode 100644
+index 0000000..5bec4c8
+--- /dev/null
++++ b/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/display_object/index.erb
+@@ -0,0 +1 @@
++the index
+\ No newline at end of file
+diff --git a/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/display_object_with_action/new.erb b/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/display_object_with_action/new.erb
+new file mode 100644
+index 0000000..6ccefea
+--- /dev/null
++++ b/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/display_object_with_action/new.erb
+@@ -0,0 +1 @@
++new action
+\ No newline at end of file
+diff --git a/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template/index.erb b/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template/index.erb
+index b2d525b..5bec4c8 100644
+--- a/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template/index.erb
++++ b/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template/index.erb
+@@ -1 +1 @@
+-index
+\ No newline at end of file
++the index
+\ No newline at end of file
+diff --git a/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template_custom_layout/index.erb b/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template_custom_layout/index.erb
+index b2d525b..5bec4c8 100644
+--- a/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template_custom_layout/index.erb
++++ b/spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template_custom_layout/index.erb
+@@ -1 +1 @@
+-index
+\ No newline at end of file
++the index
+\ No newline at end of file
+diff --git a/spec/public/abstract_controller/controllers/views/test_display/foo.html.erb b/spec/public/abstract_controller/controllers/views/test_display/foo.html.erb
+new file mode 100644
+index 0000000..5159d33
+--- /dev/null
++++ b/spec/public/abstract_controller/controllers/views/test_display/foo.html.erb
+@@ -0,0 +1 @@
++fooness
+\ No newline at end of file
+diff --git a/spec/public/abstract_controller/display_spec.rb b/spec/public/abstract_controller/display_spec.rb
+new file mode 100644
+index 0000000..e9a57e3
+--- /dev/null
++++ b/spec/public/abstract_controller/display_spec.rb
+@@ -0,0 +1,21 @@
++require File.join(File.dirname(__FILE__), "spec_helper")
++
++describe Merb::AbstractController, " displaying objects with templates" do
++
++  before do
++    Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layouts")
++  end
++  
++  it "should allow you to pass an object" do
++    dispatch_should_make_body("DisplayObject", "the index")
++  end
++  
++  it "should allow you to pass an object with an action specified" do
++    dispatch_should_make_body("DisplayObjectWithAction", "new action", :create)
++  end
++  
++  it "should allow you to pass an object with a path specified for the template" do
++    dispatch_should_make_body("DisplayObjectWithPath", "fooness")
++  end
++  
++end
+\ No newline at end of file
+diff --git a/spec/public/abstract_controller/render_spec.rb b/spec/public/abstract_controller/render_spec.rb
+index 31282a4..2c2fa08 100644
+--- a/spec/public/abstract_controller/render_spec.rb
++++ b/spec/public/abstract_controller/render_spec.rb
+@@ -7,19 +7,19 @@ describe Merb::AbstractController, " rendering plain strings" do
+   end
+ 
+   it "should support rendering plain strings with no layout" do
+-    dispatch_should_make_body("RenderString", "index")
++    dispatch_should_make_body("RenderString", "the index")
+   end
+ 
+   it "should support rendering plain strings with custom layouts" do
+-    dispatch_should_make_body("RenderStringCustomLayout", "Custom: index")
++    dispatch_should_make_body("RenderStringCustomLayout", "Custom: the index")
+   end
+ 
+   it "should support rendering plain strings with the application layout" do
+-    dispatch_should_make_body("RenderStringAppLayout", "App: index")
++    dispatch_should_make_body("RenderStringAppLayout", "App: the index")
+   end
+   
+   it "should support rendering plain strings with the controller layout" do
+-    dispatch_should_make_body("RenderStringControllerLayout", "Controller: index")
++    dispatch_should_make_body("RenderStringControllerLayout", "Controller: the index")
+   end
+ 
+ end
+@@ -27,19 +27,19 @@ end
+ describe Merb::AbstractController, " rendering templates" do
+ 
+   it "should support rendering templates with no layout" do
+-    dispatch_should_make_body("RenderTemplate", "index")
++    dispatch_should_make_body("RenderTemplate", "the index")
+   end
+ 
+   it "should support rendering templates with custom layouts" do
+-    dispatch_should_make_body("RenderStringCustomLayout", "Custom: index")
++    dispatch_should_make_body("RenderStringCustomLayout", "Custom: the index")
+   end
+   
+   it "should support rendering templates with the application layout" do
+-    dispatch_should_make_body("RenderTemplateAppLayout", "App: index")
++    dispatch_should_make_body("RenderTemplateAppLayout", "App: the index")
+   end
+   
+   it "should support rendering plain strings with the controller layout" do
+-    dispatch_should_make_body("RenderTemplateControllerLayout", "Controller: index")
++    dispatch_should_make_body("RenderTemplateControllerLayout", "Controller: the index")
+   end
+ 
+ end
+\ No newline at end of file
+diff --git a/spec/public/abstract_controller/spec_helper.rb b/spec/public/abstract_controller/spec_helper.rb
+index b608ac0..ea8b3a6 100644
+--- a/spec/public/abstract_controller/spec_helper.rb
++++ b/spec/public/abstract_controller/spec_helper.rb
+@@ -4,16 +4,19 @@ require File.join(__DIR__, "..", "..", "spec_helper")
+ require File.join(__DIR__, "controllers", "filters")
+ require File.join(__DIR__, "controllers", "render")
+ require File.join(__DIR__, "controllers", "partial")
++require File.join(__DIR__, "controllers", "display")
+ 
+ Merb.start :environment => 'test', :adapter =>  'runner'
+ 
+ module Merb::Test::Behaviors
++  include Merb::Test::RequestHelper
+   
+   def dispatch_should_make_body(klass, body, action = :index)
+     controller = Merb::Test::Fixtures::Abstract.const_get(klass).new
+     controller._dispatch(action.to_s)
+     controller.body.should == body
+   end
++  
+ end
+ 
+ Spec::Runner.configure do |config|
+diff --git a/spec/public/controller/controllers/display.rb b/spec/public/controller/controllers/display.rb
+new file mode 100644
+index 0000000..c7c2172
+--- /dev/null
++++ b/spec/public/controller/controllers/display.rb
+@@ -0,0 +1,40 @@
++
++
++module Merb::Test::Fixtures::Controllers
++  
++  class SomeModel
++    def to_xml; "<XML:Model />" end
++  end
++  
++  class Testing < Merb::Controller
++    self._template_root = File.dirname(__FILE__) / "views"
++  end
++  
++  class Display < Testing
++    
++    def index
++      @obj = SomeModel.new
++      display @obj
++    end
++  end
++
++  class DisplayHtmlDefault < Display; end
++
++  class DisplayClassProvides < Display; 
++    provides :xml
++  end
++
++  class DisplayLocalProvides < Display; 
++    
++    def index
++      @obj = SomeModel.new
++      provides :xml
++      display @obj
++    end
++  end
++  
++  class DisplayWithTemplate < DisplayClassProvides
++    layout :custom
++  end
++  
++end
+\ No newline at end of file
+diff --git a/spec/public/controller/controllers/views/merb/test/fixtures/controllers/layout/custom.erb b/spec/public/controller/controllers/views/merb/test/fixtures/controllers/layout/custom.erb
+new file mode 100644
+index 0000000..95aecf9
+--- /dev/null
++++ b/spec/public/controller/controllers/views/merb/test/fixtures/controllers/layout/custom.erb
+@@ -0,0 +1 @@
++Custom: <%= catch_content(:for_layout) %>
+\ No newline at end of file
+diff --git a/spec/public/controller/display_spec.rb b/spec/public/controller/display_spec.rb
+new file mode 100644
+index 0000000..d71d5fd
+--- /dev/null
++++ b/spec/public/controller/display_spec.rb
+@@ -0,0 +1,37 @@
++require File.join(File.dirname(__FILE__), "spec_helper")
++
++describe Merb::Controller, " displaying objects based on mime type" do
++
++  before do
++    Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layouts")    
++    Merb::Router.prepare do |r|
++      r.default_routes
++    end
++  end
++  
++  it "should default the mime-type to HTML" do
++    #dispatch_to(Merb::Test::Fixtures::Controllers::DisplayHtmlDefault, :index).body.should == "HTML: Default"
++    pending "Decide if there will be a to_html method on model instances?"
++  end
++  
++  it "should use a template if specified" do
++    # dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplate, :index).body.should == "HTML: Default"
++    pending "Decide if there will be a to_html method on model instances?"
++  end
++
++  it "should use other mime-types if they are provided on the class level" do
++    controller = dispatch_to(Merb::Test::Fixtures::Controllers::DisplayClassProvides, :index, {}, :http_accept => "application/xml")
++    controller.body.should == "<XML:Model />"
++  end
++
++  it "should fail if none of the acceptable mime-types are available" do
++    calling { dispatch_to(Merb::Test::Fixtures::Controllers::DisplayClassProvides, :index, {}, :http_accept => "application/json") }.
++      should raise_error(Merb::ControllerExceptions::NotAcceptable)
++  end
++
++  it "should use mime-types that are provided at the local level" do
++    controller = dispatch_to(Merb::Test::Fixtures::Controllers::DisplayLocalProvides, :index, {}, :http_accept => "application/xml")
++    controller.body.should == "<XML:Model />"    
++  end
++  
++end
+\ No newline at end of file
+diff --git a/spec/public/controller/spec_helper.rb b/spec/public/controller/spec_helper.rb
+index 5a21b63..e4a25cb 100644
+--- a/spec/public/controller/spec_helper.rb
++++ b/spec/public/controller/spec_helper.rb
+@@ -4,5 +4,6 @@ require File.join(__DIR__, "..", "..", "spec_helper")
+ 
+ require File.join(__DIR__, "controllers", "base")
+ require File.join(__DIR__, "controllers", "responder")
++require File.join(__DIR__, "controllers", "display")
+ 
+ Merb.start :environment => 'test', :adapter => 'runner'
+\ No newline at end of file
