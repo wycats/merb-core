@@ -68,3 +68,16 @@ describe "The URL generator with a named route" do
     generate(:args, :monkey => [1,2]).should == "/argstrs?monkey[]=1&monkey[]=2"
   end
 end
+
+describe "The URL generator with resource routes" do
+  class Monkey ; def to_param ; 45 ; end ; end
+
+  before(:each) do
+    Merb::Router.prepare {|r| r.resources :monkeys}
+    @monkey = Monkey.new
+  end
+
+  it "should match with an object as second arg" do
+    generate(:monkey,@monkey).should == "/monkeys/45"
+  end
+end
