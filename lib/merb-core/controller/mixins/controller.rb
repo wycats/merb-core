@@ -102,7 +102,7 @@ module Merb
 
     def redirect(url)
       Merb.logger.info("Redirecting to: #{url}")
-      set_status(302)
+      self.status = 302
       headers['Location'] = url
       "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
     end
@@ -214,5 +214,18 @@ module Merb
         }
       )
     end
+    
+    # Escapes the string representation of +obj+ and escapes
+    # it for use in XML.
+    #
+    # ==== Parameter
+    #
+    # +obj+ - The object to escape for use in XML.
+    #
+    def escape_xml(obj)
+      obj.to_s.gsub(/[&<>"']/) { |s| Merb::Const::ESCAPE_TABLE[s] }
+    end
+    alias h escape_xml
+    alias html_escape escape_xml
   end
 end
