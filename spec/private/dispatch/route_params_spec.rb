@@ -16,4 +16,10 @@ describe Merb::Dispatcher, "route params" do
     @controller.request.route_params[:id].should == '54'
   end
 
+  it "should properly add route_params to params" do
+    @controller.request.route_params.each { |k,v|
+      @controller.request.params[k].should == v
+    }
+  end
+
 end

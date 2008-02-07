@@ -132,6 +132,10 @@ module Merb
         h
       end
     end
+    
+    def reset_params!
+      @params = nil
+    end
 
     # DOC
     def cookies

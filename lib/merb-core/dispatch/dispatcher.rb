@@ -39,6 +39,7 @@ class Merb::Dispatcher
         raise ::Merb::ControllerExceptions::BadRequest, "No routes match the request"
       end
       request.route_params = route_params
+      request.reset_params!
       route = Merb::Router.routes[route_index]
       
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
