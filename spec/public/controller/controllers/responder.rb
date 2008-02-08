@@ -26,5 +26,13 @@ module Merb::Test::Fixtures::Controllers
       render
     end
   end
-  
+
+  class MultiProvides < Responder; 
+    
+    def index
+      provides :html, :js
+      render
+    end
+  end
+
 end
