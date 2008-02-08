@@ -192,7 +192,7 @@ Spec::Rake::SpecTask.new("spec") do |t|
   t.spec_opts = ["--format", "specdoc", "--colour"]
   t.libs = ["lib", "server/lib" ]
   t.spec_files = (ENV["TASK"] || '').split(',').map do |task|
-    "spec/merb/#{task}_spec.rb"
+    "spec/**/#{task}_spec.rb"
   end
 end
 
@@ -290,7 +290,7 @@ rule "" do |t|
     spec_name = arguments[2..-1]
 
     spec_filename = "#{file_name}_spec.rb"
-    specs = Dir["spec/merb/**/#{spec_filename}"]
+    specs = Dir["spec/**/#{spec_filename}"]
     
     if path = specs.detect { |f| spec_filename == File.basename(f) }
       run_file_name = path
