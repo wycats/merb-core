@@ -2,7 +2,7 @@
 
 # DOC: Yehuda Katz FAILED
 module Merb
-  VERSION = '0.9' unless defined?(Merb::VERSION)
+  VERSION = '0.9.0' unless defined?(Merb::VERSION)
 
   # Merb::RELEASE meanings:
   # 'dev'   : unreleased
