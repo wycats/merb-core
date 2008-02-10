@@ -37,4 +37,14 @@ describe Merb::Controller, " responds" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::MultiProvides, :index, {}, :http_accept => "text/javascript, */*")
     controller.body.should == "JS: Multi"
   end
+  
+  it "should select the format based on params supplied to it with class provides" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassProvides, :index, :format => "xml")
+    controller.content_type.should == :xml    
+  end
+  
+  it "should select the format based on params supplied to it with instance provides" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::LocalProvides, :index, :format => "xml")
+    controller.content_type.should == :xml    
+  end
 end
