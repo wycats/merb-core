@@ -11,32 +11,12 @@ module Kernel
 
   def dependency(name, *ver)
     begin
-      # If it's not in ROOT/gems, skip to the next attempt
-      raise LoadError unless File.directory?(Merb.root / "gems")
-      
-      # cache the gem path
-      begin
-        # Clear out the paths and reset them to Merb
-        Gem.use_paths(Merb.root / "gems", [Merb.root / "gems"])
-        
-        # Try activating the gem (Failure will raise a LoadError)
-        Gem.activate(name, true, *ver)
-        Merb.logger.info("#{Time.now.httpdate}: loading gem '#{name}' from #{__app_file_trace__.first} ...")
-      ensure
-        # Either way, set the gem path back to normal
-        Gem.clear_paths
-      end
-
-    # If we couldn't load the gem or there was no ROOT/gems, try again, now with the full gem path
+      # Try activating the gem
+      Gem.activate(name, true, *ver)
+      Merb.logger.info("#{Time.now.httpdate}: loading gem '#{name}' from #{__app_file_trace__.first} ...")
     rescue LoadError
-      begin
-        # Try activating again
-        Gem.activate(name, true, *ver)
-        Merb.logger.info("#{Time.now.httpdate}: loading gem '#{name}' from #{__app_file_trace__.first} ...")
-      rescue LoadError
-        # Failed requiring as a gem, let's try loading with a normal require.
-        require name
-      end
+      # Failed requiring as a gem, let's try loading with a normal require.
+      require name
     end
   end
   
