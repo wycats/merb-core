@@ -70,6 +70,16 @@ describe Merb::Cookies do
     @cookies['foo'].should == 'bar'
   end
 
+  it "should leave the value unescaped in the current request" do
+    @cookies[:foo] = "100%"
+    @_headers['Set-Cookie'].should == [
+      'foo=100%25; path=/;'
+    ]
+
+    @cookies[:foo].should == '100%'
+    @cookies['foo'].should == '100%'
+  end
+
   it "should give access to currently saved cookies" do
     @_cookies[:original] = 'accessible'
     @cookies[:original].should == 'accessible'

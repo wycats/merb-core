@@ -64,13 +64,13 @@ module Merb
       value = ''
       if options.is_a?(Hash)
         options = Mash.new(options)
-        value = Merb::Request.escape(options.delete(:value))
+        value = options.delete(:value)
       else
-        value = Merb::Request.escape(options)
+        value = options
         options = Mash.new
       end
       @_cookies[name] = value
-      set_cookie(name, value, options)
+      set_cookie(name, Merb::Request.escape(value), options)
       Merb.logger.info("Cookie set: #{name} => #{value} -- #{options.inspect}")
       options
     end
