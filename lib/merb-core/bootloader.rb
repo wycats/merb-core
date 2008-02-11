@@ -144,14 +144,21 @@ class Merb::BootLoader::DropPidFile <  Merb::BootLoader
   end
 end
 
-# Load the init.rb file, and any environment files, which register the
+# Load the init_file specified in Merb::Config or if not specified, the init.rb file
+# from the Merb configuration directory, and any environment files, which register the
 # list of necessary dependencies and any after_app_loads hooks.
 # DOC
 class Merb::BootLoader::Dependencies < Merb::BootLoader
   
   # DOC
   def self.run
-    require Merb.dir_for(:config) / "init" if File.exists?(Merb.dir_for(:config) / "init.rb")
+    if Merb::Config[:init_file]
+      initfile = Merb::Config[:init_file].chomp(".rb")
+    else
+      initfile = Merb.dir_for(:config) / "init"
+    end
+    require initfile if File.exists?(initfile + ".rb")
+
     if !Merb.environment.nil? && File.exist?(Merb.dir_for(:environments) / (Merb.environment + ".rb"))
       require Merb.dir_for(:environments) / Merb.environment
     end
