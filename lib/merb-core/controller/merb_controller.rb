@@ -12,7 +12,7 @@ class Merb::Controller < Merb::AbstractController
   
   self._session_secret_key = nil
   self._session_id_key = '_session_id'
-  self._session_expiry = Time.now + Merb::Const::WEEK * 2
+  self._session_expiry = Merb::Const::WEEK * 2
   
   include Merb::ResponderMixin
   include Merb::ControllerMixin
