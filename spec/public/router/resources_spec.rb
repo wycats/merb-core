@@ -3,9 +3,7 @@ require File.join(File.dirname(__FILE__), "spec_helper")
 describe "resources routes" do
   before :each do
     Merb::Router.prepare do |r|
-      r.resources :blogposts do |b|
-        b.resources :comments
-      end
+      r.resources :blogposts
     end
   end
   
