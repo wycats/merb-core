@@ -194,6 +194,7 @@ module Merb
          ['/:id', :"#{route_singular_name}"],
          ['/new', :"new_#{route_singular_name}"],
          ['/:id/edit', :"edit_#{route_singular_name}"],
+         ['/:id/delete', :"delete_#{route_singular_name}"],
          ['/:action/:id', :"custom_#{route_singular_name}"]
         ].each do |path,name|
           next_level.match(path).to_route.name(name)
@@ -317,6 +318,7 @@ module Merb
           Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :post },   { :action => "create" },  parent),
           Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :get },    { :action => "show" },    parent),
           Behavior.new({ :path => %r[^/:id[;/]edit$],       :method => :get },    { :action => "edit" },    parent),
+          Behavior.new({ :path => %r[^/:id[;/]delete$],     :method => :get },    { :action => "delete" },    parent),
           Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :put },    { :action => "update" },  parent),
           Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :delete }, { :action => "destroy" }, parent)
         ]

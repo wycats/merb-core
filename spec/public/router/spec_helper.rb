@@ -60,7 +60,11 @@ module Merb
 
       def have_route(expected)
         HaveRoute.build(expected)
-      end  
+      end
+      
+      def have_nil_route
+        have_route({})
+      end
   
     end
   end

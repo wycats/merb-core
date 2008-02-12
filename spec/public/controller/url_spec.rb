@@ -72,4 +72,8 @@ describe Merb::Controller, " url" do
     @controller.url(:monkey,@monkey).should == "/monkeys/45"
   end
 
+  it "should match the delete route" do
+    @monkey = Monkey.new
+    @controller.url(:delete_monkey,@monkey).should == "/monkeys/45/delete"
+  end
 end
