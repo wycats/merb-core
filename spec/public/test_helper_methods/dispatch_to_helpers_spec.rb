@@ -1,4 +1,7 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
+
+Merb.start :environment => 'test', :adapter => 'runner'
+
 Dir[File.join(File.dirname(__FILE__), "controllers/**/*.rb")].each do |f|
   require f
 end

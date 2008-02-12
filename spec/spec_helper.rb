@@ -7,8 +7,6 @@ require 'merb-core/test/fake_request'
 require 'merb-core/test/request_helper'
 require 'merb-core/test/multipart_helper'
 
-Merb.start :environment => 'test', :adapter => 'runner'
-
 # -- Global custom matchers --
 
 # A better +be_kind_of+ with more informative error messages.
