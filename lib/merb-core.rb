@@ -6,8 +6,8 @@ require 'set'
 require 'fileutils'
 require 'socket'
 
-$LOAD_PATH.unshift File.dirname(__FILE__) unless 
-  $LOAD_PATH.include?(File.dirname(__FILE__)) || 
+$LOAD_PATH.unshift File.dirname(__FILE__) unless
+  $LOAD_PATH.include?(File.dirname(__FILE__)) ||
   $LOAD_PATH.include?(File.expand_path(File.dirname(__FILE__)))
 
 require 'merb-core/autoload'
@@ -28,18 +28,18 @@ end
 module Merb
   class << self
 
-    # 
+    #
     def start(argv=ARGV)
       if Hash === argv
         Merb::Config.setup(argv)
-      else  
+      else
         Merb::Config.parse_args(argv)
       end
       Merb.environment = Merb::Config[:environment]
       Merb.root = Merb::Config[:merb_root]
       Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
     end
-    
+
     attr_accessor :environment, :load_paths, :adapter
     Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)
 
@@ -50,9 +50,9 @@ module Merb
     # ==== Parameters
     # type<Symbol>:: The type of path being registered (i.e. :view)
     # path<String>:: The full path
-    # file_glob<String>:: 
+    # file_glob<String>::
     #   A glob that will be used to autoload files under the path
-    def push_path(type, path, file_glob = "**/*.rb") 
+    def push_path(type, path, file_glob = "**/*.rb")
       enforce!(type => Symbol)
       load_paths[type] = [path, file_glob]
     end
@@ -62,7 +62,7 @@ module Merb
 
     # DOC
     def glob_for(type) Merb.load_paths[type][1]    end
-    
+
     # Application paths
 
     # DOC
@@ -71,11 +71,17 @@ module Merb
     # value<String>:: the path to the root of the directory
 
     def root=(value)    @root = value                                 end
-    # ==== Parameters
-    # path<String>:: the path to a directory under the root
 
-    def root_path(path) File.join(root, path)                         end
-    
+    # ==== Parameters
+    # path<String>::
+    #   The relative path to a directory under the root of the application
+    #
+    # ==== Returns
+    # String:: The full path including the root
+    #---
+    # @public
+    def root_path(*path) File.join(root, *path)                       end
+
     # Logger settings
     attr_accessor :logger
 
@@ -100,7 +106,7 @@ module Merb
         Merb.root_path("log")
       end
     end
-    
+
     # Framework paths
 
     # DOC
@@ -113,14 +119,14 @@ module Merb
       Merb::Router.prepare do |r|
         r.default_routes
         block.call(r) if block_given?
-      end      
+      end
     end
-      
+
     # Set up default variables under Merb
     attr_accessor :generator_scope, :klass_hashes
     Merb.generator_scope = [:merb_default, :merb, :rspec]
     Merb.klass_hashes = []
-    
+
     attr_reader :registered_session_types
 
     # DOC
@@ -131,7 +137,7 @@ module Merb
         :description => (description || "Using #{name} sessions")
       }
     end
-    
+
   end
-  
+
 end
