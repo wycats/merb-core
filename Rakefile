@@ -128,12 +128,12 @@ task :aok => [:specs, :rcov]
 
 require 'open3'
 
-def run_specs(glob)
+def run_specs(glob, spec_cmd='spec')
   require "optparse"
   require "spec"
   examples, failures, errors, pending = 0, 0, 0, 0
   Dir[glob].each do |spec|
-    response = Open3.popen3("spec #{File.expand_path(spec)} -f s -c") do |i,o,e|
+    response = Open3.popen3("#{spec_cmd} #{File.expand_path(spec)} -f s -c") do |i,o,e|
       while out = o.gets
         STDOUT.puts out
         STDOUT.flush
@@ -157,20 +157,29 @@ def run_specs(glob)
   print "\e[0m"  
 end
 
-desc "Run all specs"
-task :specs do
-  run_specs("spec/**/*_spec.rb")
+def setup_specs(name, spec_cmd='spec')
+  desc "Run all specs (#{name})"
+  task "specs:#{name}" do
+    run_specs("spec/**/*_spec.rb", spec_cmd)
+  end
+
+  desc "Run private specs (#{name})"
+  task "specs:#{name}:private" do
+    run_specs("spec/private/**/*_spec.rb", spec_cmd)
+  end
+
+  desc "Run public specs (#{name})"
+  task "specs:#{name}:public" do
+    run_specs("spec/public/**/*_spec.rb", spec_cmd)
+  end
 end
 
-desc "Run private specs"
-task "specs:private" do
-  run_specs("spec/private/**/*_spec.rb")
-end
+setup_specs("mri", "spec")
+setup_specs("jruby", "jruby -S spec")
 
-desc "Run public specs"
-task "specs:public" do
-  run_specs("spec/public/**/*_spec.rb")
-end
+task "specs" => ["specs:mri"]
+task "specs:private" => ["specs:mri:private"]
+task "specs:public" => ["specs:mri:public"]
 
 desc "Run coverage suite"
 task :rcov do
