@@ -3,7 +3,7 @@
 module Merb::Test::Fixtures
 
   module Abstract
-    
+
     class RenderIt < Merb::AbstractController
       self._template_root = File.dirname(__FILE__) / "views"
 
@@ -13,14 +13,14 @@ module Merb::Test::Fixtures
     end
 
     class BasicPartial < RenderIt
-      
+
       def index
         render
       end
     end
 
     class WithPartial < RenderIt
-      
+
       def index
         @foo = "With"
         render
@@ -28,14 +28,14 @@ module Merb::Test::Fixtures
     end
 
     class WithNilPartial < RenderIt
-      
+
       def index
         render
-      end      
+      end
     end
 
     class WithAsPartial < RenderIt
-      
+
       def index
         @foo = "With and As"
         render
@@ -43,7 +43,7 @@ module Merb::Test::Fixtures
     end
 
     class PartialWithCollections < RenderIt
-      
+
       def index
         @foo = %w{ c o l l e c t i o n }
         render
@@ -51,7 +51,7 @@ module Merb::Test::Fixtures
     end
 
     class PartialWithCollectionsAndAs < RenderIt
-      
+
       def index
         @foo = %w{ c o l l e c t i o n }
         render
@@ -59,7 +59,7 @@ module Merb::Test::Fixtures
     end
 
     class PartialWithLocals < RenderIt
-      
+
       def index
         @foo, @bar = %w{ local variables }
         render
@@ -67,7 +67,7 @@ module Merb::Test::Fixtures
     end
 
     class PartialWithBoth < RenderIt
-      
+
       def index
         @foo = %w{ c o l l e c t i o n }
         @delimiter = "-"
@@ -76,12 +76,19 @@ module Merb::Test::Fixtures
     end
 
     class PartialWithWithAndLocals < RenderIt
-      
+
       def index
         @foo, @bar = "with", "and locals"
         render
       end
     end
-    
+
+    class PartialInAnotherDirectory < RenderIt
+
+      def index
+        render
+      end
+    end
+
   end
 end
