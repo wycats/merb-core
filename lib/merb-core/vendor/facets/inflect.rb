@@ -1,16 +1,10 @@
-
-
-# DOC: Yehuda Katz FAILED
 module Language
 
-# DOC: Yehuda Katz FAILED
 module English
 
   # = English Nouns Number Inflection.
   #
   # This module provides english singular <-> plural noun inflections.
-
-  # DOC: Yehuda Katz FAILED
   module Inflect
 
     @singular_of = {}
@@ -21,8 +15,6 @@ module English
 
     class << self
       # Define a general exception.
-
-      # DOC: Yehuda Katz FAILED
       def word(singular, plural=nil)
         plural = singular unless plural
         singular_word(singular, plural)
@@ -30,44 +22,32 @@ module English
       end
 
       # Define a singularization exception.
-
-      # DOC: Yehuda Katz FAILED
       def singular_word(singular, plural)
         @singular_of[plural] = singular
       end
 
       # Define a pluralization exception.
-
-      # DOC: Yehuda Katz FAILED
       def plural_word(singular, plural)
         @plural_of[singular] = plural
       end
 
       # Define a general rule.
-
-      # DOC: Yehuda Katz FAILED
       def rule(singular, plural)
         singular_rule(singular, plural)
         plural_rule(singular, plural)
       end
 
       # Define a singularization rule.
-
-      # DOC: Yehuda Katz FAILED
       def singular_rule(singular, plural)
         @singular_rules << [singular, plural]
       end
 
       # Define a plurualization rule.
-
-      # DOC: Yehuda Katz FAILED
       def plural_rule(singular, plural)
         @plural_rules << [singular, plural]
       end
 
       # Read prepared singularization rules.
-
-      # DOC: Yehuda Katz FAILED
       def singularization_rules
         return @singularization_rules if @singularization_rules
         sorted = @singular_rules.sort_by{ |s, p| "#{p}".size }.reverse
@@ -77,8 +57,6 @@ module English
       end
 
       # Read prepared pluralization rules.
-
-      # DOC: Yehuda Katz FAILED
       def pluralization_rules
         return @pluralization_rules if @pluralization_rules
         sorted = @plural_rules.sort_by{ |s, p| "#{s}".size }.reverse
@@ -88,15 +66,11 @@ module English
       end
 
       #
-
-      # DOC: Yehuda Katz FAILED
       def plural_of
         @plural_of
       end
 
       #
-
-      # DOC: Yehuda Katz FAILED
       def singular_of
         @singular_of
       end
@@ -106,7 +80,6 @@ module English
       #   "boys".singular      #=> boy
       #   "tomatoes".singular  #=> tomato
       #
-
       def singular(word)
         if result = singular_of[word]
           return result.dup
@@ -127,7 +100,6 @@ module English
       #   "boy".plural     #=> boys
       #   "tomato".plural  #=> tomatoes
       #
-
       def plural(word)
         if result = plural_of[word]
           return result.dup
@@ -227,16 +199,11 @@ module English
 end
 end
 
-# DOC: Yehuda Katz FAILED
 class String
-
-  # DOC: Yehuda Katz FAILED
   def singular
     Language::English::Inflect.singular(self)
   end
   alias_method(:singularize, :singular)
-
-  # DOC: Yehuda Katz FAILED
   def plural
     Language::English::Inflect.plural(self)
   end

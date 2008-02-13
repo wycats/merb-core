@@ -85,8 +85,6 @@ class Dictionary
     #--
     # TODO is this needed? Doesn't the super class do this?
     #++
-
-    # DOC: Yehuda Katz FAILED
     def [](*args)
       hsh = new
       if Hash === args[0]
@@ -103,8 +101,6 @@ class Dictionary
 
     # Like #new but the block sets the order.
     #
-
-    # DOC: Yehuda Katz FAILED
     def new_by(*args, &blk)
       new(*args).order_by(&blk)
     end
@@ -120,7 +116,6 @@ class Dictionary
     # This is equivalent to:
     #
     #   Dictionary.new.order_by { |key,value| key }
-
     def alpha(*args, &block)
       new(*args, &block).order_by_key
     end
@@ -130,7 +125,6 @@ class Dictionary
     #   d = Dictionary.auto
     #   d["a"]["b"]["c"] = "abc"  #=> { "a"=>{"b"=>{"c"=>"abc"}}}
     #
-
     def auto(*args)
       #AutoDictionary.new(*args)
       leet = lambda { |hsh, key| hsh[key] = new(&leet) }
@@ -139,8 +133,6 @@ class Dictionary
   end
 
    # New Dictiionary.
-
-  # DOC: Yehuda Katz FAILED
   def initialize(*args, &blk)
     @order = []
     @order_by = nil
@@ -153,15 +145,12 @@ class Dictionary
     end
   end
 
-  # DOC: Yehuda Katz FAILED
   def order
     reorder if @order_by
     @order
   end
 
   # Keep dictionary sorted by a specific sort order.
-
-  # DOC: Yehuda Katz FAILED
   def order_by( &block )
     @order_by = block
     order
@@ -181,7 +170,6 @@ class Dictionary
   #   Dictionary.new.order_by { |key,value| key }
   #
   # The initializer Dictionary#alpha also provides this.
-
   def order_by_key
     @order_by = lambda { |k,v| k }
     order
@@ -199,7 +187,6 @@ class Dictionary
   # This is equivalent to:
   #
   #   Dictionary.new.order_by { |key,value| value }
-
   def order_by_value
     @order_by = lambda { |k,v| v }
     order
@@ -207,8 +194,6 @@ class Dictionary
   end
 
   #
-
-  # DOC: Yehuda Katz FAILED
   def reorder
     if @order_by
       assoc = @order.collect{ |k| [k,@hash[k]] }.sort_by(&@order_by)
@@ -217,13 +202,6 @@ class Dictionary
     @order
   end
 
-  # DOC: Yehuda Katz FAILED
-  #def ==( hsh2 )
-  #  return false if @order != hsh2.order
-  #  super hsh2
-  #end
-
-  # DOC: Yehuda Katz FAILED
   def ==(hsh2)
     if hsh2.is_a?( Dictionary )
       @order == hsh2.order &&
@@ -233,12 +211,10 @@ class Dictionary
     end
   end
 
-  # DOC: Yehuda Katz FAILED
   def [] k
     @hash[ k ]
   end
 
-  # DOC: Yehuda Katz FAILED
   def fetch(k, *a, &b)
     @hash.fetch(k, *a, &b)
   end
@@ -250,7 +226,6 @@ class Dictionary
   # Or with additional index.
   #
   #  h[key,index] = value
-
   def []=(k, i=nil, v=nil)
     if v
       insert(i,k,v)
@@ -259,98 +234,82 @@ class Dictionary
     end
   end
 
-  # DOC: Yehuda Katz FAILED
   def insert( i,k,v )
     @order.insert( i,k )
     @hash.store( k,v )
   end
 
-  # DOC: Yehuda Katz FAILED
   def store( a,b )
     @order.push( a ) unless @hash.has_key?( a )
     @hash.store( a,b )
   end
 
-  # DOC: Yehuda Katz FAILED
   def clear
     @order = []
     @hash.clear
   end
 
-  # DOC: Yehuda Katz FAILED
   def delete( key )
     @order.delete( key )
     @hash.delete( key )
   end
 
-  # DOC: Yehuda Katz FAILED
   def each_key
     order.each { |k| yield( k ) }
     self
   end
 
-  # DOC: Yehuda Katz FAILED
   def each_value
     order.each { |k| yield( @hash[k] ) }
     self
   end
 
-  # DOC: Yehuda Katz FAILED
   def each
     order.each { |k| yield( k,@hash[k] ) }
     self
   end
   alias each_pair each
 
-  # DOC: Yehuda Katz FAILED
   def delete_if
     order.clone.each { |k| delete k if yield(k,@hash[k]) }
     self
   end
 
-  # DOC: Yehuda Katz FAILED
   def values
     ary = []
     order.each { |k| ary.push @hash[k] }
     ary
   end
 
-  # DOC: Yehuda Katz FAILED
   def keys
     order
   end
 
-  # DOC: Yehuda Katz FAILED
   def invert
     hsh2 = self.class.new
     order.each { |k| hsh2[@hash[k]] = k }
     hsh2
   end
 
-  # DOC: Yehuda Katz FAILED
   def reject( &block )
     self.dup.delete_if &block
   end
 
-  # DOC: Yehuda Katz FAILED
   def reject!( &block )
     hsh2 = reject &block
     self == hsh2 ? nil : hsh2
   end
 
-  # DOC: Yehuda Katz FAILED
   def replace( hsh2 )
     @order = hsh2.order
     @hash = hsh2.hash
   end
 
-  # DOC: Yehuda Katz FAILED
   def shift
     key = order.first
     key ? [key,delete(key)] : super
   end
 
-  # DOC: Yehuda Katz FAILED
   def unshift( k,v )
     unless @hash.include?( k )
       @order.unshift( k )
@@ -361,12 +320,10 @@ class Dictionary
     end
   end
 
-  # DOC: Yehuda Katz FAILED
   def <<(kv)
     push *kv
   end
 
-  # DOC: Yehuda Katz FAILED
   def push( k,v )
     unless @hash.include?( k )
       @order.push( k )
@@ -377,27 +334,23 @@ class Dictionary
     end
   end
 
-  # DOC: Yehuda Katz FAILED
   def pop
     key = order.last
     key ? [key,delete(key)] : nil
   end
 
-  # DOC: Yehuda Katz FAILED
   def inspect
     ary = []
     each {|k,v| ary << k.inspect + "=>" + v.inspect}
     '{' + ary.join(", ") + '}'
   end
 
-  # DOC: Yehuda Katz FAILED
   def dup
     a = []
     each{ |k,v| a << k; a << v }
     self.class[*a]
   end
 
-  # DOC: Yehuda Katz FAILED
   def update( hsh2 )
     hsh2.each { |k,v| self[k] = v }
     reorder
@@ -405,78 +358,64 @@ class Dictionary
   end
   alias :merge! update
 
-  # DOC: Yehuda Katz FAILED
   def merge( hsh2 )
     self.dup.update(hsh2)
   end
 
-  # DOC: Yehuda Katz FAILED
   def select
     ary = []
     each { |k,v| ary << [k,v] if yield k,v }
     ary
   end
 
-  # DOC: Yehuda Katz FAILED
   def reverse!
     @order.reverse!
     self
   end
 
-  # DOC: Yehuda Katz FAILED
   def reverse
     dup.reverse!
   end
 
-  # DOC: Yehuda Katz FAILED
   def first
     @hash[order.first]
   end
 
-  # DOC: Yehuda Katz FAILED
   def last
     @hash[order.last]
   end
 
-  # DOC: Yehuda Katz FAILED
   def length
     @order.length
   end
   alias :size :length
 
-  # DOC: Yehuda Katz FAILED
   def empty?
     @hash.empty?
   end
 
-  # DOC: Yehuda Katz FAILED
   def has_key?(key)
     @hash.has_key?(key)
   end
 
-  # DOC: Yehuda Katz FAILED
   def key?(key)
     @hash.key?(key)
   end
 
-  # DOC: Yehuda Katz FAILED
   def to_a
     ary = []
     each { |k,v| ary << [k,v] }
     ary
   end
 
-  # DOC: Yehuda Katz FAILED
   def to_s
     self.to_a.to_s
   end
 
-  # DOC: Yehuda Katz FAILED
   def to_hash
     @hash.dup
   end
 
-  # DOC: Yehuda Katz FAILED
   def to_h
     @hash.dup
   end

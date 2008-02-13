@@ -1,6 +1,5 @@
 require 'tempfile'
 
-# DOC: Yehuda Katz FAILED
 module Merb::Test::RequestHelper
 
   # ==== Parameters
@@ -19,7 +18,6 @@ module Merb::Test::RequestHelper
   #
   #---
   # @public
-
   def fake_request(env = {}, opt = {})
     if opt[:post_body]
       req = opt[:post_body]

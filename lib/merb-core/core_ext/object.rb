@@ -1,5 +1,4 @@
 class Object
-
   # Extracts the singleton class, so that metaprogramming can be done on it.
   #
   # Let's look at two code snippets:
@@ -170,7 +169,6 @@ class Object
     end
   end
 
-  # DOC: Yehuda Katz FAILED
   def full_const_get(name)
     list = name.split("::")
     obj = Object

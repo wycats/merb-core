@@ -1,10 +1,6 @@
 # Most of this list is simply constants frozen for efficiency
-
-# DOC: Yehuda Katz FAILED
 module Merb
-  
-  # DOC: Yehuda Katz FAILED
-  module Const
+    module Const
     
     ESCAPE_TABLE = {
       '&' => '&amp;',
