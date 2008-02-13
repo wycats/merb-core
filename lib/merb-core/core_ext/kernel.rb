@@ -72,7 +72,7 @@ module Kernel
     Merb.logger.error(message) if message
   end
   
-  # Used in Merb.root/dependencies.yml
+  # Used in Merb.root/config/init.rb
   # Tells merb which ORM (Object Relational Mapper) you wish to use.
   # Currently merb has plugins to support ActiveRecord, DataMapper, and Sequel.
   #
@@ -87,7 +87,7 @@ module Kernel
     Kernel.dependency(orm_plugin)
   end
   
-  # Used in Merb.root/dependencies.yml
+  # Used in Merb.root/config/init.rb
   # Tells merb which testing framework to use.
   # Currently merb supports rspec and test_unit for testing
   #
