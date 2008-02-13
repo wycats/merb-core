@@ -50,7 +50,8 @@ end
 
 describe "Plugins","use_test" do
   before(:each) do
-    Merb.generator_scope.replace [:merb_default, :merb, :rspec]    
+    Merb.generator_scope.replace [:merb_default, :merb, :rspec]
+    Kernel.stub!(:dependency)
   end
   
   it "should have :rspec in GENERATOR_SCOPE by default" do

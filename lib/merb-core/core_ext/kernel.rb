@@ -89,7 +89,7 @@ module Kernel
   
   # Used in Merb.root/config/init.rb
   # Tells merb which testing framework to use.
-  # Currently merb supports rspec and test_unit for testing
+  # Currently merb has plugins to supports RSpec and Test::Unit.
   #
   # Example
   #   $ sudo gem install rspec
@@ -101,6 +101,9 @@ module Kernel
     Merb.generator_scope.delete(:rspec)
     Merb.generator_scope.delete(:test_unit)
     Merb.generator_scope.push(test_framework.to_sym)
+    
+    test_plugin = test_framework.to_s.match(/^merb_/) ? test_framework.to_s : "merb_#{test_framework}"
+    Kernel.dependency(test_plugin)
   end
   
   # Returns an array with a stack trace of the application's files.
