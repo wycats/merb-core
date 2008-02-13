@@ -174,6 +174,7 @@ module Merb
          ['/:id', :"#{route_singular_name}"],
          ['/new', :"new_#{route_singular_name}"],
          ['/:id/edit', :"edit_#{route_singular_name}"],
+         ['/:id/delete', :"delete_#{route_singular_name}"],
          ['/:action/:id', :"custom_#{route_singular_name}"]
         ].each do |path,name|
           next_level.match(path).to_route.name(name)
@@ -205,6 +206,7 @@ module Merb
         next_level.match('').to_route.name(:"#{route_name}")
         next_level.match('/new').to_route.name(:"new_#{route_name}")
         next_level.match('/edit').to_route.name(:"edit_#{route_name}")
+        next_level.match('/delete').to_route.name(:"delete_#{route_name}")
         
         yield next_level if block_given?
         
@@ -286,6 +288,7 @@ module Merb
           Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :post },   { :action => "create" },  parent),
           Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :get },    { :action => "show" },    parent),
           Behavior.new({ :path => %r[^/:id[;/]edit$],       :method => :get },    { :action => "edit" },    parent),
+          Behavior.new({ :path => %r[^/:id[;/]delete$],     :method => :get },    { :action => "delete" },    parent),
           Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :put },    { :action => "update" },  parent),
           Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :delete }, { :action => "destroy" }, parent)
         ]
@@ -297,6 +300,7 @@ module Merb
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :post },   { :action => "create" },  parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :get },    { :action => "show" },    parent),
           Behavior.new({ :path => %r{^[;/]edit$},       :method => :get },    { :action => "edit" },    parent),
+          Behavior.new({ :path => %r{^[;/]delete$},     :method => :get },    { :action => "delete" },    parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :put },    { :action => "update" },  parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :delete }, { :action => "destroy" }, parent)
         ]
