@@ -32,8 +32,8 @@ module Merb::Test::RequestHelper
 
   # DOC: Yehuda Katz FAILED
   def dispatch_to(controller_klass, action, params = {}, env = {}, &blk)
-    request = fake_request(env, 
-      :query_string => Merb::Responder.params_to_query_string(params))
+    request = fake_request(env.merge(
+      :query_string => Merb::Responder.params_to_query_string(params)))
 
     controller = controller_klass.new(request)
     controller.instance_eval(&blk) if block_given?
