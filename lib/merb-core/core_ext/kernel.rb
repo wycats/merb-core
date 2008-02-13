@@ -1,6 +1,3 @@
-
-
-# DOC: Yehuda Katz FAILED
 module Kernel
   # Loads the given string as a gem.
   # An optional second parameter of a version string can be specified and is passed to rubygems.
@@ -8,44 +5,34 @@ module Kernel
   
   # Note that this new version tries to load the file via ROOT/gems first before moving off to
   # the system gems (so if you have a lower version of a gem in ROOT/gems, it'll still get loaded)
-
   def dependency(name, *ver)
+    try_framework = Merb.frozen?
     begin
-      # If it's not in ROOT/gems, skip to the next attempt
-      raise LoadError unless File.directory?(Merb.root / "gems")
-      
-      # cache the gem path
-      begin
-        # Clear out the paths and reset them to Merb
-        Gem.use_paths(Merb.root / "gems", [Merb.root / "gems"])
-        
-        # Try activating the gem (Failure will raise a LoadError)
+      # If this is a piece of merb, and we're frozen, try to require
+      # first, so we can pick it up from framework/, 
+      # otherwise try activating the gem
+      if name =~ /^merb/ && try_framework
+        require name
+      else
         Gem.activate(name, true, *ver)
         Merb.logger.info("#{Time.now.httpdate}: loading gem '#{name}' from #{__app_file_trace__.first} ...")
-      ensure
-        # Either way, set the gem path back to normal
-        Gem.clear_paths
       end
-
-    # If we couldn't load the gem or there was no ROOT/gems, try again, now with the full gem path
     rescue LoadError
-      begin
-        # Try activating again
-        Gem.activate(name, true, *ver)
-        Merb.logger.info("#{Time.now.httpdate}: loading gem '#{name}' from #{__app_file_trace__.first} ...")
-      rescue LoadError
+      if try_framework
+        try_framework = false
+        retry
+      else
         # Failed requiring as a gem, let's try loading with a normal require.
         require name
       end
     end
   end
-  
+
   # Loads both gem and library dependencies that are passed in as arguments.
   # Each argument can be:
   #   String - single dependency
   #   Hash   - name => version
   #   Array  - string dependencies
-
   def dependencies(*args)
     args.each do |arg|
       case arg
@@ -58,8 +45,6 @@ module Kernel
     
   # Requires the library string passed in.
   # If the library fails to load then it will display a helpful message.
-
-  # DOC: Yehuda Katz FAILED
   def requires(library)
     # TODO: Extract messages out into a messages file. This will also be the first step towards internationalization.
     # TODO: adjust this message once logging refactor is complete.
@@ -81,8 +66,6 @@ module Kernel
   
   # does a basic require, and prints the message passed as an optional
   # second parameter if an error occurs.
-
-  # DOC: Yehuda Katz FAILED
   def rescue_require(sym, message = nil)
     require sym
   rescue LoadError, RuntimeError
@@ -97,7 +80,6 @@ module Kernel
   #   $ sudo gem install merb_datamapper # or merb_activerecord or merb_sequel
   #   use_orm :datamapper # this line goes in dependencies.yml
   #   $ ruby script/generate model MyModel # will use the appropriate generator for your ORM
-
   def use_orm(orm)
     raise "Don't call use_orm more than once" unless Merb.generator_scope.delete(:merb_default)
     orm_plugin = orm.to_s.match(/^merb_/) ? orm.to_s : "merb_#{orm}"
@@ -113,7 +95,6 @@ module Kernel
   #   $ sudo gem install rspec
   #   use_test :rspec # this line goes in dependencies.yml (or use_test :test_unit)
   #   $ ruby script/generate controller MyController # will use the appropriate generator for tests
-
   def use_test(test_framework)
     raise "use_test only supports :rspec and :test_unit currently" unless 
       [:rspec, :test_unit].include?(test_framework.to_sym)
@@ -123,8 +104,6 @@ module Kernel
   end
   
   # Returns an array with a stack trace of the application's files.
-
-  # DOC
   def __app_file_trace__
     caller.select do |call| 
       call.include?(Merb.root) && !call.include?(Merb.root + "/framework")
@@ -138,7 +117,6 @@ module Kernel
   #
   # Example
   #   __caller_info__(1) # -> ['/usr/lib/ruby/1.8/irb/workspace.rb', '52', 'irb_binding']
-
   def __caller_info__(i = 1)
     file, line, meth = caller[i].scan(/(.*?):(\d+):in `(.*?)'/).first
   end
@@ -165,7 +143,6 @@ module Kernel
   #     [ 123, "      DEBUGGER__.waiting.push Thread.current",      false ],
   #     [ 124, "      @suspend_next = false",                       false ]
   #   ]
-
   def __caller_lines__(file, line, size = 4)
     return [['Template Error!', "problem while rendering", false]] if file =~ /\(erubis\)/
     lines = File.readlines(file)
@@ -201,7 +178,6 @@ module Kernel
   #   end
   # Assuming that the total time taken for #puts calls was less than 5% of the total time to run, #puts won't appear
   # in the profilel report.
-
   def __profile__(name, min=1)
     require 'ruby-prof' unless defined?(RubyProf)
     return_result = ''
@@ -224,7 +200,6 @@ module Kernel
 
   #   def render(*args,&blk)
   #     opts = extract_options_from_args!(args) || {}
-
   def extract_options_from_args!(args)
     args.pop if Hash === args.last
   end

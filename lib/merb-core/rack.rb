@@ -1,10 +1,6 @@
 require 'rack'
-
-# DOC: Ezra Zygmuntowicz FAILED
 module Merb
-  
-  # DOC: Ezra Zygmuntowicz FAILED
-  module Rack
+    module Rack
     autoload :Application,    "merb-core/rack/application"
     autoload :Adapter,        "merb-core/rack/adapter"
     autoload :EventedMongrel, "merb-core/rack/adapter/evented_mongrel"    

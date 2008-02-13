@@ -25,7 +25,26 @@ describe Merb::Controller, " responds" do
 
   it "should use mime-types that are provided at the local level" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::LocalProvides, :index, {}, :http_accept => "application/xml")
-    controller.body.should == "<XML:Local provides='true' />"    
+    controller.body.should == "<XML:Local provides='true' />"
   end
 
+  it "should use the first mime-type when accepting anything */*" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::MultiProvides, :index, {}, :http_accept => "*/*")
+    controller.body.should == "HTML: Multi"
+  end
+
+  it "should use the pick the first mime-type from the list not the */*" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::MultiProvides, :index, {}, :http_accept => "text/javascript, */*")
+    controller.body.should == "JS: Multi"
+  end
+  
+  it "should select the format based on params supplied to it with class provides" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassProvides, :index, :format => "xml")
+    controller.content_type.should == :xml    
+  end
+  
+  it "should select the format based on params supplied to it with instance provides" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::LocalProvides, :index, :format => "xml")
+    controller.content_type.should == :xml    
+  end
 end

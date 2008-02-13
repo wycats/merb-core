@@ -1,5 +1,3 @@
-# require 'hpricot'
-# DOC: Yehuda Katz FAILED
 class Hash
   class << self
     # Converts valid XML into a Ruby Hash structure.
@@ -61,15 +59,12 @@ class Hash
     #
     # evaluates with a typecast to an integer.  But ignores the unit attribute
     # { "bicep" => 60 }
-
     def from_xml( xml )
       ToHashParser.from_xml(xml)
     end
   end
   
   # convert this hash into a Mash for string or symbol key access
-
-  # DOC: Yehuda Katz FAILED
   def to_mash
     hash = Mash.new(self)
     hash.default = default
@@ -86,7 +81,6 @@ class Hash
   #     }
   #   }.to_params
   #   #=> "name=Bob&address[city]=Ruby Central&address[phones]=111-111-1111222-222-2222&address[street]=111 Ruby Ave."
-  # 
   def to_params
     params = ''
     stack = []
@@ -178,15 +172,12 @@ class Hash
   # Convert hashes with keys that are real references to classes into keys
   # that are strings. This is used during reloading to prevent the GC from
   # barfing when we remove classes that still
-
   def protect_keys!
     keys.each {|key| self[key.to_s] = delete(key) }
   end
   
   # Convert Hashes with String keys into Hashes with Class keys. We run this
   # after reloading to convert protected hashes back into usable hashes.
-
-  # DOC: Yehuda Katz FAILED
   def unprotect_keys!
     keys.each do |key| 
       (self[Object.full_const_get(key)] = delete(key)) rescue nil
@@ -199,10 +190,13 @@ class Hash
   #   #=> { "NAME" => "Bob", "NICK" => "Bobinator", "AGE" => 12 }
   # 
   def environmentize_keys!
-    keys.each {|key| self[key.to_s.upcase] = delete(key) }
+    keys.each do |key|
+      val = delete(key)
+      next if val.nil?
+      self[key.to_s.upcase] = val
+    end
     self
-  end
-  
+  end  
 end
 
 require 'rexml/parsers/streamparser'
@@ -224,13 +218,11 @@ class REXMLUtilityNode # :nodoc:
     @text       = false
   end
 
-  # DOC: Yehuda Katz FAILED
   def add_node(node)
     @text = true if node.is_a? String
     @children << node
   end
 
-  # DOC: Yehuda Katz FAILED
   def to_hash
     if @text
       return { name => typecast_value( translate_xml_entities( inner_html ) ) }
@@ -255,7 +247,6 @@ class REXMLUtilityNode # :nodoc:
     end
   end
 
-  # DOC: Yehuda Katz FAILED
   def typecast_value(value)
     return value unless attributes["type"]
     
@@ -268,7 +259,6 @@ class REXMLUtilityNode # :nodoc:
     end
   end
 
-  # DOC: Yehuda Katz FAILED
   def translate_xml_entities(value)
     value.gsub(/&lt;/,   "<").
           gsub(/&gt;/,   ">").
@@ -277,7 +267,6 @@ class REXMLUtilityNode # :nodoc:
           gsub(/&amp;/,  "&")
   end
 
-  # DOC: Yehuda Katz FAILED
   def undasherize_keys(params)
     params.keys.each do |key, vvalue|
       params[key.tr("-", "_")] = params.delete(key)
@@ -285,26 +274,21 @@ class REXMLUtilityNode # :nodoc:
     params
   end
 
-  # DOC: Yehuda Katz FAILED
   def inner_html
     @children.join
   end
 
-  # DOC: Yehuda Katz FAILED
   def to_html
     "<#{name}#{attributes.to_xml_attributes}>#{inner_html}</#{name}>"
   end
 
-  # DOC: Yehuda Katz FAILED
   def to_s 
     to_html
   end
 end
 
-# DOC: Yehuda Katz FAILED
 class ToHashParser # :nodoc:
 
-  # DOC: Yehuda Katz FAILED
   def self.from_xml(xml)
     stack = []
     parser = REXML::Parsers::BaseParser.new(xml)

@@ -1,14 +1,12 @@
 require 'optparse'
 require 'yaml'
 
-# DOC
 module Merb
-  
-  # DOC
   class Config
     class << self
 
-      # DOC
+      # ==== Returns
+      # Hash:: The defaults for the config.
       def defaults
         @defaults ||= {
           :host                   => "0.0.0.0",
@@ -23,52 +21,86 @@ module Merb
         }
       end
 
-      # DOC
+      # Yields the configuration.
+      #
+      # ==== Examples
+      # {{[
+      #   Merb::Config.use do |config|
+      #     config[:exception_details] = false
+      #   end
+      # ]}}
       def use
         @configuration ||= {}
         yield @configuration
       end
 
+      # ==== Parameters
+      # key<Object>:: The key to check.
+      #
+      # ==== Returns
+      # Boolean:: True if the key exists in the config.
       def key?(key)
         @configuration.key?(key)
       end
 
-      # DOC
+      # ==== Parameters
+      # key<Object>:: The key to retrieve the parameter for.
+      #
+      # ==== Returns
+      # Object:: The value of the configuration parameter.
       def [](key)
         (@configuration||={})[key]
       end
 
-      # DOC
+      # ==== Parameters
+      # key<Object>:: The key to set the parameter for.
+      # val<Object>:: The value of the parameter.
       def []=(key,val)
         @configuration[key] = val
       end
 
-      # DOC
+      # ==== Parameters
+      # key<Object>:: The key of the parameter to delete.
       def delete(key)
-        @configuration.delete key
+        @configuration.delete(key)
       end
 
-      # DOC
+      # ==== Parameters
+      # key<Object>:: The key to retrieve the parameter for.
+      # default<Object>::
+      #   The default value to return if the parameter is not set.
+      #
+      # ==== Returns
+      # Object:: The value of the configuration parameter or the default.
       def fetch(key, default)
-        @configuration.fetch key, default
+        @configuration.fetch(key, default)
       end
 
-      # DOC
+      # ==== Returns
+      # Hash:: The config as a hash.
       def to_hash
         @configuration
       end
 
-      # DOC
+      # ==== Returns
+      # String:: The config as YAML.
       def to_yaml
         @configuration.to_yaml  
       end
 
-      # DOC
+      # Sets up the configuration by storing the given settings.
+      #
+      # ==== Parameters
+      # settings<Hash>::
+      #   Configuration settings to use. These are merged with the defaults.
       def setup(settings = {})
         @configuration = defaults.merge(settings)
       end
 
-      # DOC
+      # Parses the command line arguments and stores them in the config.
+      #
+      # ==== Parameters
+      # argv<String>:: The command line arguments. Defaults to +ARGV+.
       def parse_args(argv = ARGV)
          @configuration ||= {}
          # Our primary configuration hash for the length of this method

@@ -48,14 +48,22 @@ module Merb
         Merb::BootLoader::BuildFramework.run
         begin
           Dir[Merb.dir_for(:log) / "merb.#{port == 'all' ? '*' : port }.pid"].each do |f|
-            puts f
             pid = IO.read(f).chomp.to_i
-            Process.kill(sig, pid)
-            FileUtils.rm(f) if File.exist?(f)
-            puts "killed PID #{pid} with signal #{sig}"
+            begin
+              Process.kill(sig, pid)
+              FileUtils.rm(f) if File.exist?(f)
+              puts "killed PID #{pid} with signal #{sig}"
+            rescue Errno::EINVAL
+              puts "Failed to kill PID #{pid}: '#{sig}' is an invalid or unsupported signal number."
+            rescue Errno::EPERM
+              puts "Failed to kill PID #{pid}: Insufficient permissions."
+            rescue Errno::ESRCH
+              puts "Failed to kill PID #{pid}: Process is deceased or zombie."
+              FileUtils.rm f
+            rescue Exception => e
+              puts "Failed to kill PID #{pid}: #{e.message}"
+            end
           end
-        rescue => e
-          puts "Failed to kill! #{e}"
         ensure  
           exit
         end

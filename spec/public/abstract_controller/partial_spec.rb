@@ -38,4 +38,7 @@ describe Merb::AbstractController, " Partials" do
     dispatch_should_make_body("PartialWithWithAndLocals", "Partial with with and locals")    
   end
   
+  it "should work with a partial in another directory" do
+    dispatch_should_make_body("PartialInAnotherDirectory", "Index Partial in another directory")
+  end
 end

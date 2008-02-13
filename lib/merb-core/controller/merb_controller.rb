@@ -1,18 +1,14 @@
-
-
-# DOC: Yehuda Katz FAILED
 class Merb::Controller < Merb::AbstractController
   
   class_inheritable_accessor :_session_id_key, :_session_expiry, :_hidden_actions, :_shown_actions
   cattr_accessor :_subclasses, :_session_secret_key
   self._subclasses = Set.new
 
-  # DOC: Yehuda Katz FAILED
   def self.subclasses_list() _subclasses end
   
   self._session_secret_key = nil
   self._session_id_key = '_session_id'
-  self._session_expiry = Time.now + Merb::Const::WEEK * 2
+  self._session_expiry = Merb::Const::WEEK * 2
   
   include Merb::ResponderMixin
   include Merb::ControllerMixin
@@ -22,7 +18,6 @@ class Merb::Controller < Merb::AbstractController
     # ==== Parameters
     # klass<Merb::Controller>:: The Merb::Controller inheriting from the
     #                           base class
-
     def inherited(klass)
       _subclasses << klass.to_s
       super
@@ -39,7 +34,6 @@ class Merb::Controller < Merb::AbstractController
     # 
     #---
     # @public
-
     def hide_action(*names)
       self._hidden_actions = self._hidden_actions | names.map { |n| n.to_s }
     end
@@ -78,7 +72,6 @@ class Merb::Controller < Merb::AbstractController
     # 
     #---
     # @public
-
     def show_action(*names)
       self._shown_actions = self._shown_actions | names.map {|n| n.to_s}
     end
@@ -111,7 +104,6 @@ class Merb::Controller < Merb::AbstractController
     # ==== Returns
     # Array[String]::
     #   A list of actions that should be callable.
-
     def callable_actions
       @callable_actions ||= Merb::SimpleSet.new(begin
         callables = []
@@ -141,7 +133,6 @@ class Merb::Controller < Merb::AbstractController
   #
   #---
   # @public
-
   def _template_location(action, type = nil, controller = controller_name)
     "#{controller}/#{action}.#{type}"
   end  
@@ -170,7 +161,6 @@ class Merb::Controller < Merb::AbstractController
   # 
   #---
   # @semipublic
-
   def initialize(request, response = StringIO.new, status=200, headers={'Content-Type' => 'text/html; charset=utf-8'})
     super()
     if request.params.key?(_session_id_key)
@@ -193,7 +183,6 @@ class Merb::Controller < Merb::AbstractController
   # 
   #---
   # @semipublic
-
   def _dispatch(action=:index)
     start = Time.now
     if self.class.callable_actions.include?(action.to_s)
@@ -209,8 +198,6 @@ class Merb::Controller < Merb::AbstractController
   
   # ==== Returns
   # Hash:: The parameters from the request object
-
-  # DOC: Yehuda Katz FAILED
   def params()  request.params  end
     
   # ==== Returns
@@ -221,18 +208,13 @@ class Merb::Controller < Merb::AbstractController
   # ==== Note
   # headers are passed into the cookie object so that you can do:
   #   cookies[:foo] = "bar"
-
   def cookies() @_cookies ||= ::Merb::Cookies.new(request.cookies, @headers)  end
     
   # ==== Returns
   # Hash:: The session that was extracted from the request object
-
-  # DOC: Yehuda Katz FAILED
   def session() request.session end
 
   # ==== Returns
   # Hash:: The route that was extracted from the request object
-
-  # DOC: Yehuda Katz FAILED
   def route()   request.route   end
 end

@@ -4,12 +4,7 @@ module Merb
       def params() {} end
       
       def url(name, params={})
-        Merb::Router.generate(name, params,
-          { :controller => controller_name,
-            :action => action_name,
-            :format => params[:format]
-          }
-        )
+        Merb::Router.generate(name, params)
       end
       
       def show_routes
@@ -29,10 +24,8 @@ module Merb
       end
     end
 
-    # DOC: Ezra Zygmuntowicz FAILED
     class Irb
 
-      # DOC: Ezra Zygmuntowicz FAILED
       def self.start(opts={})
         m = Merb::Rack::Console.new
         Object.send(:define_method, :merb) {

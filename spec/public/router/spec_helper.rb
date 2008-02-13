@@ -1,4 +1,5 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
+require 'ostruct'
 class SimpleRequest < OpenStruct
   
   def method
@@ -60,7 +61,11 @@ module Merb
 
       def have_route(expected)
         HaveRoute.build(expected)
-      end  
+      end
+      
+      def have_nil_route
+        have_route({})
+      end
   
     end
   end

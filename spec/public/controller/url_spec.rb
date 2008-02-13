@@ -10,6 +10,7 @@ describe Merb::Controller, " url" do
     Merb::Router.prepare do |r|
       r.default_routes
       r.resources :monkeys
+      r.resource :red
       r.match(%r{/foo/(\d+)/}).to(:controller => 'asdf').name(:regexp)
       r.match('/people/:name').
         to(:controller => 'people', :action => 'show').name(:person)
@@ -72,4 +73,12 @@ describe Merb::Controller, " url" do
     @controller.url(:monkey,@monkey).should == "/monkeys/45"
   end
 
+  it "should match the delete_monkey route" do
+    @monkey = Monkey.new
+    @controller.url(:delete_monkey, @monkey).should == "/monkeys/45/delete"
+  end
+  
+  it "should match the delete_red route" do
+    @controller.url(:delete_red).should == "/red/delete"
+  end
 end

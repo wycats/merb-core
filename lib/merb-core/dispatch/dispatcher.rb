@@ -1,6 +1,3 @@
-
-
-# DOC: Yehuda Katz FAILED
 class Merb::Dispatcher
   DEFAULT_ERROR_TEMPLATE = File.expand_path(File.dirname(__FILE__) / 'exceptions.html')
   
@@ -26,7 +23,6 @@ class Merb::Dispatcher
     # ==== Returns
     # Array[Merb::Controller, Symbol]::
     #   An array containing the Merb::Controller and the action that was dispatched to.
-
     def handle(rack_env, response)
       start   = Time.now
       request = Merb::Request.new(rack_env)
@@ -39,6 +35,7 @@ class Merb::Dispatcher
         raise ::Merb::ControllerExceptions::BadRequest, "No routes match the request"
       end
       request.route_params = route_params
+      request.reset_params!
       route = Merb::Router.routes[route_index]
       
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
@@ -96,7 +93,6 @@ class Merb::Dispatcher
     # ==== Returns
     # Array[Merb::Controller, Symbol]::
     #   An array containing the Merb::Controller and the action that was dispatched to.
-
     def dispatch_action(klass, action, request, response, status=200)
       # build controller
       controller = klass.new(request, response, status)
@@ -193,7 +189,6 @@ class Merb::Dispatcher
     # ==== Returns
     # Merb::InternalServerError::
     #   An internal server error wrapper for the exception.
-
     def controller_exception(e)
       e.kind_of?(Merb::ControllerExceptions::Base) ?
         e : Merb::ControllerExceptions::InternalServerError.new(e) 
