@@ -9,7 +9,7 @@ describe Merb::Dispatcher, "route params" do
   before(:each) do
     env = Rack::MockRequest.env_for("/foo/bar/54")
     env['REQUEST_URI'] = "/foo/bar/54"  # MockRequest doesn't set this
-    @controller = Merb::Dispatcher.handle(env, StringIO.new)
+    @controller = Merb::Dispatcher.handle(env)
   end
 
   it "should properly set the route params" do

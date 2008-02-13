@@ -23,7 +23,7 @@ class Merb::Dispatcher
     # ==== Returns
     # Array[Merb::Controller, Symbol]::
     #   An array containing the Merb::Controller and the action that was dispatched to.
-    def handle(rack_env, response)
+    def handle(rack_env)
       start   = Time.now
       request = Merb::Request.new(rack_env)
       Merb.logger.info("Params: #{request.params.inspect}")
@@ -67,7 +67,7 @@ class Merb::Dispatcher
 
       action = route_params[:action]
 
-      controller = dispatch_action(klass, action, request, response)
+      controller = dispatch_action(klass, action, request)
       Merb.logger.info controller._benchmarks.inspect
       Merb.logger.flush
 
@@ -77,7 +77,7 @@ class Merb::Dispatcher
     rescue => exception
       Merb.logger.error(Merb.exception(exception))
       exception = controller_exception(exception)
-      dispatch_exception(request, response, exception)
+      dispatch_exception(request, exception)
     end
     
     private
@@ -93,9 +93,9 @@ class Merb::Dispatcher
     # ==== Returns
     # Array[Merb::Controller, Symbol]::
     #   An array containing the Merb::Controller and the action that was dispatched to.
-    def dispatch_action(klass, action, request, response, status=200)
+    def dispatch_action(klass, action, request, status=200)
       # build controller
-      controller = klass.new(request, response, status)
+      controller = klass.new(request, status)
       if use_mutex
         @@mutex.synchronize { controller._dispatch(action) }
       else
@@ -123,14 +123,14 @@ class Merb::Dispatcher
     #   An array containing the Merb::Controller and the name of the exception
     #   that triggrered #dispatch_exception. For instance, a NotFound exception
     #   will be "not_found".
-    def dispatch_exception(request, response, exception)
+    def dispatch_exception(request, exception)
       klass = ::Exceptions rescue Merb::Controller
       request.params[:original_params] = request.params.dup rescue {}
       request.params[:original_session] = request.session.dup rescue {}
       request.params[:original_cookies] = request.cookies.dup rescue {}
       request.params[:exception] = exception
       request.params[:action] = exception.name
-      dispatch_action(klass, exception.name, request, response, exception.class::STATUS)
+      dispatch_action(klass, exception.name, request, exception.class::STATUS)
     rescue => dispatch_issue
       dispatch_issue = controller_exception(dispatch_issue)  
       # when no action/template exist for an exception, or an
@@ -139,9 +139,9 @@ class Merb::Dispatcher
       # ControllerExceptions raised from exception actions are 
       # dispatched back into the Exceptions controller
       if dispatch_issue.is_a?(Merb::ControllerExceptions::NotFound)
-        dispatch_default_exception(klass, request, response, exception)
+        dispatch_default_exception(klass, request, exception)
       elsif dispatch_issue.is_a?(Merb::ControllerExceptions::InternalServerError)
-        dispatch_default_exception(klass, request, response, dispatch_issue)
+        dispatch_default_exception(klass, request, dispatch_issue)
       else
         exception = dispatch_issue
         retry
@@ -166,8 +166,8 @@ class Merb::Dispatcher
     #   An array containing the Merb::Controller that was dispatched to
     #   and the error's name. For instance, a NotFound error's name is
     #   "not_found".
-    def dispatch_default_exception(klass, request, response, e)
-      controller = klass.new(request, response, e.class::STATUS)
+    def dispatch_default_exception(klass, request, e)
+      controller = klass.new(request, e.class::STATUS)
       if e.is_a? Merb::ControllerExceptions::Redirection
         controller.headers.merge!('Location' => e.message)
         controller.body = %{ } #fix
