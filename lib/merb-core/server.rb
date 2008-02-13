@@ -1,11 +1,22 @@
 require 'etc'
 module Merb
   
-  # Server encapsulates the management of merb daemons
+  # Server encapsulates the management of Merb daemons.
   class Server
     class << self
 
-      # Start a merb server, in either foreground, daemonized or cluster mode
+      # Start a Merb server, in either foreground, daemonized or cluster mode.
+      #
+      # ==== Parameters
+      # port<~to_i>::
+      #   The port to which the first server instance should bind to.
+      #   Subsequent server instances bind to the immediately following ports.
+      # cluster<~to_i>::
+      #   Number of servers to run in a cluster.
+      #
+      # ==== Alternatives
+      # If cluster is left out, then one process will be started. This process
+      # will be daemonized if Merb::Config[:daemonize] is true.
       def start(port, cluster=nil)
         @port = port
         @cluster = cluster
@@ -33,7 +44,12 @@ module Merb
         end
       end
 
-      # Check to see if there is already a merb running on this port
+      # ==== Parameters
+      # port<~to_s>:: The port to check for Merb instances on.
+      #
+      # ==== Returns
+      # Boolean::
+      #   True if Merb is running on the specified port.
       def alive?(port)
         f = "#{Merb.dir_for(:log)}" / "merb.#{port}.pid"
         pid = IO.read(f).chomp.to_i
@@ -43,7 +59,13 @@ module Merb
         false
       end
 
-      # Killa  merb process with a certain signal.
+      # ==== Parameters
+      # port<~to_s>:: The port of the Merb process to kill.
+      # sig<~to_s>:: The signal to send to the process. Defaults to 9.
+      #
+      # ==== Alternatives
+      # If you pass "all" as the port, the signal will be sent to all Merb
+      # processes.
       def kill(port, sig=9)
         Merb::BootLoader::BuildFramework.run
         begin
@@ -69,7 +91,8 @@ module Merb
         end
       end
 
-      # Daemonize a merb server running on a specified port
+      # ==== Parameters
+      # port<~to_s>:: The port of the Merb process to daemonize.
       def daemonize(port)
         fork do
           Process.setsid
@@ -94,7 +117,15 @@ module Merb
         end
       end
 
-      # Remove PID file from the filesystem
+      # Removes a PID file from the filesystem.
+      #
+      # ==== Parameters
+      # port<~to_s>::
+      #   The port of the Merb process to whom the the PID file belongs to.
+      #
+      # ==== Alternatives
+      # If Merb::Config[:pid_file] has been specified, that will be used
+      # instead of the port based PID file.
       def remove_pid_file(port)
         if Merb::Config[:pid_file]
           pidfile = Merb::Config[:pid_file]
@@ -104,7 +135,15 @@ module Merb
         FileUtils.rm(pidfile) if File.exist?(pidfile)
       end
 
-      # Store PID file on the filesystem
+      # Stores a PID file on the filesystem.
+      #
+      # ==== Parameters
+      # port<~to_s>::
+      #   The port of the Merb process to whom the the PID file belongs to.
+      #
+      # ==== Alternatives
+      # If Merb::Config[:pid_file] has been specified, that will be used
+      # instead of the port based PID file.
       def store_pid(port)
         FileUtils.mkdir_p(Merb.dir_for(:log)) unless File.directory?(Merb.dir_for(:log))
         if Merb::Config[:pid_file]
@@ -115,10 +154,14 @@ module Merb
         File.open(pidfile, 'w'){ |f| f.write("#{Process.pid}") }
       end
           
-      # Change privileges of the process
-      # to the specified user and group.
-      # if you only specify user, group 
-      # will be the same as user.
+      # Change privileges of the process to the specified user and group.
+      #
+      # ==== Parameters
+      # user<String>:: The user who should own the server process.
+      # group<String>:: The group who should own the server process.
+      #
+      # ==== Alternatives
+      # If group is left out, the user will be used as the group.
       def change_privilege(user, group=user)
         Merb.logger.info "Changing privileges to #{user}:#{group}"
         
@@ -137,4 +180,4 @@ module Merb
       end
     end
   end
-end    
+end
