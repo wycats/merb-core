@@ -190,10 +190,13 @@ class Hash
   #   #=> { "NAME" => "Bob", "NICK" => "Bobinator", "AGE" => 12 }
   # 
   def environmentize_keys!
-    keys.each {|key| self[key.to_s.upcase] = delete(key) }
+    keys.each do |key|
+      val = delete(key)
+      next if val.nil?
+      self[key.to_s.upcase] = val
+    end
     self
-  end
-  
+  end  
 end
 
 require 'rexml/parsers/streamparser'
