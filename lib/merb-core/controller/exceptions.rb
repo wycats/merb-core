@@ -97,12 +97,16 @@ module Merb
 
     class Base < StandardError #:doc:
 
+      # ==== Returns
+      # String:: The snake cased name of the error without the namespace.
       def name
         self.class.to_s.snake_case.split('::').last
       end
       
-      # Makes it possible to pass a status-code class to render :status
-
+      # Makes it possible to pass a status-code class to render :status.
+      #
+      # ==== Returns
+      # Fixnum:: The status code of this exception.
       def self.to_i
         STATUS
       end
