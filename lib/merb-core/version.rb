@@ -1,6 +1,3 @@
-
-
-# DOC: Yehuda Katz FAILED
 module Merb
   VERSION = '0.9.0' unless defined?(Merb::VERSION)
 

@@ -1,9 +1,5 @@
-
-
-# DOC: Yehuda Katz FAILED
 module Merb::Hook
   
-  # DOC: Yehuda Katz FAILED
   module ClassMethods
     
     # ==== Parameters
@@ -11,7 +7,6 @@ module Merb::Hook
     #
     # ==== Returns
     # An empty _hooks hash
-
     def self.extended(mod)
       mod.cattr_accessor :_hooks
       mod._hooks = Hash.new {|h,k| h[k] = Dictionary.new {|h,k| h[k] = []}}      
@@ -31,7 +26,6 @@ module Merb::Hook
     end
   end
 
-  # DOC: Yehuda Katz FAILED
   module InstanceMethods
     # Call all of the registered hooks for the passed in type.
     #
@@ -51,14 +45,12 @@ module Merb::Hook
   
 end
 
-# DOC: Yehuda Katz FAILED
 class Class
   
   # Make the class hookable, by giving it .add_hook and #hook
   #
   # ==== Returns
   # nil
-
   def is_hookable
     self.send(:extend, Merb::Hook::ClassMethods)
     self.send(:include, Merb::Hook::InstanceMethods)

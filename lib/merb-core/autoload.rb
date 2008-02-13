@@ -1,5 +1,3 @@
-
-# DOC: Yehuda Katz FAILED
 module Merb
   autoload :AbstractController,   "merb-core/controller/abstract_controller"
   autoload :BootLoader,           "merb-core/bootloader"
@@ -26,9 +24,6 @@ end
 require "merb-core/controller/template"
 require "merb-core/hook"
 
-# DOC: Yehuda Katz FAILED
 module Merb
-  
-  # DOC: Yehuda Katz FAILED
   module InlineTemplates; end
 end

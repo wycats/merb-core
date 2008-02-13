@@ -1,22 +1,15 @@
-
-
-# DOC: Ezra Zygmuntowicz FAILED
 module Merb
   
-  # DOC: Ezra Zygmuntowicz FAILED
   module Rack
     
-    # DOC: Ezra Zygmuntowicz FAILED
     class Adapter
 
       class << self
 
-        # DOC: Ezra Zygmuntowicz FAILED
         def get(id)
           Object.full_const_get(@adapters[id])
         end
 
-        # DOC: Ezra Zygmuntowicz FAILED
         def register(ids, adapter_class)
           @adapters ||= Hash.new
           ids.each { |id| @adapters[id] = "Merb::Rack::#{adapter_class}" }

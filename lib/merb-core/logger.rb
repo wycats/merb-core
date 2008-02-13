@@ -24,14 +24,12 @@ require "time" # httpdate
 # 
 # To initialize the logger you create a new object, proxies to set_log.
 #   Merb::Logger.new(log{String, IO},level{Symbol, String})
-#
 module Merb
 
   class << self #:nodoc:
     attr_accessor :logger
   end
 
-  # DOC
   class Logger
 
     attr_accessor :aio
@@ -62,8 +60,6 @@ module Merb
 
     # The idea here is that instead of performing an 'if' conditional check
     # on each logging we do it once when the log object is setup
-
-    # DOC
     def set_write_method
       @log.instance_eval do
 
@@ -85,7 +81,6 @@ module Merb
       end
     end
 
-    # DOC
     def initialize_log(log)
       close if @log # be sure that we don't leave open files laying around.
 

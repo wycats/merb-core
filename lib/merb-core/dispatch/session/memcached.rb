@@ -1,11 +1,8 @@
 require 'memcache_util'
-# DOC: Ezra Zygmuntowicz FAILED
 module Merb
 
-  # DOC: Ezra Zygmuntowicz FAILED
   module SessionMixin #:nodoc:
 
-    # DOC: Ezra Zygmuntowicz FAILED
     def self.included(base)
       base.add_hook :before_dispatch do
         Merb.logger.info("Setting up session")
@@ -24,7 +21,6 @@ module Merb
       end
     end
 
-    # DOC: Ezra Zygmuntowicz FAILED
     def session_store_type
       "memcache"
     end
@@ -41,14 +37,12 @@ module Merb
   # And a setting in +merb.yml+:
   #
   #   :session_store: mem_cache
-
   class MemCacheSession
 
     attr_accessor :session_id
     attr_accessor :data
     attr_accessor :needs_new_cookie
 
-    # DOC: Ezra Zygmuntowicz FAILED
     def initialize(session_id)
       @session_id = session_id
       @data = {}
@@ -56,8 +50,6 @@ module Merb
 
     class << self
       # Generates a new session ID and creates a row for the new session in the database.
-
-      # DOC: Ezra Zygmuntowicz FAILED
       def generate
         sid = Merb::SessionMixin::rand_uuid
         new(sid)
@@ -65,8 +57,6 @@ module Merb
 
       # Gets the existing session based on the <tt>session_id</tt> available in cookies.
       # If none is found, generates a new session.
-
-      # DOC: Ezra Zygmuntowicz FAILED
       def persist(session_id)
         unless session_id.blank?
           session = ::Cache.get("session:#{session_id}")
@@ -90,8 +80,6 @@ module Merb
       end
 
       # Don't try to reload in dev mode.
-
-      # DOC: Ezra Zygmuntowicz FAILED
       def reloadable? #:nodoc:
         false
       end
@@ -99,8 +87,6 @@ module Merb
     end
 
     # Regenerate the Session ID
-
-     # DOC
      def regenerate 
        @session_id = Merb::SessionMixin::rand_uuid 
        self.needs_new_cookie=true 
@@ -108,46 +94,35 @@ module Merb
       
      # Recreates the cookie with the default expiration time 
      # Useful during log in for pushing back the expiration date
-
-     # DOC
      def refresh_expiration 
        self.needs_new_cookie=true 
      end 
      
      # Lazy-delete of session data
-
-     # DOC
      def delete  
        @data = {} 
      end
 
     # Has the session been loaded yet?
-
-    # DOC: Ezra Zygmuntowicz FAILED
     def loaded?
       !! @data
     end
     
     # assigns a key value pair
-
-    # DOC: Ezra Zygmuntowicz FAILED
     def []=(k, v) 
       @data[k] = v
     end
 
-    # DOC: Ezra Zygmuntowicz FAILED
     def [](k) 
       @data[k] 
     end
 
-    # DOC: Ezra Zygmuntowicz FAILED
     def each(&b) 
       @data.each(&b) 
     end
     
     private
 
-    # DOC: Ezra Zygmuntowicz FAILED
     def method_missing(name, *args, &block)
       @data.send(name, *args, &block)
     end

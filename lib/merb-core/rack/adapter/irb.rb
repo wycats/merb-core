@@ -29,10 +29,8 @@ module Merb
       end
     end
 
-    # DOC: Ezra Zygmuntowicz FAILED
     class Irb
 
-      # DOC: Ezra Zygmuntowicz FAILED
       def self.start(opts={})
         m = Merb::Rack::Console.new
         Object.send(:define_method, :merb) {
