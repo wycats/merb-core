@@ -1,6 +1,5 @@
 #---
 # require 'merb' must happen after Merb::Config is instantiated
-
 require 'rubygems'
 require 'set'
 require 'fileutils'
@@ -126,6 +125,15 @@ module Merb
         :file => file,
         :description => (description || "Using #{name} sessions")
       }
+    end
+    
+    attr_accessor :frozen
+    def frozen?
+      @frozen
+    end
+    
+    def frozen!
+      @frozen = true
     end
 
   end

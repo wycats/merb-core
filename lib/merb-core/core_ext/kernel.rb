@@ -6,16 +6,28 @@ module Kernel
   # Note that this new version tries to load the file via ROOT/gems first before moving off to
   # the system gems (so if you have a lower version of a gem in ROOT/gems, it'll still get loaded)
   def dependency(name, *ver)
+    try_framework = Merb.frozen?
     begin
-      # Try activating the gem
-      Gem.activate(name, true, *ver)
-      Merb.logger.info("#{Time.now.httpdate}: loading gem '#{name}' from #{__app_file_trace__.first} ...")
+      # If this is a piece of merb, and we're frozen, try to require
+      # first, so we can pick it up from framework/, 
+      # otherwise try activating the gem
+      if name =~ /^merb/ && try_framework
+        require name
+      else
+        Gem.activate(name, true, *ver)
+        Merb.logger.info("#{Time.now.httpdate}: loading gem '#{name}' from #{__app_file_trace__.first} ...")
+      end
     rescue LoadError
-      # Failed requiring as a gem, let's try loading with a normal require.
-      require name
+      if try_framework
+        try_framework = false
+        retry
+      else
+        # Failed requiring as a gem, let's try loading with a normal require.
+        require name
+      end
     end
   end
-  
+
   # Loads both gem and library dependencies that are passed in as arguments.
   # Each argument can be:
   #   String - single dependency
