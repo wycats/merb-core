@@ -195,9 +195,10 @@ module Merb::RenderMixin
 
     # partial :foo becomes "#{controller_name}/_foo"
     # partial "foo/bar" becomes "foo/_bar"
-    template = "_#{File.basename(template.to_s)}"
+    template = template.to_s
     kontroller = (m = template.match(/.*(?=\/)/)) ? m[0] : controller_name
-
+    template = "_#{File.basename(template)}"
+    
     # Find a template path to look up (_template_location adds flexibility here)
     template_location = _template_root / _template_location(template, content_type, kontroller)
     
