@@ -4,12 +4,7 @@ module Merb
       def params() {} end
       
       def url(name, params={})
-        Merb::Router.generate(name, params,
-          { :controller => controller_name,
-            :action => action_name,
-            :format => params[:format]
-          }
-        )
+        Merb::Router.generate(name, params)
       end
       
       def show_routes
