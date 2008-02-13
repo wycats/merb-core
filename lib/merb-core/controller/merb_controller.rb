@@ -161,7 +161,7 @@ class Merb::Controller < Merb::AbstractController
   # 
   #---
   # @semipublic
-  def initialize(request, response = StringIO.new, status=200, headers={'Content-Type' => 'text/html; charset=utf-8'})
+  def initialize(request, status=200, headers={'Content-Type' => 'text/html; charset=utf-8'})
     super()
     if request.params.key?(_session_id_key)
       # Checks to see if a route allows fixation: 
@@ -170,7 +170,7 @@ class Merb::Controller < Merb::AbstractController
         request.cookies[_session_id_key] = request.params[_session_id_key]
       end
     end
-    @request, @response, @status, @headers = request, response, status, headers
+    @request, @status, @headers = request, status, headers
   end
   
   # Dispatch the action
@@ -193,7 +193,7 @@ class Merb::Controller < Merb::AbstractController
     @_benchmarks[:action_time] = Time.now - start
   end
   
-  attr_reader :request, :response, :headers
+  attr_reader :request, :headers
   attr_accessor :status
   
   # ==== Returns
