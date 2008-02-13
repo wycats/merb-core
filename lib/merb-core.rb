@@ -103,12 +103,12 @@ module Merb
     # Framework paths
     def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
 
-    def flat!(&block)
+    def flat!
       Merb::Config[:framework] = {}
 
       Merb::Router.prepare do |r|
+        yield(r) if block_given?
         r.default_routes
-        block.call(r) if block_given?
       end
     end
 
