@@ -1,7 +1,9 @@
 module Merb
   # Module that is mixed in to all implemented controllers.
   module ControllerMixin
-    
+    def must_support_streaming!
+      raise(NotImplemented, "Current Rack adapter does not support streaming") unless request.env['rack.streaming']
+    end
     # Renders the block given as a parameter using chunked
     # encoding.
     #
@@ -34,9 +36,11 @@ module Merb
     #   send chunks of data down to the server. The chunking will
     #   terminate once the block returns. 
     def render_chunked(&blk)
+      must_support_streaming!
       headers['Transfer-Encoding'] = 'chunked'
-      Proc.new {
-        response.send_status_no_connection_close(0)
+      Proc.new { |response|
+        @response = response
+        response.send_status_no_connection_close('')
         response.send_header
         blk.call
         response.write("0\r\n\r\n")
@@ -44,13 +48,14 @@ module Merb
     end
 
     # Writes a chunk from render_chunked to the response that
-    # is sent back to the client.
+    # is sent back to the client. This can only be called within
+    # a render_chunked {} block
     #
     # ==== Parameters
     # data<String>:: a chunk of data to return
     def send_chunk(data)
-      response.write('%x' % data.size + "\r\n")
-      response.write(data + "\r\n")
+      @response.write('%x' % data.size + "\r\n")
+      @response.write(data + "\r\n")
     end
     
     # Returns a +Proc+ that Mongrel can call later, allowing
@@ -61,7 +66,8 @@ module Merb
     #   A proc that should get called outside the mutex,
     #   and which will return the value to render
     def render_deferred(&blk)
-      Proc.new {
+      must_support_streaming!
+      Proc.new {|response|
         result = blk.call
         response.send_status(result.length)
         response.send_header
@@ -77,6 +83,7 @@ module Merb
     # blk<Proc>:: A proc that should get called once the string has
     #             been returned
     def render_then_call(str, &blk)
+      must_support_streaming!
       Proc.new {
         response.send_status(str.length)
         response.send_header
@@ -111,10 +118,9 @@ module Merb
       headers.update(
         'Content-Type'              => opts[:type].strip,  # fixes a problem with extra '\r' with some browsers
         'Content-Disposition'       => disposition,
-        'Content-Transfer-Encoding' => 'binary',
-        'X-SENDFILE'                => file
+        'Content-Transfer-Encoding' => 'binary'
       )
-      return
+      File.open(file)
     end
     
     # Streams a file over HTTP.
@@ -122,7 +128,7 @@ module Merb
     # ==== Example
     # stream_file( { :filename => file_name, 
     #                :type => content_type,
-    #                :content_length => content_length }) do
+    #                :content_length => content_length }) do |response|
     #   AWS::S3::S3Object.stream(user.folder_name + "-" + user_file.unique_id, bucket_name) do |chunk|
     #       response.write chunk
     #   end
@@ -140,6 +146,7 @@ module Merb
     # :filename<String>:: An acceptable value for the filename= portion
     #                     of headers["Content-Disposition"]
     def stream_file(opts={}, &stream)
+      must_support_streaming!
       opts.update(Merb::Const::DEFAULT_SEND_FILE_OPTIONS.merge(opts))
       disposition = opts[:disposition].dup || 'attachment'
       disposition << %(; filename="#{opts[:filename]}")
