@@ -41,7 +41,7 @@ module Merb
 
       def compile
         puts "compiled route: #{compiled_statement}" if $DEBUG
-        meta_def(:match, &eval(compiled_statement))
+        meta_def(:match, &eval(compiled_statement, binding, __FILE__, __LINE__))
       end
 
       def generate(name, params = {}, fallback = {})

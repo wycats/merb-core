@@ -37,7 +37,6 @@ module Merb::Test::Fixtures
       table = { "\r"=>"\\r", "\n"=>"\\n", "\t"=>"\\t", '"'=>'\\"', "\\"=>"\\\\" }      
       text = (text.split("\n").map {|x| '"' + (x.gsub(/[\r\n\t"\\]/) { |m| table[m] }) + '"'}).join(" +\n")
       mod.class_eval <<-EOS, path
-        
         def #{name}
           #{text}
         end

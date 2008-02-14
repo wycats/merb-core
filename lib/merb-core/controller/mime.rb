@@ -38,9 +38,7 @@ module Merb
          :transform_method  => transform_method,
          :response_headers  => new_response_headers })
 
-      Merb::RenderMixin.class_eval <<-EOS
-
-        # DOC: Yehuda Katz FAILED
+      Merb::RenderMixin.class_eval <<-EOS, __FILE__, __LINE__
         def render_#{key}(thing = nil, opts = {})
           content_type = :#{key}
           render thing, opts

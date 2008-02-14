@@ -53,7 +53,7 @@ class Class # :nodoc:
   def class_inheritable_reader(*syms)
     syms.each do |sym|
       next if sym.is_a?(Hash)
-      class_eval <<-EOS
+      class_eval <<-EOS, __FILE__, __LINE__
 
         def self.#{sym}
           read_inheritable_attribute(:#{sym})
@@ -69,7 +69,7 @@ class Class # :nodoc:
   def class_inheritable_writer(*syms)
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
-      class_eval <<-EOS
+      class_eval <<-EOS, __FILE__, __LINE__
 
         def self.#{sym}=(obj)
           write_inheritable_attribute(:#{sym}, obj)
@@ -88,7 +88,7 @@ class Class # :nodoc:
   def class_inheritable_array_writer(*syms)
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
-      class_eval <<-EOS
+      class_eval <<-EOS, __FILE__, __LINE__
 
         def self.#{sym}=(obj)
           write_inheritable_array(:#{sym}, obj)
@@ -107,7 +107,7 @@ class Class # :nodoc:
   def class_inheritable_hash_writer(*syms)
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
-      class_eval <<-EOS
+      class_eval <<-EOS, __FILE__, __LINE__
 
         def self.#{sym}=(obj)
           write_inheritable_hash(:#{sym}, obj)

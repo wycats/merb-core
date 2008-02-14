@@ -7,7 +7,7 @@ class Foo
     x
   end
 
-  class_eval <<-EOS
+  class_eval <<-EOS, __FILE__, __LINE__
 
     def #{:bar}(x)
       x
