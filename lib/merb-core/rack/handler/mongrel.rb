@@ -58,7 +58,7 @@ module Merb
               }
             }
             
-            if body.respond_to?(:call)
+            if Proc === body
               body.call(response)
             else  
               body.each { |part|
