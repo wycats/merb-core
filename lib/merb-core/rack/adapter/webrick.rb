@@ -6,6 +6,9 @@ module Merb
     class WEBrick
       # start WEBrick server on given host and port.
       def self.start(opts={})
+        Merb.logger.info("Using Webrick adapter")
+        Merb.logger.flush
+      
         options = {
           :Port        => opts[:port],
           :BindAddress => opts[:host],
