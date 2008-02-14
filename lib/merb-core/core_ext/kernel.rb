@@ -89,7 +89,7 @@ module Kernel
   
   # Used in Merb.root/config/init.rb
   # Tells merb which testing framework to use.
-  # Currently merb has plugins to supports RSpec and Test::Unit.
+  # Currently merb has plugins to support RSpec and Test::Unit.
   #
   # Example
   #   $ sudo gem install rspec
