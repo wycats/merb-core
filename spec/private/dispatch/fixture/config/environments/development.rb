@@ -1,4 +1,4 @@
-puts "Loaded DEVELOPMENT Environment..."
+Merb.logger.info("Loaded DEVELOPMENT Environment...")
 Merb::Config.use { |c|
   c[:exception_details] = true
   c[:reload_classes] = true
