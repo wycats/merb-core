@@ -4,6 +4,17 @@ module Merb
     
     # The Behavior class is an interim route-building class that ties 
     # pattern-matching +conditions+ to output parameters, +params+.
+    # 
+    # ==== Parameters
+    # conditions <Hash>::
+    #   Conditions to be met for this behavior to take effect. 
+    # params <Hash>::
+    #   Hash describing the course action to take (Behavior) when the conditions
+    #   are a match. The values of the +params+ keys must be Strings.
+    # parent <Behavior,Nil>::
+    #   The parent of this Behavior (defaults to nil)
+    # 
+    # @public
     class Behavior
       attr_reader :placeholders, :conditions, :params
       attr_accessor :parent
@@ -53,13 +64,69 @@ module Merb
         @params.merge! params
       end
 
+      # add registers a new route.
+      # 
+      # ==== Parameters
+      # path <String, Regex>::
+      #   the url path to match
+      # params <Hash>::
+      #   To parameters the new routes maps to.
+      #
+      # ==== Returns
+      # Route:: The resulting Route from the +path+/+params+.
+      # 
+      # @public
       def add(path, params = {})
         match(path).to(params)
       end
       
-      # Matches a +path+ and any number of optional request methods as conditions of a route.
-      # Alternatively, +path+ can be a hash of conditions, in which case +conditions+ is ignored.
-      # Yields a new instance so that sub-matching may occur.
+      # Matches a +path+ and any number of optional request methods as 
+      # conditions of a route. Alternatively, +path+ can be a hash of conditions, 
+      # in which case +conditions+ ignored. 
+      #
+      # ==== Parameters
+      # 
+      # path <String, Regexp>:: 
+      #   When passing a string as +path+ you're defining a literal definition 
+      #   for your route. Using a colon, ex.: ":login", defines both a capture
+      #   and a named param.
+      #   When passing a regular expression you can define captures explicitly 
+      #   within the regular expression syntax.
+      #   +path+ is optional.
+      # conditions <Hash>::
+      #   This optional hash helps refine the settings for the route.
+      #   When combined with a block it can help keep your routes DRY
+      # &block <Proc>::
+      #   +match+ passes a new instance of a Behavior object into the optional 
+      #   block so that sub-matching and routes nesting may occur.
+      #   
+      # ==== Returns
+      # Behavior:: A new instance of Behavior with the specified +path+/+conditions+
+      #   
+      # +Tip+: When nesting always make sure the most inner sub-match registers
+      # a Route and doesn't just returns new Behaviors
+      #
+      # ==== For Example
+      #
+      #  # registers /foo/bar to controller => "foo", :action => "bar"
+      #  # and /foo/baz to controller => "foo", :action => "caz"
+      #  r.match "/foo", :controller => "foo" do |f| 
+      #    f.match("/bar").to(:action => "bar")
+      #    f.match("/baz").to(:action => "caz")
+      #  end 
+      #  
+      #
+      #  r.match "/foo", :controller => "foo" do |f| 
+      #    f.match("/bar", :action => "bar")
+      #    f.match("/baz", :action => "caz")
+      #  end => doesn't register any routes at all
+      # 
+      # +match+ also takes regular expressions
+      # 
+      #  r.match(%r[/account/([a-z]{4,6})]).to(:controller => "account", 
+      #          :action => "show", :id => "[1]")
+      # 
+      # @public
       def match(path = '', conditions = {}, &block)
         if path.is_a? Hash
           conditions = path
@@ -81,19 +148,30 @@ module Merb
         Route.new compiled_conditions, compiled_params, self, &conditional_block
       end
       
-      # Creates a Route from one or more Behavior objects, unless a +block+ is passed in.
-      # If a block is passed in, a Behavior object is yielded and further .to operations
-      # may be called in the block.  For example:
+      # Creates a Route from one or more Behavior objects, unless a +block+ is 
+      # passed in. 
+      # 
+      # ==== Parameters
+      # 
+      #   params <hash>::
+      #     The parameters the route maps to.
+      #   &block <proc>::
+      #     Optional block. A new Behavior object is yielded and further .to 
+      #     operations may be called in the block.
+      # 
+      # ==== Returns
+      # Route :: It registers a new route and returns it.
+      # 
+      # ==== Examples
       # 
       #   r.match('/:controller/:id).to(:action => 'show')
-      # 
-      # vs.
       #   
       #   r.to :controller => 'simple' do |s|
       #     s.match('/test').to(:action => 'index')
       #     s.match('/other').to(:action => 'other')
       #   end
-      # 
+      #
+      # @public
       def to(params = {}, &block)
         if block_given?
           new_behavior = self.class.new({}, params, self)
@@ -104,27 +182,129 @@ module Merb
         end
       end
       
-      # Takes a block and stores it for defered conditional routes. 
-      # The block takes the +request+ object and the +params+ hash as parameters 
-      # and should return a hash of params.
-      # 
+      # Takes a block and stores it for deferred conditional routes. 
+      # The block takes the +request+ object and the +params+ hash as 
+      # parameters.
+      #
+      # ==== Parameters
+      #	params <Hash>::
+      #        parameters and conditions associated with this behavior
+      # &conditional_block <Proc>::
+      #		A block with the conditions to be met for the behavior to 
+      #		take effect
+      #
+      # ==== Returns
+      # Route :: The default route.
+      #	
+      # ==== Examples
       #   r.defer_to do |request, params|
-      #     params.merge :controller => 'here', :action => 'there'
+      #     params.merge :controller => 'here',
+      #                  :action => 'there' if request.xhr?
       #   end
-      # 
+      #
+      # @public
       def defer_to(params = {}, &conditional_block)
         Router.routes << (route = to_route(params, &conditional_block))
         route
       end
 
+      # Creates the most common routes /:controller/:action/:id.format when 
+      # called with no arguments.
+      # You can pass a hash or a block to add parameters or override the default 
+      # behavior.
+      # 
+      # ==== Parameters
+      # 
+      # params <Hash>:: This optional hash can be used to augment the default 
+      # settings
+      # &block <Proc>:: When passing a block a new behavior is yielded and 
+      # more refinement is possible. 
+      #
+      # ==== Returns
+      # Route :: the default route
+      # 
+      # ==== Examples
+      # 
+      #   # Passing an extra parameter "mode" to all matches
+      #   r.default_routes :mode => "default"
+      #   
+      #   # specifying exceptions within a block
+      #   r.default_routes do |nr|
+      #     nr.defer_to do |request, params|
+      #       nr.match(:protocol => "http://").to(:controller => "login", 
+      #         :action => "new") if request.env["REQUEST_URI"] =~ /\/private\//
+      #     end
+      #   end 
+      #
+      # @public  
       def default_routes(params = {}, &block)
         match(%r{/:controller(/:action(/:id)?)?(\.:format)?}).to(params, &block)
       end
 
+      # Creates a namespace for a route. This way you can have logical separation 
+      # to your routes.
+      # 
+      # ==== Parameters
+      # 
+      # name_or_path <String, Symbol>::
+      #   The name or path of the namespace.
+      # &block <Proc>::
+      #   A new Behavior instance is yielded in the block for nested resources.
+      #
+      # ==== Example
+      # 
+      #   r.namespace :admin do |admin|
+      #     admin.resources :accounts
+      #     admin.resource :email
+      #   end
+      #   
+      # @public
       def namespace(name_or_path, &block)
         yield self.class.new(:namespace => name_or_path.to_s)
       end
 
+      # Behavior#+resources+ is a route helper for defining a collection of
+      # RESTful resources.
+      # 
+      # ==== Parameters
+      # 
+      # name <String, Symbol>::
+      #   The name of the resources
+      # options <Hash>::
+      #   Ovverides and parameters to be associated with the route
+      # 
+      # ==== Options
+      # :namespace: defines the namespace for this route
+      # :name_prefix: a prefix for the named routes. If a namespace is passed
+      #   and there isn't a name prefix. The namespace will become the prefix.
+      # :controller: Specifies the controller for this route
+      # :collection: Specifies special settings for the collections routes
+      # :member: Specifies special settings and resources related to a specific 
+      #   member of this resource.
+      #
+      # ==== Returns
+      # Array<Routes> :: an Array of Routes which will define the specified
+      # RESTful collection of resources
+      # 
+      # ==== Examples
+      # 
+      #  r.resources :posts # will result in the tipical RESTful crud
+      #   
+      #   GET     /posts/?(\.:format)?      :action => "index"
+      #   GET     /posts/index(\.:format)?  :action => "index"
+      #   GET     /posts/new                :action => "new"
+      #   POST    /posts/?(\.:format)?,     :action => "create"
+      #   GET     /posts/:id(\.:format)?    :action => "show"
+      #   GET     /posts/:id[;/]edit        :action => "edit"
+      #   PUT     /posts/:id(\.:format)?    :action => "update"
+      #   DELETE  /posts/:id(\.:format)?    :action => "destroy"
+      # 
+      #  # Nesting resources
+      #  r.resources :posts do |posts|
+      #    posts.resources :comments
+      #  end
+      #
+      # @public  
       def resources(name, options = {})
         namespace = options[:namespace] || merged_params[:namespace] || conditions[:namespace]
         
@@ -185,6 +365,43 @@ module Merb
         routes
       end
 
+      # Behavior#+resource+ is a route helper for defining a single RESTful resource.
+      # 
+      # ==== Parameters
+      # 
+      # name <String, Symbol>::
+      #   The name of the resource
+      # options <Hash>::
+      #   Ovverides and parameters to be associated with the route
+      # 
+      # ==== Options
+      # :namespace: defines the namespace for this route
+      # :name_prefix: a prefix for the named routes. If a namespace is passed
+      #   and there isn't a name prefix. The namespace will become the prefix.
+      # :controller: Specifies the controller for this route
+      # 
+      # ==== Returns
+      # Array<Routes> :: an Array of Routes which define a RESTful single resource
+      # 
+      # ==== Examples
+      # 
+      #  r.resources :account # will result in the tipical RESTful crud
+      #   
+      #   GET     /account/new                :action => "new"
+      #   POST    /account/?(\.:format)?,     :action => "create"
+      #   GET     /account/(\.:format)?       :action => "show"
+      #   GET     /account/[;/]edit           :action => "edit"
+      #   PUT     /account/(\.:format)?       :action => "update"
+      #   DELETE  /account/(\.:format)?       :action => "destroy"
+      #
+      # You can optionally pass :namespace and :controller to refine the routing
+      # or pass a block to nest resources.
+      # 
+      #  r.resource :account, :namespace => "admin" do |account|
+      #    account.resources :preferences, :controller => "settings"
+      #  end
+      # 
+      # @public  
       def resource(name, options = {})
         namespace  = options[:namespace] || merged_params[:namespace] || conditions[:namespace]        
         match_path = namespace ? "/#{namespace}/#{name}" : "/#{name}"
