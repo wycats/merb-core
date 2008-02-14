@@ -7,6 +7,8 @@ module Merb
     class Mongrel
       # start server on given host and port.
       def self.start(opts={})
+        Merb.logger.info("Using Mongrel adapter") if self == Merb::Rack::Mongrel
+        Merb.logger.flush
         server = ::Mongrel::HttpServer.new(opts[:host], opts[:port])
         server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))
         server.run.join
