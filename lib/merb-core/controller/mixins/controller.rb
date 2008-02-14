@@ -214,7 +214,7 @@ module Merb
     #
     # +obj+ - The object to escape for use in XML.
     def escape_xml(obj)
-      obj.to_s.gsub(/[&<>"']/) { |s| Merb::Const::ESCAPE_TABLE[s] }
+      Erubis::XmlHelper.escape_xml(obj.to_s)
     end
     alias h escape_xml
     alias html_escape escape_xml

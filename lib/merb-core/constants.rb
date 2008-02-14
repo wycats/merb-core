@@ -2,14 +2,6 @@
 module Merb
     module Const
     
-    ESCAPE_TABLE = {
-      '&' => '&amp;',
-      '<' => '&lt;',
-      '>' => '&gt;',
-      '"' => '&quot;',
-      "'" => '&#039;',
-    }.freeze
-    
     DEFAULT_SEND_FILE_OPTIONS = {
       :type         => 'application/octet-stream'.freeze,
       :disposition  => 'attachment'.freeze
