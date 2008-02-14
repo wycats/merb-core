@@ -13,4 +13,9 @@ Goals of this release:
   * Implement a new render API
   * Build more extensions to regain selected features when needed
   
-To familiarize yourself with how a merb-core application might look, reference the /sample directory
+To familiarize yourself with how a merb-core application might look,
+use merb-gen (from merb-more) to generate a few apps:
+$ merb-gen myapp                   # a "normal" merb app
+$ merb-gen myapp --flat            # a flattened app
+$ merb-gen myapp --very-flat       # a single-file app
+
