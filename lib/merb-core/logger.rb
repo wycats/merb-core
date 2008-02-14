@@ -192,7 +192,7 @@ module Merb
     # Generate the following logging methods for Merb.logger as described in the api:
     #  :fatal, :error, :warn, :info, :debug 
     Levels.each_pair do |name, number|
-      class_eval <<-LEVELMETHODS
+      class_eval <<-LEVELMETHODS, __FILE__, __LINE__
 
       # DOC
       def #{name}(message = nil, &block)

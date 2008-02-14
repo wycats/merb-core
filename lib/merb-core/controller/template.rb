@@ -122,7 +122,7 @@ module Merb::Template
 
       # DOC: Yehuda Katz FAILED
       def _buffer( the_binding )
-        @_buffer = eval( "_buf", the_binding )
+        @_buffer = eval( "_buf", the_binding, __FILE__, __LINE__)
       end
 
       # Capture allows you to extract a part of the template into an 

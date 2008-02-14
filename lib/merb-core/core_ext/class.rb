@@ -61,7 +61,7 @@ class Class # :nodoc:
   def class_inheritable_reader(*syms)
     syms.each do |sym|
       next if sym.is_a?(Hash)
-      class_eval <<-EOS
+      class_eval <<-EOS, __FILE__, __LINE__
 
         # DOC: Yehuda Katz FAILED
         def self.#{sym}
@@ -80,7 +80,7 @@ class Class # :nodoc:
   def class_inheritable_writer(*syms)
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
-      class_eval <<-EOS
+      class_eval <<-EOS, __FILE__, __LINE__
 
         # DOC: Yehuda Katz FAILED
         def self.#{sym}=(obj)
@@ -102,7 +102,7 @@ class Class # :nodoc:
   def class_inheritable_array_writer(*syms)
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
-      class_eval <<-EOS
+      class_eval <<-EOS, __FILE__, __LINE__
 
         # DOC: Yehuda Katz FAILED
         def self.#{sym}=(obj)
@@ -124,7 +124,7 @@ class Class # :nodoc:
   def class_inheritable_hash_writer(*syms)
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
-      class_eval <<-EOS
+      class_eval <<-EOS, __FILE__, __LINE__
 
         # DOC: Yehuda Katz FAILED
         def self.#{sym}=(obj)
