@@ -160,12 +160,12 @@ module Merb
     attr_accessor :frozen
 
     # ==== Returns
-    # Boolean:: True if Merb is frozen.
+    # Boolean:: True if Merb is running via script/frozen-merb or other freezer.
     def frozen?
       @frozen
     end
 
-    # Freezes Merb.
+    # Used by script/frozen-merb and other freezers to mark Merb as frozen.
     def frozen!
       @frozen = true
     end
