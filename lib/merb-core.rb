@@ -27,7 +27,9 @@ end
 module Merb
   class << self
 
-    #
+    # ==== Parameters
+    # argv<String, Hash>::
+    #   The config arguments to start Merb with. Defaults to +ARGV+.
     def start(argv=ARGV)
       if Hash === argv
         Merb::Config.setup(argv)
@@ -44,7 +46,7 @@ module Merb
 
     # This is the core mechanism for setting up your application layout
     # merb-core won't set a default application layout, but merb-more will
-    # use the app/:type layout that is in use in Merb 0.5
+    # use the app/:type layout that is in use in Merb 0.5.
     #
     # ==== Parameters
     # type<Symbol>:: The type of path being registered (i.e. :view)
@@ -56,23 +58,37 @@ module Merb
       load_paths[type] = [path, file_glob]
     end
 
+    # ==== Parameters
+    # type<Symbol>:: The type of path to retrieve directory for, e.g. :view.
     def dir_for(type)  Merb.load_paths[type].first end
 
+    # The pattern with which to match files within the type directory.
+    #
+    # ==== Parameters
+    # type<Symbol>:: The type of path to retrieve glob for, e.g. :view.
     def glob_for(type) Merb.load_paths[type][1]    end
 
-    # Application paths
+    # ==== Returns
+    # String::
+    #   The Merb root path.
     def root()          @root || Merb::Config[:merb_root] || Dir.pwd  end
-    # ==== Parameters
-    # value<String>:: the path to the root of the directory
 
+    # ==== Parameters
+    # value<String>:: Path to the root directory.
     def root=(value)    @root = value                                 end
 
     # ==== Parameters
     # path<String>::
-    #   The relative path to a directory under the root of the application
+    #   The relative path (or list of path components) to a directory under the
+    #   root of the application.
     #
     # ==== Returns
-    # String:: The full path including the root
+    # String:: The full path including the root.
+    #
+    # ==== Examples
+    #   Merb.root = "/home/merb/app"
+    #   Merb.path("images") # => "/home/merb/app/images"
+    #   Merb.path("views", "admin") # => "/home/merb/app/views/admin"
     #---
     # @public
     def root_path(*path) File.join(root, *path)                       end
@@ -80,6 +96,10 @@ module Merb
     # Logger settings
     attr_accessor :logger
 
+    # ==== Returns
+    # String::
+    #   The path to the log file. If this Merb instance is running as a daemon
+    #   this will return +STDOUT+.
     def log_file
       if Merb::Config[:log_file]
         Merb::Config[:log_file]
@@ -92,6 +112,8 @@ module Merb
       end
     end
 
+    # ==== Returns
+    # String:: The directory that contains the log file.
     def log_path
       if Merb::Config[:log_file]
         File.dirname(Merb::Config[:log_file])
@@ -100,9 +122,13 @@ module Merb
       end
     end
 
-    # Framework paths
+    # ==== Returns
+    # String:: The root directory of the Merb framework.
     def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
 
+    # Allows flat apps by setting no default framework directories and yielding
+    # a Merb::Router instance. This is optional since the router will
+    # automatically configure the app with default routes.
     def flat!
       Merb::Config[:framework] = {}
 
@@ -119,6 +145,10 @@ module Merb
 
     attr_reader :registered_session_types
 
+    # ==== Parameters
+    # name<~to_s>:: Name of the session type to register.
+    # file<String>:: The file that defines this session type.
+    # description<String>:: An optional description of the session type.
     def register_session_type(name, file, description = nil)
       @registered_session_types ||= Dictionary.new
       @registered_session_types[name] = {
@@ -126,12 +156,16 @@ module Merb
         :description => (description || "Using #{name} sessions")
       }
     end
-    
+
     attr_accessor :frozen
+
+    # ==== Returns
+    # Boolean:: True if Merb is frozen.
     def frozen?
       @frozen
     end
-    
+
+    # Freezes Merb.
     def frozen!
       @frozen = true
     end
