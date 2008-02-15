@@ -348,8 +348,14 @@ module Merb
   
     protected
 
+    # Parses the raw accept header into an array of sorted AcceptType objects.
+    #
+    # ==== Parameters
+    # accept_header<~to_s>:: The raw accept header.
+    #
+    # ==== Returns
+    # Array:: The AcceptType objects.
     def self.parse(accept_header)
-      # parse the raw accept header into a unique, sorted array of AcceptType objects
       list = accept_header.to_s.split(/,/).enum_for(:each_with_index).map do |entry,index|
         AcceptType.new(entry,index += 1)
       end.sort.uniq
@@ -366,6 +372,25 @@ module Merb
     
     public
 
+    # ==== Parameters
+    # value<Array, Hash, ~to_s>:: The value for the query string.
+    # prefix<~to_s>:: The prefix to add to the query string keys.
+    #
+    # ==== Returns
+    # String:: The query string.
+    #
+    # ==== Alternatives
+    # If the value is a string, the prefix will be used as the key.
+    #
+    # ==== Examples
+    #   params_to_query_string(10, "page")
+    #     # => "page=10"
+    #   params_to_query_string({ :page => 10, :word => "ruby" })
+    #     # => "page=10&word=ruby"
+    #   params_to_query_string({ :page => 10, :word => "ruby" }, "search")
+    #     # => "search[page]=10&search[word]=ruby"
+    #   params_to_query_string([ "ice-cream", "cake" ], "shopping_list")
+    #     # => "shopping_list[]=ice-cream&shopping_list[]=cake"
     def self.params_to_query_string(value, prefix = nil)
       case value
       when Array
@@ -387,6 +412,11 @@ module Merb
 
     attr_reader :media_range, :quality, :index, :type, :sub_type
 
+    # ==== Parameters
+    # entry<String>:: 
+    # index<Fixnum>::
+    #   The index used for sorting accept types. A lower value indicates higher
+    #   priority.
     def initialize(entry,index)
       @index = index
       @media_range, quality = entry.split(/;\s*q=/).map{|a| a.strip }
@@ -395,35 +425,62 @@ module Merb
       @quality = ((quality || 1.0).to_f * 100).to_i
     end
 
+    # Compares two accept types for sorting purposes.
+    #
+    # ==== Returns
+    # Fixnum::
+    #   -1, 0 or 1, depending on whether entry has a lower, equal or higher
+    #   priority than the accept type being compared.
     def <=>(entry)
       c = entry.quality <=> quality
       c = index <=> entry.index if c == 0
       c
     end
 
+    # ==== Parameters
+    # entry<AcceptType>:: The accept type to compare.
+    #
+    # ==== Returns
+    # Boolean::
+    #   True if the accept types are equal, i.e. if the synonyms for this
+    #   accept type includes the entry media range.
     def eql?(entry)
       synonyms.include?(entry.media_range)
     end
 
+    # An alias for eql?.
     def ==(entry); eql?(entry); end
 
+    # ==== Returns
+    # Fixnum:: A hash based on the super range.
     def hash; super_range.hash; end
 
+    # ==== Returns
+    # Array::
+    #   All Accept header values, such as "text/html", that match this type.
     def synonyms
       @syns ||= Merb.available_mime_types.values.map do |e| 
         e[:request_headers] if e[:request_headers].include?(@media_range)
       end.compact.flatten
     end
 
+    # ==== Returns
+    # String::
+    #   The primary media range for this accept type, i.e. either the first
+    #   synonym or, if none exist, the media range.
     def super_range
       synonyms.first || @media_range
     end
 
+    # ==== Returns
+    # Symbol: The type as a symbol, e.g. :html.
     def to_sym
       Merb.available_mime_types.select{|k,v| 
         v[:request_headers] == synonyms || v[:request_headers][0] == synonyms[0]}.flatten.first
     end
 
+    # ==== Returns
+    # String:: The accept type as a string, i.e. the media range.
     def to_s
       @media_range
     end
