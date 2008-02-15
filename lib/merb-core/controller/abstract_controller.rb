@@ -15,6 +15,7 @@
 #   before :some_filter
 #   before :authenticate, :exclude => [:login, :signup]
 #   before Proc.new {|c| c.some_method }, :only => :foo
+#   before :authorize, :unless => logged_in?  
 #
 # You can use either :only => :actionname or :exclude => [:this, :that]
 # but not both at once. :only will only run before the listed actions
@@ -50,13 +51,19 @@
 #     throw :halt, proc {|c| c.access_denied }
 #     throw :halt, proc {|c| Tidy.new(c.index) }
 #
-# ==== Filter Options (.before, .after, .add_filter)
+# ==== Filter Options (.before, .after, .add_filter, .if, .unless)
 # :only<Symbol, Array[Symbol]>::
 #   A list of actions that this filter should apply to
 #
 # :exclude<Symbol, Array[Symbol]::
 #   A list of actions that this filter should *not* apply to
 # 
+# :if<Symbol, Proc>::
+#   Only apply the filter if the method named after the symbol or calling the proc evaluates to true
+# 
+# :unless<Symbol, Proc>::
+#   Only apply the filter if the method named after the symbol or calling the proc evaluates to false
+#
 # ==== Types (shortcuts for use in this file)
 # Filter:: <Array[Symbol, (Symbol, String, Proc)]>
 class Merb::AbstractController
@@ -200,9 +207,6 @@ class Merb::AbstractController
   #   be the controller)
   def _call_filters(filter_set)
     (filter_set || []).each do |filter, rule|
-      # Both:
-      # * no :only or the current action is in the :only list
-      # * no :exclude or the current action is not in the :exclude list
       if _call_filter_for_action?(rule, action_name) && _filter_condition_met?(rule)
         case filter
         when Symbol, String then send(filter)
@@ -214,11 +218,17 @@ class Merb::AbstractController
   end
   
   def _call_filter_for_action?(rule, action_name)
+    # Both:
+    # * no :only or the current action is in the :only list
+    # * no :exclude or the current action is not in the :exclude list
     (!rule.key?(:only) || rule[:only].include?(action_name)) &&
     (!rule.key?(:exclude) || !rule[:exclude].include?(action_name))
   end
   
   def _filter_condition_met?(rule)
+    # Both:
+    # * no :if or the if condition evaluates to true
+    # * no :unless or the unless condition evaluates to false
     (!rule.key?(:if) || _evaluate_condition(rule[:if])) &&
     (!rule.key?(:unless) || ! _evaluate_condition(rule[:unless]))
   end
