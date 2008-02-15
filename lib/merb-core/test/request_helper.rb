@@ -220,7 +220,7 @@ module Merb::Test::RequestHelper
     request = fake_request(env)
     
     opts = check_request_for_route(request) # Check that the request will be routed correctly
-    klass = Object.const_get(opts.delete(:controller).to_const_string)
+    klass = Object.full_const_get(opts.delete(:controller).to_const_string)
     action = opts.delete(:action).to_sym
     params.merge!(opts)
   
