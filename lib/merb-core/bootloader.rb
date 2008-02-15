@@ -189,6 +189,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
           load_file file
         end
       end
+      Merb::Controller.send :include, Merb::GlobalHelpers
     end
 
     def load_file(file)
