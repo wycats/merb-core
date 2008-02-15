@@ -124,6 +124,36 @@ module Merb::Test::Fixtures
       def bar
         @y = "bar filter"
       end
-    end  
+    end
+    
+    class TestConditionalFilterWithMethod < Testing
+      before  :foo, :if => :bar
+      
+      attr_accessor :bar
+      
+      def index
+        "#{@x}"
+      end
+      
+      private
+      def foo
+        @x = "foo filter"
+      end
+    end
+    
+    class TestConditionalFilterWithProc < Testing
+      after   :foo, :unless => lambda { |x| x.bar == "bar" }
+      
+      attr_accessor :bar
+      
+      def index
+        "index action"
+      end
+      
+      private
+      def foo
+        @body = "foo filter"
+      end
+    end
   end
 end

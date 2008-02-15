@@ -203,8 +203,7 @@ class Merb::AbstractController
       # Both:
       # * no :only or the current action is in the :only list
       # * no :exclude or the current action is not in the :exclude list
-      if (!rule.key?(:only) || rule[:only].include?(action_name)) &&
-      (!rule.key?(:exclude) || !rule[:exclude].include?(action_name))
+      if _call_filter_for_action?(rule, action_name) && _filter_condition_met?(rule)
         case filter
         when Symbol, String then send(filter)
         when Proc           then self.instance_eval(&filter)
@@ -212,6 +211,23 @@ class Merb::AbstractController
       end
     end
     return :filter_chain_completed
+  end
+  
+  def _call_filter_for_action?(rule, action_name)
+    (!rule.key?(:only) || rule[:only].include?(action_name)) &&
+    (!rule.key?(:exclude) || !rule[:exclude].include?(action_name))
+  end
+  
+  def _filter_condition_met?(rule)
+    (!rule.key?(:if) || _evaluate_condition(rule[:if])) &&
+    (!rule.key?(:unless) || ! _evaluate_condition(rule[:unless]))
+  end
+  
+  def _evaluate_condition(condition)
+    case condition
+    when Symbol : self.send(condition)
+    when Proc : condition.call(self)
+    end
   end
 
   # ==== Parameters
@@ -296,6 +312,10 @@ class Merb::AbstractController
     raise(ArgumentError,
       "You can specify either :only or :exclude but 
        not both at the same time for the same filter.") if opts.key?(:only) && opts.key?(:exclude)
+       
+     raise(ArgumentError,
+       "You can specify either :if or :unless but 
+        not both at the same time for the same filter.") if opts.key?(:if) && opts.key?(:unless)
 
     opts = normalize_filters!(opts)
 

@@ -54,5 +54,23 @@ describe Merb::AbstractController, " should support before and after filters" do
       end 
     end }.should raise_error(ArgumentError, /either :only or :exclude/)
   end
+
+  it "should support filters that work only when a condition is met via :if" do
+    dispatch_should_make_body("TestConditionalFilterWithMethod", "foo filter", :index, :presets => {:bar= => true})
+    dispatch_should_make_body("TestConditionalFilterWithMethod", "", :index, :presets => {:bar= => false})
+  end
   
+  it "should support filters that work only when a condition is met via :unless" do
+    dispatch_should_make_body("TestConditionalFilterWithProc", "foo filter", :index, :presets => {:bar= => 'baz'})
+    dispatch_should_make_body("TestConditionalFilterWithProc", "index action", :index, :presets => {:bar= => 'bar'})
+  end
+  
+  it "should throw an error if both :if and :unless are passed to a filter" do
+    running { Merb::Test::Fixtures::Abstract.class_eval do
+      
+      class TestErrorFilter < Merb::Test::Fixtures::Abstract::Testing
+        before :foo, :if => :index, :unless => :show
+      end 
+    end }.should raise_error(ArgumentError, /either :if or :unless/)
+  end
 end
