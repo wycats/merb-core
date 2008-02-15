@@ -110,7 +110,7 @@ module Merb::Template
       
       # Provides direct acccess to the buffer for this view context
       def _buffer( the_binding )
-        @_buffer = eval( "_buf", the_binding )
+        @_buffer = eval( "_buf", the_binding, __FILE__, __LINE__)
       end
 
       # Capture allows you to extract a part of the template into an 

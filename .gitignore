@@ -8,3 +8,4 @@ log
 log/*
 */log/*
 coverage
+.DS_Store

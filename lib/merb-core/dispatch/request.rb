@@ -173,7 +173,7 @@ module Merb
     
     # returns he request uri.
     def uri
-      @env['REQUEST_PATH']
+      @env['REQUEST_URI'] || @env['REQUEST_PATH']
     end
 
     def user_agent

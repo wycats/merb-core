@@ -20,7 +20,7 @@ Benchmark.bmbm do |x|
   
   x.report("eval") do
     TIMES.times do
-      eval evall
+      eval evall, binding, __FILE__, __LINE__
     end
   end
   

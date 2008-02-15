@@ -26,7 +26,7 @@ Merb::Config.use { |c|
 ### This defines which test framework the generators will use
 ### rspec is turned on by default
 # use_test :test_unit
-use_test :rspec
+# use_test :rspec
 
 ### Add your other dependencies here
 

@@ -10,7 +10,7 @@ end
 
 class Bar
   (1..10_000).each do |num|
-    class_eval <<-METH
+    class_eval <<-METH, __FILE__, __LINE__
       def meth#{num}
         #{num}
       end
