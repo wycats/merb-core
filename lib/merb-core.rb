@@ -25,6 +25,7 @@ rescue LoadError
 end
 
 module Merb
+  module GlobalHelpers; end
   class << self
 
     # ==== Parameters
