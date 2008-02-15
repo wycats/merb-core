@@ -73,4 +73,8 @@ describe Merb::AbstractController, " should support before and after filters" do
       end 
     end }.should raise_error(ArgumentError, /either :if or :unless/)
   end
+  
+  it "should throw an error" do
+    running { dispatch_should_make_body("TestConditionalFilterWithNoProcOrSymbol", "") }.should raise_error(ArgumentError, /a Symbol or a Proc/)
+  end
 end

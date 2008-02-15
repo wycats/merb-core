@@ -237,6 +237,9 @@ class Merb::AbstractController
     case condition
     when Symbol : self.send(condition)
     when Proc : condition.call(self)
+    else
+      raise ArgumentError,
+            'Filter condtions need to be either a Symbol or a Proc'
     end
   end
 

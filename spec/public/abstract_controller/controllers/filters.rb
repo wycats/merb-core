@@ -155,5 +155,13 @@ module Merb::Test::Fixtures
         @body = "foo filter"
       end
     end
+    
+    class TestConditionalFilterWithNoProcOrSymbol < Testing
+      after   :foo, :unless => true
+      
+      def index
+        "index action"
+      end
+    end
   end
 end
