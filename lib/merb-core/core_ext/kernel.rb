@@ -15,13 +15,14 @@ module Kernel
         require name
       else
         Gem.activate(name, true, *ver)
-        Merb.logger.info("#{Time.now.httpdate}: loading gem '#{name}' from #{__app_file_trace__.first} ...")
+        Merb.logger.info("loading gem '#{name}' from #{__app_file_trace__.first} ...")
       end
     rescue LoadError
       if try_framework
         try_framework = false
         retry
       else
+        Merb.logger.info("loading gem '#{name}' from #{__app_file_trace__.first} ...")
         # Failed requiring as a gem, let's try loading with a normal require.
         require name
       end
@@ -49,17 +50,17 @@ module Kernel
     # TODO: Extract messages out into a messages file. This will also be the first step towards internationalization.
     # TODO: adjust this message once logging refactor is complete.
     require(library)
-    message = "#{Time.now.httpdate}: loading library '#{library}' from #{__app_file_trace__.first} ..."
+    message = "loading library '#{library}' from #{__app_file_trace__.first} ..."
     Merb.logger.debug(message)
   rescue LoadError
     # TODO: adjust the two messages below to use merb's logger.error/info once logging refactor is complete.
-    message = "#{Time.now.httpdate}: <e> Could not find '#{library}' as either a library or gem, loaded from #{__app_file_trace__.first}.\n"
+    message = "<e> Could not find '#{library}' as either a library or gem, loaded from #{__app_file_trace__.first}.\n"
     Merb.logger.error(message)
     
     # Print a helpful message
-    message =  "#{Time.now.httpdate}: <i> Please be sure that if '#{library}': \n"
-    message << "#{Time.now.httpdate}: <i>   * is a normal ruby library (file), be sure that the path of the library it is present in the $LOAD_PATH via $LOAD_PATH.unshift(\"/path/to/#{library}\") \n"
-    message << "#{Time.now.httpdate}: <i>   * is included within a gem, be sure that you are specifying the gem as a dependency \n"
+    message =  " <i> Please be sure that if '#{library}': \n"
+    message << " <i>   * is a normal ruby library (file), be sure that the path of the library it is present in the $LOAD_PATH via $LOAD_PATH.unshift(\"/path/to/#{library}\") \n"
+    message << " <i>   * is included within a gem, be sure that you are specifying the gem as a dependency \n"
     Merb.logger.error(message)
     exit # Missing library/gem must be addressed.
   end

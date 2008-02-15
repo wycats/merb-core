@@ -58,12 +58,18 @@ module Merb
 
     private
 
-    # The idea here is that instead of performing an 'if' conditional check
-    # on each logging we do it once when the log object is setup
+    # Define the write method based on if aio an be used
+    # ==== Parameters
+    #   none
+    #
+    # Notes: The idea here is that instead of performing an 'if' conditional
+    #        check on each logging we do it once when the log object is setup
     def set_write_method
       @log.instance_eval do
 
-        # DOC
+        # Determine if asynchronous IO can be used
+        # ==== Parameters
+        #   none
         def aio?
           @aio = !Merb.environment.to_s.match(/development|test/) && 
           !RUBY_PLATFORM.match(/java|mswin/) &&
@@ -71,8 +77,7 @@ module Merb
           @log.respond_to?(:write_nonblock)
         end
 
-        # DOC
-        undef write_method if defined? write_method
+        undef write_method if defined? write_method #:nodoc:
         if aio?
           alias :write_method :write_nonblock
         else
