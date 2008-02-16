@@ -3,6 +3,11 @@ module Merb
 
   module SessionMixin #:nodoc:
 
+    # Adds a before and after dispatch hook for setting up the memcached
+    # session store.
+    #
+    # ==== Parameters
+    # base<Class>:: The class to which the SessionMixin is mixed into.
     def self.included(base)
       base.add_hook :before_dispatch do
         Merb.logger.info("Setting up session")
@@ -21,6 +26,8 @@ module Merb
       end
     end
 
+    # ==== Returns
+    # String:: The session store type, i.e. "memcache".
     def session_store_type
       "memcache"
     end
@@ -43,20 +50,31 @@ module Merb
     attr_accessor :data
     attr_accessor :needs_new_cookie
 
+    # ==== Parameters
+    # session_id<String>:: A unique identifier for this session.
     def initialize(session_id)
       @session_id = session_id
       @data = {}
     end
 
     class << self
-      # Generates a new session ID and creates a row for the new session in the database.
+
+      # Generates a new session ID and creates a new session.
+      #
+      # ==== Returns
+      # MemCacheSession:: The new session.
       def generate
         sid = Merb::SessionMixin::rand_uuid
         new(sid)
       end
 
-      # Gets the existing session based on the <tt>session_id</tt> available in cookies.
-      # If none is found, generates a new session.
+      # ==== Parameters
+      # session_id<String:: The ID of the session to retrieve.
+      #
+      # ==== Returns
+      # Array::
+      #   A pair consisting of a MemCacheSession and the session's ID. If no
+      #   sessions matched session_id, a new MemCacheSession will be generated.
       def persist(session_id)
         unless session_id.blank?
           session = ::Cache.get("session:#{session_id}")
@@ -86,43 +104,56 @@ module Merb
 
     end
 
-    # Regenerate the Session ID
-     def regenerate 
-       @session_id = Merb::SessionMixin::rand_uuid 
-       self.needs_new_cookie=true 
-     end 
+    # Regenerate the session ID.
+    def regenerate 
+      @session_id = Merb::SessionMixin::rand_uuid 
+      self.needs_new_cookie=true 
+    end 
       
-     # Recreates the cookie with the default expiration time 
-     # Useful during log in for pushing back the expiration date
-     def refresh_expiration 
-       self.needs_new_cookie=true 
-     end 
+    # Recreates the cookie with the default expiration time. Useful during log
+    # in for pushing back the expiration date.
+    def refresh_expiration 
+      self.needs_new_cookie=true 
+    end 
      
-     # Lazy-delete of session data
-     def delete  
-       @data = {} 
-     end
+    # Deletes the session by emptying stored data.
+    def delete  
+      @data = {} 
+    end
 
-    # Has the session been loaded yet?
+    # ==== Returns
+    # Boolean:: True if session has been loaded already.
     def loaded?
       !! @data
     end
     
-    # assigns a key value pair
+    # ==== Parameters
+    # k<~to_s>:: The key of the session parameter to set.
+    # v<~to_s>:: The value of the session parameter to set.
     def []=(k, v) 
       @data[k] = v
     end
 
+    # ==== Parameters
+    # k<~to_s>:: The key of the session parameter to retrieve.
+    #
+    # ==== Returns
+    # String:: The value of the session parameter.
     def [](k) 
       @data[k] 
     end
 
+    # Yields the session data to an each block.
+    #
+    # ==== Parameter
+    # b<Proc>:: The block to pass to each.
     def each(&b) 
       @data.each(&b) 
     end
     
     private
 
+    # Attempts to redirect any messages to the data object.
     def method_missing(name, *args, &block)
       @data.send(name, *args, &block)
     end

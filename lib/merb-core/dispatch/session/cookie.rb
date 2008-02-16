@@ -5,6 +5,11 @@ module Merb
 
   module SessionMixin #:nodoc:
 
+    # Adds a before and after dispatch hook for setting up the cookie session
+    # store.
+    #
+    # ==== Parameters
+    # base<Class>:: The class to which the SessionMixin is mixed into.
     def self.included(base)
       base.add_hook :before_dispatch do
         Merb.logger.info("Setting Up Cookie Store Sessions")
@@ -22,6 +27,8 @@ module Merb
       end
     end
 
+    # ==== Returns
+    # String:: The session store type, i.e. "cookie".
     def session_store_type
       "cookie"
     end
@@ -57,6 +64,12 @@ module Merb
     
     attr_reader :data
 
+    # ==== Parameters
+    # cookie<String>:: The cookie.
+    # secret<String>:: A session secret.
+    #
+    # ==== Raises
+    # ArgumentError:: Nil or blank secret.
     def initialize(cookie, secret)
       if secret.nil? or secret.blank?
         raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data.'
@@ -65,8 +78,11 @@ module Merb
       @data = unmarshal(cookie) || Hash.new
     end
     
-    # return a cookie value. raises CookieOverflow if session contains too
-    # much information
+    # ==== Returns
+    # String:: Cookie value.
+    #
+    # ==== Raises
+    # CookieOverflow:: Session contains too much information.
     def read_cookie
       unless @data.nil? or @data.empty? 
         updated = marshal(@data)
@@ -75,25 +91,38 @@ module Merb
       end
     end
     
-    # assigns a key value pair
+    # ==== Parameters
+    # k<~to_s>:: The key of the session parameter to set.
+    # v<~to_s>:: The value of the session parameter to set.
     def []=(k, v) 
       @data[k] = v
     end
 
+    # ==== Parameters
+    # k<~to_s>:: The key of the session parameter to retrieve.
+    #
+    # ==== Returns
+    # String:: The value of the session parameter.
     def [](k) 
       @data[k] 
     end
 
+    # Yields the session data to an each block.
+    #
+    # ==== Parameter
+    # b<Proc>:: The block to pass to each.
     def each(&b) 
       @data.each(&b) 
     end
-    
+
+    # Deletes the session by emptying stored data.
     def delete  
       @data = {} 
     end
     
     private
 
+    # Attempts to redirect any messages to the data object.
     def method_missing(name, *args, &block)
       @data.send(name, *args, &block)
     end
@@ -104,12 +133,27 @@ module Merb
     end
     
     # Marshal a session hash into safe cookie data. Include an integrity hash.
+    #
+    # ==== Parameters
+    # session<Hash>:: The session to store in the cookie.
+    #
+    # ==== Returns
+    # String:: The cookie to be stored.
     def marshal(session)
       data = Base64.encode64(Marshal.dump(session)).chop
       Merb::Request.escape "#{data}--#{generate_digest(data)}"
     end
     
     # Unmarshal cookie data to a hash and verify its integrity.
+    #
+    # ==== Parameters
+    # cookie<~to_s>:: The cookie to unmarshal.
+    #
+    # ==== Raises
+    # TamperedWithCookie:: The digests don't match.
+    #
+    # ==== Returns
+    # Hash:: The stored session data.
     def unmarshal(cookie)
       if cookie
         data, digest = Merb::Request.unescape(cookie).split('--')
