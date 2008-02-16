@@ -21,6 +21,13 @@ module Merb
     end
     
     METHODS = %w{get post put delete head}
+
+    # ==== Returns
+    # Symbol:: The name of the request method, e.g. :get.
+    #
+    # ==== Notes
+    # If the method is post, then the +_method+ param will be checked for
+    # masquerading method.
     def method
       @method ||= begin
         request_method = @env['REQUEST_METHOD'].downcase.to_sym
@@ -49,15 +56,17 @@ module Merb
     
     private
     
-    # A hash of parameters passed from the URL like ?blah=hello
+    # ==== Returns
+    # Hash:: Parameters passed from the URL like ?blah=hello.
     def query_params
       @query_params ||= self.class.query_parse(query_string || '')
     end
     
-    # A hash of parameters passed in the body of the request.
+    # Parameters passed in the body of the request. Ajax calls from
+    # prototype.js and other libraries pass content this way.
     #
-    # Ajax calls from prototype.js and other libraries 
-    # pass content this way.
+    # ==== Returns
+    # Hash:: The parameters passed in the body.
     def body_params
       @body_params ||= begin
         if content_type && content_type.match(Merb::Const::FORM_URL_ENCODED_REGEXP) # or content_type.nil?
@@ -66,6 +75,10 @@ module Merb
       end
     end
 
+    # ==== Returns
+    # Hash::
+    #   The parameters gathered from the query string and the request body,
+    #   with parameters in the body taking precedence.
     def body_and_query_params
       # ^-- FIXME a better name for this method
       @body_and_query_params ||= begin
@@ -75,6 +88,12 @@ module Merb
       end
     end
 
+    # ==== Raises
+    # ControllerExceptions::MultiPartParseError::
+    #   Unable to parse the multipart form data.
+    #
+    # ==== Returns
+    # Hash:: The parsed multipart parameters.
     def multipart_params
       @multipart_params ||= 
         begin
@@ -91,6 +110,8 @@ module Merb
         end
     end
 
+    # ==== Returns
+    # Hash:: Parameters from body if this is a JSON request.
     def json_params
       @json_params ||= begin
         if Merb::Const::JSON_MIME_TYPE_REGEXP.match(content_type)
@@ -99,6 +120,8 @@ module Merb
       end
     end
 
+    # ==== Returns
+    # Hash:: Parameters from body if this is an XML request.
     def xml_params
       @xml_params ||= begin
         if Merb::Const::XML_MIME_TYPE_REGEXP.match(content_type)
@@ -109,6 +132,12 @@ module Merb
     
     public
 
+    # ==== Returns
+    # Hash:: All request parameters.
+    #
+    # ==== Notes
+    # The order of precedence for the params is XML, JSON, multipart, body and
+    # request string.
     def params
       @params ||= begin
         h = body_and_query_params.merge(route_params)      
@@ -118,15 +147,20 @@ module Merb
         h
       end
     end
-    
+
+    # Resets the params to a nil value.
     def reset_params!
       @params = nil
     end
 
+    # ==== Returns
+    # Hash:: The cookies for this request.
     def cookies
       @cookies ||= self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
     end
 
+    # ==== Returns
+    # String:: The raw post.
     def raw_post
       @body.rewind
       res = @body.read
@@ -134,16 +168,16 @@ module Merb
       res
     end
     
-    # Returns true if the request is an Ajax request.
-    #
-    # Also aliased as the more memorable ajax? and xhr?.
+    # ==== Returns
+    # Boolean:: If the request is an XML HTTP request.
     def xml_http_request?
       not /XMLHttpRequest/i.match(@env['HTTP_X_REQUESTED_WITH']).nil?
     end
     alias xhr? :xml_http_request?
     alias ajax? :xml_http_request?
     
-    # returns the remote IP address if it can find it.
+    # ==== Returns
+    # String:: The remote IP address.
     def remote_ip
       return @env['HTTP_CLIENT_IP'] if @env.include?('HTTP_CLIENT_IP')
     
@@ -354,7 +388,17 @@ module Merb
       CRLF = "\r\n".freeze
       EOL = CRLF
 
-      def parse_multipart(request,boundary, content_length)
+      # ==== Parameters
+      # request<IO>:: The raw request.
+      # boundary<String>:: The boundary string.
+      # content_length<Fixnum>:: The length of the content.
+      #
+      # ==== Raises
+      # ControllerExceptions::MultiPartParseError:: Failed to parse request.
+      #
+      # ==== Returns
+      # Hash:: The parsed request.
+      def parse_multipart(request, boundary, content_length)
         boundary = "--#{boundary}"
         paramhsh = {}
         buf = ""
@@ -430,7 +474,16 @@ module Merb
         paramhsh
       end
 
-      # DOC
+      # Converts a query string snippet to a hash and adds it to existing
+      # parameters.
+      #
+      # ==== Parameters
+      # parms<Hash>:: Parameters to add the normalized parameters to.
+      # name<String>:: The key of the parameter to normalize.
+      # val<String>:: The value of the parameter.
+      #
+      # ==== Returns
+      # Hash:: Normalized parameters
       def normalize_params(parms, name, val=nil)
         name =~ %r([\[\]]*([^\[\]]+)\]*)
         key = $1 || ''
@@ -449,4 +502,3 @@ module Merb
     end
   end
 end    
-    

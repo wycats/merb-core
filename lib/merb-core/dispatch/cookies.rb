@@ -5,56 +5,41 @@ module Merb
   # during the current request. The cookies you write will be sent out with the
   # response. Cookies are read by value (so you won't get the cookie object
   # itself back -- just the value it holds).
-  #
-  # == Writing
-  #
-  #   cookies[:user]  = "dave" # => Sets a simple session cookie
-  #   cookies[:token] = { :value => user.token, :expires => Time.now + 2.weeks }
-  #     # => Will set a cookie that expires in 2 weeks
-  #
-  # == Reading
-  #
-  #   cookies[:user] # => "dave"
-  #   cookies.size   # => 2 (the number of cookies)
-  #
-  # == Deleting
-  #
-  #   cookies.delete(:user)
-  #
-  # == Options
-  #
-  # * +value+   - the cookie's value
-  # * +path+    - the path for which this cookie applies.  Defaults to the root
-  #               of the application.
-  # * +expires+ - the time at which this cookie expires, as a +Time+ object.
   class Cookies
 
+    # ==== Parameters
+    # request_cookies<Hash>:: Initial cookie store.
+    # headers<Hash>:: The response headers.
     def initialize(request_cookies, headers)
       @_cookies = request_cookies
       @_headers = headers
     end
 
-    # Returns the value of the cookie by +name+ or nil if no such cookie
-    # exists. You set new cookies using cookies[]=
+    # ==== Parameters
+    # name<~to_s>:: Name of the cookie.
+    #
+    # ==== Returns
+    # String:: Value of the cookie.
     def [](name)
       @_cookies[name]
     end
 
-    # Sets the value of a cookie. You can set the value directly or pass a hash
-    # with options.
+    # ==== Parameters
+    # name<~to_s>:: Name of the cookie.
+    # options<Hash, ~to_s>:: Options for the cookie being set (see below).
     #
-    # == Example
+    # ==== Options (options)
+    # :value<~to_s>:: Value of the cookie
+    # :path<String>:: The path for which this cookie applies. Defaults to "/".
+    # :expires<Time>:: Cookie expiry date.
     #
-    #   cookies[:user]  = "dave" # => Sets a simple session cookie
+    # ==== Alternatives
+    # If options is not a hash, it will be used as the cookie value directly.
+    #
+    # ==== Examples
+    #   cookies[:user] = "dave" # => Sets a simple session cookie
     #   cookies[:token] = { :value => user.token, :expires => Time.now + 2.weeks }
     #     # => Will set a cookie that expires in 2 weeks
-    #
-    # == Options
-    #
-    # * +value+   - the cookie's value or list of values (as an array).
-    # * +path+    - the path for which this cookie applies.  Defaults to the root
-    #               '/' of the application.
-    # * +expires+ - the time at which this cookie expires, as a +Time+ object.
     def []=(name, options)
       value = ''
       if options.is_a?(Hash)
@@ -70,8 +55,12 @@ module Merb
       options
     end
 
-    # Removes the cookie on the client machine by setting the value to an empty string
-    # and setting its expiration date into the past.
+    # Removes the cookie on the client machine by setting the value to an empty
+    # string and setting its expiration date into the past.
+    #
+    # ==== Parameters
+    # name<~to_s>:: Name of the cookie to delete.
+    # options<Hash>:: Additional options to pass to +set_cookie+.
     def delete(name, options = {})
       cookie = @_cookies.delete(name)
       options = Mash.new(options)
@@ -83,6 +72,14 @@ module Merb
 
     private
 
+      # ==== Parameters
+      # name<~to_s>:: Name of the cookie.
+      # value<~to_s>:: Value of the cookie.
+      # options<Hash>:: Additional options for the cookie (see below).
+      #
+      # ==== Options (options)
+      # :path<String>:: The path for which this cookie applies. Defaults to "/".
+      # :expires<Time>:: Cookie expiry date.
       def set_cookie(name, value, options)
         options[:path] = '/' unless options[:path]
         if expiry = options[:expires]
