@@ -7,6 +7,13 @@ module Merb
       attr_reader :conditions, :conditional_block
       attr_reader :params, :behavior, :segments, :index, :symbol
 
+      # ==== Parameters
+      # conditions<Hash>:: Conditions for the route.
+      # params<Hash>:: Parameters for the route.
+      # behavior<Merb::Router::Behavior>::
+      #   The associated behavior. Defaults to nil.
+      # conditional_block<Proc>::
+      #		A block with the conditions to be met for the route to take effect.
       def initialize(conditions, params, behavior = nil, &conditional_block)
         @conditions, @params, @behavior = conditions, params, behavior
         @conditional_block = conditional_block
@@ -15,36 +22,48 @@ module Merb
         end
       end
 
+      # ==== Returns
+      # Boolean:: True if fixation is allowed.
       def allow_fixation? 
         @fixation
       end 
          
-      # Used to disable/enable fixation on a route
+      # ==== Parameters
+      # enabled<Boolean>:: True enables fixation on the route.
       def fixatable(enable=true) 
         @fixation = enable 
         self
       end
 
+      # ==== Returns
+      # String:: The route as a string, e.g. "admin/:controller/:id".
       def to_s
         segments.inject('') do |str,seg|
           str << (seg.is_a?(Symbol) ? ":#{seg}" : seg)
         end
       end
       
-      # Registers itself in the Router.routes array
+      # Registers the route in the Router.routes array.
       def register
         @index = Router.routes.size
         Router.routes << self
         self
       end
       
-      # Get the symbols out of the segments array
+      # ==== Returns
+      # Array:: All the symbols in the segments array.
       def symbol_segments
         segments.select{ |s| s.is_a?(Symbol) }
       end
       
-      # Turn a path into string and symbol segments so it can be reconstructed, as in the
-      # case of a named route.
+      # Turn a path into string and symbol segments so it can be reconstructed,
+      # as in the case of a named route.
+      #
+      # ==== Parameters
+      # path<String>:: The path to split into segments.
+      #
+      # ==== Returns
+      # Array:: The Symbol and String segments for the path.
       def segments_from_path(path)
         # Remove leading ^ and trailing $ from each segment (left-overs from regexp joining)
         strip = proc { |str| str.gsub(/^\^/, '').gsub(/\$$/, '') }
@@ -58,18 +77,34 @@ module Merb
         segments
       end
       
-      # Name this route
+      # Names this route in Router.
+      #
+      # ==== Parameters
+      # symbol<Symbol>:: The name of the route.
+      #
+      # ==== Raises
+      # ArgumentError:: symbol is not a Symbol.
       def name(symbol = nil)
         raise ArgumentError unless (@symbol = symbol).is_a?(Symbol)
         Router.named_routes[@symbol] = self
       end
 
+      # ==== Returns
+      # Boolean::
+      #   True if this route is a regexp, i.e. its behavior or one of the
+      #   behaviors ancestors is a regexp.
       def regexp?
         behavior.regexp? || behavior.send(:ancestors).any? { |a| a.regexp? }
       end
       
-      # Given a hash of +params+, returns a string using the stored route segments
-      # for reconstruction of the URL.
+      # ==== Parameters
+      # params<Hash>:: Optional parameters for the route.
+      # fallback<Hash>:: Optional parameters for the fallback route.
+      #
+      # ==== Returns
+      # String::
+      #   The URL corresponding to the params, using the stored route segments
+      #   for reconstruction of the URL.
       def generate(params = {}, fallback = {})
         raise "Cannot generate regexp Routes" if regexp?
         query_params = params.dup if params.is_a? Hash
@@ -101,6 +136,12 @@ module Merb
         url
       end
 
+      # ==== Params
+      # params_as_string<String>::
+      #   The params hash as a string, e.g. ":foo => 'bar'".
+      #
+      # ==== Returns
+      # Array:: All the conditions as eval'able strings.
       def if_conditions(params_as_string)
         cond = []
         condition_string = proc do |key, value, regexp_string|
@@ -126,6 +167,14 @@ module Merb
         cond
       end
 
+      # Compiles the route to a form used by Merb::Router.
+      #
+      # ==== Parameters
+      # first<Boolean>::
+      #   True if this is the first route in set of routes. Defaults to false.
+      #
+      # ==== Returns
+      # String:: The code corresponding to the route in a form suited for eval.
       def compile(first = false)
         code = ""
         default_params = { :action => "index" }
@@ -148,6 +197,7 @@ module Merb
         end
       end
 
+      # Prints a trace of the behavior for this route.
       def behavior_trace
         if @behavior
           puts @behavior.send(:ancestors).reverse.map{|a| a.inspect}.join("\n"); puts @behavior.inspect; puts
@@ -157,4 +207,4 @@ module Merb
       end
     end # Route
   end
-end    
+end
