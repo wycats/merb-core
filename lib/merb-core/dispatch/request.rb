@@ -80,8 +80,11 @@ module Merb
         begin
           # if the content-type is multipart and there's stuff in the body,
           # parse the multipart. Otherwise return {}
-          (Merb::Const::MULTIPART_REGEXP =~ content_type && @body.size > 0) ?
-            self.class.parse_multipart(@body, $1, content_length) : {}
+          if (Merb::Const::MULTIPART_REGEXP =~ content_type && @body.size > 0)
+            self.class.parse_multipart(@body, $1, content_length)
+          else
+            {}
+          end  
         rescue ControllerExceptions::MultiPartParseError => e
           @multipart_params = {}
           raise e
@@ -250,7 +253,7 @@ module Merb
     
     # returns the PATH_INFO
     def path_info
-      @path_info ||= Mongrel::HttpRequest.unescape(@env['PATH_INFO'])
+      @path_info ||= self.class.unescape(@env['PATH_INFO'])
     end
     
     # returns the port the server is running on

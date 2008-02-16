@@ -19,7 +19,7 @@ module Merb
           serve_static(env)
         else                              # No static file, let Merb handle it
           if path =~ /favicon\.ico/
-            return [404, {"Content-Type"=>"text/html"}, "404 Not Founds."]
+            return [404, {"Content-Type"=>"text/html"}, "404 Not Found."]
           end  
           begin
             controller = ::Merb::Dispatcher.handle(env)
