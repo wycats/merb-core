@@ -3,8 +3,8 @@ require 'tempfile'
 module Merb::Test::RequestHelper
 
   # ==== Parameters
-  # env<Hash>:: A hash of environment keys to be merged into the default list
-  # opt<Hash>:: A hash of options (see below)
+  # env<Hash>:: A hash of environment keys to be merged into the default list.
+  # opt<Hash>:: A hash of options (see below).
   #
   # ==== Options (choose one)
   # :post_body<String>:: The post body for the request
@@ -28,25 +28,30 @@ module Merb::Test::RequestHelper
     Merb::Test::FakeRequest.new(env, req ? StringIO.new(req) : nil) 
   end
 
-  # Dispatches an action to the given class. This bypasses the router and is suitable for 
-  # unit testing of controllers.
+  # Dispatches an action to the given class. This bypasses the router and is
+  # suitable for unit testing of controllers.
   #
   # ==== Parameters
-  #   controller_klass<Controller>:: The controller class object that the action should be dispatched to
-  #   action<Symbol>:: The action name, as a symbol
-  #   params<Hash>:: An optional hash that will end up as params in the controller instance.
-  #   env<Hash>:: An optional hash that is passed to the fake request.  Any request options should go here
-  #               (see +fake_request+)
-  #   Block.  The controller is yielded to the block provided for actions *prior* to the action being dispatched.
+  # controller_klass<Controller>::
+  #   The controller class object that the action should be dispatched to.
+  # action<Symbol>:: The action name, as a symbol.
+  # params<Hash>::
+  #   An optional hash that will end up as params in the controller instance.
+  # env<Hash>::
+  #   An optional hash that is passed to the fake request. Any request options
+  #   should go here (see +fake_request+).
+  # blk<Proc>::
+  #   The controller is yielded to the block provided for actions *prior* to
+  #   the action being dispatched.
   #
   # ==== Example
-  #  {{{
-  #    dispatch_to(MyController, :create, :name => 'Homer' ) do
-  #      self.stub!(:current_user).and_return(@user)
-  #    end
-  #  }}}
+  # {{[
+  #   dispatch_to(MyController, :create, :name => 'Homer' ) do
+  #     self.stub!(:current_user).and_return(@user)
+  #   end
+  # ]}}
   # ==== Note
-  #  Does not use routes
+  # Does not use routes.
   #
   #---
   # @public
@@ -61,24 +66,27 @@ module Merb::Test::RequestHelper
   # Similar to dispatch_to but allows for sending files inside params.  
   #
   # ==== Paramters 
-  #   controller_klass<Controller>:: The controller class object that the action should be dispatched to
-  #   action<Symbol>:: The action name, as a symbol
-  #   params<Hash>:: An optional hash that will end up as params in the controller instance.
-  #   env<Hash>:: An optional hash that is passed to the fake request.  Any request options should go here
-  #               (see +fake_request+)
-  #   blk:: The block is executed in the context of the controller
+  # controller_klass<Controller>::
+  #   The controller class object that the action should be dispatched to.
+  # action<Symbol>:: The action name, as a symbol.
+  # params<Hash>::
+  #   An optional hash that will end up as params in the controller instance.
+  # env<Hash>::
+  #   An optional hash that is passed to the fake request. Any request options
+  #   should go here (see +fake_request+).
+  # blk<Proc>:: The block is executed in the context of the controller.
   #  
   # ==== Example
-  #  {{{
-  #    dispatch_multipart_to(MyController, :create, :my_file => @a_file ) do
-  #      self.stub!(:current_user).and_return(@user)
-  #    end
-  #  }}}
+  # {{[
+  #   dispatch_multipart_to(MyController, :create, :my_file => @a_file ) do
+  #     self.stub!(:current_user).and_return(@user)
+  #   end
+  # ]}}
   #
   # ==== Note
-  #   Set your option to contain a file object to simulate file uploads.
+  # Set your option to contain a file object to simulate file uploads.
   #   
-  #   Does not use routes
+  # Does not use routes.
   #---
   # @public
   def dispatch_multipart_to(controller_klass, action, params = {}, env = {}, &blk)
@@ -86,13 +94,16 @@ module Merb::Test::RequestHelper
     dispatch_request(request, controller_klass, action, &blk)
   end
   
-  # An HTTP GET request that operates through the router
+  # An HTTP GET request that operates through the router.
+  #
   # ==== Parameters
-  #  path<String>:: The path that should go to the router as the request uri
-  #   params<Hash>:: An optional hash that will end up as params in the controller instance.
-  #   env<Hash>:: An optional hash that is passed to the fake request.  Any request options should go here
-  #               (see +fake_request+)
-  #   block:: The block is executed in the context of the controller
+  # path<String>:: The path that should go to the router as the request uri.
+  # params<Hash>::
+  #   An optional hash that will end up as params in the controller instance.
+  # env<Hash>::
+  #   An optional hash that is passed to the fake request. Any request options
+  #   should go here (see +fake_request+).
+  # block<Proc>:: The block is executed in the context of the controller.
   def get(path, params = {}, env = {}, &block)
     env[:request_method] = "GET"
     request(path, params, env, &block)
@@ -135,32 +146,40 @@ module Merb::Test::RequestHelper
   end
   
   
-  # An HTTP POST request that operates through the router and uses multipart parameters
+  # An HTTP POST request that operates through the router and uses multipart
+  # parameters.
+  #
   # ==== Parameters
-  #  path<String>:: The path that should go to the router as the request uri
-  #   params<Hash>:: An optional hash that will end up as params in the controller instance.
-  #   env<Hash>:: An optional hash that is passed to the fake request.  Any request options should go here
-  #               (see +fake_request+)
-  #   block:: The block is executed in the context of the controller
+  # path<String>:: The path that should go to the router as the request uri.
+  # params<Hash>::
+  #   An optional hash that will end up as params in the controller instance.
+  # env<Hash>::
+  #   An optional hash that is passed to the fake request. Any request options
+  #   should go here (see +fake_request+).
+  # block<Proc>:: The block is executed in the context of the controller.
   #
   # ==== Note
-  #  To include an uplaoded file, put a file object into a value in the params hash
+  # To include an uploaded file, put a file object as a value in params.
   def multipart_post(path, params = {}, env = {}, &block)
     env[:request_method] = "POST"
     env[:test_with_multipart] = true
     request(path, params, env, &block)
   end
   
-  # An HTTP PUT request that operates through the router and uses multipart parameters
+  # An HTTP PUT request that operates through the router and uses multipart
+  # parameters.
+  #
   # ==== Parameters
-  #  path<String>:: The path that should go to the router as the request uri
-  #   params<Hash>:: An optional hash that will end up as params in the controller instance.
-  #   env<Hash>:: An optional hash that is passed to the fake request.  Any request options should go here
-  #               (see +fake_request+)
-  #   block:: The block is executed in the context of the controller
+  # path<String>:: The path that should go to the router as the request uri.
+  # params<Hash>::
+  #   An optional hash that will end up as params in the controller instance.
+  # env<Hash>::
+  #   An optional hash that is passed to the fake request. Any request options
+  #   should go here (see +fake_request+).
+  # block<Proc>:: The block is executed in the context of the controller.
   #
   # ==== Note
-  #  To include an uplaoded file, put a file object into a value in the params hash
+  # To include an uplaoded file, put a file object as a value in params.
   def multipart_put(path, params = {}, env = {}, &block)
     env[:request_method] = "PUT"
     env[:test_with_multipart] = true
@@ -169,23 +188,27 @@ module Merb::Test::RequestHelper
   
   
 
-  # A generic request that checks the router for the controller and action.  This request goes through the Merb::Router
-  # and finishes at the controller
+  # A generic request that checks the router for the controller and action.
+  # This request goes through the Merb::Router and finishes at the controller.
   #
   # ==== Parameters
-  #  path<String>:: The path that should go to the router as the request uri
-  #   params<Hash>:: An optional hash that will end up as params in the controller instance.
-  #   env<Hash>:: An optional hash that is passed to the fake request.  Any request options should go here
-  #               (see +fake_request+)
-  #   blk:: The block is executed in the context of the controller
+  # path<String>:: The path that should go to the router as the request uri.
+  # params<Hash>::
+  #   An optional hash that will end up as params in the controller instance.
+  # env<Hash>::
+  #   An optional hash that is passed to the fake request. Any request options
+  #   should go here (see +fake_request+).
+  # blk<Proc>:: The block is executed in the context of the controller.
+  #
   # ==== Example
-  #  {{{
-  #    request(path, :create, :name => 'Homer' ) do
-  #      self.stub!(:current_user).and_return(@user)
-  #    end
-  #  }}}
+  # {{[
+  #   request(path, :create, :name => 'Homer' ) do
+  #     self.stub!(:current_user).and_return(@user)
+  #   end
+  # ]}}
+  #
   # ==== Note
-  #   Uses Routes
+  # Uses Routes.
   #
   #---
   # @semi-public  
@@ -208,13 +231,18 @@ module Merb::Test::RequestHelper
   # The workhorse for the dispatch*to helpers.
   # 
   # ==== Parameters
-  #  request<Merb::Test::FakeRequest|Merb::Request>:: A request object that has been setup for testing
-  #  controller_klass<Merb::Controller>:: The class object off the controller to dispatch the action to.
-  #  action<Symbol>:: The action to dispatch the request to
-  #  blk:: The block will execute in the context of the controller itself.
+  # request<Merb::Test::FakeRequest, Merb::Request>::
+  #   A request object that has been setup for testing.
+  # controller_klass<Merb::Controller>::
+  #   The class object off the controller to dispatch the action to.
+  # action<Symbol>:: The action to dispatch the request to.
+  # blk<Proc>:: The block will execute in the context of the controller itself.
+  #
+  # ==== Returns
+  # An instance of +controller_klass+ based on the parameters.
   #
   # ==== Note
-  #  Does not use routes
+  # Does not use routes.
   #
   #---
   # @private
@@ -228,7 +256,17 @@ module Merb::Test::RequestHelper
 
     controller
   end
-  
+
+  # ==== Parameters
+  # env<Hash>::
+  #   An optional hash that is passed to the fake request. Any request options
+  #   should go here (see +fake_request+).
+  # params<Hash>::
+  #   An optional hash that will end up as params in the controller instance.
+  # 
+  # ==== Returns
+  # FakeRequest::
+  #   A multipart Request object that is built based on the parameters.
   def multipart_fake_request(env = {}, params = {})
     if params.empty?
       fake_request(env)
@@ -240,10 +278,18 @@ module Merb::Test::RequestHelper
     end
   end
   
-  # Checks to see that a request is routable
+  # Checks to see that a request is routable.
   # 
   # ==== Parameters
-  #  request<Merb::Test::FakeRequest | Merb::Request>:: A request object to inspect
+  # request<Merb::Test::FakeRequest, Merb::Request>::
+  #   The request object to inspect.
+  #
+  # ==== Raises
+  # Merb::ControllerExceptions::BadRequest::
+  #   No matching route was found.
+  #
+  # ==== Returns
+  # Hash:: The parameters built based on the matching route.
   def check_request_for_route(request)
     match =  ::Merb::Router.match(request)
     if match[0].nil?

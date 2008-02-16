@@ -4,6 +4,10 @@ module Merb
     # FakeRequest sets up a default enviroment which can be overridden either
     # by passing and env into initialize or using request['HTTP_VAR'] = 'foo'
     class FakeRequest < Request
+
+      # ==== Parameters
+      # env<Hash>:: Environment options that override the defaults.
+      # req<StringIO>:: The request to set as input for Rack.
       def initialize(env = {}, req = StringIO.new)
         env.environmentize_keys!
         env['rack.input'] = req
