@@ -1,9 +1,6 @@
 module Merb
   # Module that is mixed in to all implemented controllers.
   module ControllerMixin
-    def must_support_streaming!
-      raise(NotImplemented, "Current Rack adapter does not support streaming") unless request.env['rack.streaming']
-    end
     # Renders the block given as a parameter using chunked
     # encoding.
     #
@@ -84,7 +81,7 @@ module Merb
     #             been returned
     def render_then_call(str, &blk)
       must_support_streaming!
-      Proc.new {
+      Proc.new {|response|
         response.send_status(str.length)
         response.send_header
         response.write(str)
@@ -221,5 +218,10 @@ module Merb
     end
     alias h escape_xml
     alias html_escape escape_xml
+    
+    private
+      def must_support_streaming!
+        raise(NotImplemented, "Current Rack adapter does not support streaming") unless request.env['rack.streaming']
+      end
   end
 end
