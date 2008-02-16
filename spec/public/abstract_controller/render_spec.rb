@@ -22,6 +22,11 @@ describe Merb::AbstractController, " rendering plain strings" do
     dispatch_should_make_body("RenderStringControllerLayout", "Controller: the index")
   end
 
+  it "should support rendering plain strings with dynamic layouts" do
+    dispatch_should_make_body("RenderStringDynamicLayout", "Custom: the index", :index)
+    dispatch_should_make_body("RenderStringDynamicLayout", "Alt: the alt index", :alt_index)
+  end
+  
 end
 
 describe Merb::AbstractController, " rendering templates" do

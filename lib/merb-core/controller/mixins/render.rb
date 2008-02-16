@@ -249,7 +249,9 @@ module Merb::RenderMixin
   #   raised if no layout was specified, and the default layouts were
   #   not found.
   def _get_layout(layout = nil)
-    layout = _layout.to_s if _layout    
+    if _layout && !layout
+      layout = _layout.instance_of?(Symbol) && self.respond_to?(_layout, true) ? send(_layout) : _layout
+    end
     layout = layout.to_s if layout
     
     # If a layout was provided, throw an error if it's not found

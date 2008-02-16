@@ -26,6 +26,18 @@ module Merb::Test::Fixtures
     class RenderStringControllerLayout < RenderString
       self._template_root = File.dirname(__FILE__) / "alt_views"
     end
+    
+    class RenderStringDynamicLayout < RenderString
+      layout :determine_layout
+      
+      def alt_index
+        render "the alt index"
+      end
+      
+      def determine_layout
+        action_name.index('alt') == 0 ? 'alt' : 'custom'
+      end
+    end
 
     class RenderTemplate < Testing
       
