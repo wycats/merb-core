@@ -24,8 +24,8 @@ describe Merb::AbstractController, " should support before and after filters" do
     dispatch_should_make_body("TestSkipFilter", "")
   end
   
-  it "should prepend before filters when added" do
-    dispatch_should_make_body("TestBeforeFilterOrder", "foo filter")
+  it "should append before filters when added" do
+    dispatch_should_make_body("TestBeforeFilterOrder", "bar filter")
   end
 
   it "should append after filters when added" do
