@@ -158,7 +158,7 @@ class Merb::AbstractController
     
     caught = catch(:halt) do
       start = Time.now
-      result = _call_filters(_before_filters.reverse)
+      result = _call_filters(_before_filters)
       @_benchmarks[:before_filters_time] = Time.now - start if _before_filters
       result
     end
