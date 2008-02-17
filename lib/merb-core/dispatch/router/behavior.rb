@@ -324,9 +324,9 @@ module Merb
       #---
       # @public
       def resources(name, options = {})
-        namespace = options[:namespace] || merged_params[:namespace] || conditions[:namespace]
+        namespace = options[:namespace] || merged_params[:namespace]
 
-        match_path = namespace ? "/#{namespace}/#{name}" : "/#{name}"
+        match_path = namespace && (parent.nil? || !parent.merged_params[:namespace]) ? "/#{namespace}/#{name}" : "/#{name}"
 
         next_level = match match_path
 
@@ -420,8 +420,8 @@ module Merb
       # ---
       # @public
       def resource(name, options = {})
-        namespace  = options[:namespace] || merged_params[:namespace] || conditions[:namespace]
-        match_path = namespace ? "/#{namespace}/#{name}" : "/#{name}"
+        namespace  = options[:namespace] || merged_params[:namespace]
+        match_path = namespace && (parent.nil? || !parent.merged_params[:namespace]) ? "/#{namespace}/#{name}" : "/#{name}"
         next_level = match match_path
 
         options[:controller] ||= merged_params[:controller] || name.to_s
@@ -609,11 +609,7 @@ module Merb
 
           @conditions[k] = case v
           when String,Symbol
-            if k == :namespace
-              v.to_s
-            else
-              "^#{v.to_s.escape_regexp}$"
-            end
+            "^#{v.to_s.escape_regexp}$"
           when Regexp
             @conditions_have_regexp = true
             v.source
