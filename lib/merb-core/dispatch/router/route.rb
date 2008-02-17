@@ -96,7 +96,7 @@ module Merb
           (value.respond_to?(:to_param) ? value.to_param : value).to_s
         end.join
         if query_params && !query_params.empty?
-          url += "?" + Merb::Responder.params_to_query_string(query_params)
+          url += "?" + Merb::Request.params_to_query_string(query_params)
         end
         url
       end

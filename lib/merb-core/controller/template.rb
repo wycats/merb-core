@@ -39,7 +39,7 @@ module Merb::Template
     end
     
     # Takes a template at a particular path and inlines it into
-    # a module, which defaults to Merb::GlobalHelper
+    # a module, which defaults to Merb::InlineTemplates
     #
     # This also takes the full path, minus its templating specifier
     # and adds it to the METHOD_LIST table to speed lookup later

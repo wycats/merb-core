@@ -278,6 +278,41 @@ module Merb
     end
     
     class << self
+      
+      # ==== Parameters
+      # value<Array, Hash, ~to_s>:: The value for the query string.
+      # prefix<~to_s>:: The prefix to add to the query string keys.
+      #
+      # ==== Returns
+      # String:: The query string.
+      #
+      # ==== Alternatives
+      # If the value is a string, the prefix will be used as the key.
+      #
+      # ==== Examples
+      #   params_to_query_string(10, "page")
+      #     # => "page=10"
+      #   params_to_query_string({ :page => 10, :word => "ruby" })
+      #     # => "page=10&word=ruby"
+      #   params_to_query_string({ :page => 10, :word => "ruby" }, "search")
+      #     # => "search[page]=10&search[word]=ruby"
+      #   params_to_query_string([ "ice-cream", "cake" ], "shopping_list")
+      #     # => "shopping_list[]=ice-cream&shopping_list[]=cake"
+      def params_to_query_string(value, prefix = nil)
+        case value
+        when Array
+          value.map { |v|
+            params_to_query_string(v, "#{prefix}[]")
+          } * "&"
+        when Hash
+          value.map { |k, v|
+            params_to_query_string(v, prefix ? "#{prefix}[#{Merb::Request.escape(k)}]" : Merb::Request.escape(k))
+          } * "&"
+        else
+          "#{prefix}=#{Merb::Request.escape(value)}"
+        end
+      end
+      
       # Escapes +s+ for use in a URL.
       #
       # ==== Parameter

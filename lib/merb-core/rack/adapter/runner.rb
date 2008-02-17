@@ -11,7 +11,7 @@ module Merb
           else
             eval(opts[:runner_code], TOPLEVEL_BINDING, __FILE__, __LINE__)
           end
-          exit!
+          exit
         end  
       end
     end

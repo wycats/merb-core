@@ -57,7 +57,7 @@ module Merb::Test::RequestHelper
   # @public
   def dispatch_to(controller_klass, action, params = {}, env = {}, &blk)
     request = fake_request(env.merge(
-      :query_string => Merb::Responder.params_to_query_string(params)))
+      :query_string => Merb::Request.params_to_query_string(params)))
 
     dispatch_request(request, controller_klass, action, &blk)
   end

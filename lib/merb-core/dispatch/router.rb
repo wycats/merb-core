@@ -78,7 +78,7 @@ module Merb
           url += ".#{format}"
         end
         unless query_params.empty?
-          url += "?" + Merb::Responder.params_to_query_string(query_params)
+          url += "?" + Merb::Request.params_to_query_string(query_params)
         end
         url
       end
