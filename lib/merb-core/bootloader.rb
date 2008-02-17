@@ -124,9 +124,8 @@ end
 
 class Merb::BootLoader::DropPidFile <  Merb::BootLoader
   class << self
-    
     def run
-      Merb::Server.store_pid(Merb::Config[:port])
+      Merb::Server.store_pid(Merb::Config[:port]) unless Merb::Config[:daemonize] || Merb::Config[:cluster]
     end
   end
 end

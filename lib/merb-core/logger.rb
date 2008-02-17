@@ -196,7 +196,7 @@ module Merb
 
       # DOC
       def #{name}(message = nil, &block)
-        self.<<(message, &block) if #{name}?
+        self.<<(message, &block) if #{number} >= level
       end
 
       # DOC
