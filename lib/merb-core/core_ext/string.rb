@@ -1,4 +1,3 @@
-require 'strscan'
 class String
   
   class InvalidPathConversion < Exception; end
@@ -21,20 +20,8 @@ class String
   end
   
   # "merb/core_ext/string" #=> "Merb::CoreExt::String"
-  # 
-  # About 50% faster than string.split('/').map{ |s| s.camel_case }.join('::')
   def to_const_string
-    new_string = ""
-    input = StringScanner.new(self.downcase)
-    until input.eos?
-      if input.scan(/([a-z][a-zA-Z\d]*)(_|$|\/)/)
-        new_string << input[1].capitalize
-        new_string << "::" if input[2] == '/'
-      else
-        raise InvalidPathConversion, self
-      end
-    end
-    new_string
+    gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
   end
   
   # Converts "FooBar::Baz" to "foo_bar/baz". Useful for converting constants

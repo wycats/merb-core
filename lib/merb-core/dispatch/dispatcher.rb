@@ -47,7 +47,7 @@ class Merb::Dispatcher
       Merb.logger.debug("Routed to: #{request.route_params.inspect}")
 
       begin
-        cnt = controller_name.to_const_string
+        cnt = controller_name.snake_case.to_const_string
       rescue ::String::InvalidPathConversion
         raise Merb::ControllerExceptions::NotFound, 
           "Controller '#{controller_name}' could not be converted to a class"
