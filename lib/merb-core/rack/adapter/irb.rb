@@ -7,6 +7,10 @@ module Merb
         Merb::Router.generate(name, params)
       end
       
+      def reload!
+        Merb::BootLoader::ReloadClasses.reload
+      end
+      
       def show_routes
         seen = []
         unless Merb::Router.named_routes.empty?
