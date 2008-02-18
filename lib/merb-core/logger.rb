@@ -178,7 +178,7 @@ module Merb
     # block<&block>
     #   An optional block that will be evaluated and added to the logging message after the string message.
     def <<(string = nil)
-      message = Time.now.httpdate
+      message = ""
       message << delimiter
       message << string if string
       if block_given?
