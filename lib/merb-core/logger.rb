@@ -35,6 +35,7 @@ module Merb
     attr_accessor :aio
     attr_accessor :level
     attr_accessor :delimiter
+    attr_accessor :auto_flush
     attr_reader   :buffer
     attr_reader   :log
 
@@ -129,7 +130,7 @@ module Merb
     #   A symbol representing the log level from {:fatal, :error, :warn, :info, :debug}
     # delimiter<String>
     #   Delimiter to use between message sections
-    def set_log(log, log_level = nil, delimiter = " ~ ")
+    def set_log(log, log_level = nil, delimiter = " ~ ", auto_flush = false)
       if log_level && Levels[log_level.to_sym]
         @level = Levels[log_level.to_sym]
       elsif Merb.environment == "production"
@@ -137,8 +138,9 @@ module Merb
       else
         @level = Levels[:debug]
       end
-      @buffer    = []
-      @delimiter = delimiter
+      @buffer     = []
+      @delimiter  = delimiter
+      @auto_flush = auto_flush
 
       initialize_log(log)
 
@@ -185,6 +187,8 @@ module Merb
       end
       message << "\n" unless message[-1] == ?\n
       @buffer << message
+      flush if @auto_flush
+
       message
     end
     alias :push :<<
