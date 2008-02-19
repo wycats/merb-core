@@ -2,9 +2,10 @@ module Merb
 
   class BootLoader
     
-    cattr_accessor :subclasses, :after_load_callbacks
+    cattr_accessor :subclasses, :after_load_callbacks, :before_load_callbacks
     self.subclasses = []
     self.after_load_callbacks = []
+    self.before_load_callbacks = []
     class_inheritable_accessor :_after, :_before
     
     class << self
@@ -39,6 +40,10 @@ module Merb
 
       def after_app_loads(&block)
         after_load_callbacks << block
+      end
+      
+      def before_app_loads(&block)
+        before_load_callbacks << block
       end
     end
     
@@ -146,6 +151,14 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     if !Merb.environment.nil? && File.exist?(Merb.dir_for(:environments) / (Merb.environment + ".rb"))
       require Merb.dir_for(:environments) / Merb.environment
     end
+  end
+end
+
+# Call any before_app_loads hooks that were registered via before_app_loads in any plugins.
+class Merb::BootLoader::BeforeAppRuns < Merb::BootLoader
+
+  def self.run
+    Merb::BootLoader.before_load_callbacks.each {|x| x.call }
   end
 end
 
@@ -284,7 +297,7 @@ class Merb::BootLoader::MimeTypes < Merb::BootLoader
   end
 end
 
-# Call any after_app_loads hooks that were registered via after_app_loads in dependencies.rb.
+# Call any after_app_loads hooks that were registered via after_app_loads in init.rb.
 class Merb::BootLoader::AfterAppLoads < Merb::BootLoader
 
   def self.run

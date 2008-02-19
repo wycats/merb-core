@@ -162,6 +162,14 @@ module Merb
       @frozen = true
     end
 
+    def load_dependencies(init_file, options = {})
+      Merb::Config.setup({:log_file => $stdout, :log_level => :warn,
+        :init_file => init_file}.merge(options))
+      Merb::BootLoader::Logger.run
+      Merb.logger.auto_flush = true
+      Merb::BootLoader::Dependencies.run
+    end
+
   end
 
 end
