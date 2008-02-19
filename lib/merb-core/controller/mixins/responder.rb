@@ -315,7 +315,7 @@ module Merb
     #---
     # @public
     def content_type(fmt = nil)
-      @_content_type = (fmt || _perform_content_negotiation) unless @_content_type
+      self.content_type = (fmt || _perform_content_negotiation) unless @_content_type
       @_content_type
     end
     

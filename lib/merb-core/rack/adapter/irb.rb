@@ -32,9 +32,7 @@ module Merb
 
       def self.start(opts={})
         m = Merb::Rack::Console.new
-        Object.send(:define_method, :merb) {
-          m
-        }  
+        Object.send(:define_method, :merb) { m }  
         ARGV.clear # Avoid passing args to IRB 
         require 'irb' 
         require 'irb/completion' 

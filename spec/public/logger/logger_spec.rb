@@ -77,11 +77,9 @@ describe Merb::Logger do
     end
 
     it "should call the write_method with the stringified contents of the buffer if the buffer is non-empty" do
-      now = Time.now
-      Time.stub!(:now).and_return(now)
       @logger.send(:<<, "a message")
       @logger.send(:<<, "another message")
-      @logger.log.should_receive(:write_method).with("#{now.httpdate} ~ a message\n#{now.httpdate} ~ another message\n")
+      @logger.log.should_receive(:write_method).with(" ~ a message\n ~ another message\n")
       @logger.flush
     end
 

@@ -42,6 +42,9 @@ module Merb::Test::Fixtures
         end
       EOS
     end
+    
+    module Mixin
+    end
   end
 
   module MyHelpers
