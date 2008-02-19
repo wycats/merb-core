@@ -8,16 +8,16 @@ hsh = {:x => true, :y => true}
 set = Set.new([:x, :y])
 fst = FasterSet.new([:x, :y])
 
-# Benchmark.bmbm do |x|
-#   x.report("current included") { TIMES.times { hsh[:x] } }
-#   x.report("hash included") { TIMES.times { hsh.include?(:x) } }
-#   x.report("set included") { TIMES.times { set.include?(:x) } }  
-#   x.report("fasterset included") { TIMES.times { fst.include?(:x) } }  
-#   x.report("current !included") { TIMES.times { hsh[:z] } }  
-#   x.report("hash !included") { TIMES.times { hsh.include?(:z) } }
-#   x.report("set !included") { TIMES.times { set.include?(:z) } }    
-#   x.report("fasterset !included") { TIMES.times { fst.include?(:z) } }      
-# end
+Benchmark.bmbm do |x|
+  x.report("current included") { TIMES.times { hsh[:x] } }
+  x.report("hash included") { TIMES.times { hsh.include?(:x) } }
+  x.report("set included") { TIMES.times { set.include?(:x) } }  
+  x.report("fasterset included") { TIMES.times { fst.include?(:x) } }  
+  x.report("current !included") { TIMES.times { hsh[:z] } }  
+  x.report("hash !included") { TIMES.times { hsh.include?(:z) } }
+  x.report("set !included") { TIMES.times { set.include?(:z) } }    
+  x.report("fasterset !included") { TIMES.times { fst.include?(:z) } }      
+end
 
 # TIMES = 1_000_000
 #                           user     system      total        real

@@ -71,7 +71,7 @@ class Merb::AbstractController
   include Merb::InlineTemplates
   is_hookable
   
-  class_inheritable_accessor :_before_filters, :_after_filters, :_template_root, :_layout
+  class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root
 
   # Controller name is part of the public API
   def self.controller_name() @controller_name ||= self.name.to_const_path end
@@ -116,7 +116,6 @@ class Merb::AbstractController
   # own subclasses. We're using a Set so we don't have to worry about
   # uniqueness.
   self._abstract_subclasses = Set.new
-  self._template_root = Merb.dir_for(:view)
 
   def self.subclasses_list() _abstract_subclasses end
   
@@ -125,8 +124,11 @@ class Merb::AbstractController
     # klass<Merb::AbstractController>::
     #   The controller that is being inherited from Merb::AbstractController
     def inherited(klass)
-      _abstract_subclasses << klass.to_s
-      klass.send(:include, Object.full_const_get("Merb::#{klass}Helper")) rescue nil
+      _abstract_subclasses << klass.to_s   
+      self._template_root = Merb.dir_for(:view) unless self._template_root       
+      klass.class_eval <<-HERE
+        include Object.full_const_get("Merb::#{klass}Helper") rescue nil
+      HERE
       super
     end
     
@@ -153,6 +155,7 @@ class Merb::AbstractController
   def initialize(*args)
     @_benchmarks = {}
     @_caught_content = {}
+    @_template_stack = []
   end
   
   # This will dispatch the request, calling before and after dispatch hooks
@@ -375,6 +378,10 @@ class Merb::AbstractController
     opts[:only]     = Array(opts[:only]).map {|x| x.to_s} if opts[:only]
     opts[:exclude]  = Array(opts[:exclude]).map {|x| x.to_s} if opts[:exclude]
     return opts
+  end
+  
+  def capture(*args, &block)
+    send("capture_#{@_engine}", *args, &block)
   end
 
   def method_missing(sym, *args, &blk)

@@ -9,7 +9,6 @@ module Merb
   autoload :Cookies,              "merb-core/dispatch/cookies"
   autoload :Dispatcher,           "merb-core/dispatch/dispatcher"
   autoload :ErubisCaptureMixin,   "merb-core/controller/mixins/erubis_capture"
-  autoload :Hook,                 "merb-core/hook"
   autoload :Plugins,              "merb-core/plugins"
   autoload :Rack,                 "merb-core/rack"
   autoload :RenderMixin,          "merb-core/controller/mixins/render"
@@ -21,6 +20,8 @@ end
 
 # Require this rather than autoloading it so we can be sure the default template
 # gets registered
+require 'merb-core/core_ext'
+require 'merb-core/hook'
 require "merb-core/controller/template"
 require "merb-core/hook"
 
