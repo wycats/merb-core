@@ -248,7 +248,7 @@ module Merb::Test::RequestHelper
   # @private
   def dispatch_request(request, controller_klass, action, &blk)
     controller = controller_klass.new(request)
-    controller.instance_eval(&blk) if block_given?
+    yield controller if block_given?
     controller._dispatch(action)
 
     Merb.logger.info controller._benchmarks.inspect
