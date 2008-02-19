@@ -9,15 +9,6 @@ $LOAD_PATH.unshift File.dirname(__FILE__) unless
   $LOAD_PATH.include?(File.dirname(__FILE__)) ||
   $LOAD_PATH.include?(File.expand_path(File.dirname(__FILE__)))
 
-require 'merb-core/autoload'
-require 'merb-core/server'
-require 'merb-core/core_ext'
-require 'merb-core/gem_ext/erubis'
-require 'merb-core/logger'
-require 'merb-core/version'
-require 'merb-core/controller/mime'
-require 'merb-core/vendor/facets'
-
 begin
   require "json/ext"
 rescue LoadError
@@ -174,3 +165,11 @@ module Merb
   end
 
 end
+
+require 'merb-core/autoload'
+require 'merb-core/server'
+require 'merb-core/gem_ext/erubis'
+require 'merb-core/logger'
+require 'merb-core/version'
+require 'merb-core/controller/mime'
+require 'merb-core/vendor/facets'

@@ -62,9 +62,11 @@ module Merb::RenderMixin
       template_location = _template_root / (opts[:template] || _template_location(thing, content_type))
       
       # Get the method name from the previously inlined list
-      template_method = Merb::Template.template_for(template_location)
+      template_method = _template_for(template_location)
 
       # Raise an error if there's no template
+      require 'ruby-debug'
+      debugger if $DEBUG
       raise TemplateNotFound, "No template found at #{template_location}" unless 
         template_method && self.respond_to?(template_method)
 
@@ -145,7 +147,7 @@ module Merb::RenderMixin
       # Look for the layout under the default layout directly. If it's not found, reraise
       # the TemplateNotFound error
       template = _template_location(opts[:layout], layout.index(".") ? content_type : nil, "layout")      
-      layout = Merb::Template.template_for(_template_root / template) ||
+      layout = _template_for(_template_root / template) ||
         (raise TemplateNotFound, "No layout found at #{_template_root / template}.*")      
               
       # If the layout was found, call it
@@ -196,7 +198,7 @@ module Merb::RenderMixin
     template_location = _template_root / _template_location(template, content_type, kontroller)
     
     # Get the method name from the previously inlined list
-    template_method = Merb::Template.template_for(template_location)    
+    template_method = _template_for(template_location)
 
     if opts.key?(:with)
       with = opts.delete(:with)
@@ -257,16 +259,20 @@ module Merb::RenderMixin
     # If a layout was provided, throw an error if it's not found
     if layout
       template = _template_location(layout, layout.index(".") ? nil : content_type, "layout")      
-      Merb::Template.template_for(_template_root / template) ||
+      _template_for(_template_root / template) ||
         (raise TemplateNotFound, "No layout found at #{_template_root / template}.*")
     
     # If a layout was not provided, try the default locations
     else
-      Merb::Template.template_for(_template_root / _template_location(controller_name, content_type, "layout")) ||
-      Merb::Template.template_for(_template_root / _template_location("application", content_type, "layout")) || nil
+      _template_for(_template_root / _template_location(controller_name, content_type, "layout")) ||
+      _template_for(_template_root / _template_location("application", content_type, "layout")) || nil
     end    
   end
   
+  def _template_for(path)
+    Merb::Template.template_for(path)
+  end
+    
   # Called in templates to get at content thrown in another template.
   # The results of rendering a template are automatically thrown
   # into :layout, so catch_content or catch_content(:layout) can be

@@ -1,3 +1,6 @@
+module Merb::InlineTemplates
+end
+
 module Merb::Template
   
   EXTENSIONS  = {} unless defined?(EXTENSIONS)
@@ -28,14 +31,21 @@ module Merb::Template
     # path<String>:: A full path to find a template method for
     #---
     # @semipublic
-    def template_for(path)
+    def template_for(path, template_stack = [])
       path = File.expand_path(path)
-      file = Dir["#{path}.{#{Merb::Template::EXTENSIONS.keys.join(',')}}"].first      
+      
+      ret = 
       if Merb::Config[:reload_templates]
+        file = Dir["#{path}.{#{Merb::Template::EXTENSIONS.keys.join(',')}}"].first
         METHOD_LIST[path] = file ? inline_template(file) : nil
       else
-        METHOD_LIST[path] ||= file ? inline_template(file) : nil        
+        METHOD_LIST[path] ||= begin
+          file = Dir["#{path}.{#{Merb::Template::EXTENSIONS.keys.join(',')}}"].first          
+          file ? inline_template(file) : nil
+        end
       end
+      
+      ret
     end
     
     # Takes a template at a particular path and inlines it into
@@ -90,6 +100,9 @@ module Merb::Template
       raise ArgumentError, "The class you are registering does not have a compile_template method" unless
         engine.respond_to?(:compile_template)
       extensions.each{|ext| EXTENSIONS[ext] = engine }
+      Merb::AbstractController.class_eval <<-HERE
+        include #{engine}::Mixin
+      HERE
     end
   end
   
@@ -103,13 +116,13 @@ module Merb::Template
     def self.compile_template(path, name, mod)
       template = ::Erubis::Eruby.new(File.read(path))
       template.def_method(mod, name, path) 
-      name     
+      name
     end
 
     module Mixin
       
       # Provides direct acccess to the buffer for this view context
-      def _buffer( the_binding )
+      def _erb_buffer( the_binding )
         @_buffer = eval( "_buf", the_binding, __FILE__, __LINE__)
       end
 
@@ -122,9 +135,9 @@ module Merb::Template
       #   <% @foo = capture do %>
       #     <p>Some Foo content!</p> 
       #   <% end %>
-      def capture(*args, &block)
+      def capture_erb(*args, &block)
         # get the buffer from the block's binding
-        buffer = _buffer( block.binding ) rescue nil
+        buffer = _erb_buffer( block.binding ) rescue nil
 
         # If there is no buffer, just call the block and get the contents
         if buffer.nil?
@@ -142,11 +155,27 @@ module Merb::Template
 
           data
         end
-      end  
+      end
+      
+      def concat_erb(string, binding)
+        _erb_buffer(binding) << string
+      end
             
     end
   
     Merb::Template.register_extensions(self, %w[erb])    
   end
   
+end
+
+module Erubis
+  module RubyEvaluator
+  
+    def def_method(object, method_name, filename=nil)
+      m = object.is_a?(Module) ? :module_eval : :instance_eval
+      setup = "@_engine = 'erb'"
+      object.__send__(m, "def #{method_name}; #{setup}; #{@src}; end", filename || @filename || '(erubis)')
+    end
+   
+  end
 end
