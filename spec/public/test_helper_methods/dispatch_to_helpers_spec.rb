@@ -84,8 +84,8 @@ describe "get specing helper method" do
   end
   
   it "should evaluate in the context of the controller in the block" do
-    get("/spec_helper_controller") do
-      self.class.should == SpecHelperController
+    get("/spec_helper_controller") do |controller|
+      controller.class.should == SpecHelperController
     end    
   end
   
