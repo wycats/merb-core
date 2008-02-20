@@ -81,4 +81,11 @@ describe Merb::Controller, " url" do
   it "should match the delete_red route" do
     @controller.url(:delete_red).should == "/red/delete"
   end
+
+  it "should add a path_prefix to the url if :path_prefix is set" do
+    Merb::Config[:path_prefix] = "/jungle"
+    @controller.url(:monkeys).should == "/jungle/monkeys"
+    Merb::Config[:path_prefix] = nil
+  end
+
 end
