@@ -65,8 +65,11 @@ module Merb::RenderMixin
       template_method = _template_for(template_location)
 
       # Raise an error if there's no template
-      require 'ruby-debug'
-      debugger if $DEBUG
+      if $DEBUG
+        require "ruby-debug"
+        debugger
+      end
+      
       raise TemplateNotFound, "No template found at #{template_location}" unless 
         template_method && self.respond_to?(template_method)
 
