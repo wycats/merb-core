@@ -33,7 +33,7 @@ class Merb::Dispatcher
       route_index, route_params = Merb::Router.match(request)
       
       if route_params.empty?
-        raise ::Merb::ControllerExceptions::BadRequest, "No routes match the request"
+        raise ::Merb::ControllerExceptions::NotFound, "No routes match the request"
       end
       request.route_params = route_params
       request.reset_params!
@@ -42,7 +42,7 @@ class Merb::Dispatcher
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
       if controller_name.nil?
-        raise Merb::ControllerExceptions::BadRequest, "Route matched, but route did not specify a controller" 
+        raise Merb::ControllerExceptions::NotFound, "Route matched, but route did not specify a controller" 
       end
       
       Merb.logger.debug("Routed to: #{request.route_params.inspect}")

@@ -100,6 +100,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         end
         Merb.push_path(:application,  Merb.root_path("app/controllers/application.rb"))
         Merb.push_path(:config,       Merb.root_path("config"), nil)
+        Merb.push_path(:router,       Merb.dir_for(:config), "router.rb")
         Merb.push_path(:environments, Merb.dir_for(:config) / "environments", nil)
         Merb.push_path(:lib,          Merb.root_path("lib"), nil)
         Merb.push_path(:log,          Merb.log_path, nil)
@@ -162,17 +163,6 @@ class Merb::BootLoader::BeforeAppRuns < Merb::BootLoader
   end
 end
 
-# Load the router.
-#
-# This will attempt to load router.rb from the Merb configuration directory (set up in
-# Merb::BootLoader::BuildFramework)
-class Merb::BootLoader::LoadRouter < Merb::BootLoader
-  
-  def self.run
-    require(Merb.dir_for(:config) / "router") if File.exists?(Merb.dir_for(:config) / "router.rb")
-  end
-end
-
 # Load all classes inside the load paths.
 #
 # This is used in conjunction with Merb::BootLoader::ReloadClasses to track files that
@@ -214,7 +204,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     def reload(file)
       Merb.klass_hashes.each {|x| x.protect_keys!}
       if klasses = LOADED_CLASSES.delete(file)
-        klasses.each { |klass| remove_constant(klass) }
+        klasses.each { |klass| remove_constant(klass) unless klass.to_s =~ /Router/ }
       end
       load_file file
       Merb.klass_hashes.each {|x| x.unprotect_keys!}      
