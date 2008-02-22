@@ -105,15 +105,16 @@ class Merb::Controller < Merb::AbstractController
     # Array[String]::
     #   A list of actions that should be callable.
     def callable_actions
-      @callable_actions ||= Merb::SimpleSet.new(begin
+      unless @callable_actions
         callables = []
         klass = self
         begin
           callables << (klass.public_instance_methods(false) + klass._shown_actions) - klass._hidden_actions
           klass = klass.superclass
         end until klass == Merb::Controller || klass == Object
-        callables
-      end.flatten)
+        @callable_actions = Merb::SimpleSet.new(callables.flatten)
+      end
+      @callable_actions
     end
     
   end
