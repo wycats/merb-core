@@ -286,6 +286,7 @@ module Merb
         return fmt.to_sym
       end
       accepts = Responder.parse(request.accept).map {|t| t.to_sym}
+      accepts.compact!
       return _provided_formats.first if accepts.first == :all
       (accepts & _provided_formats).first || (raise Merb::ControllerExceptions::NotAcceptable)
     end
