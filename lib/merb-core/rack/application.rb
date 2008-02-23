@@ -16,9 +16,9 @@ module Merb
         path = env['PATH_INFO'].chomp('/')
         cached_path = (path.empty? ? 'index' : path) + '.html'
         Merb.logger.info "Request: #{path}"
-        if file_exist?(path)              # Serve the file if it's there
+        if file_exist?(path) && env['REQUEST_METHOD'] =~ /GET|HEAD/ # Serve the file if it's there and the request method is GET or HEAD
           serve_static(env)
-        elsif file_exist?(cached_path)    # Serve the page cache if it's there
+        elsif file_exist?(cached_path) && env['REQUEST_METHOD'] =~ /GET|HEAD/ # Serve the page cache if it's there and the request method is GET or HEAD
           env['PATH_INFO'] = cached_path
           serve_static(env)
         else                              # No static file, let Merb handle it
