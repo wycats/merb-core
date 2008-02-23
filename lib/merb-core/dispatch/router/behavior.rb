@@ -267,6 +267,7 @@ module Merb
       #
       # ==== Parameters
       # name_or_path<String, Symbol>:: The name or path of the namespace.
+      # options<Hash>:: Optional hash, set :path if you want to override what appears on the url
       # block<Proc>::
       #   A new Behavior instance is yielded in the block for nested resources.
       #
@@ -275,10 +276,18 @@ module Merb
       #     admin.resources :accounts
       #     admin.resource :email
       #   end
+      # 
+      #   # /super_admin/accounts
+      #   r.namespace(:admin, :path=>"super_admin") do |admin|
+      #     admin.resources :accounts
+      #   end 
       #---
       # @public
-      def namespace(name_or_path, &block)
-        yield self.class.new({}, :namespace => name_or_path.to_s)
+      def namespace(name_or_path, options={}, &block)
+        path = options[:path] || name_or_path.to_s
+        (path.empty? ? self : match("/#{path}")).to(:namespace => name_or_path.to_s) do |r|
+          yield r
+        end
       end
 
       # Behavior#+resources+ is a route helper for defining a collection of
@@ -326,9 +335,7 @@ module Merb
       def resources(name, options = {})
         namespace = options[:namespace] || merged_params[:namespace]
 
-        match_path = namespace && (parent.nil? || !parent.merged_params[:namespace]) ? "/#{namespace}/#{name}" : "/#{name}"
-
-        next_level = match match_path
+        next_level = match "/#{name}"
 
         name_prefix = options.delete :name_prefix
 
@@ -421,8 +428,8 @@ module Merb
       # @public
       def resource(name, options = {})
         namespace  = options[:namespace] || merged_params[:namespace]
-        match_path = namespace && (parent.nil? || !parent.merged_params[:namespace]) ? "/#{namespace}/#{name}" : "/#{name}"
-        next_level = match match_path
+
+        next_level = match "/#{name}"
 
         options[:controller] ||= merged_params[:controller] || name.to_s
 
