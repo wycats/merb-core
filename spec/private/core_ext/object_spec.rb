@@ -1,20 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 class Foo
-  
-  def self.make_meth
 
-    class_def :foo do
-      "Hello"
-    end
-  end
 end
 
 describe Object do
 
-  it "should use class_def to define a method on the class of an object" do
-    Foo.make_meth
-    Foo.new.foo.should == "Hello"
-  end
   
   it "should treat an empty string as blank" do
     "".should be_blank

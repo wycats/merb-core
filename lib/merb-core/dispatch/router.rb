@@ -50,20 +50,20 @@ module Merb
       # ==== Returns
       # String:: A routing lambda statement generated from the routes.
       def compiled_statement
-        @@compiled_statement = "lambda { |request|\n"
+        @@compiled_statement = "def match(request)\n"
         @@compiled_statement << "  params = request.params\n"
         @@compiled_statement << "  cached_path = request.path\n  cached_method = request.method.to_s\n  "
         @@routes.each_with_index { |route, i| @@compiled_statement << route.compile(i == 0) }
         @@compiled_statement << "  else\n    [nil, {}]\n"
         @@compiled_statement << "  end\n"
-        @@compiled_statement << "}"
+        @@compiled_statement << "end"
       end
 
       # Defines the match function for this class based on the
       # compiled_statement.
       def compile
         puts "compiled route: #{compiled_statement}" if $DEBUG
-        meta_def(:match, &eval(compiled_statement, binding, __FILE__, __LINE__))
+        eval(compiled_statement, binding, __FILE__, __LINE__)
       end
 
       # Generates a URL based on passed options.
