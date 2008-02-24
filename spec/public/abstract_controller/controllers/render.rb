@@ -79,6 +79,8 @@ module Merb::Test::Fixtures
         "#{self.class.name.split('::')[-1].to_const_path}/#{action}"
       end
     end
-
+    
+    class RenderTemplateMultipleRootsInherited < RenderTemplateMultipleRootsAndCustomLocation
+    end
   end
 end

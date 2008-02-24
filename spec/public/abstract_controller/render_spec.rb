@@ -62,4 +62,9 @@ describe Merb::AbstractController, " rendering templates" do
   it "should support rendering templates with multiple roots and custom location" do
     dispatch_should_make_body("RenderTemplateMultipleRootsAndCustomLocation", "Woot.")
   end 
+
+  it "should support rendering templates with multiple roots and custom location from an inherited controller" do
+    dispatch_should_make_body("RenderTemplateMultipleRootsInherited", "Good.")
+  end 
+
 end

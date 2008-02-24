@@ -71,7 +71,7 @@ class Merb::AbstractController
   include Merb::InlineTemplates
   is_hookable
   
-  class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root #, :_template_roots
+  class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root
 
   # Controller name is part of the public API
   def self.controller_name() @controller_name ||= self.name.to_const_path end
@@ -111,11 +111,12 @@ class Merb::AbstractController
   end
   
   def self._template_roots
-    @template_roots ||= [[self._template_root, :_template_location]]
+    read_inheritable_attribute(:template_roots) || 
+    write_inheritable_attribute(:template_roots, [[self._template_root, :_template_location]])
   end
   
   def self._template_roots=(roots)
-    @template_roots = roots
+    write_inheritable_attribute(:template_roots, roots)
   end
   
   cattr_accessor :_abstract_subclasses, :_template_path_cache
@@ -134,7 +135,6 @@ class Merb::AbstractController
     def inherited(klass)
       _abstract_subclasses << klass.to_s   
       self._template_root = Merb.dir_for(:view) unless self._template_root       
-      #self._template_roots = [[self._template_root, :_template_location]] unless self._template_roots
       klass.class_eval <<-HERE
         include Object.full_const_get("Merb::#{klass}Helper") rescue nil
       HERE
