@@ -1,16 +1,25 @@
 module Merb
   module Rack
     class Console
-      def params() {} end
-      
+      # ==== Parameters
+      # name<~to_sym, Hash>:: The name of the route to generate.
+      # params<Hash>:: The params to use in the route generation.
+      #
+      # ==== Returns
+      # String:: The generated URL.
+      #
+      # ==== Alternatives
+      # If name is a hash, it will be merged with params.      
       def url(name, params={})
         Merb::Router.generate(name, params)
       end
       
+      # Reloads classes using Merb::BootLoader::ReloadClasses.
       def reload!
         Merb::BootLoader::ReloadClasses.reload
       end
       
+      # Prints all routes for the application.
       def show_routes
         seen = []
         unless Merb::Router.named_routes.empty?
@@ -29,7 +38,13 @@ module Merb
     end
 
     class Irb
-
+      # ==== Parameters
+      # opts<Hash>:
+      #   Options for IRB. Currently this is not used by the IRB adapter.
+      #
+      # ==== Notes
+      # If the +.irbrc+ file exists, it will be loaded into the IRBRC
+      # environment variable.
       def self.start(opts={})
         m = Merb::Rack::Console.new
         Object.send(:define_method, :merb) { m }  
