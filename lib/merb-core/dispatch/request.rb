@@ -435,7 +435,8 @@ module Merb
       #     # => { :bar => "nik", :post => { :body => "heya" } }
       def query_parse(qs, d = '&;')
         (qs||'').split(/[#{d}] */n).inject({}) { |h,p| 
-          normalize_params(h, *unescape(p).split('=',2))
+          key, value = unescape(p).split('=',2)
+          normalize_params(h, key, value)
         }.to_mash
       end
     

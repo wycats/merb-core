@@ -97,6 +97,11 @@ describe Merb::Request, "#cookies" do
     request.cookies.should == {"merb" => "canhascookie", "version" => "1"}
   end
   
+  it "should handle badly formatted cookies" do
+    request = fake_request({:http_cookie => "merb=; ; also=hats"})
+    request.cookies.should == {"merb" => "", "also" => "hats", "" => nil}
+  end
+  
 end
 
 describe Merb::Request, " misc" do
