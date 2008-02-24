@@ -47,4 +47,19 @@ describe Merb::AbstractController, " rendering templates" do
     dispatch_should_make_body("RenderTemplateControllerLayout", "Controller: the index")
   end
 
+  it "should support rendering templates with a custom location" do
+    dispatch_should_make_body("RenderTemplateCustomLocation", "Wonderful")
+  end
+  
+  it "should support rendering templates with multiple roots" do
+    dispatch_should_make_body("RenderTemplateMultipleRoots", "App: Multiple")
+  end
+
+  it "should support rendering templates with multiple roots, first root" do
+    dispatch_should_make_body("RenderTemplateMultipleRoots", "default show", "show")
+  end
+
+  it "should support rendering templates with multiple roots and custom location" do
+    dispatch_should_make_body("RenderTemplateMultipleRootsAndCustomLocation", "Woot.")
+  end 
 end

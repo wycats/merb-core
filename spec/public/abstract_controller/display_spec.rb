@@ -18,4 +18,16 @@ describe Merb::AbstractController, " displaying objects with templates" do
     dispatch_should_make_body("DisplayObjectWithPath", "fooness")
   end
   
+  it "should allow you to pass an object using multiple template root" do
+    dispatch_should_make_body("DisplayObjectWithMultipleRoots", "App: new index")
+  end
+
+  it "should allow you to pass an object using multiple template root, with layout" do
+    dispatch_should_make_body("DisplayObjectWithMultipleRoots", "Alt: new show", "show")
+  end
+
+  it "should allow you to pass an object using multiple template root, without layout" do
+    dispatch_should_make_body("DisplayObjectWithMultipleRoots", "fooness", "another")
+  end
+
 end

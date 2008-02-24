@@ -41,4 +41,9 @@ describe Merb::AbstractController, " Partials" do
   it "should work with a partial in another directory" do
     dispatch_should_make_body("PartialInAnotherDirectory", "Index Partial in another directory")
   end
+  
+  it "should work with multiple template roots" do
+    dispatch_should_make_body("BasicPartialWithMultipleRoots", "Base Index: Alt Partial")
+  end
+  
 end

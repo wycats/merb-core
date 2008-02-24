@@ -90,5 +90,11 @@ module Merb::Test::Fixtures
       end
     end
 
+    class BasicPartialWithMultipleRoots < RenderIt
+      self._template_roots << [File.dirname(__FILE__) / "alt_views", :_template_location]
+      def index
+        render
+      end
+    end
   end
 end

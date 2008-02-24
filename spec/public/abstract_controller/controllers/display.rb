@@ -31,6 +31,24 @@ module Merb::Test::Fixtures
       end
     end
     
+    
+    class DisplayObjectWithMultipleRoots < DisplayObject
+      self._template_roots << [File.dirname(__FILE__) / "alt_views", :_template_location]
+      
+      def show
+        @obj = SomeModel.new
+        display @obj, nil, :layout=>"alt"
+      end
+      
+      def another
+        @obj = SomeModel.new
+        display @obj, "test_display/foo.html", :layout=>false
+      end
+      
+      def wonderful
+        true
+      end
+    end
   end
 
 end

@@ -58,20 +58,16 @@ module Merb::RenderMixin
     # Do we have a template to try to render?
     if thing.is_a?(Symbol) || opts[:template]
 
-      # Find a template path to look up (_template_location adds flexibility here)
-      template_location = _template_root / (opts[:template] || _template_location(thing, content_type))
-      
-      # Get the method name from the previously inlined list
-      template_method = _template_for(template_location)
-
+      template_method, template_location = _template_for(thing, content_type, controller_name, opts)
+  
       # Raise an error if there's no template
       if $DEBUG
         require "ruby-debug"
         debugger
       end
-      
-      raise TemplateNotFound, "No template found at #{template_location}" unless 
-        template_method && self.respond_to?(template_method)
+
+      raise TemplateNotFound, "No template found at #{template_location}"  \
+        unless template_method && self.respond_to?(template_method)
 
       # Call the method in question and throw the content for later consumption by the layout
       throw_content(:for_layout, self.send(template_method))
@@ -85,12 +81,12 @@ module Merb::RenderMixin
     
     # Handle options (:status)
     _handle_options!(opts)
-    
+        
     # If we find a layout, use it. Otherwise, just render the content thrown for layout.
     layout = opts[:layout] != false && _get_layout(opts[:layout])
     layout ? send(layout) : catch_content(:for_layout)
   end
-  
+    
   # Renders an object using to registered transform method based on the
   # negotiated content-type, if a template does not exist. For instance, 
   # if the content-type is :json, Merb will first look for current_action.json.*.
@@ -161,7 +157,7 @@ module Merb::RenderMixin
       catch_content(:for_layout)
     end
   end
-  
+
   # Render a partial template.
   #
   # ==== Parameters
@@ -197,11 +193,7 @@ module Merb::RenderMixin
     kontroller = (m = template.match(/.*(?=\/)/)) ? m[0] : controller_name
     template = "_#{File.basename(template)}"
     
-    # Find a template path to look up (_template_location adds flexibility here)
-    template_location = _template_root / _template_location(template, content_type, kontroller)
-    
-    # Get the method name from the previously inlined list
-    template_method = _template_for(template_location)
+    template_method, template_location = _template_for(template, content_type, kontroller)
 
     if opts.key?(:with)
       with = opts.delete(:with)
@@ -261,19 +253,31 @@ module Merb::RenderMixin
     
     # If a layout was provided, throw an error if it's not found
     if layout
-      template = _template_location(layout, layout.index(".") ? nil : content_type, "layout")      
-      _template_for(_template_root / template) ||
-        (raise TemplateNotFound, "No layout found at #{_template_root / template}.*")
-    
+      template_method, template_location = _template_for(layout, layout.index(".") ? nil : content_type, "layout")
+      raise TemplateNotFound, "No layout found at #{template_location}" unless template_method
+      template_method
+
     # If a layout was not provided, try the default locations
     else
-      _template_for(_template_root / _template_location(controller_name, content_type, "layout")) ||
-      _template_for(_template_root / _template_location("application", content_type, "layout")) || nil
+      template, location = _template_for(controller_name, content_type, "layout")
+      template, location = _template_for("application", content_type, "layout") unless template
+      template
     end    
   end
   
-  def _template_for(path)
-    Merb::Template.template_for(path)
+  # Iterate over the template roots in reverse order, and return the template 
+  # and template location of the first match.
+  def _template_for(thing, content_type, controller=nil, opts={})
+    template_method = nil
+    template_location = nil
+    
+    self.class._template_roots.reverse_each do |root, template_location| 
+      template_location = root / (opts[:template] || self.send(template_location, thing, content_type, controller))
+      template_method = Merb::Template.template_for(template_location)
+      break if template_method && self.respond_to?(template_method)
+    end
+
+    [template_method, template_location]
   end
     
   # Called in templates to get at content thrown in another template.
