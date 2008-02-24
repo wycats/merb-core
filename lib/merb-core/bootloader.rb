@@ -83,8 +83,8 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     end
     require initfile if File.exists?(initfile + ".rb")
 
-    if !Merb.environment.nil? && File.exist?(Merb.dir_for(:environments) / (Merb.environment + ".rb"))
-      require Merb.dir_for(:environments) / Merb.environment
+    if !Merb.environment.nil? && File.exist?(Merb.root_path("config", "environments") / (Merb.environment + ".rb"))
+      require Merb.root_path("config", "environments") / Merb.environment
     end
   end
 end
@@ -139,7 +139,6 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         Merb.push_path(:application,  Merb.root_path("app/controllers/application.rb"))
         Merb.push_path(:config,       Merb.root_path("config"), nil)
         Merb.push_path(:router,       Merb.dir_for(:config), (Merb::Config[:router_file] || "router.rb"))
-        Merb.push_path(:environments, Merb.dir_for(:config) / "environments", nil)
         Merb.push_path(:lib,          Merb.root_path("lib"), nil)
         Merb.push_path(:log,          Merb.log_path, nil)
         Merb.push_path(:public,       Merb.root_path("public"), nil)
