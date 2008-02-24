@@ -1,5 +1,5 @@
-# Note that the over-use of "_" in Controller methods is to avoid collisions with
-# helpers, which will be pulled directly into controllers from now on
+# Note that the over-use of "_" in Controller methods is to avoid collisions
+# with helpers, which will be pulled directly into controllers from now on.
 #
 # ==== Filters
 # #before is a class method that allows you to specify before filters in
@@ -80,13 +80,22 @@ class Merb::AbstractController
 
   self._before_filters, self._after_filters = [], []
   
-  # This is called after the controller is instantiated to figure out
-  # where to look for templates under the _template_root. Override this
-  # to define a new structure for your app.
+  # This is called after the controller is instantiated to figure out where to
+  # for templates under the _template_root. Override this to define a new
+  # structure for your app.
+  #
+  # ==== Returns
+  # String:: 
+  #   Indicating where to look for the template for the current controller,
+  #   action, and content-type.
+  #
+  # ==== Note
+  # The type is irrelevant for controller-types that don't support
+  # content-type negotiation, so we default to not include it in the
+  # superclass.
   #
   # ==== Examples
   # {{[
-
   #   def _template_location
   #     "#{params[:controller]}.#{params[:action]}.#{content_type}"
   #   end
@@ -94,16 +103,6 @@ class Merb::AbstractController
   #
   # This would look for templates at controller.action.mime.type instead
   # of controller/action.mime.type
-  #
-  # ==== Returns
-  # String:: 
-  #   Indicating where to look for the template for the current
-  #   controller, action, and content-type.
-  #
-  # ==== Note
-  # The type is irrelevant for controller-types that don't support
-  # content-type negotiation, so we default to not include it in
-  # the superclass.
   #---
   # @public
   def _template_location(action, type = nil, controller = controller_name)
@@ -126,6 +125,8 @@ class Merb::AbstractController
   # uniqueness.
   self._abstract_subclasses = Set.new
 
+  # ==== Returns
+  # Set:: The subclasses.
   def self.subclasses_list() _abstract_subclasses end
   
   class << self
@@ -170,7 +171,9 @@ class Merb::AbstractController
   # This will dispatch the request, calling before and after dispatch hooks
   # 
   # ==== Parameters
-  # action<~to_s>:: The action to dispatch to. This will be #send'ed in _call_action
+  # action<~to_s>::
+  #   The action to dispatch to. This will be #send'ed in _call_action.
+  #   Defaults to :to_s.
   def _dispatch(action=:to_s)
     hook :before_dispatch
     self.action_name = action
@@ -209,14 +212,17 @@ class Merb::AbstractController
   # filter_set<Array[Filter]>::
   #   A set of filters in the form [[:filter, rule], [:filter, rule]]
   #
-  # ==== Filters
+  # ==== Returns
+  # Symbol:: :filter_chain_completed.
+  #
+  # ==== Notes
   # Filter rules can be Symbols, Strings, or Procs.
   #
-  # When they are Symbols or Strings:
-  # * call the method represented by the +Symbol+ or +String+
-  # When they are +Procs:
-  # * execute the +Proc+, in the context of the controller (self will
-  #   be the controller)
+  # Symbols or Strings::
+  #   Call the method represented by the +Symbol+ or +String+.
+  # Procs::
+  #   Execute the +Proc+, in the context of the controller (self will be the
+  #   controller)
   def _call_filters(filter_set)
     (filter_set || []).each do |filter, rule|
       if _call_filter_for_action?(rule, action_name) && _filter_condition_met?(rule)
@@ -228,7 +234,21 @@ class Merb::AbstractController
     end
     return :filter_chain_completed
   end
-  
+
+  # ==== Parameters
+  # rule<Hash>:: Rules for the filter (see below).
+  # action_name<~to_s>:: The name of the action to be called.
+  #
+  # ==== Options (rule)
+  # :only<Array>::
+  #   Optional list of actions to fire. If given, action_name must be a part of
+  #   it for this function to return true.
+  # :exclude<Array>::
+  #   Optional list of actions not to fire. If given, action_name must not be a
+  #   part of it for this function to return true.
+  #
+  # ==== Returns
+  # Boolean:: True if the action should be called.
   def _call_filter_for_action?(rule, action_name)
     # Both:
     # * no :only or the current action is in the :only list
@@ -236,7 +256,17 @@ class Merb::AbstractController
     (!rule.key?(:only) || rule[:only].include?(action_name)) &&
     (!rule.key?(:exclude) || !rule[:exclude].include?(action_name))
   end
-  
+
+  # ==== Parameters
+  # rule<Hash>:: Rules for the filter (see below).
+  #
+  # ==== Options (rule)
+  # :if<Array>:: Optional conditions that must be met for the filter to fire.
+  # :unless<Array>::
+  #   Optional conditions that must not be met for the filter to fire.
+  #
+  # ==== Returns
+  # Boolean:: True if the conditions are met.
   def _filter_condition_met?(rule)
     # Both:
     # * no :if or the if condition evaluates to true
@@ -244,7 +274,19 @@ class Merb::AbstractController
     (!rule.key?(:if) || _evaluate_condition(rule[:if])) &&
     (!rule.key?(:unless) || ! _evaluate_condition(rule[:unless]))
   end
-  
+
+  # ==== Parameters
+  # condition<Symbol, Proc>:: The condition to evaluate.
+  #
+  # ==== Raises
+  # ArgumentError:: condition not a Symbol or Proc.
+  #
+  # ==== Returns
+  # Boolean:: True if the condition is met.
+  #
+  # ==== Alternatives
+  # If condition is a symbol, it will be send'ed. If it is a Proc it will be
+  # called directly with self as an argument.
   def _evaluate_condition(condition)
     case condition
     when Symbol : self.send(condition)
@@ -256,44 +298,42 @@ class Merb::AbstractController
   end
 
   # ==== Parameters
-  # filter<Symbol, Proc>:: The filter to add
-  # opts<Hash>:: A Hash of options (see below)
-  #
-  # ==== Options
-  # See class documentation under <tt>Filter Options</tt>
+  # filter<Symbol, Proc>:: The filter to add. Defaults to nil.
+  # opts<Hash>::
+  #   Filter options (see class documentation under <tt>Filter Options</tt>).
   #
   # ==== Note
-  # If the filter already exists, its options will be replaced
-  # with opts
+  # If the filter already exists, its options will be replaced with opts.
   def self.after(filter = nil, opts = {}, &block)
     add_filter(self._after_filters, filter, opts)
   end
 
   # ==== Parameters
-  # filter<Symbol, Proc>:: The filter to add
-  # opts<Hash>:: A Hash of options (see below)
-  #
-  # ==== Options
-  # See class documentation under <tt>Filter Options</tt>
+  # filter<Symbol, Proc>:: The filter to add. Defaults to nil.
+  # opts<Hash>::
+  #   Filter options (see class documentation under <tt>Filter Options</tt>).
+  # block<Proc>:: A block to use as a filter if filter is nil.
   #
   # ==== Note
-  # If the filter already exists, its options will be replaced with opts
+  # If the filter already exists, its options will be replaced with opts.
   def self.before(filter = nil, opts = {}, &block)
     add_filter(self._before_filters, filter || block, opts)
   end
      
-  # Skip an after filter that has been previously defined (perhaps in a superclass)
+  # Skip an after filter that has been previously defined (perhaps in a
+  # superclass)
   #
   # ==== Parameters
-  # filter<Symbol>:: A filter name to skip
+  # filter<Symbol>:: A filter name to skip.
   def self.skip_after(filter)
     skip_filter(self._after_filters, filter)
   end
   
-  # Skip a before filter that has been previously defined (perhaps in a superclass)
+  # Skip a before filter that has been previously defined (perhaps in a
+  # superclass).
   #
   # ==== Parameters
-  # filter<Symbol>:: A filter name to skip
+  # filter<Symbol>:: A filter name to skip.
   def self.skip_before(filter)
     skip_filter(self._before_filters , filter)
   end  
@@ -305,10 +345,12 @@ class Merb::AbstractController
   # Stub so content-type support in RenderMixin doesn't throw errors
   attr_accessor :content_type
   
-  # Handles the template cache (which is used by BootLoader to cache the list of all templates)
+  # Handles the template cache (which is used by BootLoader to cache the list
+  # of all templates).
   #
   # ==== Parameters
-  # template<String>:: The full path to a template to add to the list of available templates
+  # template<String>::
+  #   The full path to a template to add to the list of available templates
   def self.add_path_to_template_cache(template)
     return false if template.blank? || template.split("/").last.split(".").size != 3
     key = template.match(/(.*)\.(.*)$/)[1]
@@ -322,13 +364,15 @@ class Merb::AbstractController
   
   private
   # ==== Parameters
-  # filters<Array[Filter]>:: 
-  #   The filter list that this should be added to
-  # filter<Filter>:: A filter that should be added
-  # opts<Hash>:: Options (see below)
-  # 
-  # ==== Options
-  # See class documentation under <tt>Filter Options</tt>
+  # filters<Array[Filter]>:: The filter list that this should be added to.
+  # filter<Filter>:: A filter that should be added.
+  # opts<Hash>::
+  #   Filter options (see class documentation under <tt>Filter Options</tt>).
+  #
+  # ==== Raises
+  # ArgumentError::
+  #   Both :only and :exclude, or :if and :unless given, or filter is not a
+  #   Symbol, String or Proc.
   def self.add_filter(filters, filter, opts={})
     raise(ArgumentError,
       "You can specify either :only or :exclude but 
@@ -355,12 +399,14 @@ class Merb::AbstractController
   end  
 
   # Skip a filter that was previously added to the filter chain. Useful in
-  # inheritence hierarchies
+  # inheritence hierarchies.
   #
   # ==== Parameters
-  # filters<Array[Filter]>:: 
-  #   The filter list that this should be removed from
-  # filter<Filter>:: A filter that should be removed
+  # filters<Array[Filter]>:: The filter list that this should be removed from.
+  # filter<Filter>:: A filter that should be removed.
+  #
+  # ==== Raises
+  # ArgumentError:: filter not Symbol or String.
   def self.skip_filter(filters, filter)
     raise(ArgumentError, 'You can only skip filters that have a String or Symbol name.') unless
       [Symbol, String].include? filter.class
@@ -371,24 +417,32 @@ class Merb::AbstractController
 
   # Ensures that the passed in hash values are always arrays.
   #
-  #   normalize_filters!(:only => :new) #=> {:only => [:new]}  
-  #
   # ==== Parameters
-  # opts<Hash>:: Options (see below)
+  # opts<Hash>:: Options for the filters (see below).
   #
-  # ==== Options
-  # :only<Symbol, Array[Symbol]>:: A list of actions
-  # :exclude<Symbol, Array[Symbol]>:: A list of actions
+  # ==== Options (opts)
+  # :only<Symbol, Array[Symbol]>:: A list of actions.
+  # :exclude<Symbol, Array[Symbol]>:: A list of actions.
+  #
+  # ==== Examples
+  #   normalize_filters!(:only => :new) #=> {:only => [:new]}
   def self.normalize_filters!(opts={})
     opts[:only]     = Array(opts[:only]).map {|x| x.to_s} if opts[:only]
     opts[:exclude]  = Array(opts[:exclude]).map {|x| x.to_s} if opts[:exclude]
     return opts
   end
-  
+
+  # DOC
   def capture(*args, &block)
     send("capture_#{@_engine}", *args, &block)
   end
 
+  # Attempts to return the partial local variable corresponding to sym.
+  #
+  # ==== Paramteres
+  # sym<Symbol>:: Method name.
+  # *args<Array>:: Arguments to pass to the method.
+  # blk<Proc>:: A block to pass to the method.
   def method_missing(sym, *args, &blk)
     return @_merb_partial_locals[sym] if @_merb_partial_locals && @_merb_partial_locals.key?(sym)
     super
