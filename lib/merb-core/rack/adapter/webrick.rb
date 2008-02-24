@@ -5,6 +5,14 @@ module Merb
 
     class WEBrick
       # start WEBrick server on given host and port.
+      
+      # ==== Parameters
+      # opts<Hash>:: Options for WEBrick (see below).
+      #
+      # ==== Options (opts)
+      # :host<String>:: The hostname that WEBrick should serve.
+      # :port<Fixnum>:: The port WEBrick should bind to.
+      # :app<String>>:: The application name.
       def self.start(opts={})
         Merb.logger.info("Using Webrick adapter")
         Merb.logger.flush

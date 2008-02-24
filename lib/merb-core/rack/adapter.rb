@@ -5,11 +5,20 @@ module Merb
     class Adapter
 
       class << self
-
+        # ==== Parameters
+        # id<String>:: The identifier of the Rack adapter class to retrieve.
+        #
+        # ==== Returns.
+        # Class:: The adapter class.
         def get(id)
           Object.full_const_get(@adapters[id])
         end
 
+        # Registers a new Rack adapter.
+        #
+        # ==== Parameters
+        # ids<Array>:: Identifiers by which this adapter is recognized by.
+        # adapter_class<Class>:: The Rack adapter class.
         def register(ids, adapter_class)
           @adapters ||= Hash.new
           ids.each { |id| @adapters[id] = "Merb::Rack::#{adapter_class}" }

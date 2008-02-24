@@ -15,6 +15,16 @@ module Merb
   module Rack
     module Handler
       class Mongrel < ::Mongrel::HttpHandler
+        # Runs the server and yields it to a block.
+        #
+        # ==== Parameters
+        # app<Merb::Rack::Application>:: The app that Mongrel should handle.
+        # options<Hash>:: Options to pass to Mongrel (see below).
+        #
+        # ==== Options (options)
+        # :Host<String>::
+        #   The hostname on which the app should run. Defaults to "0.0.0.0"
+        # :Port<Fixnum>:: The port for the app. Defaults to 8080.
         def self.run(app, options={})
           server = ::Mongrel::HttpServer.new(options[:Host] || '0.0.0.0',
                                              options[:Port] || 8080)
@@ -23,10 +33,14 @@ module Merb
           server.run.join
         end
   
+        # ==== Parameters
+        # app<Merb::Rack::Application>:: The app that Mongrel should handle.
         def initialize(app)
           @app = app
         end
-  
+        # ==== Parameters
+        # request<Merb::Request>:: The HTTP request to handle.
+        # response<HTTPResponse>:: The response object to write response to.
         def process(request, response)
           env = {}.replace(request.params)
           env.delete "HTTP_CONTENT_TYPE"

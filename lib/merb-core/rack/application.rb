@@ -3,7 +3,9 @@ module Merb
   module Rack
 
     class Application
-
+      # ==== Parameters
+      # options<Hash>::
+      #   Options for creating a new application. Currently ignored.
       def initialize(options={})
         @static_server = ::Rack::File.new Merb.dir_for(:public)
         if prefix = ::Merb::Config[:path_prefix]
@@ -11,6 +13,11 @@ module Merb
         end
       end
 
+      # ==== Parameters
+      # env<Hash>:: Environment variables to pass on to the application.
+      #
+      # ==== Returns
+      # Array:: A 3 element tuple consisting of response status, headers and body.
       def call(env) 
         strip_path_prefix(env) if @path_prefix  # Strip out the path_prefix if one was set 
         path = env['PATH_INFO'].chomp('/')
@@ -36,16 +43,24 @@ module Merb
         end
       end
 
-      # TODO refactor this in File#can_serve?(path) ??
+      # ==== Parameters
+      # path<String>:: The path to the file relative to the server root.
+      #
+      # ==== Returns
+      # Boolean:: True if file exists under the server root and is readable.
       def file_exist?(path)
         full_path = ::File.join(@static_server.root, ::Rack::Utils.unescape(path))
         ::File.file?(full_path) && ::File.readable?(full_path)
       end
 
+      # ==== Parameters
+      # env<Hash>:: Environment variables to pass on to the server.
       def serve_static(env)
         @static_server.call(env)
       end
       
+      # ==== Parameters
+      # env<Hash>:: Environment variables to pass on to the server.
       def strip_path_prefix(env)
         ['PATH_INFO', 'REQUEST_URI'].each do |path_key|
           if env[path_key] =~ @path_prefix

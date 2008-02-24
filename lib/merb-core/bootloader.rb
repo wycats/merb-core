@@ -51,6 +51,44 @@ module Merb
   
 end
 
+# Set up the logger.
+#
+# Place the logger inside of the Merb log directory (set up in
+# Merb::BootLoader::BuildFramework)
+class Merb::BootLoader::Logger < Merb::BootLoader
+  
+  def self.run
+    Merb.logger = Merb::Logger.new(Merb.log_file, Merb::Config[:log_level])
+  end
+end
+
+class Merb::BootLoader::DropPidFile <  Merb::BootLoader
+  class << self
+    def run
+      Merb::Server.store_pid(Merb::Config[:port]) unless Merb::Config[:daemonize] || Merb::Config[:cluster]
+    end
+  end
+end
+
+# Load the init_file specified in Merb::Config or if not specified, the init.rb file
+# from the Merb configuration directory, and any environment files, which register the
+# list of necessary dependencies and any after_app_loads hooks.
+class Merb::BootLoader::Dependencies < Merb::BootLoader
+  
+  def self.run
+    if Merb::Config[:init_file]
+      initfile = Merb::Config[:init_file].chomp(".rb")
+    else
+      initfile = Merb.root_path("config") / "init"
+    end
+    require initfile if File.exists?(initfile + ".rb")
+
+    if !Merb.environment.nil? && File.exist?(Merb.dir_for(:environments) / (Merb.environment + ".rb"))
+      require Merb.dir_for(:environments) / Merb.environment
+    end
+  end
+end
+
 # Build the framework paths.
 #
 # By default, the following paths will be used:
@@ -100,7 +138,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         end
         Merb.push_path(:application,  Merb.root_path("app/controllers/application.rb"))
         Merb.push_path(:config,       Merb.root_path("config"), nil)
-        Merb.push_path(:router,       Merb.dir_for(:config), "router.rb")
+        Merb.push_path(:router,       Merb.dir_for(:config), (Merb::Config[:router_file] || "router.rb"))
         Merb.push_path(:environments, Merb.dir_for(:config) / "environments", nil)
         Merb.push_path(:lib,          Merb.root_path("lib"), nil)
         Merb.push_path(:log,          Merb.log_path, nil)
@@ -113,44 +151,6 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
           Merb.push_path(name, Merb.root_path(path.first), path[1])
         end
       end
-    end
-  end
-end
-
-# Set up the logger.
-#
-# Place the logger inside of the Merb log directory (set up in
-# Merb::BootLoader::BuildFramework)
-class Merb::BootLoader::Logger < Merb::BootLoader
-  
-  def self.run
-    Merb.logger = Merb::Logger.new(Merb.log_file, Merb::Config[:log_level])
-  end
-end
-
-class Merb::BootLoader::DropPidFile <  Merb::BootLoader
-  class << self
-    def run
-      Merb::Server.store_pid(Merb::Config[:port]) unless Merb::Config[:daemonize] || Merb::Config[:cluster]
-    end
-  end
-end
-
-# Load the init_file specified in Merb::Config or if not specified, the init.rb file
-# from the Merb configuration directory, and any environment files, which register the
-# list of necessary dependencies and any after_app_loads hooks.
-class Merb::BootLoader::Dependencies < Merb::BootLoader
-  
-  def self.run
-    if Merb::Config[:init_file]
-      initfile = Merb::Config[:init_file].chomp(".rb")
-    else
-      initfile = Merb.dir_for(:config) / "init"
-    end
-    require initfile if File.exists?(initfile + ".rb")
-
-    if !Merb.environment.nil? && File.exist?(Merb.dir_for(:environments) / (Merb.environment + ".rb"))
-      require Merb.dir_for(:environments) / Merb.environment
     end
   end
 end
@@ -182,7 +182,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       $LOAD_PATH.unshift Merb.dir_for(:controller)
       $LOAD_PATH.unshift Merb.dir_for(:lib)        
     
-      load_file Merb.dir_for(:application) if File.exists?(Merb.dir_for(:application))
+      load_file Merb.dir_for(:application) if File.file?(Merb.dir_for(:application))
     
       # Require all the files in the registered load paths
       Merb.load_paths.each do |name, path|
