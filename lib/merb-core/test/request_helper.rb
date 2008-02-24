@@ -6,15 +6,16 @@ module Merb::Test::RequestHelper
   # env<Hash>:: A hash of environment keys to be merged into the default list.
   # opt<Hash>:: A hash of options (see below).
   #
-  # ==== Options (choose one)
-  # :post_body<String>:: The post body for the request
-  # :body<String>:: The body for the request
+  # ==== Options (opt)
+  # :post_body<String>:: The post body for the request.
+  # :req<String>::
+  #   The request string. This will only be used if :post_body is left out.
   # 
   # ==== Returns
-  # FakeRequest:: A Request object that is built based on the parameters
+  # FakeRequest:: A Request object that is built based on the parameters.
   #
   # ==== Note
-  # If you pass a post_body, the content-type will be set as URL-encoded
+  # If you pass a post body, the content-type will be set to URL-encoded.
   #
   #---
   # @public
@@ -50,6 +51,7 @@ module Merb::Test::RequestHelper
   #     self.stub!(:current_user).and_return(@user)
   #   end
   # ]}}
+  #
   # ==== Note
   # Does not use routes.
   #
@@ -109,37 +111,46 @@ module Merb::Test::RequestHelper
     request(path, params, env, &block)
   end
   
-  # An HTTP POST request that operates through the router
+  # An HTTP POST request that operates through the router.
+  #
   # ==== Parameters
-  #  path<String>:: The path that should go to the router as the request uri
-  #   params<Hash>:: An optional hash that will end up as params in the controller instance.
-  #   env<Hash>:: An optional hash that is passed to the fake request.  Any request options should go here
-  #               (see +fake_request+)
-  #   block:: The block is executed in the context of the controller
+  # path<String>:: The path that should go to the router as the request uri.
+  # params<Hash>::
+  #   An optional hash that will end up as params in the controller instance.
+  # env<Hash>::
+  #   An optional hash that is passed to the fake request. Any request options
+  #   should go here (see fake_request).
+  # block<Proc>:: The block is executed in the context of the controller.
   def post(path, params = {}, env = {}, &block)
     env[:request_method] = "POST"
     request(path, params, env, &block)
   end
   
-  # An HTTP PUT request that operates through the router
+  # An HTTP PUT request that operates through the router.
+  #
   # ==== Parameters
-  #  path<String>:: The path that should go to the router as the request uri
-  #   params<Hash>:: An optional hash that will end up as params in the controller instance.
-  #   env<Hash>:: An optional hash that is passed to the fake request.  Any request options should go here
-  #               (see +fake_request+)
-  #   block:: The block is executed in the context of the controller
+  # path<String>:: The path that should go to the router as the request uri.
+  # params<Hash>::
+  #   An optional hash that will end up as params in the controller instance.
+  # env<Hash>::
+  #   An optional hash that is passed to the fake request. Any request options
+  #   should go here (see fake_request).
+  # block<Proc>:: The block is executed in the context of the controller.
   def put(path, params = {}, env = {}, &block)
     env[:request_method] = "PUT"
     request(path, params, env, &block)
   end
   
   # An HTTP DELETE request that operates through the router
+  #
   # ==== Parameters
-  #  path<String>:: The path that should go to the router as the request uri
-  #   params<Hash>:: An optional hash that will end up as params in the controller instance.
-  #   env<Hash>:: An optional hash that is passed to the fake request.  Any request options should go here
-  #               (see +fake_request+)
-  #   block:: The block is executed in the context of the controller
+  # path<String>:: The path that should go to the router as the request uri.
+  # params<Hash>::
+  #   An optional hash that will end up as params in the controller instance.
+  # env<Hash>::
+  #   An optional hash that is passed to the fake request. Any request options
+  #   should go here (see fake_request).
+  # block<Proc>:: The block is executed in the context of the controller.
   def delete(path, params = {}, env = {}, &block)
     env[:request_method] = "DELETE"
     request(path, params, env, &block)

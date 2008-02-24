@@ -16,6 +16,10 @@ module Merb::Template
     #
     # ==== Parameters
     # path<String>:: A full path to convert to a valid Ruby method name
+    #
+    # ==== Returns
+    # String:: The template name.
+    #
     #---
     # We might want to replace this with something that varies the
     # character replaced based on the non-alphanumeric character
@@ -25,10 +29,14 @@ module Merb::Template
       path.gsub(/[^\.a-zA-Z0-9]/, "__").gsub(/\./, "_")
     end
 
-    # Get the name of the template method for a particular path
+    # Get the name of the template method for a particular path.
     #
     # ==== Parameters
-    # path<String>:: A full path to find a template method for
+    # path<String>:: A full path to find a template method for.
+    # template_stack<Array>:: The template stack. Not used.
+    #
+    # ==== Returns
+    # DOC
     #---
     # @semipublic
     def template_for(path, template_stack = [])
@@ -48,20 +56,20 @@ module Merb::Template
       ret
     end
     
-    # Takes a template at a particular path and inlines it into
-    # a module, which defaults to Merb::InlineTemplates
-    #
-    # This also takes the full path, minus its templating specifier
-    # and adds it to the METHOD_LIST table to speed lookup later
+    # Takes a template at a particular path and inlines it into a module and
+    # adds it to the METHOD_LIST table to speed lookup later.
     # 
     # ==== Parameters
-    # path<String>:: The full path of the template to inline
-    # mod<Module>:: The module to put the compiled method into
+    # path<String>::
+    #   The full path of the template (minus the templating specifier) to
+    #   inline.
+    # mod<Module>::
+    #   The module to put the compiled method into. Defaults to
+    #   Merb::InlineTemplates
     #
     # ==== Note
-    # Even though this method supports inlining into any module,
-    # the method must be available to instances of AbstractController
-    # that will use it.
+    # Even though this method supports inlining into any module, the method
+    # must be available to instances of AbstractController that will use it.
     #---
     # @public
     def inline_template(path, mod = Merb::InlineTemplates)
@@ -70,10 +78,13 @@ module Merb::Template
         engine_for(path).compile_template(path, template_name(path), mod)
     end
     
-    # Finds the engine for a particular path
+    # Finds the engine for a particular path.
     # 
     # ==== Parameters
-    # path<String>:: The path of the file to find an engine for
+    # path<String>:: The path of the file to find an engine for.
+    #
+    # ==== Returns
+    # Class:: The engine.
     #---
     # @semipublic
     def engine_for(path)
@@ -89,6 +100,9 @@ module Merb::Template
     # extensions<Array[String]>:: 
     #   The list of extensions that will be registered with this templating
     #   language
+    #
+    # ==== Raises
+    # ArgumentError:: engine does not have a compile_template method.
     #
     # ==== Example
     # {{[
@@ -110,9 +124,9 @@ module Merb::Template
 
   class Erubis    
     # ==== Parameters
-    # path<String>:: A full path to the template
-    # name<String>:: The name of the method that will be created
-    # mod<Module>:: The module that the compiled method will be placed into
+    # path<String>:: A full path to the template.
+    # name<String>:: The name of the method that will be created.
+    # mod<Module>:: The module that the compiled method will be placed into.
     def self.compile_template(path, name, mod)
       template = ::Erubis::Eruby.new(File.read(path))
       template.def_method(mod, name, path) 
@@ -122,15 +136,25 @@ module Merb::Template
     module Mixin
       
       # Provides direct acccess to the buffer for this view context
+      #
+      # ==== Parameters
+      # the_binding<Binding>:: The binding to pass to the buffer.
+      #
+      # ==== Returns
+      # DOC
       def _erb_buffer( the_binding )
         @_buffer = eval( "_buf", the_binding, __FILE__, __LINE__)
       end
 
-      # Capture allows you to extract a part of the template into an 
-      # instance variable. You can use this instance variable anywhere
-      # in your templates and even in your layout. 
-      # 
-      # Example of capture being used in a .herb page:
+      # ==== Parameters
+      # args<Array>:: Arguments to pass to the block.
+      # block<Proc>:: The template block to call.
+      #
+      # ==== Returns
+      # String:: The output of the block.
+      #
+      # ==== Examples
+      # Capture being used in a .html.erb page:
       # 
       #   <% @foo = capture do %>
       #     <p>Some Foo content!</p> 
@@ -156,7 +180,8 @@ module Merb::Template
           data
         end
       end
-      
+
+      # DOC
       def concat_erb(string, binding)
         _erb_buffer(binding) << string
       end
@@ -170,7 +195,8 @@ end
 
 module Erubis
   module RubyEvaluator
-  
+
+    # DOC
     def def_method(object, method_name, filename=nil)
       m = object.is_a?(Module) ? :module_eval : :instance_eval
       setup = "@_engine = 'erb'"
