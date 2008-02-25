@@ -34,6 +34,9 @@ module Merb
     end
 
     attr_accessor :environment, :load_paths, :adapter
+    
+    alias :env :environment
+    
     Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)
 
     # This is the core mechanism for setting up your application layout
