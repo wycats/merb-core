@@ -1,7 +1,7 @@
 module Merb::Test::Fixtures
   module Abstract
   
-    class Testing < Merb::AbstractController
+    class HelperTesting < Merb::AbstractController
       self._template_root = File.dirname(__FILE__) / "views"
       
       def _template_location(action, type = nil, controller = controller_name)
@@ -9,7 +9,7 @@ module Merb::Test::Fixtures
       end      
     end
     
-    class Capture < Testing
+    class Capture < HelperTesting
       def index
         render
       end
@@ -21,7 +21,7 @@ module Merb::Test::Fixtures
       end
     end
     
-    class Concat < Testing
+    class Concat < HelperTesting
       def index
         render
       end

@@ -26,7 +26,6 @@ module Merb
     # SimpleSet:: The set after the Array was merged in.
     def merge(arr)
       super(arr.inject({}) {|s,x| s[x] = true; s })
-      self
     end
 
     # ==== Returns
