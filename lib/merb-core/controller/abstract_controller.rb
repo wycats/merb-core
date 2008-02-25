@@ -379,6 +379,10 @@ class Merb::AbstractController
   def capture(*args, &block)
     send("capture_#{@_engine}", *args, &block)
   end
+  
+  def concat(str, binding)
+    send("concat_#{@_engine}", str, binding)
+  end
 
   def method_missing(sym, *args, &blk)
     return @_merb_partial_locals[sym] if @_merb_partial_locals && @_merb_partial_locals.key?(sym)
