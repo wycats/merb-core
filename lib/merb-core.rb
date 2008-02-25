@@ -173,6 +173,14 @@ module Merb
       Merb::BootLoader::Dependencies.run
     end
     
+    # Reload the framework.
+    #
+    # ==== Parameters
+    #   None
+    def reload
+      Merb::BootLoader::ReloadClasses.reload
+    end
+
     # If block was given configures using the block.
     # Returns the current configuration as a hash.
     #
