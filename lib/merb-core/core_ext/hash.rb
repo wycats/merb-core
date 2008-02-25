@@ -285,6 +285,31 @@ class REXMLUtilityNode # :nodoc:
     end
   end
 
+  # Typecasts a value based upon its type. For instance, if
+  # +node+ has #type == "integer",
+  # {{[node.typecast_value("12") #=> 12]}}
+  #
+  # ==== Parameters
+  # value<String>:: The value that is being typecast.
+  # 
+  # ==== :type options
+  # "integer":: 
+  #   converts +value+ to an integer with #to_i
+  # "boolean":: 
+  #   checks whether +value+, after removing spaces, is the literal
+  #   "true"
+  # "datetime"::
+  #   Parses +value+ using Time.parse, and returns a UTC Time
+  # "date"::
+  #   Parses +value+ using Date.parse
+  #
+  # ==== Returns
+  # <Integer, true, false, Time, Date, Object>::
+  #   The result of typecasting +value+.
+  #
+  # ==== Note
+  # If +self+ does not have a "type" key, or if it's not one of the
+  # options specified above, the raw +value+ will be returned.
   def typecast_value(value)
     return value unless attributes["type"]
     
@@ -297,6 +322,15 @@ class REXMLUtilityNode # :nodoc:
     end
   end
 
+  # Convert basic XML entities into their literal values.
+  #
+  # ==== Parameters
+  # value<~gsub>::
+  #   An XML fragment.
+  #
+  # ==== Returns
+  # <~gsub>::
+  #   The XML fragment after converting entities.
   def translate_xml_entities(value)
     value.gsub(/&lt;/,   "<").
           gsub(/&gt;/,   ">").
@@ -306,7 +340,7 @@ class REXMLUtilityNode # :nodoc:
   end
 
   def undasherize_keys(params)
-    params.keys.each do |key, vvalue|
+    params.keys.each do |key, value|
       params[key.tr("-", "_")] = params.delete(key)
     end
     params
