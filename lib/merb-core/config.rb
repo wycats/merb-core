@@ -236,8 +236,25 @@ module Merb
       end
       
       def method_missing(method, *args) #:nodoc:
-        @configuration[method]
+        if method.to_s[-1,1] == '='
+          value = *args
+          if value
+            @configuration[method] = value
+          else
+            super
+          end
+        else
+          @configuration[method]
+        end
       end
+      def method_missing(method, *args) #:nodoc:
+        if method.to_s[-1,1] == '='
+          @configuration[method.to_s.tr('=','').to_sym] = *args
+        else
+          @configuration[method]
+        end
+      end
+
 
     end # class << self
 
