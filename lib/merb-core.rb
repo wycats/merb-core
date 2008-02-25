@@ -169,7 +169,32 @@ module Merb
       Merb.logger.auto_flush = true
       Merb::BootLoader::Dependencies.run
     end
-
+    
+    # If block was given configures using the block.
+    # Returns the current configuration as a hash.
+    #
+    # ==== Parameters
+    # block:: Configuration parameter block, see example below.
+    #
+    # Example:
+    #
+    # Merb.config do
+    #   beer               "good"
+    #   hashish            :foo => "bar"
+    #   environment        "development"
+    #   log_level          "debug"
+    #   use_mutex          false
+    #   session_store      "cookie"
+    #   session_secret_key "0d05a226affa226623eb18700"
+    #   exception_details  true
+    #   reload_classes     true
+    #   reload_time        0.5 
+    # end
+    def config(&block)
+      Merb::Config.configure(&block) if block_given?
+      Config.configuration
+    end
+    
   end
 
 end
