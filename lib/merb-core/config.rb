@@ -235,18 +235,11 @@ module Merb
         ConfigBlock.new(self, &block) if block_given?
       end
       
-      def method_missing(method, *args) #:nodoc:
-        if method.to_s[-1,1] == '='
-          value = *args
-          if value
-            @configuration[method] = value
-          else
-            super
-          end
-        else
-          @configuration[method]
-        end
-      end
+      # Allows retrieval of single key config values via Merb.config.<key>
+      # Allows single key assignment via Merb.config.<key> = ...
+      #
+      # ==== Parameters
+      # method:: Method name as hash key value.
       def method_missing(method, *args) #:nodoc:
         if method.to_s[-1,1] == '='
           @configuration[method.to_s.tr('=','').to_sym] = *args
@@ -254,7 +247,6 @@ module Merb
           @configuration[method]
         end
       end
-
 
     end # class << self
 
