@@ -192,121 +192,175 @@ module Merb
       return @env[Merb::Const::REMOTE_ADDR]
     end
     
-    # returns either 'https://' or 'http://' depending on
-    # the HTTPS header
+    # ==== Returns
+    # String::
+    #   The protocol, i.e. either "https://" or "http://" depending on the
+    #   HTTPS header.
     def protocol
       ssl? ? 'https://' : 'http://'
     end
     
-    # returns true if the request is an SSL request
+    # ==== Returns
+    # Boolean::: True if the request is an SSL request.
     def ssl?
       @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
     end
     
-    # returns the request HTTP_REFERER.
+    # ==== Returns
+    # String:: The HTTP referer.
     def referer
       @env['HTTP_REFERER']
     end
     
-    # returns he request uri.
+    # ==== Returns
+    # String:: The request URI.
     def uri
       @env['REQUEST_URI'] || @env['REQUEST_PATH']
     end
 
+    # ==== Returns
+    # String:: The HTTP user agent.
     def user_agent
       @env['HTTP_USER_AGENT']
     end
 
+    # ==== Returns
+    # String:: The server name.
     def server_name
       @env['SERVER_NAME']
     end
 
+    # ==== Returns
+    # String:: The accepted encodings.
     def accept_encoding
       @env['HTTP_ACCEPT_ENCODING']
     end
 
+    # ==== Returns
+    # String:: The script name.
     def script_name
       @env['SCRIPT_NAME']
     end
 
+    # ==== Returns
+    # String:: HTTP cache control.
     def cache_control
       @env['HTTP_CACHE_CONTROL']
     end
 
+    # ==== Returns
+    # String:: The accepted language.
     def accept_language
       @env['HTTP_ACCEPT_LANGUAGE']
     end
 
+    # ==== Returns
+    # String:: The server software.
     def server_software
       @env['SERVER_SOFTWARE']
     end
 
+    # ==== Returns
+    # String:: Value of HTTP_KEEP_ALIVE.
     def keep_alive
       @env['HTTP_KEEP_ALIVE']
     end
 
+    # ==== Returns
+    # String:: The accepted character sets.
     def accept_charset
       @env['HTTP_ACCEPT_CHARSET']
     end
 
+    # ==== Returns
+    # String:: The HTTP version
     def version
       @env['HTTP_VERSION']
     end
 
+    # ==== Returns
+    # String:: The gateway.
     def gateway
       @env['GATEWAY_INTERFACE']
     end
 
+    # ==== Returns
+    # String:: The accepted response types. Defaults to "*/*".
     def accept
       @env['HTTP_ACCEPT'].blank? ? "*/*" : @env['HTTP_ACCEPT']
     end
 
+    # ==== Returns
+    # String:: The HTTP connection.
     def connection
       @env['HTTP_CONNECTION']
     end
 
+    # ==== Returns
+    # String:: The query string.
     def query_string
       @env['QUERY_STRING']  
     end
 
+    # ==== Returns
+    # String:: The request content type.
     def content_type
       @env['CONTENT_TYPE']
     end
 
+    # ==== Returns
+    # Fixnum:: The request content length.
     def content_length
       @content_length ||= @env[Merb::Const::CONTENT_LENGTH].to_i
     end
     
-    # Returns the uri without the query string. Strips trailing '/' and reduces
-    # duplicate '/' to a single '/'
+    # ==== Returns
+    # String::
+    #   The URI without the query string. Strips trailing "/" and reduces
+    #   duplicate "/" to a single "/".
     def path
       path = (uri ? uri.split('?').first : '').squeeze("/")
       path = path[0..-2] if (path[-1] == ?/) && path.size > 1
       path
     end
     
-    # returns the PATH_INFO
+    # ==== Returns
+    # String:: The path info.
     def path_info
       @path_info ||= self.class.unescape(@env['PATH_INFO'])
     end
     
-    # returns the port the server is running on
+    # ==== Returns
+    # Fixnum:: The server port.
     def port
       @env['SERVER_PORT'].to_i
     end
     
-    # returns the full hostname including port
+    # ==== Returns
+    # String:: The full hostname including the port.
     def host
       @env['HTTP_X_FORWARDED_HOST'] || @env['HTTP_HOST'] 
     end
     
-    # returns an array of all the subdomain parts of the host.
+    # ==== Parameters
+    # tld_length<Fixnum>::
+    #   Number of domains levels to inlclude in the top level domain. Defaults
+    #   to 1.
+    #
+    # ==== Returns
+    # Array:: All the subdomain parts of the host.
     def subdomains(tld_length = 1)
       parts = host.split('.')
       parts[0..-(tld_length+2)]
     end
     
-    # returns the full domain name without the port number.
+    # ==== Parameters
+    # tld_length<Fixnum>::
+    #   Number of domains levels to inlclude in the top level domain. Defaults
+    #   to 1.
+    #
+    # ==== Returns
+    # String:: The full domain name without the port number.
     def domain(tld_length = 1)
       host.split('.').last(1 + tld_length).join('.').sub(/:\d+$/,'')
     end
@@ -347,38 +401,42 @@ module Merb
         end
       end
       
-      # Escapes +s+ for use in a URL.
+      # ==== Parameters
+      # s<String>:: String to URL escape.
       #
-      # ==== Parameter
-      #
-      # +s+ - String to URL escape.
-      #
+      # ==== returns
+      # String:: The escaped string.
       def escape(s)
         s.to_s.gsub(/([^ a-zA-Z0-9_.-]+)/n) {
           '%'+$1.unpack('H2'*$1.size).join('%').upcase
         }.tr(' ', '+')
       end
 
-      # Unescapes a string (i.e., reverse URL escaping).
+      # ==== Parameter
+      # s<String>:: String to URL unescape.
       #
-      # ==== Parameter 
-      #
-      # +s+ - String to unescape.
-      #
+      # ==== returns
+      # String:: The unescaped string.
       def unescape(s)
         s.tr('+', ' ').gsub(/((?:%[0-9a-fA-F]{2})+)/n){
           [$1.delete('%')].pack('H*')
         }
       end
       
-      # parses a query string or the payload of a POST
-      # request into the params hash. So for example:
-      # /foo?bar=nik&post[title]=heya&post[body]=whatever
-      # parses into:
-      # {:bar => 'nik', :post => {:title => 'heya', :body => 'whatever'}}
+      # ==== Parameters
+      # qs<String>:: The query string.
+      # d<String>:: The query string divider. Defaults to "&".
+      #
+      # ==== Returns
+      # Mash:: The parsed query string.
+      #
+      # ==== Examples
+      #   query_parse("bar=nik&post[body]=heya")
+      #     # => { :bar => "nik", :post => { :body => "heya" } }
       def query_parse(qs, d = '&;')
         (qs||'').split(/[#{d}] */n).inject({}) { |h,p| 
-          normalize_params(h, *unescape(p).split('=',2))
+          key, value = unescape(p).split('=',2)
+          normalize_params(h, key, value)
         }.to_mash
       end
     

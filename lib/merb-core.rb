@@ -34,6 +34,9 @@ module Merb
     end
 
     attr_accessor :environment, :load_paths, :adapter
+    
+    alias :env :environment
+    
     Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)
 
     # This is the core mechanism for setting up your application layout
@@ -169,7 +172,40 @@ module Merb
       Merb.logger.auto_flush = true
       Merb::BootLoader::Dependencies.run
     end
+    
+    # Reload the framework.
+    #
+    # ==== Parameters
+    #   None
+    def reload
+      Merb::BootLoader::ReloadClasses.reload
+    end
 
+    # If block was given configures using the block.
+    # Returns the current configuration as a hash.
+    #
+    # ==== Parameters
+    # block:: Configuration parameter block, see example below.
+    #
+    # Example:
+    #
+    # Merb.config do
+    #   beer               "good"
+    #   hashish            :foo => "bar"
+    #   environment        "development"
+    #   log_level          "debug"
+    #   use_mutex          false
+    #   session_store      "cookie"
+    #   session_secret_key "0d05a226affa226623eb18700"
+    #   exception_details  true
+    #   reload_classes     true
+    #   reload_time        0.5 
+    # end
+    def config(&block)
+      Merb::Config.configure(&block) if block_given?
+      Config
+    end
+    
   end
 
 end

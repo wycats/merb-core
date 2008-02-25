@@ -43,7 +43,7 @@ module Merb::Test::Fixtures
       
       def index
         render
-      end
+      end      
     end
 
     class RenderTemplateCustomLayout < RenderString
@@ -57,5 +57,30 @@ module Merb::Test::Fixtures
     class RenderTemplateControllerLayout < RenderString
       self._template_root = File.dirname(__FILE__) / "alt_views"      
     end  
+    
+    class RenderTemplateCustomLocation < RenderTemplate      
+      def _template_location(action, type = nil, controller = controller_name)  
+        "wonderful/#{action}"
+      end
+    end
+    
+    class RenderTemplateMultipleRoots < RenderTemplate
+      self._template_roots << [File.dirname(__FILE__) / "alt_views", :_template_location]
+      
+      def show
+        render :layout=>false
+      end
+    end
+
+    class RenderTemplateMultipleRootsAndCustomLocation < RenderTemplate
+      self._template_roots = [[File.dirname(__FILE__) / "alt_views", :_custom_template_location]]
+      
+      def _custom_template_location(action, type = nil, controller = controller_name)
+        "#{self.class.name.split('::')[-1].to_const_path}/#{action}"
+      end
+    end
+    
+    class RenderTemplateMultipleRootsInherited < RenderTemplateMultipleRootsAndCustomLocation
+    end
   end
 end

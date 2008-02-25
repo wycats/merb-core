@@ -1,78 +1,89 @@
 class Hash
   class << self
     # Converts valid XML into a Ruby Hash structure.
-    # <tt>xml</tt>:: A string representation of valid XML
-    # 
-    # == Typecasting
-    # Typecasting is performed on elements that have a "<tt>type</tt>" attribute of
-    # <tt>integer</tt>:: 
-    # <tt>boolean</tt>:: anything other than "true" evaluates to false
-    # <tt>datetime</tt>:: Returns a Time object.  See +Time+ documentation for valid Time strings
-    # <tt>date</tt>:: Returns a Date object.  See +Date+ documentation for valid Date strings 
+    #
+    # ==== Paramters
+    # xml<String>:: A string representation of valid XML.
+    #
+    # ==== Notes
+    # * Mixed content is treated as text and any tags in it are left unparsed
+    # * Any attributes other than type on a node containing a text node will be
+    #   discarded
+    #
+    # ===== Typecasting
+    # Typecasting is performed on elements that have a +type+ attribute:
+    # integer:: 
+    # boolean:: Anything other than "true" evaluates to false.
+    # datetime::
+    #   Returns a Time object. See Time documentation for valid Time strings.
+    # date::
+    #   Returns a Date object. See Date documentation for valid Date strings.
     # 
     # Keys are automatically converted to +snake_case+
     #
-    # == Caveats
-    # * Mixed content tags are assumed to be text and any xml tags are kept as a String
-    # * Any attributes other than type on a node containing a text node will be discarded
+    # ==== Examples
     #
-    # == Examples
-    #
-    # === Standard 
-    # <user gender='m'>
-    #   <age type='integer'>35</age>
-    #   <name>Home Simpson</name>
-    #   <dob type='date'>1988-01-01</dob>
-    #   <joined-at type='datetime'>2000-04-28 23:01</joined-at>
-    #   <is-cool type='boolean'>true</is-cool>
-    # </user>
+    # ===== Standard
+    #   <user gender='m'>
+    #     <age type='integer'>35</age>
+    #     <name>Home Simpson</name>
+    #     <dob type='date'>1988-01-01</dob>
+    #     <joined-at type='datetime'>2000-04-28 23:01</joined-at>
+    #     <is-cool type='boolean'>true</is-cool>
+    #   </user>
     #
     # evaluates to 
     # 
-    # { "user" => 
-    #         { "gender"    => "m",
-    #           "age"       => 35,
-    #           "name"      => "Home Simpson",
-    #           "dob"       => DateObject( 1998-01-01 ),
-    #           "joined_at" => TimeObject( 2000-04-28 23:01),
-    #           "is_cool"   => true 
-    #         }
+    #   { "user" => { 
+    #       "gender"    => "m",
+    #       "age"       => 35,
+    #       "name"      => "Home Simpson",
+    #       "dob"       => DateObject( 1998-01-01 ),
+    #       "joined_at" => TimeObject( 2000-04-28 23:01),
+    #       "is_cool"   => true 
     #     }
+    #   }
     #
-    # === Mixed Content
-    # <story>
-    #   A Quick <em>brown</em> Fox
-    # </story>
+    # ===== Mixed Content
+    #   <story>
+    #     A Quick <em>brown</em> Fox
+    #   </story>
     #
     # evaluates to
-    # { "story" => "A Quick <em>brown</em> Fox" }
+    #
+    #   { "story" => "A Quick <em>brown</em> Fox" }
     # 
-    # === Attributes other than type on a node containing text
-    # <story is-good='fasle'>
-    #   A Quick <em>brown</em> Fox
-    # </story>
+    # ====== Attributes other than type on a node containing text
+    #   <story is-good='false'>
+    #     A Quick <em>brown</em> Fox
+    #   </story>
     #
     # evaluates to
-    # { "story" => "A Quick <em>brown</em> Fox" }
     #
-    # <bicep unit='inches' type='integer'>60</bicep>
+    #   { "story" => "A Quick <em>brown</em> Fox" }
     #
-    # evaluates with a typecast to an integer.  But ignores the unit attribute
-    # { "bicep" => 60 }
+    #   <bicep unit='inches' type='integer'>60</bicep>
+    #
+    # evaluates with a typecast to an integer. But unit attribute is ignored.
+    #
+    #    { "bicep" => 60 }
     def from_xml( xml )
       ToHashParser.from_xml(xml)
     end
   end
   
-  # convert this hash into a Mash for string or symbol key access
+  # ==== Returns
+  # Mash:: This hash as a Mash for string or symbol key access.
   def to_mash
     hash = Mash.new(self)
     hash.default = default
     hash
   end
   
-  # Convert this hash to a query string:
-  #   
+  # ==== Returns
+  # String:: This hash as a query string
+  #
+  # ==== Examples
   #   { :name => "Bob",
   #     :address => {
   #       :street => '111 Ruby Ave.',
@@ -80,7 +91,7 @@ class Hash
   #       :phones => ['111-111-1111', '222-222-2222']
   #     }
   #   }.to_params
-  #   #=> "name=Bob&address[city]=Ruby Central&address[phones]=111-111-1111222-222-2222&address[street]=111 Ruby Ave."
+  #     #=> "name=Bob&address[city]=Ruby Central&address[phones]=111-111-1111222-222-2222&address[street]=111 Ruby Ave."
   def to_params
     params = ''
     stack = []
@@ -107,28 +118,38 @@ class Hash
     params
   end
   
-  # Returns a new Hash with only the selected keys:
-  #   
+  # ==== Parameters
+  # allowed<Array>:: The hash keys to include.
+  #
+  # ==== Returns
+  # Hash:: A new hash with only the selected keys.
+  #
+  # ==== Examples
   #   { :one => 1, :two => 2, :three => 3 }.only(:one)
-  #   #=> { :one => 1 }
+  #     #=> { :one => 1 }
   def only(*allowed) 
     reject { |k,v| !allowed.include?(k) }
   end
   
-  # Returns a new hash without the selected keys:
-  # 
+  # ==== Parameters
+  # rejected<Array>:: The hash keys to exclude.
+  #
+  # ==== Returns
+  # Hash:: A new hash without the selected keys.
+  #
+  # ==== Examples
   #   { :one => 1, :two => 2, :three => 3 }.except(:one)
-  #   #=> { :two => 2, :three => 3 }
-  # 
+  #     #=> { :two => 2, :three => 3 }
   def except(*rejected) 
     reject { |k,v| rejected.include?(k) }
   end
   
-  # Converts the hash into xml attributes
-  # 
-  #   { :one => "ONE", "two"=>"TWO" }.to_xml_attributes
-  #   #=> 'one="ONE" two="TWO"'
-  # 
+  # ==== Returns
+  # String:: The hash as attributes for an XML tag.
+  #
+  # ==== Examples
+  #   { :one => 1, "two"=>"TWO" }.to_xml_attributes
+  #     #=> 'one="1" two="TWO"'
   def to_xml_attributes
     map do |k,v|
       %{#{k.to_s.camel_case.sub(/^(.{1,1})/) { |m| m.downcase }}="#{v}"} 
@@ -137,15 +158,17 @@ class Hash
   
   alias_method :to_html_attributes, :to_xml_attributes
   
-  # Adds the given class symbol or string to the hash in the
-  # :class key.  This will add a html class if there are already any existing
-  # or create the key and add this as the first class
-  # 
-  #   @hash[:class] #=> nil
-  #   @hash.add_html_class!(:selected) #=> @hash[:class] == "selected"
-  #   
-  #   @hash.add_html_class!("class1 class2") #=> @hash[:class] == "selected class1 class2"
-  # 
+  # ==== Parameters
+  # html_class<~to_s>::
+  #   The HTML class to add to the :class key. The html_class will be
+  #   concatenated to any existing classes.
+  #
+  # ==== Examples
+  #   hash[:class] #=> nil
+  #   hash.add_html_class!(:selected)
+  #   hash[:class] #=> "selected"
+  #   hash.add_html_class!("class1 class2")
+  #   hash[:class] #=> "selected class1 class2"
   def add_html_class!(html_class)
     if self[:class]
       self[:class] = "#{self[:class]} #{html_class}"
@@ -154,12 +177,15 @@ class Hash
     end
   end
   
-  # Destructively convert all keys which respond_to?(:to_sym) to symbols.
-  # Works recursively if given nested hashes.
-  # 
-  #  { 'one' => 1, 'two' => 2 }.symbolize_keys!
-  #  #=> { :one => 1, :two => 2 }
-  # 
+  # Destructively convert all keys which respond_to?(:to_sym) to symbols. Works
+  # recursively if given nested hashes.
+  #
+  # ==== Returns
+  # Hash:: The newly converted hash.
+  #
+  # ==== Examples
+  #   { 'one' => 1, 'two' => 2 }.symbolize_keys!
+  #     #=> { :one => 1, :two => 2 }
   def symbolize_keys!
     each do |k,v| 
       sym = k.respond_to?(:to_sym) ? k.to_sym : k 
@@ -169,26 +195,38 @@ class Hash
     self
   end
   
-  # Convert hashes with keys that are real references to classes into keys
-  # that are strings. This is used during reloading to prevent the GC from
-  # barfing when we remove classes that still
+  # Converts all keys into string values. This is used during reloading to
+  # prevent problems when classes are no longer declared.
+  #
+  # === Examples
+  #   hash = { One => 1, Two => 2 }.proctect_keys!
+  #   hash # => { "One" => 1, "Two" => 2 }
   def protect_keys!
     keys.each {|key| self[key.to_s] = delete(key) }
   end
   
-  # Convert Hashes with String keys into Hashes with Class keys. We run this
-  # after reloading to convert protected hashes back into usable hashes.
+  # Attempts to convert all string keys into Class keys. We run this after
+  # reloading to convert protected hashes back into usable hashes.
+  #
+  # === Examples
+  #   # Provided that classes One and Two are declared in this scope:
+  #   hash = { "One" => 1, "Two" => 2 }.unproctect_keys!
+  #   hash # => { One => 1, Two => 2 }
   def unprotect_keys!
     keys.each do |key| 
       (self[Object.full_const_get(key)] = delete(key)) rescue nil
     end
   end
   
-  # Destructively and non-recursively convert each key to an uppercase string.
-  # 
-  #   { :name => "Bob", "age" => 12, "nick" => "Bobinator" }.environmentize_keys!
-  #   #=> { "NAME" => "Bob", "NICK" => "Bobinator", "AGE" => 12 }
-  # 
+  # Destructively and non-recursively convert each key to an uppercase string,
+  # deleting nil values along the way.
+  #
+  # ==== Returns
+  # Hash:: The newly environmentized hash.
+  #
+  # ==== Examples
+  #   { :name => "Bob", :contact => { :email => "bob@bob.com" } }.environmentize_keys!
+  #     #=> { "NAME" => "Bob", "CONTACT" => { :email => "bob@bob.com" } }
   def environmentize_keys!
     keys.each do |key|
       val = delete(key)
@@ -206,8 +244,8 @@ require 'rexml/light/node'
 # This is a slighly modified version of the XMLUtilityNode from
 # http://merb.devjavu.com/projects/merb/ticket/95 (has.sox@gmail.com)
 # It's mainly just adding vowels, as I ht cd wth n vwls :)
-# This represents the hard part of the work, all I did was change the underlying
-# parser
+# This represents the hard part of the work, all I did was change the
+# underlying parser.
 class REXMLUtilityNode # :nodoc:
   attr_accessor :name, :attributes, :children
 

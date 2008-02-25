@@ -2,39 +2,61 @@ class String
   
   class InvalidPathConversion < Exception; end
 
-  # Escapes any characters in the string that would have special meaning in a 
-  # regular expression.
-  #   $ "\*?{}.".escape_regexp #=> "\\*\\?\\{\\}\\."
+  # ==== Returns
+  # String:: The string with all regexp special characters escaped.
+  #
+  # ==== Examples
+  #   "\*?{}.".escape_regexp #=> "\\*\\?\\{\\}\\."
   def escape_regexp
     Regexp.escape self
   end
   
-  # "FooBar".snake_case #=> "foo_bar"
+  # ==== Returns
+  # String:: The string converted to snake case.
+  #
+  # ==== Examples
+  #   "FooBar".snake_case #=> "foo_bar"
   def snake_case
     gsub(/\B[A-Z]/, '_\&').downcase
   end
 
-  # "foo_bar".camel_case #=> "FooBar"
+  # ==== Returns
+  # String:: The string converted to camel case.
+  #
+  # ==== Examples
+  #   "foo_bar".camel_case #=> "FooBar"
   def camel_case
     split('_').map{|e| e.capitalize}.join
   end
   
-  # "merb/core_ext/string" #=> "Merb::CoreExt::String"
+  # ==== Returns
+  # String:: The path string converted to a constant name.
+  #
+  # ==== Examples
+  #   "merb/core_ext/string".to_const_string #=> "Merb::CoreExt::String"
   def to_const_string
     gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
   end
   
-  # Converts "FooBar::Baz" to "foo_bar/baz". Useful for converting constants
-  # into their associated paths assuming a conventional structure.
-  #
   # ==== Returns
-  # String:: The path that is associated with the constantized string
+  # String::
+  #   The path that is associated with the constantized string, assuming a
+  #   conventional structure.
+  #
+  # ==== Examples
+  #   "FooBar::Baz".to_const_path # => "foo_bar/baz"
   def to_const_path
     snake_case.gsub(/::/, "/")
   end
 
-  # Concatenates a path
-  #   $ "merb"/"core_ext" #=> "merb/core_ext"
+  # ==== Parameters
+  # o<String>:: The path component to join with the string.
+  #
+  # ==== Returns
+  # String:: The original path concatenated with o.
+  #
+  # ==== Examples
+  #   "merb"/"core_ext" #=> "merb/core_ext"
   def /(o)
     File.join(self, o.to_s)
   end

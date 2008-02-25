@@ -1,7 +1,9 @@
-# Allows attributes to be shared within an inheritance hierarchy, but where each descendant gets a copy of
-# their parents' attributes, instead of just a pointer to the same. This means that the child can add elements
-# to, for example, an array without those additions being shared with either their parent, siblings, or
-# children, which is unlike the regular class-level attributes that are shared across the entire hierarchy.
+# Allows attributes to be shared within an inheritance hierarchy, but where
+# each descendant gets a copy of their parents' attributes, instead of just a
+# pointer to the same. This means that the child can add elements to, for
+# example, an array without those additions being shared with either their
+# parent, siblings, or children, which is unlike the regular class-level
+# attributes that are shared across the entire hierarchy.
 class Class # :nodoc:
 
   def cattr_reader(*syms)

@@ -3,7 +3,9 @@ module Merb
   module Rack
 
     class Application
-
+      # ==== Parameters
+      # options<Hash>::
+      #   Options for creating a new application. Currently ignored.
       def initialize(options={})
         @static_server = ::Rack::File.new Merb.dir_for(:public)
         if prefix = ::Merb::Config[:path_prefix]
@@ -11,14 +13,19 @@ module Merb
         end
       end
 
+      # ==== Parameters
+      # env<Hash>:: Environment variables to pass on to the application.
+      #
+      # ==== Returns
+      # Array:: A 3 element tuple consisting of response status, headers and body.
       def call(env) 
         strip_path_prefix(env) if @path_prefix  # Strip out the path_prefix if one was set 
         path = env['PATH_INFO'].chomp('/')
         cached_path = (path.empty? ? 'index' : path) + '.html'
         Merb.logger.info "Request: #{path}"
-        if file_exist?(path)              # Serve the file if it's there
+        if file_exist?(path) && env['REQUEST_METHOD'] =~ /GET|HEAD/ # Serve the file if it's there and the request method is GET or HEAD
           serve_static(env)
-        elsif file_exist?(cached_path)    # Serve the page cache if it's there
+        elsif file_exist?(cached_path) && env['REQUEST_METHOD'] =~ /GET|HEAD/ # Serve the page cache if it's there and the request method is GET or HEAD
           env['PATH_INFO'] = cached_path
           serve_static(env)
         else                              # No static file, let Merb handle it
@@ -36,16 +43,24 @@ module Merb
         end
       end
 
-      # TODO refactor this in File#can_serve?(path) ??
+      # ==== Parameters
+      # path<String>:: The path to the file relative to the server root.
+      #
+      # ==== Returns
+      # Boolean:: True if file exists under the server root and is readable.
       def file_exist?(path)
         full_path = ::File.join(@static_server.root, ::Rack::Utils.unescape(path))
         ::File.file?(full_path) && ::File.readable?(full_path)
       end
 
+      # ==== Parameters
+      # env<Hash>:: Environment variables to pass on to the server.
       def serve_static(env)
         @static_server.call(env)
       end
       
+      # ==== Parameters
+      # env<Hash>:: Environment variables to pass on to the server.
       def strip_path_prefix(env)
         ['PATH_INFO', 'REQUEST_URI'].each do |path_key|
           if env[path_key] =~ @path_prefix
