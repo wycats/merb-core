@@ -175,6 +175,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
   class << self
 
     def run
+      orphaned_classes = []
       # Add models, controllers, and lib to the load path
       $LOAD_PATH.unshift Merb.dir_for(:model)      
       $LOAD_PATH.unshift Merb.dir_for(:controller)
@@ -186,10 +187,16 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb.load_paths.each do |name, path|
         next unless path.last && name != :application
         Dir[path.first / path.last].each do |file|
-          load_file file
+          begin
+            load_file file
+          rescue NameError => ne
+            orphaned_classes.unshift(file)
+          end
         end
       end
       Merb::Controller.send :include, Merb::GlobalHelpers
+      
+      load_classes_with_requirements(orphaned_classes)
     end
 
     def load_file(file)
@@ -197,6 +204,34 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       load file
       LOADED_CLASSES[file] = ObjectSpace.classes - klasses
       MTIMES[file] = File.mtime(file)      
+    end
+    
+    # "Better loading" of classes.  If a class fails to load
+    # due to a NameError it will be added to a stack
+    def load_classes_with_requirements(klasses)
+      klasses.uniq!
+      
+      while klasses.size > 0
+        # note size to make sure things are loading
+        size_at_start = klasses.size
+        
+        #list of failed classes
+        failed_classes = []
+        
+        klasses.each do |klass|
+          klasses.delete(klass)
+          begin
+            require klass
+          rescue NameError => ne
+            failed_classes.push(klass)
+          end
+        end
+        
+        klasses.concat(failed_classes)
+        
+        #stop processing if nothing loads or if everything has loaded
+        break if(klasses.size == size_at_start || klasses.size == 0)
+      end
     end
 
     def reload(file)
