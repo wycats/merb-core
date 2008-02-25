@@ -234,6 +234,10 @@ module Merb
       def configure(&block)
         ConfigBlock.new(self, &block) if block_given?
       end
+      
+      def method_missing(method, *args) #:nodoc:
+        @configuration[method]
+      end
 
     end # class << self
 

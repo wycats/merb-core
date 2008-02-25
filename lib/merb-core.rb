@@ -203,7 +203,7 @@ module Merb
     # end
     def config(&block)
       Merb::Config.configure(&block) if block_given?
-      Config.configuration
+      Config
     end
     
   end
