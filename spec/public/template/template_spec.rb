@@ -12,15 +12,6 @@
 # * path<String>:: the full path to the template being compiled
 # * name<String>:: the name of the method that will be inlined
 # * mod<Module>:: the module that the method will be inlined into
-#
-# In order to support the concat and capture helpers, they must also provide a
-# Mixin module containing a _buffer method, which exposes the internal buffer
-# being used in the compiled method and a capture method that takes a block 
-# and evaluates its contents in the context of the compiled method. It should 
-# return the contents as a string, but not modify the context. Note that this
-# is optional, but that the merb_helpers core plugin requires concat and capture
-# to work.
-
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 
 # A small structure to hold the templates so we can test the templating system in isolation
