@@ -211,27 +211,6 @@ module Merb
     def delete_cookie(name)
       set_cookie(name, nil, Merb::Const::COOKIE_EXPIRED_TIME)
     end
-
-    # ==== Parameters
-    # name<~to_sym, Hash>:: The name of the URL to generate.
-    # rparams<Hash>:: Parameters for the route generation.
-    #
-    # ==== Returns
-    # String:: The generated URL.
-    #
-    # ==== Alternatives
-    # If a hash is used as the first argument, a default route will be
-    # generated based on it and rparams.
-    def url(name, rparams={})
-      uri = Merb::Router.generate(name, rparams,
-        { :controller => controller_name,
-          :action => action_name,
-          :format => params[:format]
-        }
-      ) 
-      uri = Merb::Config[:path_prefix] + uri if Merb::Config[:path_prefix]
-      uri
-    end
     
     # Escapes the string representation of +obj+ and escapes
     # it for use in XML.
