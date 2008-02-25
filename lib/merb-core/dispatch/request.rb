@@ -1,6 +1,7 @@
 module Merb
   
   class Request
+    # def env def session def route_params
     attr_accessor :env, :session, :route_params
     
     # by setting these to false, auto-parsing is disabled; this way you can do your own parsing instead
@@ -131,7 +132,6 @@ module Merb
     end
     
     public
-
     # ==== Returns
     # Hash:: All request parameters.
     #

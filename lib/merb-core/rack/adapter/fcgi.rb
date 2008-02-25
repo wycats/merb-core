@@ -1,5 +1,4 @@
 module Merb
-  
   module Rack
     
     class FastCGI

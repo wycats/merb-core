@@ -71,23 +71,22 @@ module Merb
     end
 
     private
-
-      # ==== Parameters
-      # name<~to_s>:: Name of the cookie.
-      # value<~to_s>:: Value of the cookie.
-      # options<Hash>:: Additional options for the cookie (see below).
-      #
-      # ==== Options (options)
-      # :path<String>:: The path for which this cookie applies. Defaults to "/".
-      # :expires<Time>:: Cookie expiry date.
-      def set_cookie(name, value, options)
-        options[:path] = '/' unless options[:path]
-        if expiry = options[:expires]
-          options[:expires] = expiry.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
-        end
-        # options are sorted for testing purposes
-        (@_headers['Set-Cookie'] ||=[]) << "#{name}=#{value}; " +
-          options.map{|k, v| "#{k}=#{v};"}.sort.join(' ')
+    # ==== Parameters
+    # name<~to_s>:: Name of the cookie.
+    # value<~to_s>:: Value of the cookie.
+    # options<Hash>:: Additional options for the cookie (see below).
+    #
+    # ==== Options (options)
+    # :path<String>:: The path for which this cookie applies. Defaults to "/".
+    # :expires<Time>:: Cookie expiry date.
+    def set_cookie(name, value, options)
+      options[:path] = '/' unless options[:path]
+      if expiry = options[:expires]
+        options[:expires] = expiry.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
       end
+      # options are sorted for testing purposes
+      (@_headers['Set-Cookie'] ||=[]) << "#{name}=#{value}; " +
+        options.map{|k, v| "#{k}=#{v};"}.sort.join(' ')
+    end
   end
 end

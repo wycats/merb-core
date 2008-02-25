@@ -1,6 +1,6 @@
 require 'rack'
-module Merb
-    module Rack
+module Merb  
+  module Rack
     autoload :Application,    "merb-core/rack/application"
     autoload :Adapter,        "merb-core/rack/adapter"
     autoload :EventedMongrel, "merb-core/rack/adapter/evented_mongrel"    
