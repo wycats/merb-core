@@ -65,7 +65,8 @@ class Mash < Hash
   def key?(key) 
     super(convert_key(key)) 
   end 
- 
+
+  # def include? def has_key? def member?
   alias_method :include?, :key? 
   alias_method :has_key?, :key? 
   alias_method :member?, :key?
@@ -128,33 +129,32 @@ class Mash < Hash
   end 
  
   protected
+  # ==== Parameters
+  # key<Object>:: The key to convert.
+  #
+  # ==== Returns
+  # Object::
+  #   The converted key. If the key was a symbol, it will be converted to a
+  #   string.
+  def convert_key(key) 
+    key.kind_of?(Symbol) ? key.to_s : key 
+  end
 
-    # ==== Parameters
-    # key<Object>:: The key to convert.
-    #
-    # ==== Returns
-    # Object::
-    #   The converted key. If the key was a symbol, it will be converted to a
-    #   string.
-    def convert_key(key) 
-      key.kind_of?(Symbol) ? key.to_s : key 
-    end
-
-    # ==== Parameters
-    # value<Object>:: The value to convert.
-    #
-    # ==== Returns
-    # Object::
-    #   The converted value. A Hash or an Array of hashes, will be converted to
-    #   their Mash equivalents.
-    def convert_value(value) 
-      case value 
-      when Hash 
-        value.to_mash 
-      when Array 
-        value.collect { |e| e.is_a?(Hash) ? e.to_mash : e } 
-      else 
-        value 
-      end 
-    end
+  # ==== Parameters
+  # value<Object>:: The value to convert.
+  #
+  # ==== Returns
+  # Object::
+  #   The converted value. A Hash or an Array of hashes, will be converted to
+  #   their Mash equivalents.
+  def convert_value(value) 
+    case value 
+    when Hash 
+      value.to_mash 
+    when Array 
+      value.collect { |e| e.is_a?(Hash) ? e.to_mash : e } 
+    else 
+      value 
+    end 
+  end
 end

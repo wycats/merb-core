@@ -304,7 +304,7 @@ class REXMLUtilityNode # :nodoc:
   #   Parses +value+ using Date.parse
   #
   # ==== Returns
-  # <Integer, true, false, Time, Date, Object>::
+  # Integer, true, false, Time, Date, Object::
   #   The result of typecasting +value+.
   #
   # ==== Note
@@ -329,7 +329,7 @@ class REXMLUtilityNode # :nodoc:
   #   An XML fragment.
   #
   # ==== Returns
-  # <~gsub>::
+  # ~gsub::
   #   The XML fragment after converting entities.
   def translate_xml_entities(value)
     value.gsub(/&lt;/,   "<").
@@ -339,6 +339,7 @@ class REXMLUtilityNode # :nodoc:
           gsub(/&amp;/,  "&")
   end
 
+  # Take keys of the form foo-bar and convert them to foo_bar
   def undasherize_keys(params)
     params.keys.each do |key, value|
       params[key.tr("-", "_")] = params.delete(key)
@@ -346,14 +347,21 @@ class REXMLUtilityNode # :nodoc:
     params
   end
 
+  # Get the inner_html of the REXML node.
   def inner_html
     @children.join
   end
 
+  # Converts the node into a readable HTML node.
+  #
+  # ==== Returns
+  # String:: The HTML node in text form.
   def to_html
     "<#{name}#{attributes.to_xml_attributes}>#{inner_html}</#{name}>"
   end
 
+  # ==== Alias
+  # #to_html
   def to_s 
     to_html
   end
