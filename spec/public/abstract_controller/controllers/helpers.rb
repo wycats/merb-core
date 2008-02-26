@@ -6,7 +6,7 @@ module Merb::Test::Fixtures
       
       def _template_location(action, type = nil, controller = controller_name)
         "helpers/#{File.basename(controller)}/#{action}"
-      end      
+      end
     end
     
     class Capture < HelperTesting

@@ -232,7 +232,7 @@ module Merb::Test::RequestHelper
     
     opts = check_request_for_route(request) # Check that the request will be routed correctly
     klass = Object.full_const_get(opts.delete(:controller).to_const_string)
-    action = opts.delete(:action).to_sym
+    action = opts.delete(:action).to_s
     params.merge!(opts)
   
     multipart.nil? ? dispatch_to(klass, action, params, env, &block) : dispatch_multipart_to(klass, action, params, env, &block)
