@@ -36,14 +36,14 @@ module Merb
   ##
   # Sessions stored in memcached.
   #
-  # Requires setup in your +merb_init.rb+:
+  # Requires setup in your +init.rb+:
   #
   #   require 'memcache'
   #   CACHE = MemCache.new('127.0.0.1:11211', { :namespace => 'my_app' })
   #
-  # And a setting in +merb.yml+:
+  # And a setting in +init.rb+:
   #
-  #   :session_store: memcache
+  #   c[:session_store] = 'memcache'
   class MemCacheSession
 
     attr_accessor :session_id

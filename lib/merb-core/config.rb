@@ -13,7 +13,7 @@ module Merb
         @defaults ||= {
           :host                   => "0.0.0.0",
           :port                   => "4000",
-          :adapter                => "mongrel",
+          :adapter                => "runner",
           :reload_classes         => true,
           :environment            => "development",
           :merb_root              => Dir.pwd,
