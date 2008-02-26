@@ -130,6 +130,31 @@ module Merb
       File.open(file)
     end
     
+    # Send binary data over HTTP to the user as a file download. May set content type,
+    # apparent file name, and specify whether to show data inline or download as an attachment.
+    #
+    # ==== Parameters
+    # data<String>:: Path to file to send to the client.
+    # opts<Hash>:: Options for sending the data (see below).
+    #
+    # ==== Options (opts)
+    # :disposition<String>::
+    #   The disposition of the file send. Defaults to "attachment".
+    # :filename<String>::
+    #   The name to use for the file. Defaults to the filename of file.
+    # :type<String>:: The content type.
+    def send_data(data, opts={})
+      opts.update(Merb::Const::DEFAULT_SEND_FILE_OPTIONS.merge(opts))
+      disposition = opts[:disposition].dup || 'attachment'
+      disposition << %(; filename="#{opts[:filename]}") if opts[:filename]
+      headers.update(
+        'Content-Type'              => opts[:type].strip,  # fixes a problem with extra '\r' with some browsers
+        'Content-Disposition'       => disposition,
+        'Content-Transfer-Encoding' => 'binary'
+      )
+      data
+    end
+    
     # Streams a file over HTTP.
     #
     # ==== Parameters
