@@ -2,7 +2,7 @@
 require "merb-core"
 
 unless ARGV.index('-a')
-  ARGV << %w[-a mongrel]
+  ARGV += %w[-a mongrel]
 end
   
 Merb.start
