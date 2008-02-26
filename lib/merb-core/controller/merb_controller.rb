@@ -20,6 +20,7 @@ class Merb::Controller < Merb::AbstractController
     #                           base class
     def inherited(klass)
       _subclasses << klass.to_s
+      self._template_root = Merb.dir_for(:view) unless self._template_root
       super
     end
 
