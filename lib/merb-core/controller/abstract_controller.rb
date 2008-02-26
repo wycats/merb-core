@@ -140,7 +140,7 @@ class Merb::AbstractController
     #   The controller that is being inherited from Merb::AbstractController
     def inherited(klass)
       _abstract_subclasses << klass.to_s   
-      self._template_root = Merb.dir_for(:view) unless self._template_root       
+      self._template_root = Merb.dir_for(:view)    
       klass.class_eval <<-HERE
         include Object.full_const_get("Merb::#{klass}Helper") rescue nil
       HERE
