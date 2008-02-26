@@ -195,6 +195,8 @@ module Merb::RenderMixin
     
     template_method, template_location = _template_for(template, content_type, kontroller)
 
+    (@_old_partial_locals ||= []).push @_merb_partial_locals
+
     if opts.key?(:with)
       with = opts.delete(:with)
       as = opts.delete(:as) || template_location.match(%r[.*/_([^\.]*)])[1]
@@ -205,8 +207,10 @@ module Merb::RenderMixin
       end.join
     else
       @_merb_partial_locals = opts
-      send(template_method)
+      sent_template = send(template_method)
     end
+    @_merb_partial_locals = @_old_partial_locals.pop
+    sent_template
   end      
   
   # Take the options hash and handle it as appropriate.
