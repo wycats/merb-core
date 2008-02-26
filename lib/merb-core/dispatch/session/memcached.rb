@@ -43,7 +43,7 @@ module Merb
   #
   # And a setting in +merb.yml+:
   #
-  #   :session_store: mem_cache
+  #   :session_store: memcache
   class MemCacheSession
 
     attr_accessor :session_id
