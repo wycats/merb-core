@@ -33,7 +33,7 @@ class Merb::Dispatcher
       route_index, route_params = Merb::Router.match(request)
       
       if route_params.empty?
-        raise ::Merb::ControllerExceptions::NotFound, "No routes match the request"
+        raise ::Merb::ControllerExceptions::NotFound, "No routes match the request, #{request.uri}"
       end
       request.route_params = route_params
       request.reset_params!
