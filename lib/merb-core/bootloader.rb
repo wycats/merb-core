@@ -340,7 +340,7 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie",
       "Using 'share-nothing' cookie sessions (4kb limit per client)")
 
-   Merb.register_session_type('memcached', # Last session type becomes the default
+   Merb.register_session_type('memcache', # Last session type becomes the default
      Merb.framework_root /  "merb-core" / "dispatch" / "session" / "memcached",
      "Using 'memcached' sessions")
         
