@@ -352,6 +352,7 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       elsif reg = Merb.registered_session_types[session_store]
         if session_store == "cookie"
           Merb::BootLoader::MixinSessionContainer.check_for_secret_key
+          Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
         end
         require reg[:file]
         include ::Merb::SessionMixin
@@ -360,6 +361,7 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
         Merb.logger.info "Session store not found, '#{Merb::Config[:session_store]}'."
         Merb.logger.info "Defaulting to CookieStore Sessions"
         Merb::BootLoader::MixinSessionContainer.check_for_secret_key
+        Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
         require Merb.registered_session_types['cookie'][:file]
         include ::Merb::SessionMixin
         Merb.logger.info "(plugin not installed?)"
@@ -369,6 +371,12 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
     Merb.logger.flush  
   end
 
+  def self.check_for_session_id_key
+    if Merb::Config[:session_id_key]
+      Merb::Controller._session_id_key = Merb::Config[:session_id_key]
+    end
+  end
+  
   def self.check_for_secret_key
     unless Merb::Config[:session_secret_key] && (Merb::Config[:session_secret_key].length >= 16)
       Merb.logger.info("You must specify a session_secret_key in your merb.yml, and it must be at least 16 characters\nbailing out...")
