@@ -1,5 +1,5 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
-Merb.start :environment => 'test', :adapter =>  'runner' 
+Merb.start :environment => 'test'
 module CookiesSpecModule
   
   def cookie_time(time)

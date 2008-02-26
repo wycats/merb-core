@@ -7,7 +7,7 @@ require File.join(__DIR__, "controllers", "partial")
 require File.join(__DIR__, "controllers", "display")
 require File.join(__DIR__, "controllers", "helpers")
 
-Merb.start :environment => 'test', :adapter =>  'runner'
+Merb.start :environment => 'test'
 
 module Merb::Test::Behaviors
   include Merb::Test::RequestHelper

@@ -1,8 +1,7 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 require 'rack/mock'
 
-Merb.start :environment => 'test',
-           :adapter => 'runner'
+Merb.start :environment => 'test'
 
 describe Merb::Rack::Application do
 
