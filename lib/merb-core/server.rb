@@ -51,7 +51,7 @@ module Merb
       # Boolean::
       #   True if Merb is running on the specified port.
       def alive?(port)
-        f = "#{Merb.dir_for(:log)}" / "merb.#{port}.pid"
+        f = "#{Merb.log_path}" / "merb.#{port}.pid"
         pid = IO.read(f).chomp.to_i
         Process.kill(0, pid)
         true
@@ -69,7 +69,7 @@ module Merb
       def kill(port, sig=9)
         Merb::BootLoader::BuildFramework.run
         begin
-          Dir[Merb.dir_for(:log) / "merb.#{port == 'all' ? '*' : port }.pid"].each do |f|
+          Dir[Merb.log_path/ "merb.#{port == 'all' ? '*' : port }.pid"].each do |f|
             pid = IO.read(f).chomp.to_i
             begin
               Process.kill(sig, pid)
@@ -130,7 +130,7 @@ module Merb
         if Merb::Config[:pid_file]
           pidfile = Merb::Config[:pid_file]
         else
-          pidfile = Merb.dir_for(:log) / "merb.#{port}.pid"
+          pidfile = Merb.log_path / "merb.#{port}.pid"
         end
         FileUtils.rm(pidfile) if File.exist?(pidfile)
       end
@@ -145,11 +145,11 @@ module Merb
       # If Merb::Config[:pid_file] has been specified, that will be used
       # instead of the port based PID file.
       def store_pid(port)
-        FileUtils.mkdir_p(Merb.dir_for(:log)) unless File.directory?(Merb.dir_for(:log))
+        FileUtils.mkdir_p(Merb.log_path) unless File.directory?(Merb.log_path)
         if Merb::Config[:pid_file]
           pidfile = Merb::Config[:pid_file]
         else
-          pidfile = Merb.dir_for(:log) / "merb.#{port}.pid"
+          pidfile = Merb.log_path / "merb.#{port}.pid"
         end
         File.open(pidfile, 'w'){ |f| f.write("#{Process.pid}") }
       end
