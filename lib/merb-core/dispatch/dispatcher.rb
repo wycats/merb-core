@@ -108,7 +108,11 @@ class Merb::Dispatcher
     end
     
     # Re-route the current request to the Exception controller if it is
-    # available, and try to render the exception nicely.
+    # available, and try to render the exception nicely.  
+    #
+    # You can handle exceptions by implementing actions for specific
+    # exceptions such as not_found or for entire classes of exceptions
+    # such as client_error
     #
     # If it is not available then just render a simple text error.
     #
@@ -127,27 +131,39 @@ class Merb::Dispatcher
     #   that triggrered #dispatch_exception. For instance, a NotFound exception
     #   will be "not_found".
     def dispatch_exception(request, exception)
-      klass = ::Exceptions rescue Merb::Controller
-      request.params[:original_params] = request.params.dup rescue {}
-      request.params[:original_session] = request.session.dup rescue {}
-      request.params[:original_cookies] = request.cookies.dup rescue {}
-      request.params[:exception] = exception
-      request.params[:action] = exception.name
-      dispatch_action(klass, exception.name, request, exception.class::STATUS)
-    rescue => dispatch_issue
-      dispatch_issue = controller_exception(dispatch_issue)  
-      # when no action/template exist for an exception, or an
-      # exception occurs on an InternalServerError the message is
-      # rendered as simple text.
-      # ControllerExceptions raised from exception actions are 
-      # dispatched back into the Exceptions controller
-      if dispatch_issue.is_a?(Merb::ControllerExceptions::NotFound)
-        dispatch_default_exception(klass, request, exception)
-      elsif dispatch_issue.is_a?(Merb::ControllerExceptions::InternalServerError)
-        dispatch_default_exception(klass, request, dispatch_issue)
-      else
-        exception = dispatch_issue
-        retry
+      exception_klass = exception.class
+      begin
+        klass = ::Exceptions rescue Merb::Controller
+        request.params[:original_params] = request.params.dup rescue {}
+        request.params[:original_session] = request.session.dup rescue {}
+        request.params[:original_cookies] = request.cookies.dup rescue {}
+        request.params[:exception] = exception
+        request.params[:action] = exception_klass.name
+      
+        dispatch_action(klass, exception_klass.name, request, exception.class::STATUS)
+      rescue => dispatch_issue
+        dispatch_issue = controller_exception(dispatch_issue)  
+        # when no action/template exist for an exception, or an
+        # exception occurs on an InternalServerError the message is
+        # rendered as simple text.
+        
+        # ControllerExceptions raised from exception actions are 
+        # dispatched back into the Exceptions controller
+        if dispatch_issue.is_a?(Merb::ControllerExceptions::NotFound)
+          # If a handler for a specific exception is not found, keep retrying 
+          # with the more general cases until we reach the base exception.
+          unless exception_klass == Merb::ControllerExceptions::Base
+            exception_klass = exception_klass.superclass
+            retry
+          else
+            dispatch_default_exception(klass, request, exception)
+          end
+        elsif dispatch_issue.is_a?(Merb::ControllerExceptions::InternalServerError)
+          dispatch_default_exception(klass, request, dispatch_issue)
+        else
+          exception = dispatch_issue
+          retry
+        end
       end
     end
     
