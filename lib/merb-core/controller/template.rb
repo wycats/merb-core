@@ -105,9 +105,7 @@ module Merb::Template
     # ArgumentError:: engine does not have a compile_template method.
     #
     # ==== Example
-    # {{[
     #   Merb::Template.register_extensions(Merb::Template::Erubis, ["erb"])
-    # ]}}
     #---
     # @public
     def register_extensions(engine, extensions) 

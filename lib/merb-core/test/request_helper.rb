@@ -46,11 +46,9 @@ module Merb::Test::RequestHelper
   #   the action being dispatched.
   #
   # ==== Example
-  # {{[
   #   dispatch_to(MyController, :create, :name => 'Homer' ) do
   #     self.stub!(:current_user).and_return(@user)
   #   end
-  # ]}}
   #
   # ==== Note
   # Does not use routes.
@@ -79,11 +77,9 @@ module Merb::Test::RequestHelper
   # blk<Proc>:: The block is executed in the context of the controller.
   #  
   # ==== Example
-  # {{[
   #   dispatch_multipart_to(MyController, :create, :my_file => @a_file ) do
   #     self.stub!(:current_user).and_return(@user)
   #   end
-  # ]}}
   #
   # ==== Note
   # Set your option to contain a file object to simulate file uploads.
@@ -212,11 +208,9 @@ module Merb::Test::RequestHelper
   # blk<Proc>:: The block is executed in the context of the controller.
   #
   # ==== Example
-  # {{[
   #   request(path, :create, :name => 'Homer' ) do
   #     self.stub!(:current_user).and_return(@user)
   #   end
-  # ]}}
   #
   # ==== Note
   # Uses Routes.

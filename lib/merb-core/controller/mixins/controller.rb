@@ -10,7 +10,6 @@ module Merb
     #   returns.
     #
     # ==== Examples
-    # {{[
     #   def stream
     #     prefix = '<p>'
     #     suffix = "</p>\r\n"
@@ -30,7 +29,6 @@ module Merb
     #       end
     #     end
     #   end
-    # ]}}
     def render_chunked(&blk)
       must_support_streaming!
       headers['Transfer-Encoding'] = 'chunked'
@@ -70,13 +68,13 @@ module Merb
       }
     end
     
-    # Renders the passed in string, then calls the block outside
-    # the mutex and after the string has been returned to the client
+    # Renders the passed in string, then calls the block outside the mutex and
+    # after the string has been returned to the client.
     #
     # ==== Parameters
-    # str<String>:: A +String+ to return to the client
-    # blk<Proc>:: A proc that should get called once the string has
-    #             been returned
+    # str<String>:: A +String+ to return to the client.
+    # blk<Proc>::
+    #   A proc that should get called once the string has been returned.
     def render_then_call(str, &blk)
       must_support_streaming!
       Proc.new {|response|
@@ -148,14 +146,12 @@ module Merb
     # :filename<String>:: The name to use for the streamed file.
     #
     # ==== Examples
-    # {{[
     #   stream_file({ :filename => file_name, :type => content_type,
     #     :content_length => content_length }) do |response|
     #     AWS::S3::S3Object.stream(user.folder_name + "-" + user_file.unique_id, bucket_name) do |chunk|
     #       response.write chunk
     #     end
     #   end
-    # ]}}
     def stream_file(opts={}, &stream)
       must_support_streaming!
       opts.update(Merb::Const::DEFAULT_SEND_FILE_OPTIONS.merge(opts))
@@ -183,7 +179,7 @@ module Merb
       return
     end  
   
-    # Sets a cookie to be included in the response.  This method is used
+    # Sets a cookie to be included in the response. This method is used
     # primarily internally in Merb.
     #
     # If you need to set a cookie, then use the +cookies+ hash.
@@ -212,11 +208,11 @@ module Merb
       set_cookie(name, nil, Merb::Const::COOKIE_EXPIRED_TIME)
     end
     
-    # Escapes the string representation of +obj+ and escapes
-    # it for use in XML.
+    # Escapes the string representation of +obj+ and escapes it for use in XML.
     #
     # ==== Parameter
     # obj<~to_s>:: The object to escape for use in XML.
+    #
     # ==== Returns
     # String:: The escaped object.
     def escape_xml(obj)

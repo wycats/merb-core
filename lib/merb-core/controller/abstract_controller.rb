@@ -73,9 +73,14 @@ class Merb::AbstractController
   
   class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root
 
-  # Controller name is part of the public API
+  # ==== Returns
+  # String:: The controller name in path form, e.g. "admin/items".
+  #---
+  # @public
   def self.controller_name() @controller_name ||= self.name.to_const_path end
 
+  # ==== Returns
+  # String:: The controller name in path form, e.g. "admin/items".
   def controller_name()      self.class.controller_name                   end
 
   self._before_filters, self._after_filters = [], []
@@ -457,7 +462,8 @@ class Merb::AbstractController
   def capture(*args, &block)
     send("capture_#{@_engine}", *args, &block)
   end
-  
+
+  # DOC
   def concat(str, binding)
     send("concat_#{@_engine}", str, binding)
   end

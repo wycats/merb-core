@@ -47,7 +47,8 @@ module Merb
     # type<Symbol>:: The type of path being registered (i.e. :view)
     # path<String>:: The full path
     # file_glob<String>::
-    #   A glob that will be used to autoload files under the path
+    #   A glob that will be used to autoload files under the path. Defaults to
+    #   "**/*.rb".
     def push_path(type, path, file_glob = "**/*.rb")
       enforce!(type => Symbol)
       load_paths[type] = [path, file_glob]
@@ -55,17 +56,20 @@ module Merb
 
     # ==== Parameters
     # type<Symbol>:: The type of path to retrieve directory for, e.g. :view.
+    #
+    # ==== Returns
+    # String:: The directory for the requested type.
     def dir_for(type)  Merb.load_paths[type].first end
 
-    # The pattern with which to match files within the type directory.
-    #
     # ==== Parameters
     # type<Symbol>:: The type of path to retrieve glob for, e.g. :view.
+    #
+    # ===== Returns
+    # String:: The pattern with which to match files within the type directory.
     def glob_for(type) Merb.load_paths[type][1]    end
 
     # ==== Returns
-    # String::
-    #   The Merb root path.
+    # String:: The Merb root path.
     def root()          @root || Merb::Config[:merb_root] || Dir.pwd  end
 
     # ==== Parameters
@@ -174,33 +178,31 @@ module Merb
     end
     
     # Reload the framework.
-    #
-    # ==== Parameters
-    #   None
     def reload
       Merb::BootLoader::ReloadClasses.reload
     end
 
     # If block was given configures using the block.
-    # Returns the current configuration as a hash.
     #
     # ==== Parameters
     # block:: Configuration parameter block, see example below.
     #
-    # Example:
+    # ==== Returns
+    # Hash:: The current configuration.
     #
-    # Merb.config do
-    #   beer               "good"
-    #   hashish            :foo => "bar"
-    #   environment        "development"
-    #   log_level          "debug"
-    #   use_mutex          false
-    #   session_store      "cookie"
-    #   session_secret_key "0d05a226affa226623eb18700"
-    #   exception_details  true
-    #   reload_classes     true
-    #   reload_time        0.5 
-    # end
+    # ==== Examples
+    #   Merb.config do
+    #     beer               "good"
+    #     hashish            :foo => "bar"
+    #     environment        "development"
+    #     log_level          "debug"
+    #     use_mutex          false
+    #     session_store      "cookie"
+    #     session_secret_key "0d05a226affa226623eb18700"
+    #     exception_details  true
+    #     reload_classes     true
+    #     reload_time        0.5 
+    #   end
     def config(&block)
       Merb::Config.configure(&block) if block_given?
       Config

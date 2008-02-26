@@ -26,11 +26,9 @@ module Merb
       # Yields the configuration.
       #
       # ==== Examples
-      # {{[
       #   Merb::Config.use do |config|
       #     config[:exception_details] = false
       #   end
-      # ]}}
       def use
         @configuration ||= {}
         yield @configuration
@@ -226,11 +224,19 @@ module Merb
       end
 
       attr_accessor :configuration #:nodoc:
-      # Takes a block with configuration parameters, see example below.
+
+      # Set configuration parameters from a code block, where each method
+      # evaluates to a config parameter.
       #
       # ==== Parameters
-      # block:: Configuration parameter block, see example below.
-
+      # block:: Configuration parameter block.
+      #
+      # ==== Examples
+      #   # Set environment and log level.
+      #   Merb::Config.configure do
+      #     environment "development"
+      #     log_level   "debug"
+      #   end
       def configure(&block)
         ConfigBlock.new(self, &block) if block_given?
       end
