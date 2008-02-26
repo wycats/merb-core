@@ -20,7 +20,7 @@ module Merb
       base.add_hook :after_dispatch do
         Merb.logger.info("Finalize session")
         if @_fingerprint != Marshal.dump(request.session.data).hash
-          ::Cache.put("session:#{@_session.session_id}", request.session.data)
+          ::Cache.put("session:#{request.session.session_id}", request.session.data)
         end
         set_cookie(_session_id_key, request.session.session_id, Time.now + _session_expiry) if (@_new_cookie || request.session.needs_new_cookie)
       end
