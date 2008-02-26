@@ -33,7 +33,7 @@ module Merb
   #
   # And a setting in +merb.yml+:
   #
-  #   :session_store: mem_cache
+  #   :session_store: memory
   #   :memory_session_ttl: 3600 (in seconds, one hour)
   #
   # Sessions will remain in memory until the server is stopped or the time
