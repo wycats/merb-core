@@ -163,6 +163,7 @@ module Merb::RenderMixin
   # :with<Object, Array>::
   #   An object or an array of objects that will be passed into the partial.
   # :as<~to_sym>:: The local name of the :with Object inside of the partial.
+  # :format<Symbol>:: The mime format that you want the partial to be in (:js, :html, etc.)
   # others::
   #   A Hash object names and values that will be the local names and values
   #   inside the partial.
@@ -180,7 +181,7 @@ module Merb::RenderMixin
     kontroller = (m = template.match(/.*(?=\/)/)) ? m[0] : controller_name
     template = "_#{File.basename(template)}"
     
-    template_method, template_location = _template_for(template, content_type, kontroller)
+    template_method, template_location = _template_for(template, opts.delete(:format) || content_type, kontroller)
 
     (@_old_partial_locals ||= []).push @_merb_partial_locals
 
