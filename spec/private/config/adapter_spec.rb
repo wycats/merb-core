@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/spec_helper'
 
 MERB_BIN = File.dirname(__FILE__) + "/../../../bin/merb"
 
-describe "Merb::Config" do
+describe Merb::Config do
   before do
     ARGV.replace([])
     Merb::Server.should_receive(:start).and_return(nil)
