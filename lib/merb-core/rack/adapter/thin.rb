@@ -17,7 +17,7 @@ module Merb
         Merb.logger.info("Using Thin adapter")
         Merb.logger.flush
         server = ::Thin::Server.new(opts[:host], opts[:port], opts[:app])
-        server.silent = true
+        ::Thin::Logging.silent = true
         server.start!
       end
     end
