@@ -52,6 +52,9 @@ module Merb::RenderMixin
     # Content negotiation
     opts[:format] ? (self.content_type = opts[:format]) : content_type 
     
+    # Handle options (:status)
+    _handle_options!(opts)    
+    
     # Do we have a template to try to render?
     if thing.is_a?(Symbol) || opts[:template]
 
@@ -71,9 +74,6 @@ module Merb::RenderMixin
       throw_content(:for_layout, thing)
     end
     
-    # Handle options (:status)
-    _handle_options!(opts)
-        
     # If we find a layout, use it. Otherwise, just render the content thrown for layout.
     layout = opts[:layout] != false && _get_layout(opts[:layout])
     layout ? send(layout) : catch_content(:for_layout)
