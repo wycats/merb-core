@@ -145,8 +145,8 @@ module Merb::Template
       end
 
       # ==== Parameters
-      # args<Array>:: Arguments to pass to the block.
-      # block<Proc>:: The template block to call.
+      # *args:: Arguments to pass to the block.
+      # &block:: The template block to call.
       #
       # ==== Returns
       # String:: The output of the block.

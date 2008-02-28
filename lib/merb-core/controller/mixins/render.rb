@@ -88,9 +88,9 @@ module Merb::RenderMixin
   # object<Object>:: 
   #   An object that responds_to? the transform method registered for the
   #   negotiated mime-type.
-  # thing<String, Symbol, nil>::
+  # thing<String, Symbol>::
   #   The thing to attempt to render via #render before calling the transform
-  #   method on the object.
+  #   method on the object. Defaults to nil.
   # opts<Hash>:: An options hash that will be passed on to #render
   # 
   # ==== Returns
@@ -224,7 +224,7 @@ module Merb::RenderMixin
   # name as the controller, and finally one in "application.#{content_type}".
   #
   # ==== Parameters
-  # layout<~to_s, nil>:: A layout, relative to the layout root.
+  # layout<~to_s>:: A layout, relative to the layout root. Defaults to nil.
   # 
   # ==== Returns
   # String:: The method name that corresponds to the found layout.
@@ -258,13 +258,18 @@ module Merb::RenderMixin
   # and template location of the first match.
   #
   # ==== Parameters
-  # DOC
+  # thing<Object>:: The controller action.
+  # content_type<~to_s>:: The content type. Defaults to nil.
+  # controller<~to_s>:: The name of the controller. Defaults to nil.
   #
   # ==== Options (opts)
-  # DOC
+  # :template<String>::
+  #   The location of the template to use. Defaults to whatever matches this
+  #   thing, content_type and controller.
   #
   # ==== Returns
-  # Array:: A pair consisting of the template method and location.
+  # Array[Symbol, String]::
+  #   A pair consisting of the template method and location.
   def _template_for(thing, content_type, controller=nil, opts={})
     template_method = nil
     template_location = nil
@@ -299,7 +304,7 @@ module Merb::RenderMixin
   # ==== Parameters
   # obj<Object>:: The key in the thrown_content hash.
   # string<String>:: Textual content. Defaults to nil.
-  # block:: A block to be evaluated and concatenated to string.
+  # &block:: A block to be evaluated and concatenated to string.
   #
   # ==== Raises
   # ArgumentError:: Neither string nor block given.

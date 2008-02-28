@@ -119,7 +119,7 @@ class Hash
   end
   
   # ==== Parameters
-  # allowed<Array>:: The hash keys to include.
+  # *allowed:: The hash keys to include.
   #
   # ==== Returns
   # Hash:: A new hash with only the selected keys.
@@ -132,7 +132,7 @@ class Hash
   end
   
   # ==== Parameters
-  # rejected<Array>:: The hash keys to exclude.
+  # *rejected:: The hash keys to exclude.
   #
   # ==== Returns
   # Hash:: A new hash without the selected keys.

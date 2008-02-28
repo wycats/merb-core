@@ -18,7 +18,7 @@ module Merb
       # Appends the generated routes to the current routes.
       #
       # ==== Parameters
-      # block<Proc>::
+      # &block::
       #   A block that generates new routes when yielded a new Behavior.
       def append(&block)
         prepare(@@routes, [], &block)
@@ -27,7 +27,7 @@ module Merb
       # Prepends the generated routes to the current routes.
       #
       # ==== Parameters
-      # block<Proc>::
+      # &block::
       #   A block that generates new routes when yielded a new Behavior.
       def prepend(&block)
         prepare([], @@routes, &block)
@@ -38,8 +38,10 @@ module Merb
       # ==== Parameters
       # first<Array>:: An array of routes to add before the generated routes.
       # last<Array>:: An array of routes to add after the generated routes.
-      # block<Proc>::
-      #   A block that generates new routes when yielded a new Behavior.
+      # &block:: A block that generates new routes.
+      #
+      # ==== Block parameters (&block)
+      # new_behavior<Behavior>:: Behavior for child routes.
       def prepare(first = [], last = [], &block)
         @@routes = []
         yield Behavior.new({}, { :action => 'index' }) # defaults

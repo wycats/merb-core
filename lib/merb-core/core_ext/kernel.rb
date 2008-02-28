@@ -3,7 +3,7 @@ module Kernel
   #
   # ==== Parameters
   # name<String>:: The name of the gem to load.
-  # ver<Gem::Requirement, Gem::Version, Array, ~to_str>::
+  # *ver<Gem::Requirement, Gem::Version, Array, ~to_str>::
   #   Version requirements to be passed to Gem.activate.
   #
   # ==== Notes
@@ -40,7 +40,7 @@ module Kernel
   # Loads both gem and library dependencies that are passed in as arguments.
   #
   # ==== Parameters
-  # args<Array>:: The dependencies to load.
+  # *args<String, Hash, Array>:: The dependencies to load.
   #
   # ==== Notes
   # Each argument can be:
@@ -152,7 +152,7 @@ module Kernel
   end
   
   # ==== Returns
-  # Array:: A stack trace of the applications files.
+  # Array[String]:: A stack trace of the applications files.
   def __app_file_trace__
     caller.select do |call| 
       call.include?(Merb.root) && !call.include?(Merb.root + "/framework")
@@ -166,7 +166,7 @@ module Kernel
   # i<Fixnum>:: The caller number. Defaults to 1.
   #
   # ==== Returns
-  # Array:: The file, line and method of the caller.
+  # Array[Array]:: The file, line and method of the caller.
   #
   # ==== Examples
   #   __caller_info__(1)
@@ -183,7 +183,7 @@ module Kernel
   #   Defaults to 4.
   #
   # ==== Returns
-  # Array::
+  # Array[Array]::
   #   Triplets containing the line number, the line and whether this was the
   #   searched line.
   #
@@ -230,6 +230,9 @@ module Kernel
   #   Minimum percentage of the total time a method must take for it to be
   #   included in the result. Defaults to 1.
   #
+  # ==== Returns
+  # String:: The result of the profiling.
+  #
   # ==== Notes
   # Requires ruby-prof (<tt>sudo gem install ruby-prof</tt>)
   #
@@ -258,6 +261,9 @@ module Kernel
   
   # Extracts an options hash if it is the last item in the args array. Used
   # internally in methods that take *args.
+  #
+  # ==== Parameters
+  # args<Array>:: The arguments to extract the hash from.
   #
   # ==== Examples
   #   def render(*args,&blk)

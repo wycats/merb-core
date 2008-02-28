@@ -41,7 +41,7 @@ module Merb::Test::RequestHelper
   # env<Hash>::
   #   An optional hash that is passed to the fake request. Any request options
   #   should go here (see +fake_request+).
-  # blk<Proc>::
+  # &blk::
   #   The controller is yielded to the block provided for actions *prior* to
   #   the action being dispatched.
   #
@@ -74,7 +74,7 @@ module Merb::Test::RequestHelper
   # env<Hash>::
   #   An optional hash that is passed to the fake request. Any request options
   #   should go here (see +fake_request+).
-  # blk<Proc>:: The block is executed in the context of the controller.
+  # &blk:: The block is executed in the context of the controller.
   #  
   # ==== Example
   #   dispatch_multipart_to(MyController, :create, :my_file => @a_file ) do
@@ -101,7 +101,7 @@ module Merb::Test::RequestHelper
   # env<Hash>::
   #   An optional hash that is passed to the fake request. Any request options
   #   should go here (see +fake_request+).
-  # block<Proc>:: The block is executed in the context of the controller.
+  # &block:: The block is executed in the context of the controller.
   def get(path, params = {}, env = {}, &block)
     env[:request_method] = "GET"
     request(path, params, env, &block)
@@ -116,7 +116,7 @@ module Merb::Test::RequestHelper
   # env<Hash>::
   #   An optional hash that is passed to the fake request. Any request options
   #   should go here (see fake_request).
-  # block<Proc>:: The block is executed in the context of the controller.
+  # &block:: The block is executed in the context of the controller.
   def post(path, params = {}, env = {}, &block)
     env[:request_method] = "POST"
     request(path, params, env, &block)
@@ -131,7 +131,7 @@ module Merb::Test::RequestHelper
   # env<Hash>::
   #   An optional hash that is passed to the fake request. Any request options
   #   should go here (see fake_request).
-  # block<Proc>:: The block is executed in the context of the controller.
+  # &block:: The block is executed in the context of the controller.
   def put(path, params = {}, env = {}, &block)
     env[:request_method] = "PUT"
     request(path, params, env, &block)
@@ -146,7 +146,7 @@ module Merb::Test::RequestHelper
   # env<Hash>::
   #   An optional hash that is passed to the fake request. Any request options
   #   should go here (see fake_request).
-  # block<Proc>:: The block is executed in the context of the controller.
+  # &block:: The block is executed in the context of the controller.
   def delete(path, params = {}, env = {}, &block)
     env[:request_method] = "DELETE"
     request(path, params, env, &block)
@@ -163,7 +163,7 @@ module Merb::Test::RequestHelper
   # env<Hash>::
   #   An optional hash that is passed to the fake request. Any request options
   #   should go here (see +fake_request+).
-  # block<Proc>:: The block is executed in the context of the controller.
+  # &block:: The block is executed in the context of the controller.
   #
   # ==== Note
   # To include an uploaded file, put a file object as a value in params.
@@ -183,7 +183,7 @@ module Merb::Test::RequestHelper
   # env<Hash>::
   #   An optional hash that is passed to the fake request. Any request options
   #   should go here (see +fake_request+).
-  # block<Proc>:: The block is executed in the context of the controller.
+  # &block:: The block is executed in the context of the controller.
   #
   # ==== Note
   # To include an uplaoded file, put a file object as a value in params.
@@ -205,7 +205,7 @@ module Merb::Test::RequestHelper
   # env<Hash>::
   #   An optional hash that is passed to the fake request. Any request options
   #   should go here (see +fake_request+).
-  # blk<Proc>:: The block is executed in the context of the controller.
+  # &block:: The block is executed in the context of the controller.
   #
   # ==== Example
   #   request(path, :create, :name => 'Homer' ) do
@@ -241,7 +241,10 @@ module Merb::Test::RequestHelper
   # controller_klass<Merb::Controller>::
   #   The class object off the controller to dispatch the action to.
   # action<Symbol>:: The action to dispatch the request to.
-  # blk<Proc>:: The block will execute in the context of the controller itself.
+  # &blk:: The block will execute in the context of the controller itself.
+  #
+  # ==== Block parameters (&blk)
+  # controller<Merb::Controller>:: The controller that's handling the dispatch.
   #
   # ==== Returns
   # An instance of +controller_klass+ based on the parameters.

@@ -78,7 +78,7 @@ module Merb
         end
 
         # ==== Returns
-        # String, String:: The query and the content type.
+        # Array[String, String]:: The query and the content type.
         def to_multipart
           query = @multipart_params.collect { |param| "--" + BOUNDARY + "\r\n" + param.to_multipart }.join("") + "--" + BOUNDARY + "--"
           return query, CONTENT_TYPE

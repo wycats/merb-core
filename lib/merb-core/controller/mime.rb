@@ -1,7 +1,8 @@
 module Merb
   class << self
 
-    # An alias for ResponderMixin::TYPES
+    # ==== Returns
+    # Hash:: The available mime types.
     def available_mime_types
       ResponderMixin::TYPES
     end
@@ -19,18 +20,19 @@ module Merb
     # type and calls render.
     # 
     # By default this does: def render_all, def render_yaml, def render_text,
-
     # def render_html, def render_xml, def render_js, and def render_yaml
     #
     # ==== Parameters
     # key<Symbol>:: The name of the mime-type. This is used by the provides API
-    # transform_method<~to_s?>:: 
+    # transform_method<~to_s>:: 
     #   The associated method to call on objects to convert them to the
-    #   appropriate mime-type. For instance, :json would use :to_json as
-    #   its transform_method
-    # values<Array[String]>:: 
-    #   A list of possible values sent in the Accept header, such as
-    #   text/html, that should be associated with this content-type
+    #   appropriate mime-type. For instance, :json would use :to_json as its
+    #   transform_method.
+    # values<Array[String]>::
+    #   A list of possible values sent in the Accept header, such as text/html,
+    #   that should be associated with this content-type.
+    # new_response_headers<Hash>::
+    #   The response headers to set for the the mime type.
     def add_mime_type(key, transform_method, values, new_response_headers = {}) 
       enforce!(key => Symbol, values => Array)
       ResponderMixin::TYPES.update(key => 
@@ -46,29 +48,38 @@ module Merb
       EOS
     end
 
-    # Removes a MIME-type from the mime-type list
+    # Removes a MIME-type from the mime-type list.
     #
     # ==== Parameters
-    # key<Symbol>:: The key that represents the mime-type to remove
+    # key<Symbol>:: The key that represents the mime-type to remove.
+    #
+    # ==== Note
+    # :all is the key for */*; It can't be removed.
     def remove_mime_type(key)
-      # :all is the key for */*; it can't be removed
       return false if key == :all
       ResponderMixin::TYPES.delete(key)
     end
 
-    # The method that transforms an object for this mime-type (e.g. :to_json)
-    #
     # ==== Parameters
-    # key<Symbol>:: The key that represents the mime-type
+    # key<Symbol>:: The key that represents the mime-type.
+    #
+    # ==== Returns
+    # Symbol:: The transform method for the mime type, e.g. :to_json.
+    #
+    # ==== Raises
+    # ArgumentError:: The requested mime type is not valid.
     def mime_transform_method(key)
       raise ArgumentError, ":#{key} is not a valid MIME-type" unless ResponderMixin::TYPES.key?(key)
       ResponderMixin::TYPES[key][:transform_method]
     end
 
-    # The mime-type for a particular inbound Accepts header
+    # The mime-type for a particular inbound Accepts header.
     #
     # ==== Parameters
-    # header<String>:: The name of the header you want to find the mime-type for
+    # header<String>:: The name of the header to find the mime-type for.
+    #
+    # ==== Returns
+    # Hash:: The mime type information.
     def mime_by_request_header(header)
       available_mime_types.find {|key,info| info[request_headers].include?(header)}.first
     end
