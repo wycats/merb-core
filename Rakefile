@@ -18,6 +18,7 @@ include FileUtils
 NAME = "merb-core"
 
 require "lib/merb-core/version"
+require "lib/merb-core/test/run_specs"
 
 ##############################################################################
 # Packaging & Installation
@@ -125,37 +126,6 @@ task :aok => [:specs, :rcov]
 #   t.spec_opts = ["--format", "specdoc", "--colour"]
 #   t.spec_files = Dir["spec/**/*_spec.rb"].sort
 # end
-
-require 'open3'
-
-def run_specs(glob, spec_cmd='spec')
-  require "optparse"
-  require "spec"
-  examples, failures, errors, pending = 0, 0, 0, 0
-  Dir[glob].each do |spec|
-    response = Open3.popen3("#{spec_cmd} #{File.expand_path(spec)} -f s -c") do |i,o,e|
-      while out = o.gets
-        STDOUT.puts out
-        STDOUT.flush
-        if out =~ /\d+ example/
-          e, f, p = out.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) pending?)?/)[1..-1]
-          examples += e.to_i; failures += f.to_i; pending += p.to_i          
-        end
-      end
-      errors += 1 if e.is_a?(IO)
-      STDOUT.puts e.read if e.is_a?(IO)
-    end
-  end
-  puts
-  puts "*** TOTALS ***"
-  if failures == 0
-    print "\e[32m"
-  else
-    print "\e[31m"
-  end
-  puts "#{examples} examples, #{failures} failures, #{errors} errors, #{pending} pending"
-  print "\e[0m"  
-end
 
 def setup_specs(name, spec_cmd='spec')
   desc "Run all specs (#{name})"

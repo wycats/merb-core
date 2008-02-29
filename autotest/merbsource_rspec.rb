@@ -22,28 +22,28 @@ class RspecCommandError < StandardError; end
 class Autotest::MerbsourceRspec < Autotest
   
   Autotest.add_hook :initialize do |at|
-    %w{.git}.each {|exception| at.exceptions.push exception}
-  end
-  
-  Autotest.add_hook :run do |at|
+    at.clear_mappings
+    at.add_exception(/\.git/)
+
     # See above for human-readable descriptions of these rules
-      # 1 above
-      at.add_mapping(%r{^spec/.*_spec\.rb$}) { |filename, _| filename}
+    # 1 above
+    at.add_mapping(%r{^spec/.*_spec\.rb$}) { |filename, _| filename}
 
-      # 2 above
-      at.add_mapping(%r{^spec/(.*)/spec_helper\.rb$}) { |_, m| at.files_matching %r{^spec/#{m[1]}/.*_spec\.rb$} }
+    # 2 above
+    at.add_mapping(%r{^spec/spec_helper\.rb$}) { |_, m| at.files_matching %r{^spec/.*_spec\.rb$} }
+    at.add_mapping(%r{^spec/(.*)/spec_helper\.rb$}) { |_, m| at.files_matching %r{^spec/#{m[1]}/.*_spec\.rb$} }
 
-      # 3 above
-      at.add_mapping(%r{^lib/merb-core/controller/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec\/(public|private)\/#{m[1]}\/.*_spec\.rb} }
+    # 3 above
+    at.add_mapping(%r{^lib/merb-core/controller/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec/(public|private)/abstract_controller/.*_spec\.rb} }
 
-      # 4 above
-      at.add_mapping(%r{^lib/merb-core/controller/mixins/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec/(public|private)/(abstract_)?controller/#{m[1]}_spec\.rb} }
+    # 4 above
+    at.add_mapping(%r{^lib/merb-core/controller/mixins/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec/(public|private)/(abstract_)?controller/#{m[1]}_spec\.rb} }
 
-      # 5 above
-      at.add_mapping(%r{^lib/merb-core/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec/(public|private)/#{m[1]}/.*_spec\.rb} }
+    # 5 above
+    at.add_mapping(%r{^lib/merb-core/([^/]*)\.rb$}) { |_, m| at.files_matching %r{^spec/(public|private)/#{m[1]}/.*_spec\.rb} }
 
-      # 6 above
-      at.add_mapping(%r{^lib/merb\.rb$}) { at.files_matching %r{^spec/[^/]*_spec\.rb$} }
+    # 6 above
+    at.add_mapping(%r{^lib/merb\.rb$}) { at.files_matching %r{^spec/[^/]*_spec\.rb$} }
 
   end
 
@@ -56,12 +56,6 @@ class Autotest::MerbsourceRspec < Autotest
   end
   
   attr_accessor :failures
-
-  def tests_for_file(filename)
-    super.select { |f| @files.has_key? f }
-  end
-  
-  alias :specs_for_file :tests_for_file
 
   def failed_results(results)
     results.scan(/^\d+\)\n(?:\e\[\d*m)?(?:.*?Error in )?'([^\n]*)'(?: FAILED)?(?:\e\[\d*m)?\n(.*?)\n\n/m)
@@ -83,7 +77,7 @@ class Autotest::MerbsourceRspec < Autotest
   def consolidate_failures(failed)
     filters = Hash.new { |h,k| h[k] = [] }
     failed.each do |spec, failed_trace|
-      @files.keys.select { |f| f =~ /spec\// }.each do |f|
+      find_files.keys.select { |f| f =~ /spec\// }.each do |f|
         if failed_trace =~ Regexp.new(f)
           filters[f] << spec
           break
@@ -98,7 +92,7 @@ class Autotest::MerbsourceRspec < Autotest
   end
 
   def test_cmd_options
-    '-O specs/spec.opts' if File.exist?('specs/spec.opts')
+    # '-O specs/spec.opts' if File.exist?('specs/spec.opts')
   end
   
   # Finds the proper spec command to use.  Precendence
@@ -113,16 +107,8 @@ class Autotest::MerbsourceRspec < Autotest
     end
   end
   
-  # Autotest will look for spec commands in the following
-  # locations, in this order:
-  #
-  #   * bin/spec
-  #   * default spec bin/loader installed in Rubygems
+  # Merb specs must be run 1 at a time, so use our special runner
   def spec_commands
-    if (spec = `which spec`.chomp) && !spec.empty?
-      return [spec]
-    end
-    [File.join('bin', 'spec'),
-     File.join(Config::CONFIG['bindir'], 'spec')]
+    [File.join('bin', 'merb-specs')]
   end
 end
