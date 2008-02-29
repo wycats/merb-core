@@ -16,6 +16,7 @@ module Merb
   autoload :ResponderMixin,       "merb-core/controller/mixins/responder"
   autoload :Router,               "merb-core/dispatch/router"
   autoload :SessionMixin,         "merb-core/dispatch/session"
+  autoload :Test,                 "merb-core/test"
 end
 
 # Require this rather than autoloading it so we can be sure the default template
