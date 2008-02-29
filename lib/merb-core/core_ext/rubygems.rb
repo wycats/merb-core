@@ -20,7 +20,7 @@ module Gem
     # the gems directory, the later one will load as usual.
     #
     # ==== Returns
-    # Array:: The object used for sorting gem specs.
+    # Array[Array]:: The object used for sorting gem specs.
     def sort_obj
       [@name, installation_path == File.join(defined?(Merb) && Merb.respond_to?(:root) ? Merb.root : Dir.pwd,"gems") ? 1 : -1, @version.to_ints, @new_platform == Gem::Platform::RUBY ? -1 : 1]
     end

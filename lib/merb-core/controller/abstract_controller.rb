@@ -89,6 +89,13 @@ class Merb::AbstractController
   # for templates under the _template_root. Override this to define a new
   # structure for your app.
   #
+  # ==== Parameters
+  # action<~to_s>:: The controller action.
+  # type<~to_s>:: The content type. Defaults to nil.
+  # controller<~to_s>::
+  #   The name of the controller. Defaults to controller_name.
+  #
+  #
   # ==== Returns
   # String:: 
   #   Indicating where to look for the template for the current controller,
@@ -100,11 +107,9 @@ class Merb::AbstractController
   # superclass.
   #
   # ==== Examples
-  # {{[
   #   def _template_location
   #     "#{params[:controller]}.#{params[:action]}.#{content_type}"
   #   end
-  # ]}}
   #
   # This would look for templates at controller.action.mime.type instead
   # of controller/action.mime.type
@@ -113,12 +118,20 @@ class Merb::AbstractController
   def _template_location(action, type = nil, controller = controller_name)
     "#{controller}/#{action}"
   end
-  
+
+  # ==== Returns
+  # roots<Array[Array]>::
+  #   Template roots as pairs of template root path and template location
+  #   method.
   def self._template_roots
     read_inheritable_attribute(:template_roots) || 
     write_inheritable_attribute(:template_roots, [[self._template_root, :_template_location]])
   end
-  
+
+  # ==== Parameters
+  # roots<Array[Array]>::
+  #   Template roots as pairs of template root path and template location
+  #   method.
   def self._template_roots=(roots)
     write_inheritable_attribute(:template_roots, roots)
   end
@@ -165,7 +178,7 @@ class Merb::AbstractController
   attr_accessor :action_name
   
   # ==== Parameters
-  # *args<Object>:: The args are ignored
+  # *args:: The args are ignored.
   def initialize(*args)
     @_benchmarks = {}
     @_caught_content = {}
@@ -178,6 +191,9 @@ class Merb::AbstractController
   # action<~to_s>::
   #   The action to dispatch to. This will be #send'ed in _call_action.
   #   Defaults to :to_s.
+  #
+  # ==== Raises
+  # MerbControllerError:: Invalid body content caught.
   def _dispatch(action=:to_s)
     hook :before_dispatch
     self.action_name = action
@@ -305,6 +321,7 @@ class Merb::AbstractController
   # filter<Symbol, Proc>:: The filter to add. Defaults to nil.
   # opts<Hash>::
   #   Filter options (see class documentation under <tt>Filter Options</tt>).
+  # &block:: Currently ignored.
   #
   # ==== Note
   # If the filter already exists, its options will be replaced with opts.
@@ -316,7 +333,7 @@ class Merb::AbstractController
   # filter<Symbol, Proc>:: The filter to add. Defaults to nil.
   # opts<Hash>::
   #   Filter options (see class documentation under <tt>Filter Options</tt>).
-  # block<Proc>:: A block to use as a filter if filter is nil.
+  # &block:: A block to use as a filter if filter is nil.
   #
   # ==== Note
   # If the filter already exists, its options will be replaced with opts.
@@ -457,12 +474,23 @@ class Merb::AbstractController
     return opts
   end
 
-  # DOC
+  # Calls the capture method for the selected template engine.
+  #
+  # ==== Parameters
+  # *args:: Arguments to pass to the block.
+  # &block:: The template block to call.
+  #
+  # ==== Returns
+  # String:: The output of the block.
   def capture(*args, &block)
     send("capture_#{@_engine}", *args, &block)
   end
 
-  # DOC
+  # Calls the concatenate method for the selected template engine.
+  #
+  # ==== Parameters
+  # str<String>:: The string to concatenate to the buffer.
+  # binding<Binding>:: The binding to use for the buffer.
   def concat(str, binding)
     send("concat_#{@_engine}", str, binding)
   end
@@ -471,8 +499,8 @@ class Merb::AbstractController
   #
   # ==== Paramteres
   # sym<Symbol>:: Method name.
-  # *args<Array>:: Arguments to pass to the method.
-  # blk<Proc>:: A block to pass to the method.
+  # *arg:: Arguments to pass to the method.
+  # &blk:: A block to pass to the method.
   def method_missing(sym, *args, &blk)
     return @_merb_partial_locals[sym] if @_merb_partial_locals && @_merb_partial_locals.key?(sym)
     super

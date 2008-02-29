@@ -19,6 +19,7 @@ module Merb::Hook
     # obj<Proc, ~to_s>::
     #   A block to evaluate (Proc) or a method name to call (~to_s) when the
     #   hook is called.
+    # &block:: A block that will be run when the hook is called if obj is nil.
     # 
     # ==== Returns
     # Hash:: A Hash of all the registered hooks.

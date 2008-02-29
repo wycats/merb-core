@@ -21,6 +21,9 @@ module Merb
         # app<Merb::Rack::Application>:: The app that Mongrel should handle.
         # options<Hash>:: Options to pass to Mongrel (see below).
         #
+        # ==== Block parameters
+        # server<Mongrel::HttpServer>:: The server to run.
+        #
         # ==== Options (options)
         # :Host<String>::
         #   The hostname on which the app should run. Defaults to "0.0.0.0"
@@ -38,6 +41,7 @@ module Merb
         def initialize(app)
           @app = app
         end
+
         # ==== Parameters
         # request<Merb::Request>:: The HTTP request to handle.
         # response<HTTPResponse>:: The response object to write response to.

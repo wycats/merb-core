@@ -77,7 +77,7 @@ module Merb
     def root=(value)    @root = value                                 end
 
     # ==== Parameters
-    # path<String>::
+    # *path::
     #   The relative path (or list of path components) to a directory under the
     #   root of the application.
     #
@@ -128,6 +128,10 @@ module Merb
     # Allows flat apps by setting no default framework directories and yielding
     # a Merb::Router instance. This is optional since the router will
     # automatically configure the app with default routes.
+    #
+    # ==== Block parameters
+    # r<Merb::Router::Behavior>::
+    #   The root behavior upon which new routes can be added.
     def flat!
       Merb::Config[:framework] = {}
 
@@ -169,6 +173,9 @@ module Merb
       @frozen = true
     end
 
+    # ==== Parameters
+    # init_file<String>:: The file to load first.
+    # options<Hash>:: Other options to pass on to the Merb config.
     def load_dependencies(init_file, options = {})
       Merb::Config.setup({:log_file => $stdout, :log_level => :warn,
         :init_file => init_file}.merge(options))
@@ -185,7 +192,7 @@ module Merb
     # If block was given configures using the block.
     #
     # ==== Parameters
-    # block:: Configuration parameter block, see example below.
+    # &block:: Configuration parameter block, see example below.
     #
     # ==== Returns
     # Hash:: The current configuration.

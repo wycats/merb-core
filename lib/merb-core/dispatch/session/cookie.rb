@@ -110,7 +110,7 @@ module Merb
     # Yields the session data to an each block.
     #
     # ==== Parameter
-    # b<Proc>:: The block to pass to each.
+    # &b:: The block to pass to each.
     def each(&b) 
       @data.each(&b) 
     end

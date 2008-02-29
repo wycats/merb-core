@@ -17,7 +17,8 @@ module Merb
       # env<Hash>:: Environment variables to pass on to the application.
       #
       # ==== Returns
-      # Array:: A 3 element tuple consisting of response status, headers and body.
+      # Array[Array]::
+      #   A 3 element tuple consisting of response status, headers and body.
       def call(env) 
         strip_path_prefix(env) if @path_prefix  # Strip out the path_prefix if one was set 
         path = env['PATH_INFO'].chomp('/')

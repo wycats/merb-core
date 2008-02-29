@@ -81,7 +81,7 @@ module Merb
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see +fake_request+).
-      # blk<Proc>::
+      # &blk::
       #   The controller is yielded to the block provided for actions *prior* to
       #   the action being dispatched.
       #
@@ -111,7 +111,7 @@ module Merb
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see +fake_request+).
-      # block<Proc>:: The block is executed in the context of the controller.
+      # &block:: The block is executed in the context of the controller.
       def get(path, params = {}, env = {}, &block)
         env[:request_method] = "GET"
         request(path, params, env, &block)
@@ -126,7 +126,7 @@ module Merb
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see fake_request).
-      # block<Proc>:: The block is executed in the context of the controller.
+      # &block:: The block is executed in the context of the controller.
       def post(path, params = {}, env = {}, &block)
         env[:request_method] = "POST"
         request(path, params, env, &block)
@@ -141,7 +141,7 @@ module Merb
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see fake_request).
-      # block<Proc>:: The block is executed in the context of the controller.
+      # &block:: The block is executed in the context of the controller.
       def put(path, params = {}, env = {}, &block)
         env[:request_method] = "PUT"
         request(path, params, env, &block)
@@ -156,7 +156,7 @@ module Merb
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see fake_request).
-      # block<Proc>:: The block is executed in the context of the controller.
+      # &block:: The block is executed in the context of the controller.
       def delete(path, params = {}, env = {}, &block)
         env[:request_method] = "DELETE"
         request(path, params, env, &block)

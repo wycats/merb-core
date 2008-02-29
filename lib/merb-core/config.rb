@@ -26,6 +26,9 @@ module Merb
 
       # Yields the configuration.
       #
+      # ==== Block parameters
+      # c<Hash>:: The configuration parameters.
+      #
       # ==== Examples
       #   Merb::Config.use do |config|
       #     config[:exception_details] = false
@@ -230,7 +233,7 @@ module Merb
       # evaluates to a config parameter.
       #
       # ==== Parameters
-      # block:: Configuration parameter block.
+      # &block:: Configuration parameter block.
       #
       # ==== Examples
       #   # Set environment and log level.
@@ -246,7 +249,8 @@ module Merb
       # Allows single key assignment via Merb.config.<key> = ...
       #
       # ==== Parameters
-      # method:: Method name as hash key value.
+      # method<~to_s>:: Method name as hash key value.
+      # *args:: Value to set the configuration parameter to.
       def method_missing(method, *args) #:nodoc:
         if method.to_s[-1,1] == '='
           @configuration[method.to_s.tr('=','').to_sym] = *args

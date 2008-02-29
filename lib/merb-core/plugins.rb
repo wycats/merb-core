@@ -19,7 +19,7 @@ module Merb
     end
 
     # ==== Parameters
-    # rakefiles<Array>:: Rakefiles to add to the list of plugin Rakefiles.
+    # *rakefiles:: Rakefiles to add to the list of plugin Rakefiles.
     def self.add_rakefiles(*rakefiles)
       @rakefiles += rakefiles
     end

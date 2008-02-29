@@ -113,19 +113,21 @@ module Merb
 
     module ClassMethods
       
-      # Adds symbols representing formats to the controller's
-      # default list of provided_formats.  These will apply to
-      # every action in the controller, unless modified in the action.
-      # If the last argument is a Hash or an Array, these are regarded
-      # as arguments to pass to the to_<mime_type> method as needed.
+      # Adds symbols representing formats to the controller's default list of
+      # provided_formats. These will apply to every action in the controller,
+      # unless modified in the action. If the last argument is a Hash or an
+      # Array, these are regarded as arguments to pass to the to_<mime_type>
+      # method as needed.
       #
       # ==== Parameters
-      # *formats<Symbol>:: 
-      #   A list of mime-types that the controller should provide
+      # *formats<Symbol>::
+      #   A list of mime-types that the controller should provide.
       #
       # ==== Returns
-      # Array:: List of formats passed in
+      # Array[Symbol]:: List of formats passed in.
       #
+      # ==== Examples
+      #   provides :html, :xml
       #---
       # @public
       def provides(*formats)
@@ -134,14 +136,14 @@ module Merb
         end
       end
       
-      # This class should only provide the formats listed here, despite
-      # any other definitions previously or in superclasses.
+      # This class should only provide the formats listed here, despite any
+      # other definitions previously or in superclasses.
       #
       # ==== Parameters
-      # *formats<Symbol>:: Registered mime-type
+      # *formats<Symbol>:: Registered mime-types.
       # 
       # ==== Returns
-      # Array:: List of formats passed in      
+      # Array[Symbol]:: List of formats passed in.      
       #
       #---
       # @public
@@ -150,14 +152,15 @@ module Merb
         provides(*formats)
       end
 
-      # This class should not provide any of this list of formats, despite
-      # any other definitions previously or in superclasses.
+      # This class should not provide any of this list of formats, despite any.
+      # other definitions previously or in superclasses.
       # 
       # ==== Parameters
-      # *formats<Symbol>:: Registered mime-type
+      # *formats<Symbol>:: Registered mime-types.
       # 
       # ==== Returns
-      # Array:: List of formats that remain after removing the ones not to provide      
+      # Array[Symbol]::
+      #   List of formats that remain after removing the ones not to provide.
       #
       #---
       # @public
@@ -165,44 +168,45 @@ module Merb
         self.class_provided_formats -= formats
       end
 
-      # Clear the list of provides
+      # Clear the list of provides.
       #
       # ==== Returns
-      # Array:: An empty Array
+      # Array:: An empty Array.
       def clear_provides
         self.class_provided_formats.clear
       end
       
-      # Reset the list of provides to include only :html
+      # Reset the list of provides to include only :html.
       #
       # ==== Returns
-      # Array:: [:html]
+      # Array[Symbol]:: [:html].
       def reset_provides
         only_provides(:html)
       end
     end
 
     # ==== Returns
-    # The current list of formats provided for this instance of the controller. 
-    # It starts with what has been set in the controller (or :html by default) 
-    # but can be modifed on a per-action basis.      
+    # Array[Symbol]::
+    #   The current list of formats provided for this instance of the
+    #   controller. It starts with what has been set in the controller (or
+    #   :html by default) but can be modifed on a per-action basis.      
     def _provided_formats
       @_provided_formats ||= class_provided_formats.dup
     end
     
-    # Sets the provided formats for this action.  Usually, you would
-    # use a combination of +provides+, +only_provides+ and +does_not_provide+
-    # to manage this, but you can set it directly.
+    # Sets the provided formats for this action.  Usually, you would use a
+    # combination of provides, only_provides and does_not_provide to manage
+    # this, but you can set it directly.
     # 
     # ==== Parameters
-    # *formats<Symbol>:: A list of formats to be passed to provides
+    # *formats<Symbol>:: A list of formats to be passed to provides.
     #
     # ==== Raises
     # Merb::ResponderMixin::ContentTypeAlreadySet::
     #   Content negotiation already occured, and the content_type is set.
     #
     # ==== Returns
-    # Array:: List of formats passed in
+    # Array[Symbol]:: List of formats passed in.
     def _set_provided_formats(*formats)
       if @_content_type
         raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
@@ -212,20 +216,20 @@ module Merb
     end
     alias :_provided_formats= :_set_provided_formats   
     
-    # Adds formats to the list of provided formats for this particular 
-    # request. Usually used to add formats to a single action. See also
-    # the controller-level provides that affects all actions in a controller.
+    # Adds formats to the list of provided formats for this particular request.
+    # Usually used to add formats to a single action. See also the
+    # controller-level provides that affects all actions in a controller.
     #
     # ==== Parameters
-    # *formats<Symbol>:: A list of formats to add to the per-action list
-    #                    of provided formats
+    # *formats<Symbol>::
+    #   A list of formats to add to the per-action list of provided formats.
     #
     # ==== Raises
     # Merb::ResponderMixin::ContentTypeAlreadySet::
     #   Content negotiation already occured, and the content_type is set.
     #
     # ==== Returns
-    # Array:: List of formats passed in
+    # Array[Symbol]:: List of formats passed in.
     #
     #---
     # @public
@@ -238,17 +242,16 @@ module Merb
       end
     end
 
-    # Sets list of provided formats for this particular 
-    # request. Usually used to limit formats to a single action. See also
-    # the controller-level only_provides that affects all actions
-    # in a controller.      
+    # Sets list of provided formats for this particular request. Usually used
+    # to limit formats to a single action. See also the controller-level
+    # only_provides that affects all actions in a controller.      
     # 
     # ==== Parameters
-    # *formats<Symbol>:: A list of formats to use as the per-action list
-    #                    of provided formats
+    # *formats<Symbol>::
+    #   A list of formats to use as the per-action list of provided formats.
     #
     # ==== Returns
-    # Array:: List of formats passed in
+    # Array[Symbol]:: List of formats passed in.
     #
     #---
     # @public
@@ -265,7 +268,8 @@ module Merb
     # *formats<Symbol>:: Registered mime-type
     # 
     # ==== Returns
-    # Array:: List of formats that remain after removing the ones not to provide
+    # Array[Symbol]::
+    #   List of formats that remain after removing the ones not to provide.
     #
     #---
     # @public
@@ -303,7 +307,7 @@ module Merb
     # you need the value, not to trigger content negotiation. 
     # 
     # ==== Parameters
-    # fmt<String?>:: 
+    # fmt<String>:: 
     #   An optional format to use instead of performing content negotiation.
     #   This can be used to pass in the values of opts[:format] from the 
     #   render function to short-circuit content-negotiation when it's not
@@ -325,10 +329,10 @@ module Merb
     # registered header for the mime-type.
     #
     # ==== Parameters
-    # type<Symbol>:: A type that is in the list of registered mime-types.
+    # type<Symbol>:: The content type.
     #
     # ==== Raises
-    # ArgumentError:: "type" is not in the list of registered mime-types.
+    # ArgumentError:: type is not in the list of registered mime-types.
     #
     # ==== Returns
     # Symbol:: The content-type that was passed in.
@@ -355,7 +359,7 @@ module Merb
     # accept_header<~to_s>:: The raw accept header.
     #
     # ==== Returns
-    # Array:: The AcceptType objects.
+    # Array[AcceptType]:: The accepted types.
     def self.parse(accept_header)
       list = accept_header.to_s.split(/,/).enum_for(:each_with_index).map do |entry,index|
         AcceptType.new(entry,index += 1)
@@ -378,7 +382,7 @@ module Merb
     attr_reader :media_range, :quality, :index, :type, :sub_type
 
     # ==== Parameters
-    # entry<String>:: 
+    # entry<String>:: The accept type pattern
     # index<Fixnum>::
     #   The index used for sorting accept types. A lower value indicates higher
     #   priority.
@@ -391,6 +395,9 @@ module Merb
     end
 
     # Compares two accept types for sorting purposes.
+    #
+    # ==== Parameters
+    # entry<AcceptType>:: The accept type to compare.
     #
     # ==== Returns
     # Fixnum::
@@ -421,7 +428,7 @@ module Merb
     def hash; super_range.hash; end
 
     # ==== Returns
-    # Array::
+    # Array[String]::
     #   All Accept header values, such as "text/html", that match this type.
     def synonyms
       @syns ||= Merb.available_mime_types.values.map do |e| 

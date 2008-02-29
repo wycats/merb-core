@@ -110,9 +110,9 @@ module Merb
       # conditions<Hash>::
       #   This optional hash helps refine the settings for the route.
       #   When combined with a block it can help keep your routes DRY
-      # block<Proc>::
-      #   +match+ passes a new instance of a Behavior object into the optional
-      #   block so that sub-matching and routes nesting may occur.
+      # &block::
+      #   Passes a new instance of a Behavior object into the optional block so
+      #   that sub-matching and routes nesting may occur.
       #
       # ==== Returns
       # Behavior::
@@ -155,6 +155,9 @@ module Merb
       # ==== Parameters
       # conditions<Hash>:: Optional conditions to pass to the new route.
       #
+      # ==== Block parameters
+      # new_behavior<Behavior>:: The child behavior.
+      #
       # ==== Returns
       # Behavior:: The new behavior.
       def match_without_path(conditions = {})
@@ -166,7 +169,7 @@ module Merb
 
       # ==== Parameters
       # params<Hash>:: Optional additional parameters for generating the route.
-      # conditional_block<Proc>:: A conditional block to be passed to Route.new.
+      # &conditional_block:: A conditional block to be passed to Route.new.
       #
       # ==== Returns
       # Route:: A new route based on this behavior.
@@ -180,9 +183,12 @@ module Merb
       #
       # ==== Parameters
       # params<Hash>:: The parameters the route maps to.
-      # block<Proc>::
+      # &block::
       #   Optional block. A new Behavior object is yielded and further #to
       #   operations may be called in the block.
+      #
+      # ==== Block parameters
+      # new_behavior<Behavior>:: The child behavior.
       #
       # ==== Returns
       # Route:: It registers a new route and returns it.
@@ -211,8 +217,9 @@ module Merb
       #
       # ==== Parameters
       # params<Hash>:: Parameters and conditions associated with this behavior.
-      # conditional_block<Proc>::
-      #         A block with the conditions to be met for the behavior to take effect.
+      # &conditional_block::
+      #   A block with the conditions to be met for the behavior to take
+      #   effect.
       #
       # ==== Returns
       # Route :: The default route.
@@ -237,7 +244,7 @@ module Merb
       # ==== Parameters
       # params<Hash>::
       #   This optional hash can be used to augment the default settings
-      # block<Proc>::
+      # &block::
       #   When passing a block a new behavior is yielded and more refinement is
       #   possible.
       #
@@ -268,8 +275,11 @@ module Merb
       # ==== Parameters
       # name_or_path<String, Symbol>:: The name or path of the namespace.
       # options<Hash>:: Optional hash, set :path if you want to override what appears on the url
-      # block<Proc>::
+      # &block::
       #   A new Behavior instance is yielded in the block for nested resources.
+      #
+      # ==== Block parameters
+      # r<Behavior>:: The namespace behavior object.
       #
       # ==== Examples
       #   r.namespace :admin do |admin|
@@ -291,10 +301,9 @@ module Merb
       end
 
       # Behavior#+resources+ is a route helper for defining a collection of
-      # RESTful resources.
+      # RESTful resources. It yields to a block for child routes.
       #
       # ==== Parameters
-      #
       # name<String, Symbol>:: The name of the resources
       # options<Hash>::
       #   Ovverides and parameters to be associated with the route
@@ -309,6 +318,9 @@ module Merb
       # :member<Hash>:
       #   Special settings and resources related to a specific member of this
       #   resource.
+      #
+      # ==== Block parameters
+      # next_level<Behavior>:: The child behavior.
       #
       # ==== Returns
       # Array::
@@ -391,7 +403,7 @@ module Merb
       end
 
       # Behavior#+resource+ is a route helper for defining a singular RESTful
-      # resource.
+      # resource. It yields to a block for child routes.
       #
       # ==== Parameters
       # name<String, Symbol>:: The name of the resource.
@@ -404,6 +416,9 @@ module Merb
       #   A prefix for the named routes. If a namespace is passed and there
       #   isn't a name prefix, the namespace will become the prefix.
       # :controller<~to_s>: The controller for this route
+      #
+      # ==== Block parameters
+      # next_level<Behavior>:: The child behavior.
       #
       # ==== Returns
       # Array:: Routes which define a RESTful single resource.
@@ -456,7 +471,7 @@ module Merb
 
       # ==== Parameters
       # params<Hash>:: Optional params for generating the RESTful routes.
-      # block<Proc>:: Optional block for the route generation.
+      # &block:: Optional block for the route generation.
       #
       # ==== Returns
       # Array:: Routes matching the RESTful resource.
@@ -466,7 +481,7 @@ module Merb
 
       # ==== Parameters
       # params<Hash>:: Optional params for generating the RESTful routes.
-      # block<Proc>:: Optional block for the route generation.
+      # &block:: Optional block for the route generation.
       #
       # ==== Returns
       # Array:: Routes matching the RESTful singular resource.
@@ -600,7 +615,7 @@ module Merb
       # ==== Parameters
       # behaviors<Array>:: The behaviors to create routes from.
       # params<Hash>:: Optional params for the route generation.
-      # conditional_block<Proc>:: Optional block for the route generation.
+      # &conditional_block:: Optional block for the route generation.
       #
       # ==== Returns
       # Array:: The routes matching the behaviors.

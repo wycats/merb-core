@@ -12,7 +12,7 @@ module Merb
       # params<Hash>:: Parameters for the route.
       # behavior<Merb::Router::Behavior>::
       #   The associated behavior. Defaults to nil.
-      # conditional_block<Proc>::
+      # &conditional_block::
       #		A block with the conditions to be met for the route to take effect.
       def initialize(conditions, params, behavior = nil, &conditional_block)
         @conditions, @params, @behavior = conditions, params, behavior

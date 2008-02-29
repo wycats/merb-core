@@ -109,7 +109,7 @@ module Merb
     # To initialize the logger you create a new object, proxies to set_log.
     #
     # ==== Parameters
-    # args:: Arguments to create the log from. See set_logs for specifics.
+    # *args:: Arguments to create the log from. See set_logs for specifics.
     def initialize(*args)
       set_log(*args)
     end
@@ -190,6 +190,7 @@ module Merb
       #
       # ==== Parameters
       # string<String>:: The message to be logged. Defaults to nil.
+      # &block:: The output of this block is added to the message.
       #
       # ==== Returns
       # String:: The resulting message added to the log file.

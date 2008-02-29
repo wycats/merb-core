@@ -76,7 +76,7 @@ module Merb::Test::MultipartRequestHelper
     end
 
     # ==== Returns
-    # String, String:: The query and the content type.
+    # Array[String, String]:: The query and the content type.
     def to_multipart
       query = @multipart_params.collect { |param| "--" + BOUNDARY + "\r\n" + param.to_multipart }.join("") + "--" + BOUNDARY + "--"
       return query, CONTENT_TYPE
@@ -94,7 +94,7 @@ module Merb::Test::MultipartRequestHelper
   # env<Hash>::
   #   An optional hash that is passed to the fake request. Any request options
   #   should go here (see +fake_request+).
-  # blk<Proc>:: The block is executed in the context of the controller.
+  # &blk:: The block is executed in the context of the controller.
   #  
   # ==== Example
   #   dispatch_multipart_to(MyController, :create, :my_file => @a_file ) do

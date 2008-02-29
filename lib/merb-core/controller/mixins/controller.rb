@@ -4,10 +4,9 @@ module Merb
     # Renders the block given as a parameter using chunked encoding.
     #
     # ==== Parameters
-    # blk<Proc>:: 
-    #   A proc that, when called, will use send_chunks to send chunks of data
-    #   down to the server. The chunking will terminate once the block
-    #   returns.
+    # &blk:: 
+    #   A block that, when called, will use send_chunks to send chunks of data
+    #   down to the server. The chunking will terminate once the block returns.
     #
     # ==== Examples
     #   def stream
@@ -45,19 +44,21 @@ module Merb
     # the client. This should only be called within a +render_chunked+ block.
     #
     # ==== Parameters
-    # data<String>:: a chunk of data to return
+    # data<String>:: a chunk of data to return.
     def send_chunk(data)
       @response.write('%x' % data.size + "\r\n")
       @response.write(data + "\r\n")
     end
     
-    # Returns a +Proc+ that Mongrel can call later, allowing Merb to release
-    # the thread lock and render another request.
-    #
     # ==== Parameters
-    # blk<Proc>::
+    # &blk::
     #   A proc that should get called outside the mutex, and which will return
     #   the value to render.
+    #
+    # ==== Returns
+    # Proc::
+    #   A block that Mongrel can call later, allowing Merb to release the
+    #   thread lock and render another request.
     def render_deferred(&blk)
       must_support_streaming!
       Proc.new {|response|
@@ -73,8 +74,11 @@ module Merb
     #
     # ==== Parameters
     # str<String>:: A +String+ to return to the client.
-    # blk<Proc>::
-    #   A proc that should get called once the string has been returned.
+    # &blk:: A block that should get called once the string has been returned.
+    #
+    # ==== Returns
+    # Proc::
+    #   A block that Mongrel can call after returning the string to the user.
     def render_then_call(str, &blk)
       must_support_streaming!
       Proc.new {|response|
@@ -159,8 +163,8 @@ module Merb
     #
     # ==== Parameters
     # opts<Hash>:: Options for the file streaming (see below).
-    # stream<Proc>::
-    #   A Proc that, when called, will return an object that responds to
+    # &stream::
+    #   A block that, when called, will return an object that responds to
     #   +get_lines+ for streaming.
     #
     # ==== Options
