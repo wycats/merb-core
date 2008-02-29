@@ -5,8 +5,13 @@ class Monkey ; def to_param ; 45 ; end ; end
 class Donkey ; def to_param ; 19 ; end ; end
 class Blue
   def to_param ; 13 ; end
-  def monkey_id ; Monkey.new.to_param ; end
-  def donkey_id ; Donkey.new.to_param ; end
+  def monkey_id ; Monkey.new ; end
+  def donkey_id ; Donkey.new ; end
+end
+class Pink
+  def to_param ; 22 ; end
+  def blue_id ; Blue.new ; end
+  def monkey_id ; blue_id.monkey_id ; end
 end
 
 
@@ -15,11 +20,13 @@ describe Merb::Controller, " url" do
   before do
     Merb::Router.prepare do |r|
       r.default_routes
-      r.resources :monkeys do |monkey|
-        monkey.resources :blues
+      r.resources :monkeys do |m|
+        m.resources :blues do |b|
+          b.resources :pinks
+        end
       end
-      r.resources :donkeys do |donkey|
-        donkey.resources :blues
+      r.resources :donkeys do |d|
+        d.resources :blues
       end
       r.resource :red do |red|
         red.resources :blues
@@ -131,6 +138,11 @@ describe Merb::Controller, " url" do
     @blue = Blue.new
     @controller.url(:donkey_blue,@blue).should == "/donkeys/19/blues/13"
     @controller.url(:monkey_blue,@blue).should == "/monkeys/45/blues/13"
+  end
+  
+  it "should match resources nested more than one level deep" do
+    @pink = Pink.new
+    @controller.url(:monkey_blue_pink,@pink).should == "/monkeys/45/blues/13/pinks/22"
   end
 
 end

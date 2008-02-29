@@ -4,7 +4,9 @@ describe "nested resources routes" do
   before :each do
     Merb::Router.prepare do |r|
       r.resources :blogposts do |b|
-        b.resources :comments
+        b.resources :comments do |c|
+          c.resources :versions
+        end
       end
       r.resources :users do |u|
         u.resources :comments
@@ -17,6 +19,10 @@ describe "nested resources routes" do
   
   it "should match a get to /blogposts/1/comments to the comments controller and index action with blogpost_id" do
     route_to('/blogposts/1/comments', :method => :get).should have_route(:controller => 'comments', :action => 'index', :id => nil, :blogpost_id => '1')
+  end
+  
+  it "should match a get to /blogposts/1/comments/2/versions to the versions controller and index action with blogpost_id and comment_id" do
+    route_to('/blogposts/1/comments/2/versions', :method => :get).should have_route(:controller => 'versions', :action => 'index', :id => nil, :blogpost_id => '1', :comment_id => '2')
   end
   
   it "should match a get to /users/1/comments to the comments controller and index action with user_id" do
