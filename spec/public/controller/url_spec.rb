@@ -2,6 +2,12 @@ require File.join(File.dirname(__FILE__), "spec_helper")
 require File.join(File.dirname(__FILE__), "controllers", "url")
 
 class Monkey ; def to_param ; 45 ; end ; end
+class Donkey ; def to_param ; 19 ; end ; end
+class Blue
+  def to_param ; 13 ; end
+  def monkey_id ; Monkey.new.to_param ; end
+  def donkey_id ; Donkey.new.to_param ; end
+end
 
 
 describe Merb::Controller, " url" do
@@ -9,8 +15,15 @@ describe Merb::Controller, " url" do
   before do
     Merb::Router.prepare do |r|
       r.default_routes
-      r.resources :monkeys
-      r.resource :red
+      r.resources :monkeys do |monkey|
+        monkey.resources :blues
+      end
+      r.resources :donkeys do |donkey|
+        donkey.resources :blues
+      end
+      r.resource :red do |red|
+        red.resources :blues
+      end
       r.match(%r{/foo/(\d+)/}).to(:controller => 'asdf').name(:regexp)
       r.match('/people/:name').
         to(:controller => 'people', :action => 'show').name(:person)
@@ -86,6 +99,38 @@ describe Merb::Controller, " url" do
     Merb::Config[:path_prefix] = "/jungle"
     @controller.url(:monkeys).should == "/jungle/monkeys"
     Merb::Config[:path_prefix] = nil
+  end
+ 
+  it "should match a nested resources show action" do
+    @blue = Blue.new
+    @controller.url(:monkey_blue,@blue).should == "/monkeys/45/blues/13"
+  end
+  
+  it "should match the index action of nested resource with parent object" do
+    @blue = Blue.new
+    @monkey = Monkey.new
+    @controller.url(:monkey_blues,:monkey_id => @monkey).should == "/monkeys/45/blues"
+  end
+  
+  it "should match the index action of nested resource with parent id as string" do
+    @blue = Blue.new
+    @controller.url(:monkey_blues,:monkey_id => '1').should == "/monkeys/1/blues"
+  end
+  
+  it "should match the edit action of nested resource" do
+    @blue = Blue.new
+    @controller.url(:edit_monkey_blue,@blue).should == "/monkeys/45/blues/13/edit"
+  end
+  
+  it "should match the index action of resources nested under a resource" do
+    @blue = Blue.new
+    @controller.url(:red_blues).should == "/red/blues"
+  end
+  
+  it "should match resource that has been nested multiple times" do
+    @blue = Blue.new
+    @controller.url(:donkey_blue,@blue).should == "/donkeys/19/blues/13"
+    @controller.url(:monkey_blue,@blue).should == "/monkeys/45/blues/13"
   end
 
 end

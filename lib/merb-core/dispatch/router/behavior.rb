@@ -9,7 +9,7 @@ module Merb
     class Behavior
       attr_reader :placeholders, :conditions, :params
       attr_accessor :parent
-
+      @@parent_resource = nil
       class << self
 
         # ==== Parameters
@@ -354,13 +354,17 @@ module Merb
         if name_prefix.nil? && !namespace.nil?
           name_prefix = namespace_to_name_prefix namespace
         end
-
+        
+        if @@parent_resource
+          parent_resource = namespace_to_name_prefix @@parent_resource
+        end
+        
         options[:controller] ||= merged_params[:controller] || name.to_s
 
         singular = name.to_s.singularize
 
-        route_plural_name   = "#{name_prefix}#{name}"
-        route_singular_name = "#{name_prefix}#{singular}"
+        route_plural_name   = "#{name_prefix}#{parent_resource}#{name}"
+        route_singular_name = "#{name_prefix}#{parent_resource}#{singular}"
 
         behaviors = []
 
@@ -396,9 +400,13 @@ module Merb
         ].each do |path,name|
           next_level.match(path).to_route.name(name)
         end
-
-        yield next_level.match("/:#{singular}_id") if block_given?
-
+        
+        if block_given?
+          @@parent_resource = singular
+          yield next_level.match("/:#{singular}_id")
+          @@parent_resource = nil
+        end
+        
         routes
       end
 
@@ -454,6 +462,10 @@ module Merb
         if name_prefix.nil? && !namespace.nil?
           name_prefix = namespace_to_name_prefix namespace
         end
+        
+        if @@parent_resource
+          parent_resource = namespace_to_name_prefix @@parent_resource
+        end
 
         routes = next_level.to_resource options
 
@@ -464,7 +476,11 @@ module Merb
         next_level.match('/edit').to_route.name(:"edit_#{route_name}")
         next_level.match('/delete').to_route.name(:"delete_#{route_name}")
 
-        yield next_level if block_given?
+        if block_given?
+          @@parent_resource = route_name
+          yield next_level
+          @@parent_resource = nil
+        end
 
         routes
       end
