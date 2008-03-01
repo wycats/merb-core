@@ -1,3 +1,63 @@
+== 0.9.1 "Some are half-wild, and some are just outlaws." 2008-02-29
+* add named routes to error page
+* updates to nested resources
+* get autotest working for merb-core
+* Symbolize params in route generation, to accomodate Mashes
+* Fixes :status not working on strings.
+* update thin adapter to newest way of silencing the log
+* :format => :html possible in partials
+* print request URI when "No routes match the request" error thrown
+* fix merb -i
+* Make Merb.start default to the runner adapter
+* It's now possible to send binary data using the send_data method
+  and to specify the disposition, filename and type of the data being sent.
+* Fix memcached session writes
+* allow the setting of a custom session key
+* Changed TemplateNotFound to stop so much confusion about incorrect
+  template locations because it doesn't include .*
+* fix dropping of pid files in cluster and daemon mode
+* Nested partials don't blow away locals.
+* Better loading of classes
+* Support concat and test capture/concat
+* Added single key assignment to Merb.config
+* Move url method from ControllerMixin to AbstractController for use in
+  Mailers and Parts etc.
+* Merb.config now returns Merb::Config instead of the current
+  configuration hash.
+* Added Merb.reload which reloads the framework classes.
+* Adding Merb.env shorthand for Merb.environment
+* Added a quaint Merb Configurator
+* With bootloader order changes, environment was not getting loaded
+* Fix cookie parsing from localhost, add spec
+* Add support for multiple template roots
+* Allow override of router.rb file in config
+* Modify behavior of 'namespace' in the router
+* Fix content negotiation for IE and its stupid accept header.
+* Only serve static files when the HTTP method is GET or HEAD. Other
+  requests should still be handled by Merb.
+* Add path_prefix support.
+* Changes dispatch_to spec helper to yield the controller
+* redo of load_dependency, after_app_loads callback, and Kernel changes
+* Added Merb.logger.auto_flush
+* Fix nested resource routing
+* Do not drop PID file is not running as daemon or cluster
+* Fixed problem with resources inside a namespace block
+* Added support for dynamic layouts.
+* adding conditional behaviour to filters :if and :unless
+* Use the escape_xml from Erubis rather than rolling our own
+* Add a merb.reload! command to the merb -i console.
+* Get rid of StringScanner dependency.
+* Fix render_then_call to support new streaming tech.
+* Fix filter specs to respect append order of filters.
+* check for empty string before calling to_sym on the format parameter
+* fake requests are incorrectly loading controller classes with namespaces
+* Fix the RubyGems monkeypatch by testing for Merb.root instead of looking
+  in $"
+* fix core spec dependency on merb_rspec
+* Replace calls to puts with Merb.logger
+* Fix problem with static files, use Proc === body
+* Added file and line information for evals in router.rb.
+
 == 0.9.0 "All you need, none you don't" 2008-02-13
 * Developer Only Release
 * Split merb into merb-core and merb-more
@@ -52,7 +112,6 @@
 * Made Request#parse_multipart return an empty hash instead of nil if the request is not multipart
 * Changes throw_content so that it can be called without a block
 * Added :namespace option to routes.
-
 
 == 0.4.1 "Faster Partials or Partially Faster?" 2007-11-12
 * Fixed pluralization issues with generators
