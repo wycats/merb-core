@@ -36,6 +36,11 @@
 			line-height:28px;
 			color:#444;
 		}
+		h3 {
+		  cursor: pointer;
+		  color: #006;
+		  text-decoration: underline;
+		}
 		a, a:visited {
 			color:#00BF10;
 		}
@@ -49,6 +54,35 @@
 			background-image: url("data:image/gif;base64,R0lGODlhAwADAIAAAP///8zMzCH5BAAAAAAALAAAAAADAAMAAAIEBHIJBQA7");
 			padding:20px;
 		}
+		table.listing {
+		  border-collapse: collapse;
+		  font-size: 12px;
+		  width: 100%;
+		}
+		
+		table.listing th {
+		  background-color: #000;
+		  color: #fff;
+		}
+		
+		table.listing td, table.listing th {
+		  padding: 5px;
+		  text-align: left;
+		  vertical-align: top;
+		}
+		
+		table.listing tr.odd {
+		  background-color: #ccc;
+		}
+		
+		table.listing tr.even {
+		  background-color: #aaa;
+		}
+		
+		table.listing td[colspan=2] {
+		  text-align: center;
+		}
+		
 		table.trace {
 			width:100%;
 			font-family:courier, monospace;
@@ -135,37 +169,61 @@
 			<% else -%>
 				<h2>Sorry about that...</h2>
 			<% end -%>
+
 			<h3>Parameters</h3>
-			<ul>
-			<% params[:original_params].each do |param, value| %>
-				<li><strong><%= param %>:</strong> <%= value.inspect %></li>
-			<% end %>
-			<%= "<li>None</li>" if params[:original_params].empty? %>
-			</ul>
+			<table class="listing" style="display: none">
+			  <thead>
+			    <tr><th width="25%">Parameter</th><th width="75%">Value</th></tr>
+		    </thead>
+		    <tbody>			  			  
+    			<% params[:original_params].each_with_index do |param_value, i| %>
+            <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
+    			<% end %>
+    			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_params].empty? %>			
+    		</tbody>
+		  </table>
 			
 			<h3>Session</h3>
-			<ul>
-			<% params[:original_session].each do |param, value| %>
-				<li><strong><%= param %>:</strong> <%= value.inspect %></li>
-			<% end %>
-			<%= "<li>None</li>" if params[:original_session].empty? %>			
-			</ul>
+			<table class="listing" style="display: none">
+			  <thead>
+			    <tr><th width="25%">Key</th><th width="75%">Value</th></tr>
+		    </thead>
+		    <tbody>			  			  
+    			<% params[:original_session].each_with_index do |param_value, i| %>
+            <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
+    			<% end %>
+    			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_session].empty? %>
+    		</tbody>
+		  </table>
 			
 			<h3>Cookies</h3>
-			<ul>
-			<% params[:original_cookies].each do |param, value| %>
-				<li><strong><%= param %>:</strong> <%= value.inspect %></li>
-			<% end %>
-			<%= "<li>None</li>" if params[:original_cookies].empty? %>			
-			</ul>	
+			<table class="listing" style="display: none">
+			  <thead>
+			    <tr><th width="25%">Cookie</th><th width="75%">Value</th></tr>
+		    </thead>
+		    <tbody>			  
+    			<% params[:original_cookies].each_with_index do |param_value, i| %>
+            <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
+    			<% end %>
+    			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_cookies].empty? %>
+			  </tbody>
+		  </table>
 			
-			<h3>Named Routes:</h3>
-			<ul>
+			<h3>Named Routes</h3>
+			<table class="listing" style="display: none">
 			<% unless Merb::Router.named_routes.empty? %>
-			  <% Merb::Router.named_routes.each do |name,route| %>
-          <li><%= "#{name}:          #{route}" %></li>
-        <% end %>
-			<% end %>	
+			  <thead>
+			    <tr><th width="25%">Name</th><th width="75%">Route</th></tr>
+		    </thead>
+		    <tbody>
+			  <% Merb::Router.named_routes.each_with_index do |name_route, i| %>
+			    <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= name_route.first %></td><td><%= name_route.last %></td></tr>
+			  <% end %>			  
+			  </tbody>
+		  <% else %>
+  		  <tr><td colspan="2">None</td></tr>
+		  <% end %>
+		  </table>		  
 		</div>
 		
 	<% if show_details %>
@@ -200,9 +258,9 @@
 			<% end %>
 		</table>
 		<script type="text/javascript" charset="utf-8">
-			// swop the open & closed classes
 			els = document.getElementsByTagName('td');
 			for(i=0; i<els.length; i++){
+			  // swap the open & closed classes			  
 				if(els[i].className=='expand' || els[i].className=='collapse'){
 					els[i].onclick = function(e){
 						tbody = this.parentNode.parentNode;
@@ -213,6 +271,16 @@
 						}
 					}
 				}
+			}
+			els = document.getElementsByTagName("h3");
+			for(i=0; i<els.length; i++) {
+		    els[i].onclick = function(e) {
+		      var tag = this.nextSibling;
+		      while(tag.nodeType != 1) {
+		        tag = tag.nextSibling;
+		      }
+		      tag.style.display = tag.style.display == "none" ? "" : "none";
+		    }
 			}
 		</script>
 	<% end %>
