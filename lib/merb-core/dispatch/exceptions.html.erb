@@ -157,7 +157,15 @@
 				<li><strong><%= param %>:</strong> <%= value.inspect %></li>
 			<% end %>
 			<%= "<li>None</li>" if params[:original_cookies].empty? %>			
-			</ul>			
+			</ul>	
+			
+			<h3>Named Routes:</h3>
+			<ul>
+			<% unless Merb::Router.named_routes.empty? %>
+			  <% Merb::Router.named_routes.each do |name,route| %>
+          <li><%= "#{name}:          #{route}" %></li>
+        <% end %>
+			<% end %>	
 		</div>
 		
 	<% if show_details %>
