@@ -1,5 +1,10 @@
 require 'open3'
 
+# Runs specs in all files matching the file pattern.
+#
+# ==== Parameters
+# globs<String, Array[String]>:: File patterns to look for.
+# spec_cmd<~to_s>:: The spec command. Defaults to "spec".
 def run_specs(globs, spec_cmd='spec')
   require "optparse"
   require "spec"

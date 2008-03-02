@@ -1,9 +1,17 @@
 module Merb::Test::Rspec::ViewMatchers
   class HaveSelector
+
+    # ==== Parameters
+    # expected<String>:: The string to look for.
     def initialize(expected)
       @expected = expected
     end
-    
+
+    # ==== Parameters
+    # stringlike<Hpricot::Elem, StringIO, String>:: The thing to search in.
+    #
+    # ==== Returns
+    # Boolean:: True if there was at least one match.
     def matches?(stringlike)
       @document = case stringlike
       when Hpricot::Elem
@@ -15,22 +23,38 @@ module Merb::Test::Rspec::ViewMatchers
       end
       !@document.search(@expected).empty?
     end
-    
+
+    # ==== Returns
+    # String:: The failure message.
     def failure_message
       "expected following text to match selector #{@expected}:\n#{@document}"
     end
 
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
       "expected following text to not match selector #{@expected}:\n#{@document}"
     end
   end
-  
+
   class MatchTag
+
+    # ==== Parameters
+    # name<~to_s>:: The name of the tag to look for.
+    # attrs<Hash>:: Attributes to look for in the tag (see below).
+    #
+    # ==== Options (attrs)
+    # :content<String>:: Optional content to match.
     def initialize(name, attrs)
       @name, @attrs = name, attrs
       @content = @attrs.delete(:content)
     end
-    
+
+    # ==== Parameters
+    # target<String>:: The string to look for the tag in.
+    #
+    # ==== Returns
+    # Boolean:: True if the tag matched.
     def matches?(target)
       @errors = []
       unless target.include?("<#{@name}")
@@ -48,21 +72,33 @@ module Merb::Test::Rspec::ViewMatchers
       end
       @errors.size == 0
     end
-    
+
+    # ==== Returns
+    # String:: The failure message.
     def failure_message
       @errors[0]
     end
-    
+
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
       "Expected not to match against <#{@name} #{@attrs.map{ |a,v| "#{a}=\"#{v}\"" }.join(" ")}> tag, but it matched"
     end
   end
-  
+
   class NotMatchTag
+
+    # === Parameters
+    # attrs<Hash>:: A set of attributes that must not be matched.
     def initialize(attrs)
       @attrs = attrs
     end
-    
+
+    # ==== Parameters
+    # target<String>:: The target to look for the match in.
+    #
+    # ==== Returns
+    # Boolean:: True if none of the attributes were matched.
     def matches?(target)
       @errors = []
       @attrs.each do |attr, val|
@@ -72,18 +108,30 @@ module Merb::Test::Rspec::ViewMatchers
       end
       @errors.size == 0
     end
-    
+
+    # ==== Returns
+    # String:: The failure message.
     def failure_message
       @errors[0]
     end
   end
-  
+
   class HasTag
+
+    # ==== Parameters
+    # tag<~to_s>:: The tag to look for.
+    # attributes<Hash>:: Attributes for the tag (see below).
     def initialize(tag, attributes = {})
       @tag, @attributes = tag, attributes
       @id, @class = @attributes.delete(:id), @attributes.delete(:class)
     end
-    
+
+    # ==== Parameters
+    # stringlike<Hpricot::Elem, StringIO, String>:: The thing to search in.
+    # &blk:: An optional block for searching in child elements using with_tag.
+    #
+    # ==== Returns
+    # Boolean:: True if there was at least one match.
     def matches?(stringlike, &blk)
       @document = case stringlike
       when Hpricot::Elem
@@ -93,7 +141,7 @@ module Merb::Test::Rspec::ViewMatchers
       else
         Hpricot.parse(stringlike)
       end
-      
+
       if block_given?
         !@document.search(selector).select do |ele|
           begin
@@ -107,6 +155,8 @@ module Merb::Test::Rspec::ViewMatchers
       end
     end
 
+    # ==== Returns
+    # String:: The complete selector for element queries.
     def selector
       @selector = "//#{@tag}#{id_selector}#{class_selector}"
       @selector << @attributes.map{|a, v| "[@#{a}=\"#{v}\"]"}.join
@@ -115,79 +165,126 @@ module Merb::Test::Rspec::ViewMatchers
 
       @selector
     end
-    
+
+    # ==== Returns
+    # String:: ID selector for use in element queries.
     def id_selector
       "##{@id}" if @id
     end
-    
+
+    # ==== Returns
+    # String:: Class selector for use in element queries.
     def class_selector
       ".#{@class}" if @class
     end
-    
+
+    # ==== Returns
+    # String:: The failure message.
     def failure_message
       "expected following output to contain a #{tag_for_error} tag:\n#{@document}"
     end
-    
+
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
       "expected following output to omit a #{tag_for_error} tag:\n#{@document}"
     end
     
+    # ==== Returns
+    # String:: The tag used in failure messages.
     def tag_for_error
       "#{inner_failure_message}<#{@tag}#{id_for_error}#{class_for_error}#{attributes_for_error}>"
     end
-    
+
+    # ==== Returns
+    # String::
+    #   The failure message to be displayed in negative matches within the
+    #   have_tag block.
     def inner_failure_message
       "#{@inner_has_tag.tag_for_error} tag within a " unless @inner_has_tag.nil?
     end
-    
+
+    # ==== Returns
+    # String:: ID for the error tag.
     def id_for_error
       " id=\"#{@id}\"" unless @id.nil?
     end
 
+    # ==== Returns
+    # String:: Class for the error tag.
     def class_for_error
       " class=\"#{@class}\"" unless @class.nil?
     end
 
+    # ==== Returns
+    # String:: Class for the error tag.
     def attributes_for_error
       @attributes.map{|a,v| " #{a}=\"#{v}\""}.join
     end
 
+    # Search for a child tag within a have_tag block.
+    #
+    # ==== Parameters
+    # tag<~to_s>:: The tag to look for.
+    # attributes<Hash>:: Attributes for the tag (see below).
     def with_tag(name, attrs={})
       @inner_has_tag = HasTag.new(name, attrs)
     end
   end
-  
+
+  # ==== Parameters
+  # name<~to_s>:: The name of the tag to look for.
+  # attrs<Hash>:: Attributes to look for in the tag (see below).
+  #
+  # ==== Options (attrs)
+  # :content<String>:: Optional content to match.
+  #
+  # ==== Returns
+  # MatchTag:: A new match tag matcher.
   def match_tag(name, attrs={})
     MatchTag.new(name, attrs)
   end
+
+  # ==== Parameters
+  # attrs<Hash>:: A set of attributes that must not be matched.
+  #
+  # ==== Returns
+  # NotMatchTag:: A new not match tag matcher.
   def not_match_tag(attrs)
     NotMatchTag.new(attrs)
   end
-  
+
+  # ==== Parameters
+  # expected<String>:: The string to look for.
+  #
+  # ==== Returns
+  # HaveSelector:: A new have selector matcher.
   def have_selector(expected)
     HaveSelector.new(expected)
   end
   alias_method :match_selector, :have_selector
-  
-  # rspec matcher to test for the presence of tags
+
+  # RSpec matcher to test for the presence of tags.
+  #
+  # ==== Parameters
+  # tag<~to_s>:: The name of the tag.
+  # attributes<Hash>:: Tag attributes.
+  #
+  # ==== Returns
+  # HasTag:: A new has tag matcher.
+  #
   # ==== Examples
-  # body.should have_tag("div")
-  # => #checks for <div>
+  #   # Check for <div>
+  #   body.should have_tag("div")
   #
-  # body.should have_tag("span", :id => :notice)
-  # => #checks for <span id="notice">
+  #   # Check for <span id="notice">
+  #   body.should have_tag("span", :id => :notice)
   #
-  # body.should have_tag(:h2, :class => "bar", :id => "foo")
-  # => #checks for <h1 id="foo" class="bar">
+  #   # Check for <h1 id="foo" class="bar">
+  #   body.should have_tag(:h2, :class => "bar", :id => "foo")
   #
-  # body.should have_tag(:div, :attr => :val)
-  # => #checks for <div attr="val">
-  #
-  # body.should have_tag(:h1, "Title String")
-  # => #checks for <h1>Title String</h1>
-  #
-  # body.should have_tag(:h2, /subtitle/)
-  # => #checks for <h2>/subtitle/</h2>
+  #   # Check for <div attr="val">
+  #   body.should have_tag(:div, :attr => :val)
   def have_tag(tag, attributes)
     HasTag.new(tag, attributes)
   end

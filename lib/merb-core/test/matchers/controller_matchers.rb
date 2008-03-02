@@ -1,33 +1,59 @@
 module Merb::Test::Rspec::ControllerMatchers
-  
+
   class BeRedirect
+
+    # ==== Parameters
+    # target<Fixnum, ~status>::
+    #   Either the status code or a controller with a status code.
+    #
+    # ==== Returns
+    # Boolean:: True if the status code is in the range 300..305 or 307.
     def matches?(target)
       @target = target
       [307, *(300..305)].include?(target.respond_to?(:status) ? target.status : target)
     end
+
+    # ==== Returns
+    # String:: The failure message.
     def failure_message
       "expected#{inspect_target} to redirect"
     end
+
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
       "expected#{inspect_target} not to redirect"
     end
-    
+
+    # ==== Returns
+    # String:: The controller and action name.
     def inspect_target
       " #{@target.controller_name}##{@target.action_name}" if @target.respond_to?(:controller_name) && @target.respond_to?(:action_name)
     end
   end
-  
+
   class RedirectTo
+
+    # === Parameters
+    # String:: The expected location
     def initialize(expected)
       @expected = expected
     end
-    
+
+    # ==== Parameters
+    # target<Merb::Controller>:: The controller to match
+    #
+    # ==== Returns
+    # Boolean::
+    #   True if the controller status is redirect and the locations match.
     def matches?(target)
       @target, @location = target, target.headers['Location']
       @redirected = BeRedirect.new.matches?(target.status)
       @location == @expected && @redirected
     end
-    
+
+    # ==== Returns
+    # String:: The failure message.
     def failure_message
       msg = "expected #{inspect_target} to redirect to <#{@expected}>, but "
       if @redirected
@@ -36,77 +62,113 @@ module Merb::Test::Rspec::ControllerMatchers
         msg << "there was no redirection"
       end
     end
-    
+
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
       "expected #{inspect_target} not to redirect to <#{@expected}>, but did anyway"
     end
-    
+
+    # ==== Returns
+    # String:: The controller and action name.
     def inspect_target
       "#{@target.controller_name}##{@target.action_name}"
     end
-    
+
+    # ==== Returns
+    # String:: Either the target's location header or the target itself.
     def target_location
       @target.respond_to?(:headers) ? @target.headers['Location'] : @target
     end
   end
-  
+
   class BeSuccess
-    
+
+    # ==== Parameters
+    # target<Fixnum, ~status>::
+    #   Either the status code or a controller with a status code.
+    #
+    # ==== Returns
+    # Boolean:: True if the status code is in the range 200..207.
     def matches?(target)
       @target = target
       (200..207).include?(status_code)
     end
-    
+
+    # ==== Returns
+    # String:: The failure message.
     def failure_message
       "expected#{inspect_target} to be successful but was #{status_code}"
     end
-    
+
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
       "expected#{inspect_target} not to be successful but it was #{status_code}"
     end
-    
+
+    # ==== Returns
+    # String:: The controller and action name.
     def inspect_target
       " #{@target.controller_name}##{@target.action_name}" if @target.respond_to?(:controller_name) && @target.respond_to?(:action_name)
     end
-    
+
+    # ==== Returns
+    # Fixnum:: Either the target's status or the target itself.
     def status_code
       @target.respond_to?(:status) ? @target.status : @target
     end
   end
-  
+
   class BeMissing
+
+    # ==== Parameters
+    # target<Fixnum, ~status>::
+    #   Either the status code or a controller with a status code.
+    #
+    # ==== Returns
+    # Boolean:: True if the status code is in the range 400..417.
     def matches?(target)
       @target = target
       (400..417).include?(status_code)
     end
-    
+
+    # ==== Returns
+    # String:: The failure message.
     def failure_message
       "expected#{inspect_target} to be missing but was #{status_code}"
     end
-    
+
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
       "expected#{inspect_target} not to be missing but it was #{status_code}"
     end
-    
+
+    # ==== Returns
+    # String:: The controller and action name.
     def inspect_target
       " #{@target.controller_name}##{@target.action_name}" if @target.respond_to?(:controller_name) && @target.respond_to?(:action_name)
     end
-    
+
+    # ==== Returns
+    # Fixnum:: Either the target's status or the target itself.
     def status_code
       @target.respond_to?(:status) ? @target.status : @target
     end
   end
-  
-  # Passes if the target was redirected, or the target is a redirection (300 level) response code.
+
+  # Passes if the target was redirected, or the target is a redirection (300
+  # level) response code.
   #
-  # ==== Example
+  # ==== Examples
   #   # Passes if the controller was redirected
   #   controller.should redirect
   #   
   #   # Also works if the target is the response code
   #   controller.status.should redirect
   #
-  # ==== Note
+  # ==== Notes
   # valid HTTP Redirection codes:
   # * 300: Multiple Choices
   # * 301: Moved Permanently
@@ -121,35 +183,34 @@ module Merb::Test::Rspec::ControllerMatchers
   def redirect
     BeRedirect.new
   end
-  
+
   alias_method :be_redirection, :redirect
-  
+
   # Passes if the target was redirected to the expected location.
   #
   # ==== Paramters
-  # expected<String>::
-  #   A relative or absolute url.
-  # ==== Example
+  # expected<String>:: A relative or absolute url.
+  #
+  # ==== Examples
   #   # Passes if the controller was redirected to http://example.com/
   #   controller.should redirect_to('http://example.com/')
-  #
   def redirect_to(expected)
     RedirectTo.new(expected)
   end
-  
+
   alias_method :be_redirection_to, :redirect_to
-  
-  # Passes if the request that generated the target was successful,
-  # or the target is a success (200 level) response code.
+
+  # Passes if the request that generated the target was successful, or the
+  # target is a success (200 level) response code.
   #
-  # ==== Example
+  # ==== Examples
   #   # Passes if the controller call was successful
   #   controller.should respond_successfully
   #   
   #   # Also works if the target is the response code
   #   controller.status.should respond_successfully
   #
-  # ==== Note
+  # ==== Notes
   # valid HTTP Success codes:
   # * 200: OK
   # * 201: Created
@@ -164,20 +225,20 @@ module Merb::Test::Rspec::ControllerMatchers
   def respond_successfully
     BeSuccess.new
   end
-  
+
   alias_method :be_successful, :respond_successfully
-  
-  # Passes if the request that generated the target was missing,
-  # or the target is a client-side error (400 level) response code.
+
+  # Passes if the request that generated the target was missing, or the target
+  # is a client-side error (400 level) response code.
   #
-  # ==== Example
+  # ==== Examples
   #   # Passes if the controller call was unknown or not understood
   #   controller.should be_missing
   #   
   #   # Also passes if the target is a response code
   #   controller.status.should be_missing
   #
-  # ==== Note
+  # ==== Notes
   # valid HTTP Client Error codes:
   # * 400: Bad Request
   # * 401: Unauthorized
@@ -203,6 +264,6 @@ module Merb::Test::Rspec::ControllerMatchers
   def be_missing
     BeMissing.new
   end
-  
+
   alias_method :be_client_error, :be_missing
 end
