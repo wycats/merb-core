@@ -17,7 +17,6 @@ describe Merb::Request, "#method" do
       Merb::Request.parse_multipart_params = false
       request = fake_request(:request_method => "POST", :query_string => "_method=#{method}")
       request.method.should == method      
-      Merb::Request.parse_multipart_params = false      
     end
     
     [:get, :head, :put, :delete].each do |meth|
