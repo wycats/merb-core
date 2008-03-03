@@ -23,13 +23,11 @@ require "lib/merb-core/test/run_specs"
 ##############################################################################
 # Packaging & Installation
 ##############################################################################
-CLEAN.include ["**/.*.sw?", "*.gem", ".config"]
+CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
 
 windows = (PLATFORM =~ /win32|cygwin/) rescue nil
 
 SUDO = windows ? "" : "sudo"
-
-setup_clean ["pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
 
 desc "Packages up Merb."
 task :default => :package

@@ -114,10 +114,9 @@ module Merb
     # ==== Returns
     # String:: The directory that contains the log file.
     def log_path
-      if Merb::Config[:log_file]
-        File.dirname(Merb::Config[:log_file])
-      else
-        Merb.root_path("log")
+      case Merb::Config[:log_file]
+      when String then File.dirname(Merb::Config[:log_file])
+      else Merb.root_path("log")
       end
     end
 
@@ -182,6 +181,8 @@ module Merb
       Merb::BootLoader::Logger.run
       Merb.logger.auto_flush = true
       Merb::BootLoader::Dependencies.run
+      Merb::BootLoader::BuildFramework.run
+      Merb::BootLoader::BeforeAppRuns.run
     end
     
     # Reload the framework.

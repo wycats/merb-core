@@ -14,25 +14,27 @@ module Kernel
   # off to the system gems (so if you have a lower version of a gem in
   # ROOT/gems, it'll still get loaded).
   def dependency(name, *ver)
-    try_framework = Merb.frozen?
-    begin
-      # If this is a piece of merb, and we're frozen, try to require
-      # first, so we can pick it up from framework/, 
-      # otherwise try activating the gem
-      if name =~ /^merb/ && try_framework
-        require name
-      else
-        Gem.activate(name, true, *ver)
-        Merb.logger.info("loading gem '#{name}' from #{__app_file_trace__.first} ...")
-      end
-    rescue LoadError
-      if try_framework
-        try_framework = false
-        retry
-      else
-        Merb.logger.info("loading gem '#{name}' from #{__app_file_trace__.first} ...")
-        # Failed requiring as a gem, let's try loading with a normal require.
-        require name
+    Merb::BootLoader.before_app_loads do
+      try_framework = Merb.frozen?
+      begin
+        # If this is a piece of merb, and we're frozen, try to require
+        # first, so we can pick it up from framework/, 
+        # otherwise try activating the gem
+        if name =~ /^merb/ && try_framework
+          require name
+        else
+          Gem.activate(name, true, *ver)
+          Merb.logger.info("loading gem '#{name}' from #{__app_file_trace__.first} ...")
+        end
+      rescue LoadError
+        if try_framework
+          try_framework = false
+          retry
+        else
+          Merb.logger.info("loading gem '#{name}' from #{__app_file_trace__.first} ...")
+          # Failed requiring as a gem, let's try loading with a normal require.
+          require name
+        end
       end
     end
   end
