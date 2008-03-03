@@ -1,5 +1,7 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 
+Merb.environment = 'test'
+
 describe "Plugins", "default GENERATOR_SCOPE" do
   it "should have :merb_default first" do
     Merb.generator_scope.first.should == :merb_default
