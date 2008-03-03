@@ -90,6 +90,23 @@ class Object
     obj
   end
   
+  # Makes a module from a string (e.g. Foo::Bar::Baz)
+  #
+  # ==== Parameters
+  # name<String>:: The name of the full module name to make
+  #
+  # ==== Returns
+  # nil
+  def make_module(str)
+    mod = str.split("::")
+    start = mod.map {|x| "module #{x}"}.join("; ")
+    ender = (["end"] * mod.size).join("; ")
+    self.class_eval <<-HERE
+      #{start}
+      #{ender}
+    HERE
+  end
+  
   # ==== Parameters
   # duck<Symbol, Class, Array>:: The thing to compare the object to.
   #
