@@ -314,7 +314,6 @@ end
 class Merb::BootLoader::MimeTypes < Merb::BootLoader
 
   def self.run
-    Merb.available_mime_types.clear
     Merb.add_mime_type(:all,  nil,      %w[*/*])
     Merb.add_mime_type(:yaml, :to_yaml, %w[application/x-yaml text/yaml])
     Merb.add_mime_type(:text, :to_text, %w[text/plain])
