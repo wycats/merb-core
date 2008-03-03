@@ -70,25 +70,6 @@ class Merb::BootLoader::DropPidFile <  Merb::BootLoader
   end
 end
 
-# Load the init_file specified in Merb::Config or if not specified, the init.rb file
-# from the Merb configuration directory, and any environment files, which register the
-# list of necessary dependencies and any after_app_loads hooks.
-class Merb::BootLoader::Dependencies < Merb::BootLoader
-  
-  def self.run
-    if Merb::Config[:init_file]
-      initfile = Merb::Config[:init_file].chomp(".rb")
-    else
-      initfile = Merb.root_path("config") / "init"
-    end
-    require initfile if File.exists?(initfile + ".rb")
-
-    if Merb.environment && File.exist?(Merb.root_path("config", "environments") / (Merb.environment + ".rb"))
-      require Merb.root_path("config", "environments") / Merb.environment
-    end
-  end
-end
-
 # Build the framework paths.
 #
 # By default, the following paths will be used:
@@ -132,7 +113,15 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
     # This method should be overridden in init.rb before Merb.start to set up a different
     # framework structure
     def build_framework
-      unless Merb::Config[:framework]
+      if File.exists?(Merb.root / "config" / "framework.rb")
+        require Merb.root / "config" / "framework"
+      elsif File.exists?(Merb.root / "framework.rb")
+        require Merb.root / "framework"
+      elsif Merb::Config[:framework]
+        Merb::Config[:framework].each do |name, path|
+          Merb.push_path(name, Merb.root_path(path.first), path[1])
+        end
+      else
         %w[view model controller helper mailer part].each do |component|
           Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
         end
@@ -145,11 +134,26 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         Merb.push_path(:stylesheet,   Merb.dir_for(:public) / "stylesheets", nil)
         Merb.push_path(:javascript,   Merb.dir_for(:public) / "javascripts", nil)
         Merb.push_path(:image,        Merb.dir_for(:public) / "images", nil)        
-      else
-        Merb::Config[:framework].each do |name, path|
-          Merb.push_path(name, Merb.root_path(path.first), path[1])
-        end
       end
+    end
+  end
+end
+
+# Load the init_file specified in Merb::Config or if not specified, the init.rb file
+# from the Merb configuration directory, and any environment files, which register the
+# list of necessary dependencies and any after_app_loads hooks.
+class Merb::BootLoader::Dependencies < Merb::BootLoader
+  
+  def self.run
+    if Merb::Config[:init_file]
+      initfile = Merb::Config[:init_file].chomp(".rb")
+    else
+      initfile = Merb.dir_for(:config) / "init"
+    end
+    require initfile if File.exists?(initfile + ".rb")
+
+    if Merb.environment && File.exist?(Merb.dir_for(:config) / "environments" / (Merb.environment + ".rb"))
+      require Merb.dir_for(:config) / "environments" / Merb.environment
     end
   end
 end
