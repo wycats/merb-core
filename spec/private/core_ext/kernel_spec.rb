@@ -7,18 +7,22 @@ describe "Kernel#dependency" do
     Gem.stub!(:use_paths)
     Gem.stub!(:clear_paths)
     Merb.logger = Merb::Logger.new(File.open("/dev/null", "w"))
+    Merb::BootLoader.before_load_callbacks = []
   end
   
   ["dependency", "dependencies"].each do |meth|
     it "loads in files from the local gem-cache first (with #{meth})" do
       Gem.should_receive(:activate).with("json_pure", true).and_return(true)
       Kernel.send meth, "json_pure"
+      Merb::BootLoader::BeforeAppRuns.run
     end
   
     it "does a require if it can't find it in either gem cache (with #{meth})" do
       Gem.stub!(:activate).twice.with("RedCloth", true).and_raise(LoadError)
       Kernel.should_receive(:require).with("RedCloth")
       Kernel.send meth, "RedCloth"
+      
+      Merb::BootLoader::BeforeAppRuns.run
     end
   end
 
@@ -31,6 +35,7 @@ describe "Kernel#dependency" do
     Kernel.should_receive(:dependency).once.with("GreenCloth", ">1").and_return(true)     
     Kernel.should_receive(:dependency).once.with("RedCloth", ">0.5").and_return(true)
     Kernel.dependencies "RedCloth" => ">0.5", "GreenCloth" => ">1"
+    
   end
 end
 
