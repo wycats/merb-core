@@ -196,7 +196,7 @@ class Merb::AbstractController
   # ==== Raises
   # MerbControllerError:: Invalid body content caught.
   def _dispatch(action=:to_s)
-    hook :before_dispatch
+    setup_session
     self.action_name = action
     
     caught = catch(:halt) do
@@ -218,7 +218,7 @@ class Merb::AbstractController
     start = Time.now
     _call_filters(_after_filters) 
     @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
-    hook :after_dispatch
+    finalize_session
   end
   
   # This method exists to provide an overridable hook for ActionArgs
@@ -364,6 +364,8 @@ class Merb::AbstractController
   # Defaults that can be overridden by plugins, other mixins, or subclasses
   def _filters_halted()   "<html><body><h1>Filter Chain Halted!</h1></body></html>"  end
 
+  def setup_session()    end
+  def finalize_session() end  
   # Stub so content-type support in RenderMixin doesn't throw errors
   attr_accessor :content_type
   
