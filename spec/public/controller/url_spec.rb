@@ -14,28 +14,28 @@ class Pink
   def monkey_id ; blue_id.monkey_id ; end
 end
 
+Merb::Router.prepare do |r|
+  r.default_routes
+  r.resources :monkeys do |m|
+    m.resources :blues do |b|
+      b.resources :pinks
+    end
+  end
+  r.resources :donkeys do |d|
+    d.resources :blues
+  end
+  r.resource :red do |red|
+    red.resources :blues
+  end
+  r.match(%r{/foo/(\d+)/}).to(:controller => 'asdf').name(:regexp)
+  r.match('/people/:name').
+    to(:controller => 'people', :action => 'show').name(:person)
+  r.match('/argstrs').to(:controller => "args").name(:args)
+end
 
 describe Merb::Controller, " url" do
   
   before do
-    Merb::Router.prepare do |r|
-      r.default_routes
-      r.resources :monkeys do |m|
-        m.resources :blues do |b|
-          b.resources :pinks
-        end
-      end
-      r.resources :donkeys do |d|
-        d.resources :blues
-      end
-      r.resource :red do |red|
-        red.resources :blues
-      end
-      r.match(%r{/foo/(\d+)/}).to(:controller => 'asdf').name(:regexp)
-      r.match('/people/:name').
-        to(:controller => 'people', :action => 'show').name(:person)
-      r.match('/argstrs').to(:controller => "args").name(:args)
-    end
     @controller = dispatch_to(Merb::Test::Fixtures::Controllers::Url, :index)
   end
   
