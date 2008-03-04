@@ -72,7 +72,7 @@ end
 
 desc "Run :package and install the resulting .gem"
 task :install => :package do
-  sh %{#{SUDO} gem install pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{SUDO} gem install --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :package and install the resulting .gem with jruby"
