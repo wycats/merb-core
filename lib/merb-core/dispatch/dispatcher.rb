@@ -28,7 +28,6 @@ class Merb::Dispatcher
       start   = Time.now
       request = Merb::Request.new(rack_env)
       Merb.logger.info("Params: #{request.params.inspect}")
-      Merb.logger.info("Cookies: #{request.cookies.inspect}")
       
       route_index, route_params = Merb::Router.match(request)
       
@@ -36,8 +35,7 @@ class Merb::Dispatcher
         raise ::Merb::ControllerExceptions::NotFound, "No routes match the request, #{request.uri}"
       end
       request.route_params = route_params
-      request.reset_params!
-      route = Merb::Router.routes[route_index]
+      request.params.merge! route_params
       
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
@@ -69,6 +67,7 @@ class Merb::Dispatcher
       action = route_params[:action]
 
       controller = dispatch_action(klass, action, request)
+      controller._benchmarks[:dispatch_time] = Time.now - start
       Merb.logger.info controller._benchmarks.inspect
       Merb.logger.flush
 
