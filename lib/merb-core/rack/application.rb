@@ -57,6 +57,7 @@ module Merb
       # ==== Parameters
       # env<Hash>:: Environment variables to pass on to the server.
       def serve_static(env)
+        env["PATH_INFO"] = ::Merb::Request.unescape(env["PATH_INFO"])        
         @static_server.call(env)
       end
       
