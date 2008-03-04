@@ -176,10 +176,14 @@
 			    <tr><th width="25%">Parameter</th><th width="75%">Value</th></tr>
 		    </thead>
 		    <tbody>			  			  
+  			<% unless params[:original_params].blank? %>		      
     			<% params[:original_params].each_with_index do |param_value, i| %>
             <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
     			<% end %>
     			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_params].empty? %>			
+      	<% else %>
+      	  <tr><td colspan="2">None</td></tr>
+      	<% end %>    			
     		</tbody>
 		  </table>
 			
@@ -189,10 +193,14 @@
 			    <tr><th width="25%">Key</th><th width="75%">Value</th></tr>
 		    </thead>
 		    <tbody>			  			  
+  			<% unless params[:original_session].blank? %>		      
     			<% params[:original_session].each_with_index do |param_value, i| %>
             <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
     			<% end %>
     			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_session].empty? %>
+      	<% else %>
+      	  <tr><td colspan="2">None</td></tr>
+      	<% end %>
     		</tbody>
 		  </table>
 			
@@ -202,27 +210,31 @@
 			    <tr><th width="25%">Cookie</th><th width="75%">Value</th></tr>
 		    </thead>
 		    <tbody>			  
+  			<% unless params[:original_cookies].blank? %>		      
     			<% params[:original_cookies].each_with_index do |param_value, i| %>
             <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
     			<% end %>
     			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_cookies].empty? %>
+  			<% else %>
+  			  <tr><td colspan="2">None</td></tr>
+  			<% end %>
 			  </tbody>
 		  </table>
 			
 			<h3>Named Routes</h3>
 			<table class="listing" style="display: none">
-			<% unless Merb::Router.named_routes.empty? %>
 			  <thead>
 			    <tr><th width="25%">Name</th><th width="75%">Route</th></tr>
 		    </thead>
 		    <tbody>
-			  <% Merb::Router.named_routes.each_with_index do |name_route, i| %>
-			    <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= name_route.first %></td><td><%= name_route.last %></td></tr>
-			  <% end %>			  
+  			<% unless Merb::Router.named_routes.empty? %>		      
+  			  <% Merb::Router.named_routes.each_with_index do |name_route, i| %>
+  			    <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= name_route.first %></td><td><%= name_route.last %></td></tr>
+  			  <% end %>
+  		  <% else %>
+    		  <tr><td colspan="2">None</td></tr>
+  		  <% end %>			  
 			  </tbody>
-		  <% else %>
-  		  <tr><td colspan="2">None</td></tr>
-		  <% end %>
 		  </table>		  
 		</div>
 		
