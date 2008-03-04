@@ -42,7 +42,7 @@ module Merb
 
       Merb::RenderMixin.class_eval <<-EOS, __FILE__, __LINE__
         def render_#{key}(thing = nil, opts = {})
-          content_type = :#{key}
+          self.content_type = :#{key}
           render thing, opts
         end
       EOS

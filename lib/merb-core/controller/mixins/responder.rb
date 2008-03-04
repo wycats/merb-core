@@ -287,10 +287,11 @@ module Merb
     def _perform_content_negotiation # :nodoc:
       raise Merb::ControllerExceptions::NotAcceptable if _provided_formats.empty?
       if (fmt = params[:format]) && !fmt.empty?
-        return fmt.to_sym
+        accepts = [fmt.to_sym]
+      else
+        accepts = Responder.parse(request.accept).map {|t| t.to_sym}
+        accepts.compact!
       end
-      accepts = Responder.parse(request.accept).map {|t| t.to_sym}
-      accepts.compact!
       return _provided_formats.first if accepts.first == :all
       (accepts & _provided_formats).first || (raise Merb::ControllerExceptions::NotAcceptable)
     end
