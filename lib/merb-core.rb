@@ -216,8 +216,19 @@ module Merb
       Config
     end
     
-  end
+    # ==== Returns
+    # Array:: All Rakefiles for plugins.
+    def rakefiles
+      @rakefiles ||= ['merb-core/test/tasks/spectasks']
+    end
 
+    # ==== Parameters
+    # *rakefiles:: Rakefiles to add to the list of plugin Rakefiles.
+    def add_rakefiles(*rakefiles)
+      @rakefiles ||= ['merb-core/test/tasks/spectasks']
+      @rakefiles += rakefiles
+    end
+  end
 end
 
 require 'merb-core/autoload'

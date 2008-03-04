@@ -138,20 +138,15 @@ module Kernel
   #
   #   # This will now use the RSpec generator for tests
   #   $ ruby script/generate controller MyController
-  def use_test(test_framework)
-    return unless Merb.env == 'test'
+  def use_test(test_framework, *test_dependencies)
+    return unless Merb.env == "test" unless Merb.env.nil?
     raise "use_test only supports :rspec and :test_unit currently" unless 
       [:rspec, :test_unit].include?(test_framework.to_sym)
     Merb.generator_scope.delete(:rspec)
     Merb.generator_scope.delete(:test_unit)
     Merb.generator_scope.push(test_framework.to_sym)
     
-    begin
-      test_plugin = test_framework.to_s.match(/^merb_/) ? test_framework.to_s : "merb_#{test_framework}"
-      Kernel.dependency(test_plugin)
-    rescue LoadError => e
-      Merb.logger.warn("The #{test_plugin} gem was not found.  You may need to install it.")
-    end
+    dependencies test_dependencies
   end
   
   # ==== Returns

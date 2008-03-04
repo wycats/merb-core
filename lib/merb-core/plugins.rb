@@ -10,18 +10,16 @@ module Merb
       @config ||= File.exists?(Merb.root / "config" / "plugins.yml") ? YAML.load(File.read(Merb.root / "config" / "plugins.yml")) || {} : {}
     end
     
-    @rakefiles = []
-
     # ==== Returns
     # Array:: All Rakefiles for plugins.
     def self.rakefiles
-      @rakefiles
+      Merb.rakefiles
     end
 
     # ==== Parameters
     # *rakefiles:: Rakefiles to add to the list of plugin Rakefiles.
     def self.add_rakefiles(*rakefiles)
-      @rakefiles += rakefiles
+      Merb.add_rakefiles *rakefiles
     end
   end
 end
