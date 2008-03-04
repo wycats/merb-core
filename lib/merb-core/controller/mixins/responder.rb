@@ -286,7 +286,7 @@ module Merb
     # 5. Raise 406 if none found
     def _perform_content_negotiation # :nodoc:
       raise Merb::ControllerExceptions::NotAcceptable if _provided_formats.empty?
-      if (fmt = params[:format]) && !fmt.empty? && _provided_formats.include?(fmt.to_sym)
+      if (fmt = params[:format]) && !fmt.empty?
         return fmt.to_sym
       end
       accepts = Responder.parse(request.accept).map {|t| t.to_sym}
