@@ -39,18 +39,14 @@ class Merb::Dispatcher
       
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
-      if controller_name.nil?
+      unless controller_name
         raise Merb::ControllerExceptions::NotFound, "Route matched, but route did not specify a controller" 
       end
       
       Merb.logger.debug("Routed to: #{request.route_params.inspect}")
 
-      begin
-        cnt = controller_name.snake_case.to_const_string
-      rescue ::String::InvalidPathConversion
-        raise Merb::ControllerExceptions::NotFound, 
-          "Controller '#{controller_name}' could not be converted to a class"
-      end
+      cnt = controller_name.snake_case.to_const_string
+      
       if !Merb::Controller._subclasses.include?(cnt)
         raise Merb::ControllerExceptions::NotFound, "Controller '#{cnt}' not found"
       end
