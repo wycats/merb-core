@@ -16,6 +16,9 @@ module Merb
       def self.start(opts={})
         Merb.logger.info("Using Thin adapter")
         Merb.logger.flush
+        if opts[:host].include?('/')
+          opts[:host] =  "#{opts[:host]}-#{opts[:port]}"
+        end  
         server = ::Thin::Server.new(opts[:host], opts[:port], opts[:app])
         ::Thin::Logging.silent = true
         server.start!

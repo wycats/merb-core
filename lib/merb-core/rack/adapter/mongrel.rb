@@ -15,7 +15,7 @@ module Merb
       # :port<Fixnum>:: The port Mongrel should bind to.
       # :app<String>>:: The application name.
       def self.start(opts={})
-        Merb.logger.info("Using Mongrel adapter") if self == Merb::Rack::Mongrel
+        Merb.logger.info("Using Mongrel adapter")
         Merb.logger.flush
         server = ::Mongrel::HttpServer.new(opts[:host], opts[:port])
         server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))

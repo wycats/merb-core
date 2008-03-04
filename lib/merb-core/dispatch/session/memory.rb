@@ -7,18 +7,16 @@ module Merb
     #
     # ==== Parameters
     # base<Class>:: The class to which the SessionMixin is mixed into.
-    def self.included(base)            
-      base.add_hook :before_dispatch do
-        Merb.logger.info("Setting up session")
-        before = cookies[_session_id_key]
-        request.session , cookies[_session_id_key] = Merb::MemorySession.persist(cookies[_session_id_key])
-        @_new_cookie = cookies[_session_id_key] != before
-      end
+    def setup_session
+      Merb.logger.info("Setting up session")
+      before = cookies[_session_id_key]
+      request.session , cookies[_session_id_key] = Merb::MemorySession.persist(cookies[_session_id_key])
+      @_new_cookie = cookies[_session_id_key] != before
+    end
       
-      base.add_hook :after_dispatch do
-        Merb.logger.info("Finalize session")
-        set_cookie(_session_id_key, request.session.session_id, Time.now + _session_expiry) if (@_new_cookie || request.session.needs_new_cookie)
-      end
+    def finalize_session
+      Merb.logger.info("Finalize session")
+      set_cookie(_session_id_key, request.session.session_id, Time.now + _session_expiry) if (@_new_cookie || request.session.needs_new_cookie)
     end
 
     # ==== Returns

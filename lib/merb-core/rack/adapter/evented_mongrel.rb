@@ -1,4 +1,5 @@
 require 'swiftcore/evented_mongrel'
+require 'merb-core/rack/handler/mongrel'
 module Merb
   module Rack
 
@@ -14,7 +15,10 @@ module Merb
       # :app<String>>:: The application name.
       def self.start(opts={})
         Merb.logger.info("Using EventedMongrel adapter: #{opts.inspect}")
-        super(opts)
+        Merb.logger.flush
+        server = ::Mongrel::HttpServer.new(opts[:host], opts[:port].to_i)
+        server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))
+        server.run.join
       end
     end
   end
