@@ -18,9 +18,7 @@ module Merb
           :environment            => "development",
           :merb_root              => Dir.pwd,
           :use_mutex              => true,
-          :session_id_cookie_only => true,
-          :session_id_key         => "_session_id", 
-          :query_string_whitelist => []
+          :session_id_key         => "_session_id"
         }
       end
 
