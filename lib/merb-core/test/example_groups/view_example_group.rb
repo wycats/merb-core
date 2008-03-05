@@ -27,6 +27,26 @@ module Merb::Test::Rspec::Example
   class ViewExampleGroup < MerbExampleGroup
     include Merb::Test::Rspec::ViewMatchers
 
+    def render(template_path, opts={})
+      klass = Class.new(Merb::Controller)
+      controller = klass.new(FakeRequest.new)
+      assigns.each do |key, value|
+        controller.instance_variable_set("@#{key.to_s}", value)
+      end
+      opts[:helpers] ||= [opts[:helper]].compact
+      opts[:helpers].each { |helper| klass.send(:include, helper) }
+      method, location = controller._template_for(nil, nil, nil, :template => template_path)
+      @_body = controller.send(method)
+    end
+
+    def body; @_body; end
+
+    def assigns; @_assigns ||= Mash.new; end
+
     Spec::Example::ExampleGroupFactory.register(:view, self)
+  end
+
+  class Merb::Controller
+    def self.to_s; "ViewExampleController"; end
   end
 end
