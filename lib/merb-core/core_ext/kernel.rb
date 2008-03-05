@@ -23,7 +23,8 @@ module Kernel
         if name =~ /^merb/ && try_framework
           require name
         else
-          Gem.activate(name, true, *ver)
+          gem(name, *ver) if ver
+          require name
           Merb.logger.info("loading gem '#{name}' from #{__app_file_trace__.first} ...")
         end
       rescue LoadError
