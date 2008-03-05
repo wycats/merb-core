@@ -293,7 +293,10 @@ module Merb
         accepts.compact!
       end
       return _provided_formats.first if accepts.first == :all
-      (accepts & _provided_formats).first || (raise Merb::ControllerExceptions::NotAcceptable)
+      (accepts & _provided_formats).first || begin
+        return _provided_formats.first unless ([:all] & _provided_formats).empty?
+        raise Merb::ControllerExceptions::NotAcceptable
+      end
     end
 
     # Returns the output format for this request, based on the 
