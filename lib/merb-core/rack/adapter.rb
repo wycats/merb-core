@@ -28,6 +28,7 @@ module Merb
     end # Adapter
     
     # Register some Rack adapters
+    Adapter.register %w{ebb},          :Ebb
     Adapter.register %w{emongrel},     :EventedMongrel
     Adapter.register %w{fastcgi fcgi}, :FastCGI
     Adapter.register %w{irb},          :Irb
@@ -38,3 +39,4 @@ module Merb
     
   end # Rack
 end # Merb
+
