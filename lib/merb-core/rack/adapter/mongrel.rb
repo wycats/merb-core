@@ -17,7 +17,7 @@ module Merb
       def self.start(opts={})
         Merb.logger.info("Using Mongrel adapter")
         Merb.logger.flush
-        server = ::Mongrel::HttpServer.new(opts[:host], opts[:port])
+        server = ::Mongrel::HttpServer.new(opts[:host], opts[:port].to_i)
         server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))
         server.run.join
       end
