@@ -15,6 +15,8 @@ module Merb
       @_new_cookie = cookies[_session_id_key] != before
     end
 
+    # Finalizes the session by storing the session ID in a cookie, if the
+    # session has changed.
     def finalize_session 
       if @_fingerprint != Marshal.dump(request.session.data).hash
         ::Cache.put("session:#{request.session.session_id}", request.session.data)

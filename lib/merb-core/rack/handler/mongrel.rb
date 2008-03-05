@@ -1,6 +1,11 @@
 require 'stringio'
 class Mongrel::HttpResponse
   NO_CLOSE_STATUS_FORMAT = "HTTP/1.1 %d %s\r\n".freeze
+
+  # Sends the status to the client without closing the connection.
+  #
+  # ==== Parameters
+  # content_length<Fixnum>:: The length of the content. Defaults to body length.
   def send_status_no_connection_close(content_length=@body.length)
     unless @status_sent
       write(NO_CLOSE_STATUS_FORMAT % [@status, Mongrel::HTTP_STATUS_CODES[@status]])

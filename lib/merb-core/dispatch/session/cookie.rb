@@ -16,6 +16,8 @@ module Merb
       @original_session = request.session.read_cookie
     end
 
+    # Finalizes the session by storing the session in a cookie, if the session
+    # has changed.
     def finalize_session
       Merb.logger.info("Finalize Cookie Store Session")
       new_session = request.session.read_cookie

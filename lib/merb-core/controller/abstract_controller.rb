@@ -363,8 +363,14 @@ class Merb::AbstractController
   # Defaults that can be overridden by plugins, other mixins, or subclasses
   def _filters_halted()   "<html><body><h1>Filter Chain Halted!</h1></body></html>"  end
 
+  # Method stub for setting up the session. This will be overriden by session
+  # modules.
   def setup_session()    end
+
+  # Method stub for finalizing up the session. This will be overriden by
+  # session modules.
   def finalize_session() end  
+
   # Stub so content-type support in RenderMixin doesn't throw errors
   attr_accessor :content_type
   
