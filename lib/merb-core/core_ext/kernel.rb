@@ -140,14 +140,13 @@ module Kernel
   #   # This will now use the RSpec generator for tests
   #   $ ruby script/generate controller MyController
   def use_test(test_framework, *test_dependencies)
-    return unless Merb.env == "test" || Merb.env.nil?
     raise "use_test only supports :rspec and :test_unit currently" unless 
       [:rspec, :test_unit].include?(test_framework.to_sym)
     Merb.generator_scope.delete(:rspec)
     Merb.generator_scope.delete(:test_unit)
     Merb.generator_scope.push(test_framework.to_sym)
     
-    dependencies test_dependencies
+    dependencies test_dependencies if Merb.env == "test" || Merb.env.nil?
   end
   
   # ==== Returns
