@@ -33,6 +33,11 @@ describe Merb::Controller, " responds" do
     controller.body.should == "HTML: Multi"
   end
 
+  it "should use the first mime-type when accepting anything */*, even if something unprovidable comes first" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::HtmlDefault, :index, {}, :http_accept => "application/json, */*")
+    controller.body.should == "HTML: Default"
+  end
+
   it "should use the pick the first mime-type from the list not the */*" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::MultiProvides, :index, {}, :http_accept => "text/javascript, */*")
     controller.body.should == "JS: Multi"

@@ -294,7 +294,7 @@ module Merb
       end
       return _provided_formats.first if accepts.first == :all
       (accepts & _provided_formats).first || begin
-        return _provided_formats.first unless ([:all] & _provided_formats).empty?
+        return _provided_formats.first unless ([:all] & accepts).empty?
         raise Merb::ControllerExceptions::NotAcceptable
       end
     end
