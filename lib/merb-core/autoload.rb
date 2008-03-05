@@ -22,9 +22,7 @@ end
 # Require this rather than autoloading it so we can be sure the default template
 # gets registered
 require 'merb-core/core_ext'
-require 'merb-core/hook'
 require "merb-core/controller/template"
-require "merb-core/hook"
 
 module Merb
   module InlineTemplates; end

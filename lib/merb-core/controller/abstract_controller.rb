@@ -69,7 +69,6 @@
 class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
-  is_hookable
   
   class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root
 
@@ -186,7 +185,7 @@ class Merb::AbstractController
     @_template_stack = []
   end
   
-  # This will dispatch the request, calling before and after dispatch hooks
+  # This will dispatch the request, calling setup_session and finalize_session
   # 
   # ==== Parameters
   # action<~to_s>::
