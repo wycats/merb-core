@@ -1,4 +1,23 @@
 == 0.9.1 "Some are half-wild, and some are just outlaws." 2008-02-29
+
+* As a last resort, look for */* in the formats before throwing NotAcceptable (TODO: Clean this up)
+* Fix perform_content_negotiation to correctly handle :format in params. Fix render_* to correctly return the correct content_type.
+* remove hooks.rb, they were premature and only used in one place
+* fix evented mongrel to not go crazy
+* Calling /foo.pdf should throw a 406 if :pdf is not a registered mime.
+* touch up dispatcher a bit, remove some un-needed code from the hot path
+* fix dispatcher to not parse the params twice, still supports request_params
+* fix Exception in exception.html.erb
+* moved rspec rake tasks into core.  Added Merb.rakefiles, which is now used by Merb::Plugins.rakefiles.  Changed Kernel#use_test to only load dependency arguments when Merb.env is nil or test.
+* do not load test framework unless Merb.env == 'test'
+* Use new Object.make_module to create the module instead of old hackish solution.
+* Don't clear our mimes previously defined.
+* Fixed clean task deleting everything in the lib folder
+* Kernel#dependency requires gems/files in a before_app_loads block.
+* Move dependency loading after framework and look for framework.rb
+* Creates helper stub modules for controllers.
+* fix blank path error.
+* Cooler errors
 * add named routes to error page
 * updates to nested resources
 * get autotest working for merb-core
@@ -51,8 +70,7 @@
 * Fix filter specs to respect append order of filters.
 * check for empty string before calling to_sym on the format parameter
 * fake requests are incorrectly loading controller classes with namespaces
-* Fix the RubyGems monkeypatch by testing for Merb.root instead of looking
-  in $"
+* Fix the RubyGems monkeypatch by testing for Merb.root instead of looking in $"
 * fix core spec dependency on merb_rspec
 * Replace calls to puts with Merb.logger
 * Fix problem with static files, use Proc === body
