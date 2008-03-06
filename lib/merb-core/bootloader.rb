@@ -157,6 +157,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         Merb.push_path(:image,        Merb.dir_for(:public) / "images", nil)        
       end
       (Merb::Config[:framework] || {}).each do |name, path|
+        path = [path].flatten
         Merb.push_path(name, Merb.root_path(path.first), path[1])
       end
     end
@@ -483,6 +484,8 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
       next unless glob
       paths << Dir[path / glob]
     end
+    
+    paths << Merb.dir_for(:application) if Merb.dir_for(:application) && File.file?(Merb.dir_for(:application))
 
     paths.flatten.each do |file|
       next if Merb::BootLoader::LoadClasses::MTIMES[file] && Merb::BootLoader::LoadClasses::MTIMES[file] == File.mtime(file)
