@@ -198,6 +198,20 @@ module Merb
         self.<<(message, &block) if #{number} >= level
       end
 
+      # Calls #{name} and then flushes the buffer.
+      # 
+      # ==== Parameters
+      # string<String>:: The message to be logged. Defaults to nil.
+      # &block:: The output of this block is added to the message.      
+      #
+      # ==== Returns
+      # String:: The resulting message added to the log file.      
+      def #{name}!(message = nil, &block)
+        ret = #{name}(message, &block)
+        flush
+        ret
+      end
+
       # ==== Returns
       # Boolean:: True if this level will be logged by this logger.
       def #{name}?
