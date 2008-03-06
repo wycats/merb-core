@@ -47,7 +47,7 @@ describe Merb::Logger do
     it "should set the log level to :error (6) when Merb.environment is production" do
       Merb.should_receive(:environment).twice.and_return("production")
       @logger.set_log(Merb.log_path / "production.log")
-      @logger.level.should eql(6)
+      @logger.level.should eql(4)
     end
     
     it "should initialize the buffer to an empty array" do

@@ -14,8 +14,7 @@ module Merb
       # :port<Fixnum>:: The port WEBrick should bind to.
       # :app<String>>:: The application name.
       def self.start(opts={})
-        Merb.logger.info("Using Webrick adapter")
-        Merb.logger.flush
+        Merb.logger.warn!("Using Webrick adapter")
       
         options = {
           :Port        => opts[:port],

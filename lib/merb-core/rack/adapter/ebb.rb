@@ -14,8 +14,7 @@ module Merb
       # :port<Fixnum>:: The port Thin should bind to.
       # :app<String>>:: The application name.
       def self.start(opts={})
-        Merb.logger.info("Using Ebb adapter")
-        Merb.logger.flush
+        Merb.logger.warn!("Using Ebb adapter")
         server = ::Ebb::Server.new(opts[:app], opts)
         server.start
       end

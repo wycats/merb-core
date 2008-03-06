@@ -163,7 +163,7 @@ module Merb
       # ==== Alternatives
       # If group is left out, the user will be used as the group.
       def change_privilege(user, group=user)
-        Merb.logger.info "Changing privileges to #{user}:#{group}"
+        Merb.logger.warn! "Changing privileges to #{user}:#{group}"
         
         uid, gid = Process.euid, Process.egid
         target_uid = Etc.getpwnam(user).uid

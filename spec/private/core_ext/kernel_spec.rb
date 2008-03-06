@@ -52,7 +52,7 @@ describe "Kernel misc." do
   end
   
   it "should throw a useful error if there's no debugger" do
-    Merb.logger.should_receive(:info).with "\n***** Debugger requested, but was not " + 
+    Merb.logger.should_receive(:info!).with "\n***** Debugger requested, but was not " + 
                         "available: Start server with --debugger " +
                         "to enable *****\n"
     Kernel.debugger
