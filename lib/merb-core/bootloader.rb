@@ -156,7 +156,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         Merb.push_path(:javascript,   Merb.dir_for(:public) / "javascripts", nil)
         Merb.push_path(:image,        Merb.dir_for(:public) / "images", nil)        
       end
-      Merb::Config[:framework].each do |name, path|
+      (Merb::Config[:framework] || {}).each do |name, path|
         Merb.push_path(name, Merb.root_path(path.first), path[1])
       end
     end
