@@ -14,6 +14,13 @@ require "time" # httpdate
 #   Merb.logger.info(message<String>,&block)
 #   Merb.logger.debug(message<String>,&block)
 #
+# Logging with autoflush:
+#   Merb.logger.fatal!(message<String>,&block)
+#   Merb.logger.error!(message<String>,&block)
+#   Merb.logger.warn!(message<String>,&block)
+#   Merb.logger.info!(message<String>,&block)
+#   Merb.logger.debug!(message<String>,&block)
+#
 # Flush the buffer to 
 #   Merb.logger.flush
 #
@@ -130,7 +137,7 @@ module Merb
       if log_level && Levels[log_level.to_sym]
         @level = Levels[log_level.to_sym]
       elsif Merb.environment == "production"
-        @level = Levels[:error]
+        @level = Levels[:warn]
       else
         @level = Levels[:debug]
       end
@@ -168,10 +175,6 @@ module Merb
       message = ""
       message << delimiter
       message << string if string
-      if block_given?
-        message << delimiter
-        message << yield
-      end
       message << "\n" unless message[-1] == ?\n
       @buffer << message
       flush if @auto_flush
@@ -185,31 +188,31 @@ module Merb
       class_eval <<-LEVELMETHODS, __FILE__, __LINE__
 
       # Appends a message to the log if the log level is at least as high as
-      # the log level of the logger. The methods yield to an optional block and
-      # the output of this block will be appended to the message.
+      # the log level of the logger.
       #
       # ==== Parameters
       # string<String>:: The message to be logged. Defaults to nil.
-      # &block:: The output of this block is added to the message.
       #
       # ==== Returns
-      # String:: The resulting message added to the log file.
-      def #{name}(message = nil, &block)
-        self.<<(message, &block) if #{number} >= level
+      # self:: The logger object for chaining.
+      def #{name}(message = nil)
+        self << message if #{number} >= level
+        self
       end
 
-      # Calls #{name} and then flushes the buffer.
-      # 
+      # Appends a message to the log if the log level is at least as high as
+      # the log level of the logger. The bang! version of the method also auto
+      # flushes the log buffer to disk.
+      #
       # ==== Parameters
       # string<String>:: The message to be logged. Defaults to nil.
-      # &block:: The output of this block is added to the message.      
       #
       # ==== Returns
-      # String:: The resulting message added to the log file.      
-      def #{name}!(message = nil, &block)
-        ret = #{name}(message, &block)
+      # self:: The logger object for chaining.
+      def #{name}!(message = nil)
+        self << message if #{number} >= level
         flush
-        ret
+        self
       end
 
       # ==== Returns

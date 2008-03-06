@@ -25,14 +25,14 @@ module Kernel
         else
           gem(name, *ver) if ver
           require name
-          Merb.logger.info("loading gem '#{name}' from #{__app_file_trace__.first} ...")
+          Merb.logger.info!("loading gem '#{name}' from #{__app_file_trace__.first} ...")
         end
       rescue LoadError
         if try_framework
           try_framework = false
           retry
         else
-          Merb.logger.info("loading gem '#{name}' from #{__app_file_trace__.first} ...")
+          Merb.logger.info!("loading gem '#{name}' from #{__app_file_trace__.first} ...")
           # Failed requiring as a gem, let's try loading with a normal require.
           require name
         end
@@ -292,7 +292,7 @@ module Kernel
     # Define debugger method so that code even works if debugger was not
     # requested. Drops a note to the logs that Debugger was not available.
     def debugger
-       Merb.logger.info "\n***** Debugger requested, but was not " + 
+       Merb.logger.info! "\n***** Debugger requested, but was not " + 
                         "available: Start server with --debugger " +
                         "to enable *****\n"
     end

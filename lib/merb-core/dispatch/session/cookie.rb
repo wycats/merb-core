@@ -11,7 +11,6 @@ module Merb
     # ==== Parameters
     # base<Class>:: The class to which the SessionMixin is mixed into.
     def setup_session
-      Merb.logger.info("Setting Up Cookie Store Sessions")
       request.session = Merb::CookieSession.new(cookies[_session_id_key], _session_secret_key)
       @original_session = request.session.read_cookie
     end
@@ -19,7 +18,6 @@ module Merb
     # Finalizes the session by storing the session in a cookie, if the session
     # has changed.
     def finalize_session
-      Merb.logger.info("Finalize Cookie Store Session")
       new_session = request.session.read_cookie
       
       if @original_session != new_session

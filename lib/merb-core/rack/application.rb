@@ -50,7 +50,7 @@ module Merb
       # ==== Returns
       # Boolean:: True if file exists under the server root and is readable.
       def file_exist?(path)
-        full_path = ::File.join(@static_server.root, ::Rack::Utils.unescape(path))
+        full_path = ::File.join(@static_server.root, ::Merb::Request.unescape(path))
         ::File.file?(full_path) && ::File.readable?(full_path)
       end
 
