@@ -98,7 +98,7 @@ module Kernel
   def rescue_require(library, message = nil)
     require library
   rescue LoadError, RuntimeError
-    Merb.logger.error(message) if message
+    Merb.logger.error!(message) if message
   end
   
   # Used in Merb.root/config/init.rb to tell Merb which ORM (Object Relational
@@ -121,7 +121,7 @@ module Kernel
       Merb.generator_scope.unshift(orm.to_sym) unless Merb.generator_scope.include?(orm.to_sym)
       Kernel.dependency(orm_plugin)
     rescue LoadError => e
-      Merb.logger.warn("The #{orm_plugin} gem was not found.  You may need to install it.")
+      Merb.logger.warn!("The #{orm_plugin} gem was not found.  You may need to install it.")
       raise e
     end
   end
@@ -235,18 +235,19 @@ module Kernel
   # Requires ruby-prof (<tt>sudo gem install ruby-prof</tt>)
   #
   # ==== Examples
-  #   __profile__("MyProfile", 5) do
-  #     30.times { rand(10)**rand(10) }
+  #   __profile__("MyProfile", 5, 30) do
+  #     rand(10)**rand(10)
   #     puts "Profile run"
   #   end
   #
   # Assuming that the total time taken for #puts calls was less than 5% of the
-  # total time to run, #puts won't appear in the profile report.
-  def __profile__(name, min=1)
+  # total time to run, #puts won't appear in the profile report. 
+  # The code block will be run 30 times.
+  def __profile__(name, min=1, iter=100)
     require 'ruby-prof' unless defined?(RubyProf)
     return_result = ''
     result = RubyProf.profile do
-      100.times{return_result = yield}
+      iter.times{return_result = yield}
     end
     printer = RubyProf::GraphHtmlPrinter.new(result)
     path = File.join(Merb.root, 'log', "#{name}.html")
