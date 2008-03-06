@@ -142,11 +142,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         require Merb.root / "config" / "framework"
       elsif File.exists?(Merb.root / "framework.rb")
         require Merb.root / "framework"
-      elsif Merb::Config[:framework]
-        Merb::Config[:framework].each do |name, path|
-          Merb.push_path(name, Merb.root_path(path.first), path[1])
-        end
-      else
+      elsif !Merb::Config[:framework]
         %w[view model controller helper mailer part].each do |component|
           Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
         end
@@ -159,6 +155,9 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         Merb.push_path(:stylesheet,   Merb.dir_for(:public) / "stylesheets", nil)
         Merb.push_path(:javascript,   Merb.dir_for(:public) / "javascripts", nil)
         Merb.push_path(:image,        Merb.dir_for(:public) / "images", nil)        
+      end
+      Merb::Config[:framework].each do |name, path|
+        Merb.push_path(name, Merb.root_path(path.first), path[1])
       end
     end
   end

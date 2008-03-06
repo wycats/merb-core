@@ -67,7 +67,7 @@ describe Merb::Request, " query and body params" do
   it "should support XML params" do
     request = fake_request({:content_type => "application/xml"}, :req => %{<foo bar="baz"><baz/></foo>})
     request.stub!(:route_params).and_return({})
-    request.params.should == {"foo" => {"baz" => {}, "bar" => "baz"}}
+    request.params.should == {"foo" => {"baz" => nil, "bar" => "baz"}}
   end  
   
 end

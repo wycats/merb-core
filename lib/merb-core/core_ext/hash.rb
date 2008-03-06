@@ -1,3 +1,5 @@
+require 'base64'
+
 class Hash
   class << self
     # Converts valid XML into a Ruby Hash structure.
@@ -247,13 +249,34 @@ require 'rexml/light/node'
 # This represents the hard part of the work, all I did was change the
 # underlying parser.
 class REXMLUtilityNode # :nodoc:
-  attr_accessor :name, :attributes, :children
+  attr_accessor :name, :attributes, :children, :type
+  cattr_accessor :typecasts, :available_typecasts
+  
+  self.typecasts = {}
+  self.typecasts["integer"]       = lambda{|v| v.nil? ? nil : v.to_i}
+  self.typecasts["boolean"]       = lambda{|v| v.nil? ? nil : (v.strip != "false")}
+  self.typecasts["datetime"]      = lambda{|v| v.nil? ? nil : Time.parse(v).utc}
+  self.typecasts["date"]          = lambda{|v| v.nil? ? nil : Date.parse(v)}
+  self.typecasts["dateTime"]      = lambda{|v| v.nil? ? nil : Time.parse(v).utc}
+  self.typecasts["decimal"]       = lambda{|v| BigDecimal(v)}
+  self.typecasts["double"]        = lambda{|v| v.nil? ? nil : v.to_f}
+  self.typecasts["float"]         = lambda{|v| v.nil? ? nil : v.to_f}
+  self.typecasts["symbol"]        = lambda{|v| v.to_sym}
+  self.typecasts["string"]        = lambda{|v| v.to_s}
+  self.typecasts["yaml"]          = lambda{|v| v.nil? ? nil : YAML.load(v)}
+  self.typecasts["base64Binary"]  = lambda{|v| Base64.decode64(v)}
+  
+  self.available_typecasts = self.typecasts.keys
 
   def initialize(name, attributes = {})
-    @name       = name.tr("-", "_")
-    @attributes = undasherize_keys(attributes)
-    @children   = []
-    @text       = false
+    @name         = name.tr("-", "_")
+    # leave the type alone if we don't know what it is
+    @type         = self.class.available_typecasts.include?(attributes["type"]) ? attributes.delete("type") : attributes["type"]
+    
+    @nil_element  = attributes.delete("nil") == "true"
+    @attributes   = undasherize_keys(attributes)
+    @children     = []
+    @text         = false
   end
 
   def add_node(node)
@@ -262,26 +285,52 @@ class REXMLUtilityNode # :nodoc:
   end
 
   def to_hash
+    if @type == "file"
+      f = StringIO.new(::Base64.decode64(@children.first || ""))  
+      class << f
+        attr_accessor :original_filename, :content_type
+      end
+      f.original_filename = attributes['name'] || 'untitled'
+      f.content_type = attributes['content_type'] || 'application/octet-stream'
+      return {name => f}
+    end
+    
     if @text
       return { name => typecast_value( translate_xml_entities( inner_html ) ) }
     else
       #change repeating groups into an array
-      # group by the first key of each element of the array to find repeating groups
       groups = @children.inject({}) { |s,e| (s[e.name] ||= []) << e; s }
       
-      hash = {}
-      groups.each do |key, values|
-        if values.size == 1
-          hash.merge! values.first
-        else
-          hash.merge! key => values.map { |element| element.to_hash[key] }
+      out = nil
+      if @type == "array"
+        out = []
+        groups.each do |k, v|
+          if v.size == 1
+            out << v.first.to_hash.entries.first.last
+          else
+            out << v.map{|e| e.to_hash[k]}
+          end
         end
+        out = out.flatten
+        
+      else # If Hash
+        out = {}
+        groups.each do |k,v|
+          if v.size == 1
+            out.merge!(v.first)
+          else
+            out.merge!( k => v.map{|e| e.to_hash[k]})
+          end
+        end
+        out.merge! attributes unless attributes.empty?
+        out = out.empty? ? nil : out
       end
-      
-      # merge the arrays, including attributes
-      hash.merge! attributes unless attributes.empty?
-      
-      { name => hash }
+
+      if @type && out.nil?
+        { name => typecast_value(out) }
+      else
+        { name => out }
+      end
     end
   end
 
@@ -311,15 +360,9 @@ class REXMLUtilityNode # :nodoc:
   # If +self+ does not have a "type" key, or if it's not one of the
   # options specified above, the raw +value+ will be returned.
   def typecast_value(value)
-    return value unless attributes["type"]
-    
-    case attributes["type"]
-      when "integer"  then value.to_i
-      when "boolean"  then value.strip == "true"
-      when "datetime" then ::Time.parse(value).utc
-      when "date"     then ::Date.parse(value)
-      else                 value
-    end
+    return value unless @type
+    proc = self.class.typecasts[@type]
+    proc.nil? ? value : proc.call(value)
   end
 
   # Convert basic XML entities into their literal values.
@@ -357,7 +400,8 @@ class REXMLUtilityNode # :nodoc:
   # ==== Returns
   # String:: The HTML node in text form.
   def to_html
-    "<#{name}#{attributes.to_xml_attributes}>#{inner_html}</#{name}>"
+    attributes.merge!(:type => @type ) if @type
+    "<#{name}#{attributes.to_xml_attributes}>#{@nil_element ? '' : inner_html}</#{name}>"
   end
 
   # ==== Alias

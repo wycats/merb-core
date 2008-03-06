@@ -214,7 +214,7 @@ module Merb
         flush if #{number} >= level
         self
       end
-      
+
       # ==== Returns
       # Boolean:: True if this level will be logged by this logger.
       def #{name}?
