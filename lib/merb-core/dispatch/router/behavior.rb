@@ -395,8 +395,7 @@ module Merb
          ['/:id', :"#{route_singular_name}"],
          ['/new', :"new_#{route_singular_name}"],
          ['/:id/edit', :"edit_#{route_singular_name}"],
-         ['/:id/delete', :"delete_#{route_singular_name}"],
-         ['/:action/:id', :"custom_#{route_singular_name}"]
+         ['/:id/delete', :"delete_#{route_singular_name}"]
         ].each do |path,name|
           next_level.match(path).to_route.name(name)
         end
