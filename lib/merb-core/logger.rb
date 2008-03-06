@@ -211,7 +211,7 @@ module Merb
       # self:: The logger object for chaining.
       def #{name}!(message = nil)
         self << message if #{number} >= level
-        flush
+        flush if #{number} >= level
         self
       end
 

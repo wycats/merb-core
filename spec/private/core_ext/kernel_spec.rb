@@ -10,7 +10,7 @@ describe "Kernel#require" do
 
   it "should be able to require and throw a useful error message" do
     Kernel.stub!(:require).with("redcloth").and_raise(LoadError)
-    Merb.logger.should_receive(:error).with("foo")
+    Merb.logger.should_receive(:error!).with("foo")
     Kernel.rescue_require("redcloth", "foo")
   end
   
