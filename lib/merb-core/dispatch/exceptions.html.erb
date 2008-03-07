@@ -113,12 +113,18 @@
 				background-position:top left;
 				background-repeat:no-repeat;
 			}
+      table.trace tr.file td.expand div {
+        width:23px;
+      }
 			table.trace .open tr.file td.expand {
 				width:19px;
 				background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAB1CAIAAAAqdO2mAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAXZJREFUeNrslK1ywkAUhcMOBomEOiSdqLxEBJX0NaijOsjyHGGmCGyQQYaiiiw4gktkcOmZbpsuuzQ/M5XnqJ2d3S/n3nM3rTzPLUP7/Tt0+pLcGQwG3W53OLyHzPMtjYL7q9UqSRLrD4E1Gj1orCvKYuFHUWTVkOM44/HjDcp8/lL4r6NerzeZPMm1KFw0QkDn83m5fP2lHA4fNQvRtNvtjsfDd0WzmSfb2e/fdTqdOvdh/HLJZLOn0+d2HJ+KRGzbdl23EpFlmed5cp2maRzHQq1lvQ5KMi6EUZBGfup6E1pTfd+vrGW7jbQ2C9hTt9BpqNyIWaAwAy6xg2eBz5iRC/NomiZhGN5sqmnkauo0BUGgVQoBjQ80oCACgNQdZHfTYBkF2mxCtWWAqunWpahxIDUt3QYUxIFQpJHyIWpXjinabKbbwItMHT+NyjchrP8QKaSQQgoppJBCCimkkEIKKaSQQgoppJBCCimkkEIKKaSo+hRgAEFD17X08O2NAAAAAElFTkSuQmCC);
 				background-position:top left;
 				background-repeat:no-repeat;				
 			}
+      table.trace .open tr.file td.expand div {
+        width:19px;
+      }
 			table.trace tr.source td.collapse {
 				width:19px;
 				background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAB1CAIAAAAqdO2mAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAVxJREFUeNrs0zFygkAUBmBlUkgJHdABlQwVkVJKKUxBYWbkALTxMJwhltyDFkss03IF8pudIcwaDaDl/6pd2P327b7d+eHwMXs4lNkzggoVKlSoUKFChQoVKlSoUKFChQoVKlSoUKFChQqVEYqm6ft9+qiSJEkYho7jTlcw2fd9NOI4nq4gEdFwXXe1Cqco63VkWVbXRTqLhTpOwQRpF7quR1E0TgGhqvLKUFCyoQqG/rks3O6kZKW/eRFpevOCoGTXVTcMQ5EyxyDEkML1c5RzuZOICIyXqn7JBVez6282MWrx731HOv2qB8Hri2lamNk0DfpVVdV1Peodappmmua8bdvzuc7zfNprzrLMth1FnGh/X8MjCAIQv/cFz/+65PcDh7rbvYv2ZUfdj+PxsyzLgVl0hKwgTqeqKApx2LeOc7t98zyv/1FWOgvx9RPii23bmL9cetJ8Ed8CDAC6aFW8bCzFhwAAAABJRU5ErkJggg==);
@@ -176,14 +182,10 @@
 			    <tr><th width="25%">Parameter</th><th width="75%">Value</th></tr>
 		    </thead>
 		    <tbody>			  			  
-  			<% unless params[:original_params].blank? %>		      
     			<% params[:original_params].each_with_index do |param_value, i| %>
             <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
     			<% end %>
     			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_params].empty? %>			
-      	<% else %>
-      	  <tr><td colspan="2">None</td></tr>
-      	<% end %>    			
     		</tbody>
 		  </table>
 			
@@ -193,14 +195,10 @@
 			    <tr><th width="25%">Key</th><th width="75%">Value</th></tr>
 		    </thead>
 		    <tbody>			  			  
-  			<% unless params[:original_session].blank? %>		      
     			<% params[:original_session].each_with_index do |param_value, i| %>
             <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
     			<% end %>
     			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_session].empty? %>
-      	<% else %>
-      	  <tr><td colspan="2">None</td></tr>
-      	<% end %>
     		</tbody>
 		  </table>
 			
@@ -210,31 +208,27 @@
 			    <tr><th width="25%">Cookie</th><th width="75%">Value</th></tr>
 		    </thead>
 		    <tbody>			  
-  			<% unless params[:original_cookies].blank? %>		      
     			<% params[:original_cookies].each_with_index do |param_value, i| %>
             <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
     			<% end %>
     			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_cookies].empty? %>
-  			<% else %>
-  			  <tr><td colspan="2">None</td></tr>
-  			<% end %>
 			  </tbody>
 		  </table>
 			
 			<h3>Named Routes</h3>
 			<table class="listing" style="display: none">
+			<% unless Merb::Router.named_routes.empty? %>
 			  <thead>
 			    <tr><th width="25%">Name</th><th width="75%">Route</th></tr>
 		    </thead>
 		    <tbody>
-  			<% unless Merb::Router.named_routes.empty? %>		      
-  			  <% Merb::Router.named_routes.each_with_index do |name_route, i| %>
-  			    <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= name_route.first %></td><td><%= name_route.last %></td></tr>
-  			  <% end %>
-  		  <% else %>
-    		  <tr><td colspan="2">None</td></tr>
-  		  <% end %>			  
+			  <% Merb::Router.named_routes.each_with_index do |name_route, i| %>
+			    <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= name_route.first %></td><td><%= name_route.last %></td></tr>
+			  <% end %>			  
 			  </tbody>
+		  <% else %>
+  		  <tr><td colspan="2">None</td></tr>
+		  <% end %>
 		  </table>		  
 		</div>
 		
@@ -243,8 +237,7 @@
 			<% @exception.backtrace.each_with_index do |line, index| %>
 				<tbody class="close">
 					<tr class="file">
-						<td class="expand">
-						</td>
+						<td class="expand"><div>&nbsp;</div></td>
 						<td class="path">
 							<%= (line.match(/^([^:]+)/)[1] rescue 'unknown').sub(/\/((opt|usr)\/local\/lib\/(ruby\/)?(gems\/)?(1.8\/)?(gems\/)?|.+\/app\/)/, '') %>
 							<% unless line.match(/\.erb:/) %>
