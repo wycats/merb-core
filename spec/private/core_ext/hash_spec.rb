@@ -36,24 +36,6 @@ describe Hash, "except" do
   end
 end
 
-describe Hash, "symbolize_keys!" do
-  before do
-    @hash = { 'one' => 1, 'two' => 2 }
-    @hash_with_another_hash = { 'a' => 'A', 'prefs' => { 'private' => true, 'sex' => 'yes please' } }
-    @hash_with_non_string_keys = { 'one' => 1, 2 => 'TWO', '' => 'blank' }
-  end
-  
-  it "should convert all keys to symbols" do
-    @hash.symbolize_keys!
-    @hash.should == { :one => 1, :two => 2 }
-  end
-  
-  it "should recursively convert all keys to symbols" do
-    @hash_with_another_hash.symbolize_keys!
-    @hash_with_another_hash.should == { :a => 'A', :prefs => { :private => true, :sex => 'yes please' } }
-  end
-end
-
 describe Hash, "to_xml_attributes" do
   before do
     @hash = { :one => "ONE", "two" => "TWO" }

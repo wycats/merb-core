@@ -179,24 +179,6 @@ class Hash
     end
   end
   
-  # Destructively convert all keys which respond_to?(:to_sym) to symbols. Works
-  # recursively if given nested hashes.
-  #
-  # ==== Returns
-  # Hash:: The newly converted hash.
-  #
-  # ==== Examples
-  #   { 'one' => 1, 'two' => 2 }.symbolize_keys!
-  #     #=> { :one => 1, :two => 2 }
-  def symbolize_keys!
-    each do |k,v| 
-      sym = k.respond_to?(:to_sym) ? k.to_sym : k 
-      self[sym] = Hash === v ? v.symbolize_keys! : v 
-      delete(k) unless k == sym
-    end
-    self
-  end
-  
   # Converts all keys into string values. This is used during reloading to
   # prevent problems when classes are no longer declared.
   #

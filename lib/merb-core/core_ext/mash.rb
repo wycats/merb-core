@@ -115,12 +115,6 @@ class Mash < Hash
   # ==== Returns
   # Mash:: This mash unchanged.
   def stringify_keys!; self end
-
-  # Used to provide the same interface as Hash.
-  #
-  # ==== Returns
-  # Mash:: This mash unchanged.
-  def symbolize_keys!; self end 
  
   # ==== Returns
   # Hash:: The mash as a Hash with string keys.
