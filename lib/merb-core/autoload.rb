@@ -3,7 +3,6 @@ module Merb
   autoload :BootLoader,           "merb-core/bootloader"
   autoload :Config,               "merb-core/config"
   autoload :Const,                "merb-core/constants"
-  # autoload :Controller,           "merb-core/controller/merb_controller"
   autoload :ControllerMixin,      "merb-core/controller/mixins/controller"
   autoload :ControllerExceptions, "merb-core/controller/exceptions"
   autoload :Cookies,              "merb-core/dispatch/cookies"
