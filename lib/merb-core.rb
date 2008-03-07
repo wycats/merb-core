@@ -54,6 +54,10 @@ module Merb
       load_paths[type] = [path, file_glob]
     end
 
+    def remove_paths(*args)
+      args.each {|arg| load_paths.delete(arg)}
+    end
+
     # ==== Parameters
     # type<Symbol>:: The type of path to retrieve directory for, e.g. :view.
     #
@@ -131,8 +135,8 @@ module Merb
     # ==== Block parameters
     # r<Merb::Router::Behavior>::
     #   The root behavior upon which new routes can be added.
-    def flat!
-      Merb::Config[:framework] = {}
+    def flat!(framework = {})
+      Merb::Config[:framework] = framework
 
       Merb::Router.prepare do |r|
         yield(r) if block_given?

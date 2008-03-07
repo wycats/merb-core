@@ -3,7 +3,6 @@ module Merb
   autoload :BootLoader,           "merb-core/bootloader"
   autoload :Config,               "merb-core/config"
   autoload :Const,                "merb-core/constants"
-  autoload :Controller,           "merb-core/controller/merb_controller"
   autoload :ControllerMixin,      "merb-core/controller/mixins/controller"
   autoload :ControllerExceptions, "merb-core/controller/exceptions"
   autoload :Cookies,              "merb-core/dispatch/cookies"
@@ -23,6 +22,7 @@ end
 # gets registered
 require 'merb-core/core_ext'
 require "merb-core/controller/template"
+require "merb-core/controller/merb_controller"
 
 module Merb
   module InlineTemplates; end

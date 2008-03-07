@@ -251,7 +251,7 @@ module Merb::RenderMixin
       template, location = _template_for(controller_name, content_type, "layout")
       template, location = _template_for("application", content_type, "layout") unless template
       template
-    end    
+    end
   end
   
   # Iterate over the template roots in reverse order, and return the template 

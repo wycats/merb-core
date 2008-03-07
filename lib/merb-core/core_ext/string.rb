@@ -1,3 +1,5 @@
+require "pathname"
+
 class String
   
   class InvalidPathConversion < Exception; end
@@ -59,5 +61,9 @@ class String
   #   "merb"/"core_ext" #=> "merb/core_ext"
   def /(o)
     File.join(self, o.to_s)
+  end
+  
+  def relative_path_from(other)
+    Pathname.new(self).relative_path_from(Pathname.new(other)).to_s
   end
 end
