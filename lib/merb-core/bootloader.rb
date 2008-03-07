@@ -37,6 +37,21 @@ module Merb
         subclasses = subklasses
       end
 
+      def default_framework
+        %w[view model controller helper mailer part].each do |component|
+          Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
+        end
+        Merb.push_path(:application,  Merb.root_path("app/controllers/application.rb"))
+        Merb.push_path(:config,       Merb.root_path("config"), nil)
+        Merb.push_path(:router,       Merb.dir_for(:config), (Merb::Config[:router_file] || "router.rb"))
+        Merb.push_path(:lib,          Merb.root_path("lib"), nil)
+        Merb.push_path(:log,          Merb.log_path, nil)
+        Merb.push_path(:public,       Merb.root_path("public"), nil)
+        Merb.push_path(:stylesheet,   Merb.dir_for(:public) / "stylesheets", nil)
+        Merb.push_path(:javascript,   Merb.dir_for(:public) / "javascripts", nil)
+        Merb.push_path(:image,        Merb.dir_for(:public) / "images", nil)        
+      end
+
       # ==== Parameters
       # klass<~to_s>::
       #   The boot loader class after which this boot loader should be run.
@@ -142,19 +157,8 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         require Merb.root / "config" / "framework"
       elsif File.exists?(Merb.root / "framework.rb")
         require Merb.root / "framework"
-      elsif !Merb::Config[:framework]
-        %w[view model controller helper mailer part].each do |component|
-          Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
-        end
-        Merb.push_path(:application,  Merb.root_path("app/controllers/application.rb"))
-        Merb.push_path(:config,       Merb.root_path("config"), nil)
-        Merb.push_path(:router,       Merb.dir_for(:config), (Merb::Config[:router_file] || "router.rb"))
-        Merb.push_path(:lib,          Merb.root_path("lib"), nil)
-        Merb.push_path(:log,          Merb.log_path, nil)
-        Merb.push_path(:public,       Merb.root_path("public"), nil)
-        Merb.push_path(:stylesheet,   Merb.dir_for(:public) / "stylesheets", nil)
-        Merb.push_path(:javascript,   Merb.dir_for(:public) / "javascripts", nil)
-        Merb.push_path(:image,        Merb.dir_for(:public) / "images", nil)        
+      else
+        Merb::BootLoader.default_framework
       end
       (Merb::Config[:framework] || {}).each do |name, path|
         path = [path].flatten
