@@ -2,11 +2,13 @@ module Merb
 
   class BootLoader
     
+    # def self.subclasses
+    #---
+    # @semipublic
     cattr_accessor :subclasses, :after_load_callbacks, :before_load_callbacks
     self.subclasses = []
     self.after_load_callbacks = []
     self.before_load_callbacks = []
-    class_inheritable_accessor :_after, :_before
     
     class << self
 
@@ -16,14 +18,44 @@ module Merb
       # ==== Parameters
       # klass<Class>:: The class inheriting from Merb::BootLoader.
       def inherited(klass)
-        if !klass._before && !klass._after
-          subclasses << klass.to_s
-        elsif klass._before && subclasses.index(klass._before)
-          subclasses.insert(subclasses.index(klass._before), klass.to_s)
-        elsif klass._after && subclasses.index(klass._after)
-          subclasses.insert(subclasses.index(klass._after) + 1, klass.to_s)
-        end
+        subclasses << klass.to_s
         super
+      end
+
+      # ==== Parameters
+      # klass<~to_s>::
+      #   The boot loader class after which this boot loader should be run.
+      #
+      #---
+      # @public
+      def after(klass)
+        move_klass(klass, 1)
+      end
+
+      # ==== Parameters
+      # klass<~to_s>::
+      #   The boot loader class before which this boot loader should be run.
+      #
+      #---
+      # @public
+      def before(klass)
+        move_klass(klass, 0)
+      end
+      
+      # Move a class that is inside the bootloader to some place in the Array, 
+      # relative to another class.
+      #
+      # ==== Parameters
+      # klass<~to_s>::
+      #   The klass to move the bootloader relative to
+      # where<Integer>::
+      #   0 means insert it before; 1 means insert it after
+      def move_klass(klass, where)
+        index = Merb::BootLoader.subclasses.index(klass.to_s)
+        if index
+          Merb::BootLoader.subclasses.delete(self.to_s)        
+          Merb::BootLoader.subclasses.insert(index + where, self.to_s)
+        end
       end
 
       # Runs all boot loader classes by calling their run methods.
@@ -37,6 +69,13 @@ module Merb
         subclasses = subklasses
       end
 
+      # Set up the default framework
+      #
+      # ==== Returns
+      # nil
+      #
+      #---
+      # @public
       def default_framework
         %w[view model controller helper mailer part].each do |component|
           Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
@@ -49,27 +88,17 @@ module Merb
         Merb.push_path(:public,       Merb.root_path("public"), nil)
         Merb.push_path(:stylesheet,   Merb.dir_for(:public) / "stylesheets", nil)
         Merb.push_path(:javascript,   Merb.dir_for(:public) / "javascripts", nil)
-        Merb.push_path(:image,        Merb.dir_for(:public) / "images", nil)        
-      end
-
-      # ==== Parameters
-      # klass<~to_s>::
-      #   The boot loader class after which this boot loader should be run.
-      def after(klass)
-        self._after = klass.to_s
-      end
-
-      # ==== Parameters
-      # klass<~to_s>::
-      #   The boot loader class before which this boot loader should be run.
-      def before(klass)
-        self._before = klass.to_s
+        Merb.push_path(:image,        Merb.dir_for(:public) / "images", nil)
+        nil        
       end
 
       # ==== Parameters
       # &block::
       #   A block to be added to the callbacks that will be executed after the
       #   app loads.
+      #
+      #---
+      # @public
       def after_app_loads(&block)
         after_load_callbacks << block
       end
@@ -78,6 +107,9 @@ module Merb
       # &block::
       #   A block to be added to the callbacks that will be executed before the
       #   app loads.
+      #
+      #---
+      # @public
       def before_app_loads(&block)
         before_load_callbacks << block
       end
