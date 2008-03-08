@@ -43,11 +43,16 @@ describe Merb::Controller, " responds" do
     controller.body.should == "JS: Multi"
   end
   
-  it "should use */* if no specific supported content-type matches are found" do
+  it "should pick the first mime-type if no specific supported content-type matches are *available*" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::MultiProvides, :index, {}, :http_accept => "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, */*")
     controller.body.should == "HTML: Multi"
   end
 
+  it "should pick the first mime-type if no specific supported content-type matches are actually *provided*" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::MultiProvides, :index, {}, :http_accept => "application/json, */*")
+    controller.body.should == "HTML: Multi"
+  end
+  
   it "should select the format based on params supplied to it with class provides" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassProvides, :index, :format => "xml")
     controller.content_type.should == :xml    
