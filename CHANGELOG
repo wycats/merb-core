@@ -1,5 +1,6 @@
 == 0.9.1 "Some are half-wild, and some are just outlaws." 2008-02-29
 
+* Put spec tasks into namespaces and method for specifying pnly a certain model/controller/view to run against
 * As a last resort, look for */* in the formats before throwing NotAcceptable (TODO: Clean this up)
 * Fix perform_content_negotiation to correctly handle :format in params. Fix render_* to correctly return the correct content_type.
 * remove hooks.rb, they were premature and only used in one place
