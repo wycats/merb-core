@@ -289,14 +289,12 @@ module Merb
       if (fmt = params[:format]) && !fmt.empty?
         accepts = [fmt.to_sym]
       else
-        accepts = Responder.parse(request.accept).map {|t| t.to_sym}
-        accepts.compact!
+        accepts = Responder.parse(request.accept).map {|t| t.to_sym}.compact
       end
-      return _provided_formats.first if accepts.first == :all
-      (accepts & _provided_formats).first || begin
-        return _provided_formats.first unless ([:all] & accepts).empty?
-        raise Merb::ControllerExceptions::NotAcceptable
-      end
+      specifics = accepts & _provided_formats
+      return specifics.first unless specifics.length == 0
+      return _provided_formats.first if accepts.include? :all
+      raise Merb::ControllerExceptions::NotAcceptable
     end
 
     # Returns the output format for this request, based on the 
