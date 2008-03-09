@@ -435,8 +435,8 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       elsif reg = Merb.registered_session_types[session_store]
         if session_store == "cookie"
           Merb::BootLoader::MixinSessionContainer.check_for_secret_key
-          Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
         end
+        Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
         require reg[:file]
         include ::Merb::SessionMixin
         Merb.logger.warn reg[:description]

@@ -1,7 +1,7 @@
 class Merb::Controller < Merb::AbstractController
   
-  class_inheritable_accessor :_session_id_key, :_session_expiry, :_hidden_actions, :_shown_actions
-  cattr_accessor :_subclasses, :_session_secret_key
+  class_inheritable_accessor :_hidden_actions, :_shown_actions
+  cattr_accessor :_subclasses, :_session_id_key, :_session_secret_key, :_session_expiry
   self._subclasses = Set.new
 
   def self.subclasses_list() _subclasses end
