@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require "merb-core"
 
-unless ARGV.index('-a') || ARGV.index('-i')
+unless %w[-a --adapter -i --irb-console -r --script-runner].any? { |o| ARGV.index(o) }
   ARGV.push *%w[-a mongrel]
 end
   
