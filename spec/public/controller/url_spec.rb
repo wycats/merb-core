@@ -90,7 +90,11 @@ describe Merb::Controller, " url" do
   
   it "should match with an object as second arg" do
     @monkey = Monkey.new
-    @controller.url(:monkey,@monkey).should == "/monkeys/45"
+    @controller.url(:monkey, @monkey).should == "/monkeys/45"
+  end
+  
+  it "should match with a fixnum as second arg" do
+    @controller.url(:monkey, 3).should == "/monkeys/3"
   end
 
   it "should match the delete_monkey route" do

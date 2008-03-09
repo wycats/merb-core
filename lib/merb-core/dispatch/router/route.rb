@@ -117,6 +117,8 @@ module Merb
               else
                 if segment == :id && params.respond_to?(:to_param) 
                   params.to_param
+                elsif segment == :id && params.is_a?(Fixnum)
+                  params
                 elsif params.respond_to?(segment)
                   params.send(segment)
                 else
