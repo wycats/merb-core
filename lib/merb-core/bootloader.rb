@@ -282,6 +282,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb.load_paths.each do |name, path|
         next unless path.last && name != :application
         Dir[path.first / path.last].each do |file|
+          
           begin
             load_file file
           rescue NameError => ne
@@ -300,7 +301,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       klasses = ObjectSpace.classes.dup
       load file
       LOADED_CLASSES[file] = ObjectSpace.classes - klasses
-      MTIMES[file] = File.mtime(file)      
+      MTIMES[file] = File.mtime(file)
     end
     
     # "Better loading" of classes.  If a class fails to load due to a NameError
@@ -321,7 +322,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         klasses.each do |klass|
           klasses.delete(klass)
           begin
-            require klass
+            load_file klass
           rescue NameError => ne
             failed_classes.push(klass)
           end
@@ -460,8 +461,8 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       elsif reg = Merb.registered_session_types[session_store]
         if session_store == "cookie"
           Merb::BootLoader::MixinSessionContainer.check_for_secret_key
+          Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
         end
-        Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
         require reg[:file]
         include ::Merb::SessionMixin
         Merb.logger.warn reg[:description]
