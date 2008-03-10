@@ -9,7 +9,7 @@ module Merb
       # :app<String>>:: The application name.
       def self.start(opts={})
         Merb.logger.warn!("Using FastCGI adapter")
-        Rack::Handler::FastCGI.run(opts[:app])
+        ::Rack::Handler::FastCGI.run(opts[:app])
       end
     end
   end
