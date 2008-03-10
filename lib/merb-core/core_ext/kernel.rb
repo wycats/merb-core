@@ -1,5 +1,5 @@
 module Kernel
-  # Declares the given string as a gem in a queue. Execution is deferred to
+  # Loads the given string as a gem. Execution is deferred to
   # the Merb::BootLoader::Dependencies.run during bootup.
   #
   # ==== Parameters
@@ -49,7 +49,7 @@ module Kernel
     end
   end
 
-  # Queues both gem and library dependencies that are passed in as arguments.
+  # Loads both gem and library dependencies that are passed in as arguments.
   # Execution is deferred to the Merb::BootLoader::Dependencies.run during bootup.
   #
   # ==== Parameters
@@ -139,8 +139,11 @@ module Kernel
   #   # This will use the DataMapper generator for your ORM
   #   $ ruby script/generate model MyModel
   def use_orm(orm)
-    raise "Don't call use_orm more than once" unless Merb.generator_scope.delete(:merb_default)
+    if !Merb.generator_scope.include?(:merb_default) && !Merb.generator_scope.include?(orm.to_sym)
+      raise "Don't call use_orm more than once"
+    end
     begin
+      Merb.generator_scope.delete(:merb_default)
       orm_plugin = orm.to_s.match(/^merb_/) ? orm.to_s : "merb_#{orm}"
       Merb.generator_scope.unshift(orm.to_sym) unless Merb.generator_scope.include?(orm.to_sym)
       Kernel.dependency(orm_plugin)

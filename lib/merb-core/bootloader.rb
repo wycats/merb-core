@@ -66,7 +66,7 @@ module Merb
           Merb.logger.debug!("Loading: #{bootloader}") if ENV['DEBUG']
           Object.full_const_get(bootloader).run
         end 
-        subclasses = subklasses
+        self.subclasses = subklasses
       end
 
       # Set up the default framework
@@ -127,7 +127,7 @@ class Merb::BootLoader::Logger < Merb::BootLoader
 
   # Sets Merb.logger to a new logger created based on the config settings.
   def self.run
-    Merb.logger = Merb::Logger.new(Merb.log_file, Merb::Config[:log_level])
+    Merb.logger = Merb::Logger.new(Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush]) 
   end
 end
 
@@ -209,6 +209,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   # init.rb file from the Merb configuration directory, and any environment
   # files, which register the list of necessary dependencies and any
   # after_app_loads hooks.
+  #
   # Dependencies can hook into the bootloader process itself by using
   # before or after insertion methods. Since these are loaded from this
   # bootloader (Dependencies), they can only adapt the bootloaders that
@@ -216,17 +217,17 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   
   def self.run
     if Merb::Config[:init_file]
-      initfile = Merb::Config[:init_file].chomp(".rb")
+      initfile = Merb::Config[:init_file].chomp(".rb") + ".rb"
     else
-      initfile = Merb.dir_for(:config) / "init"
+      initfile = Merb.dir_for(:config) / "init.rb"
     end
-    require initfile if File.exists?(initfile + ".rb")
+    load initfile if File.exists?(initfile)
 
-    if Merb.environment && File.exist?(Merb.dir_for(:config) / "environments" / (Merb.environment + ".rb"))
-      require Merb.dir_for(:config) / "environments" / Merb.environment
+    if Merb.environment && File.exist?(env_config = (Merb.dir_for(:config) / "environments" / (Merb.environment + ".rb")))
+      load env_config
     end
     
-    enable_json_gem unless Merb::Config[:disable_json_gem]
+    enable_json_gem unless Merb::disabled?(:json)
     load_dependencies
   end
   

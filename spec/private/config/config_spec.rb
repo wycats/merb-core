@@ -115,4 +115,14 @@ describe Merb::Config do
     Merb::Config[:use_mutex].should == true
   end
   
+  it "should take Merb.disable into account" do
+    Merb::Config[:disabled_components].should == []
+    Merb::Config[:disabled_components] << :foo
+    Merb.disable(:bar)
+    Merb.disable(:buz, :fux)
+    Merb::Config[:disabled_components].should == [:foo, :bar, :buz, :fux]
+    Merb.disabled?(:foo).should == true
+    Merb.disabled?(:foo, :buz).should == true
+  end
+  
 end

@@ -13,6 +13,8 @@ module Merb
   module GlobalHelpers; end
   class << self
 
+    # Startup Merb by setting up the Config and starting the server.
+    #
     # ==== Parameters
     # argv<String, Hash>::
     #   The config arguments to start Merb with. Defaults to +ARGV+.
@@ -25,6 +27,28 @@ module Merb
       Merb.environment = Merb::Config[:environment]
       Merb.root = Merb::Config[:merb_root]
       Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
+    end
+    
+    # Start the Merb environment, but only if it hasn't been loaded yet.
+    #
+    # ==== Parameters
+    # argv<String, Hash>::
+    #   The config arguments to start Merb with. Defaults to +ARGV+.
+    def start_environment(argv=ARGV)
+      unless (@started ||= false)
+        start(argv)
+        @started = true
+      end
+    end
+    
+    # Restart the Merb environment explicitly.
+    #
+    # ==== Parameters
+    # argv<String, Hash>::
+    #   The config arguments to restart Merb with. Defaults to +Merb::Config+.
+    def restart_environment(argv={})
+      @started = false
+      start_environment(Merb::Config.to_hash.merge(argv))
     end
 
     attr_accessor :environment, :load_paths, :adapter
@@ -102,7 +126,7 @@ module Merb
         Merb::Config[:log_file]
       elsif $TESTING
         log_path / "merb_test.log"
-      elsif !(Merb::Config[:daemonize] || Merb::Config[:cluster] )
+      elsif !(Merb::Config[:daemonize] || Merb::Config[:cluster])
         STDOUT
       else
         log_path / "merb.#{Merb::Config[:port]}.log"
@@ -170,14 +194,13 @@ module Merb
       @frozen = true
     end
 
+    # Load all basic dependencies (selected BootLoaders only).
+    #
     # ==== Parameters
-    # init_file<String>:: The file to load first.
-    # options<Hash>:: Other options to pass on to the Merb config.
-    def load_dependencies(init_file, options = {})
-      Merb::Config.setup({:log_file => $stdout, :log_level => :warn,
-        :init_file => init_file}.merge(options))
+    # options<Hash>:: Options to pass on to the Merb config.
+    def load_dependencies(options = {})
+      Merb::Config.setup({ :log_file => $stdout, :log_level => :warn, :log_auto_flush => true }.merge(options))
       Merb::BootLoader::Logger.run
-      Merb.logger.auto_flush = true
       Merb::BootLoader::BuildFramework.run
       Merb::BootLoader::Dependencies.run
       Merb::BootLoader::BeforeAppRuns.run
@@ -214,6 +237,32 @@ module Merb
       Config
     end
     
+    # Disables the given core components, like a Gem for example.
+    #
+    # ==== Parameters
+    # *args:: One or more symbols of Merb internal components.
+    def disable(*components)
+      disabled_components.push *components
+    end
+    
+    # ==== Parameters
+    # Array:: All components that should be disabled.
+    def disabled_components=(components)
+      disabled_components.replace components
+    end
+    
+    # ==== Returns
+    # Array:: All components that have been disabled.
+    def disabled_components
+      Merb::Config[:disabled_components] ||= []
+    end
+    
+    # ==== Returns
+    # Boolean:: True if all components (or just one) are disabled.
+    def disabled?(*components)
+      components.all? { |c| disabled_components.include?(c) }
+    end
+    
     # ==== Returns
     # Array:: All Rakefiles for plugins.
     def rakefiles
@@ -238,4 +287,4 @@ require 'merb-core/controller/mime'
 require 'merb-core/vendor/facets'
 
 # Set the environment if it hasn't already been set.
-Merb.environment ||= Merb::Config[:environment] || ($TESTING ? 'test' : 'development')
+Merb.environment ||= ENV['MERB_ENV'] || Merb::Config[:environment] || ($TESTING ? 'test' : 'development')
