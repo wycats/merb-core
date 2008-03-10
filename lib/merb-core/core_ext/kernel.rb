@@ -1,5 +1,5 @@
 module Kernel
-  # Loads the given string as a gem. Execution is deffered to
+  # Declares the given string as a gem in a queue. Execution is deferred to
   # the Merb::BootLoader::Dependencies.run during bootup.
   #
   # ==== Parameters
@@ -49,6 +49,21 @@ module Kernel
     end
   end
 
+  # Queues both gem and library dependencies that are passed in as arguments.
+  # Execution is deferred to the Merb::BootLoader::Dependencies.run during bootup.
+  #
+  # ==== Parameters
+  # *args<String, Hash, Array>:: The dependencies to load.
+  def dependencies(*args)
+    args.each do |arg|
+      case arg
+      when String then dependency(arg)
+      when Hash   then arg.each { |r,v| dependency(r, v) }
+      when Array  then arg.each { |r|   dependency(r)    }
+      end
+    end
+  end
+  
   # Loads both gem and library dependencies that are passed in as arguments.
   #
   # ==== Parameters
@@ -65,12 +80,12 @@ module Kernel
   # dependencies "RedCloth"                 # Loads the the RedCloth gem
   # dependencies "RedCloth", "merb_helpers" # Loads RedCloth and merb_helpers
   # dependencies "RedCloth" => "3.0"        # Loads RedCloth 3.0
-  def dependencies(*args)
+  def load_dependencies(*args)
     args.each do |arg|
       case arg
-      when String then dependency(arg)
-      when Hash   then arg.each { |r,v| dependency(r, v) }
-      when Array  then arg.each { |r|   dependency(r)    }
+      when String then load_dependency(arg)
+      when Hash   then arg.each { |r,v| load_dependency(r, v) }
+      when Array  then arg.each { |r|   load_dependency(r)    }
       end
     end
   end
