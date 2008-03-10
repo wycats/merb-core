@@ -40,6 +40,9 @@ describe Merb::Request, "#method" do
 end
 
 describe Merb::Request, " query and body params" do
+  
+  before(:all) { Merb::BootLoader::Dependencies.enable_json_gem }
+  
   {"foo=bar&baz=bat"        => {"foo" => "bar", "baz" => "bat"},
    "foo[]=bar&foo[]=baz"    => {"foo" => ["bar", "baz"]},
    "foo[1]=bar&foo[2]=baz"  => {"foo" => {"1" => "bar", "2" => "baz"}}}.each do |query, parse|

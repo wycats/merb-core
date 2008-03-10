@@ -1,4 +1,15 @@
 module Kernel
+  # Loads the given string as a gem. Execution is deffered to
+  # the Merb::BootLoader::Dependencies.run during bootup.
+  #
+  # ==== Parameters
+  # name<String>:: The name of the gem to load.
+  # *ver<Gem::Requirement, Gem::Version, Array, ~to_str>::
+  #   Version requirements to be passed to Gem.activate.
+  def dependency(name, *ver)
+    Merb::BootLoader::Dependencies.dependencies << [name, ver]
+  end
+  
   # Loads the given string as a gem.
   #
   # ==== Parameters
@@ -13,29 +24,27 @@ module Kernel
   # This new version tries to load the file via ROOT/gems first before moving
   # off to the system gems (so if you have a lower version of a gem in
   # ROOT/gems, it'll still get loaded).
-  def dependency(name, *ver)
-    Merb::BootLoader.before_app_loads do
-      try_framework = Merb.frozen?
-      begin
-        # If this is a piece of merb, and we're frozen, try to require
-        # first, so we can pick it up from framework/, 
-        # otherwise try activating the gem
-        if name =~ /^merb/ && try_framework
-          require name
-        else
-          gem(name, *ver) if ver
-          require name
-          Merb.logger.info!("loading gem '#{name}' from #{__app_file_trace__.first} ...")
-        end
-      rescue LoadError
-        if try_framework
-          try_framework = false
-          retry
-        else
-          Merb.logger.info!("loading gem '#{name}' from #{__app_file_trace__.first} ...")
-          # Failed requiring as a gem, let's try loading with a normal require.
-          require name
-        end
+  def load_dependency(name, *ver)
+    try_framework = Merb.frozen?
+    begin
+      # If this is a piece of merb, and we're frozen, try to require
+      # first, so we can pick it up from framework/, 
+      # otherwise try activating the gem
+      if name =~ /^merb/ && try_framework
+        require name
+      else
+        gem(name, *ver) if ver
+        require name
+        Merb.logger.info!("loading gem '#{name}' from #{__app_file_trace__.first} ...")
+      end
+    rescue LoadError
+      if try_framework
+        try_framework = false
+        retry
+      else
+        Merb.logger.info!("loading gem '#{name}' from #{__app_file_trace__.first} ...")
+        # Failed requiring as a gem, let's try loading with a normal require.
+        require name
       end
     end
   end

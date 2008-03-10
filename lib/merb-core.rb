@@ -9,12 +9,6 @@ $LOAD_PATH.unshift File.dirname(__FILE__) unless
   $LOAD_PATH.include?(File.dirname(__FILE__)) ||
   $LOAD_PATH.include?(File.expand_path(File.dirname(__FILE__)))
 
-begin
-  require "json/ext"
-rescue LoadError
-  require "json/pure"
-end
-
 module Merb
   module GlobalHelpers; end
   class << self
@@ -184,8 +178,8 @@ module Merb
         :init_file => init_file}.merge(options))
       Merb::BootLoader::Logger.run
       Merb.logger.auto_flush = true
-      Merb::BootLoader::Dependencies.run
       Merb::BootLoader::BuildFramework.run
+      Merb::BootLoader::Dependencies.run
       Merb::BootLoader::BeforeAppRuns.run
     end
     
@@ -242,3 +236,6 @@ require 'merb-core/logger'
 require 'merb-core/version'
 require 'merb-core/controller/mime'
 require 'merb-core/vendor/facets'
+
+# Set the environment if it hasn't already been set.
+Merb.environment ||= Merb::Config[:environment] || ($TESTING ? 'test' : 'development')

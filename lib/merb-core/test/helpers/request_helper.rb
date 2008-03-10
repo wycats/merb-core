@@ -66,7 +66,7 @@ module Merb
         else
           req = opt[:req]
         end
-        FakeRequest.new(env, req ? StringIO.new(req) : nil) 
+        FakeRequest.new(env, StringIO.new(req || '')) 
       end
 
       # Dispatches an action to the given class. This bypasses the router and is
@@ -80,7 +80,8 @@ module Merb
       #   An optional hash that will end up as params in the controller instance.
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
-      #   should go here (see +fake_request+).
+      #   should go here (see +fake_request+), including :req or :post_body
+      #   for setting the request body itself.
       # &blk::
       #   The controller is yielded to the block provided for actions *prior* to
       #   the action being dispatched.
@@ -96,8 +97,9 @@ module Merb
       #---
       # @public
       def dispatch_to(controller_klass, action, params = {}, env = {}, &blk)
+        request_body = { :post_body => env[:post_body], :req => env[:req] }
         request = fake_request(env.merge(
-          :query_string => Merb::Request.params_to_query_string(params)))
+          :query_string => Merb::Request.params_to_query_string(params)), request_body)
 
         dispatch_request(request, controller_klass, action, &blk)
       end

@@ -63,9 +63,9 @@ module Merb
         subklasses = subclasses.dup
         until subclasses.empty?
           bootloader = subclasses.shift
-           Merb.logger.debug!("Loading: #{bootloader}")if ENV['DEBUG']
+          Merb.logger.debug!("Loading: #{bootloader}") if ENV['DEBUG']
           Object.full_const_get(bootloader).run
-        end  
+        end 
         subclasses = subklasses
       end
 
@@ -202,10 +202,18 @@ end
 
 class Merb::BootLoader::Dependencies < Merb::BootLoader
   
+  cattr_accessor :dependencies
+  self.dependencies = []
+  
   # Load the init_file specified in Merb::Config or if not specified, the
   # init.rb file from the Merb configuration directory, and any environment
   # files, which register the list of necessary dependencies and any
   # after_app_loads hooks.
+  # Dependencies can hook into the bootloader process itself by using
+  # before or after insertion methods. Since these are loaded from this
+  # bootloader (Dependencies), they can only adapt the bootloaders that
+  # haven't been loaded up until this point.
+  
   def self.run
     if Merb::Config[:init_file]
       initfile = Merb::Config[:init_file].chomp(".rb")
@@ -217,7 +225,23 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     if Merb.environment && File.exist?(Merb.dir_for(:config) / "environments" / (Merb.environment + ".rb"))
       require Merb.dir_for(:config) / "environments" / Merb.environment
     end
+    
+    enable_json_gem unless Merb::Config[:disable_json_gem]
+    load_dependencies
   end
+  
+  def self.load_dependencies
+    dependencies.each { |name, ver| Kernel.load_dependency(name, *ver) }
+  end
+  
+  def self.enable_json_gem
+    begin
+      require "json/ext"
+    rescue LoadError
+      require "json/pure"
+    end
+  end
+  
 end
 
 class Merb::BootLoader::BeforeAppRuns < Merb::BootLoader
@@ -225,7 +249,7 @@ class Merb::BootLoader::BeforeAppRuns < Merb::BootLoader
   # Call any before_app_loads hooks that were registered via before_app_loads
   # in any plugins.
   def self.run
-    Merb::BootLoader.before_load_callbacks.each {|x| x.call }
+    Merb::BootLoader.before_load_callbacks.each { |x| x.call }
   end
 end
 
