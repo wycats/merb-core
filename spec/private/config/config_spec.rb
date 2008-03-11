@@ -125,4 +125,15 @@ describe Merb::Config do
     Merb.disabled?(:foo, :buz).should == true
   end
   
+  it "should take Merb.testing? into account" do
+    $TESTING.should == true
+    Merb::Config[:testing].should be_nil
+    Merb.should be_testing
+    $TESTING = false
+    Merb.should_not be_testing
+    Merb::Config[:testing] = true
+    Merb.should be_testing
+    $TESTING = true; Merb::Config[:testing] = false # reset
+  end
+  
 end

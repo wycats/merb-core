@@ -124,7 +124,7 @@ module Merb
     def log_file
       if Merb::Config[:log_file]
         Merb::Config[:log_file]
-      elsif $TESTING
+      elsif Merb.testing?
         log_path / "merb_test.log"
       elsif !(Merb::Config[:daemonize] || Merb::Config[:cluster])
         STDOUT
@@ -193,14 +193,22 @@ module Merb
     def frozen!
       @frozen = true
     end
-
+    
+    # Load configuration and assign logger.
+    #
+    # ==== Parameters
+    # options<Hash>:: Options to pass on to the Merb config.
+    def load_config(options = {})
+      Merb::Config.setup({ :log_file => STDOUT, :log_level => :warn, :log_auto_flush => true }.merge(options))
+      Merb::BootLoader::Logger.run
+    end
+    
     # Load all basic dependencies (selected BootLoaders only).
     #
     # ==== Parameters
     # options<Hash>:: Options to pass on to the Merb config.
     def load_dependencies(options = {})
-      Merb::Config.setup({ :log_file => $stdout, :log_level => :warn, :log_auto_flush => true }.merge(options))
-      Merb::BootLoader::Logger.run
+      load_config(options)
       Merb::BootLoader::BuildFramework.run
       Merb::BootLoader::Dependencies.run
       Merb::BootLoader::BeforeAppRuns.run
@@ -209,6 +217,12 @@ module Merb
     # Reload the framework.
     def reload
       Merb::BootLoader::ReloadClasses.reload
+    end
+    
+    # ==== Returns
+    # Boolean:: True if Merb is running via script/frozen-merb or other freezer.
+    def testing?
+      $TESTING || Merb::Config[:testing]
     end
 
     # If block was given configures using the block.
@@ -287,4 +301,4 @@ require 'merb-core/controller/mime'
 require 'merb-core/vendor/facets'
 
 # Set the environment if it hasn't already been set.
-Merb.environment ||= ENV['MERB_ENV'] || Merb::Config[:environment] || ($TESTING ? 'test' : 'development')
+Merb.environment ||= ENV['MERB_ENV'] || Merb::Config[:environment] || (Merb.testing? ? 'test' : 'development')
