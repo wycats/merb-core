@@ -35,6 +35,38 @@ module Merb
         end
         nil
       end
+      
+      # Starts a sandboxed session (delegates to any Merb::Orms::* modules).
+      #
+      # An ORM should implement Merb::Orms::MyOrm#open_sandbox! to support this.
+      # Usually this involves starting a transaction.
+      def open_sandbox!
+        puts "Loading #{Merb.environment} environment in sandbox (Merb #{Merb::VERSION})"
+        puts "Any modifications you make will be rolled back on exit"
+        orm_modules.each { |orm| orm.open_sandbox! if orm.respond_to?(:open_sandbox!) }
+      end
+      
+      # Ends a sandboxed session (delegates to any Merb::Orms::* modules).
+      #
+      # An ORM should implement Merb::Orms::MyOrm#close_sandbox! to support this.
+      # Usually this involves rolling back a transaction.
+      def close_sandbox!
+        orm_modules.each { |orm| orm.close_sandbox! if orm.respond_to?(:close_sandbox!) }
+        puts "Modifications have been rolled back"
+      end
+      
+      private
+      
+      # ==== Returns
+      # Array:: All Merb::Orms::* modules.
+      def orm_modules
+        if Merb.const_defined?('Orms')
+          Merb::Orms.constants.map { |c| Merb::Orms::const_get(c) }
+        else
+          []
+        end
+      end
+      
     end
 
     class Irb
@@ -49,14 +81,22 @@ module Merb
         m = Merb::Rack::Console.new
         Object.send(:define_method, :merb) { m }  
         ARGV.clear # Avoid passing args to IRB 
+        m.open_sandbox! if sandboxed?
         require 'irb' 
         require 'irb/completion' 
         if File.exists? ".irbrc"
           ENV['IRBRC'] = ".irbrc"
         end
         IRB.start
+        at_exit do merb.close_sandbox! if sandboxed? end
         exit
       end
+      
+      private
+      
+      def self.sandboxed?
+        Merb::Config[:sandbox]
+      end      
     end
   end
 end

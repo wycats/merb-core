@@ -168,6 +168,10 @@ module Merb
           opts.on("-i", "--irb-console", "This flag will start merb in irb console mode. All your models and other classes will be available for you in an irb session.") do |console|
             options[:adapter] = 'irb'
           end
+          
+          opts.on("-S", "--sandbox", "This flag will enable a sandboxed irb console. If your ORM supports transactions, all edits will be rolled back on exit.") do |sandbox|
+            options[:sandbox] = true
+          end
 
           opts.on("-l", "--log-level LEVEL", "Log levels can be set to any of these options: debug < info < warn < error < fatal") do |log_level|
             options[:log_level] = log_level.to_sym

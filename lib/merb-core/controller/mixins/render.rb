@@ -284,15 +284,15 @@ module Merb::RenderMixin
   end
     
   # Called in templates to get at content thrown in another template. The
-  # results of rendering a template are automatically thrown into :layout, so
-  # catch_content or catch_content(:layout) can be used inside layouts to get
-  # the content rendered by the action template.
+  # results of rendering a template are automatically thrown into :for_layout,
+  # so catch_content or catch_content(:for_layout) can be used inside layouts
+  # to get the content rendered by the action template.
   #
   # ==== Parameters
-  # obj<Object>:: The key in the thrown_content hash. Defaults to :layout.
+  # obj<Object>:: The key in the thrown_content hash. Defaults to :for_layout.
   #---
   # @public
-  def catch_content(obj = :layout)
+  def catch_content(obj = :for_layout)
     @_caught_content[obj]
   end
   
