@@ -229,6 +229,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     
     enable_json_gem unless Merb::disabled?(:json)
     load_dependencies
+    update_logger
   end
   
   def self.load_dependencies
@@ -241,6 +242,11 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     rescue LoadError
       require "json/pure"
     end
+  end
+  
+  def self.update_logger
+    updated_logger_options = [ Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush] ]
+    Merb::BootLoader::Logger.run if updated_logger_options != Merb.logger.init_args
   end
   
 end
@@ -360,12 +366,16 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
           superklass.send(:_subclasses_list).delete(klass.to_s)          
         end
       end
-  
+      
       parts = const.to_s.split("::")
       base = parts.size == 1 ? Object : Object.full_const_get(parts[0..-2].join("::"))
-      object = parts[-1].intern
-      Merb.logger.debug("Removing constant #{object} from #{base}")
-      base.send(:remove_const, object) if object
+      object = parts[-1].to_s
+      begin
+        base.send(:remove_const, object)
+        Merb.logger.debug("Removed constant #{object} from #{base}")
+      rescue NameError
+        Merb.logger.debug("Failed to remove constant #{object} from #{base}")
+      end
     end
   end
   

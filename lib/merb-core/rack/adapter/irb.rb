@@ -55,6 +55,11 @@ module Merb
         puts "Modifications have been rolled back"
       end
       
+      # Explictly show logger output during IRB session
+      def trace_log!
+        Merb.logger.auto_flush = true
+      end
+      
       private
       
       # ==== Returns

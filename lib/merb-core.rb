@@ -220,7 +220,7 @@ module Merb
     end
     
     # ==== Returns
-    # Boolean:: True if Merb is running via script/frozen-merb or other freezer.
+    # Boolean:: True if Merb is running via spec_helper.rb or other TEST scenario.
     def testing?
       $TESTING || Merb::Config[:testing]
     end

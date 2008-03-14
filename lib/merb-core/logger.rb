@@ -45,6 +45,7 @@ module Merb
     attr_accessor :auto_flush
     attr_reader   :buffer
     attr_reader   :log
+    attr_reader   :init_args
 
     # ==== Notes
     # Ruby (standard) logger levels:
@@ -118,6 +119,7 @@ module Merb
     # ==== Parameters
     # *args:: Arguments to create the log from. See set_logs for specifics.
     def initialize(*args)
+      @init_args = args
       set_log(*args)
     end
 
