@@ -29,6 +29,16 @@ describe Merb::Test::ViewHelper do
     end
   end
   
+  describe "#have_tag" do
+    it "should work without options hash" do
+      have_tag(:html)
+    end
+    
+    it "should work with options hash" do
+      have_tag(:html, {})
+    end
+  end
+  
   describe "#get_elements" do
     it "should return an array of Hpricot::Elem objects for the results found by the query containing the filter string" do
       get_elements(:li, "item").size.should == 3
