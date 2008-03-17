@@ -226,7 +226,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     if Merb.environment && File.exist?(env_config = (Merb.dir_for(:config) / "environments" / (Merb.environment + ".rb")))
       load env_config
     end
-    
+        
     enable_json_gem unless Merb::disabled?(:json)
     load_dependencies
     update_logger
@@ -334,7 +334,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
           end
         end
         
-        klasses.concat(failed_classes)
+        # keep list of classes unique
+        failed_classes.each { |k| klasses.push(k) unless klasses.include?(k) }
         
         #stop processing if nothing loads or if everything has loaded
         break if(klasses.size == size_at_start || klasses.size == 0)
