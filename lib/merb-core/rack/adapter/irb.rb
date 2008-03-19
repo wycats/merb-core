@@ -84,6 +84,7 @@ module Merb
       # environment variable.
       def self.start(opts={})
         m = Merb::Rack::Console.new
+        m.extend Merb::Test::RequestHelper
         Object.send(:define_method, :merb) { m }  
         ARGV.clear # Avoid passing args to IRB 
         m.open_sandbox! if sandboxed?
