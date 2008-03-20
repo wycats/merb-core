@@ -216,19 +216,11 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   # haven't been loaded up until this point.
   
   def self.run
-    if Merb::Config[:init_file]
-      initfile = Merb::Config[:init_file].chomp(".rb") + ".rb"
-    else
-      initfile = Merb.dir_for(:config) / "init.rb"
-    end
-    load initfile if File.exists?(initfile)
-
-    if Merb.environment && File.exist?(env_config = (Merb.dir_for(:config) / "environments" / (Merb.environment + ".rb")))
-      load env_config
-    end
-    
+    load_initfile
+    load_env_config    
     enable_json_gem unless Merb::disabled?(:json)
     load_dependencies
+    update_logger
   end
   
   def self.load_dependencies
@@ -236,12 +228,46 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
   
   def self.enable_json_gem
-    begin
-      require "json/ext"
-    rescue LoadError
-      require "json/pure"
-    end
+    require "json/ext"
+  rescue LoadError
+    require "json/pure"
   end
+  
+  def self.update_logger
+    updated_logger_options = [ Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush] ]
+    Merb::BootLoader::Logger.run if updated_logger_options != Merb.logger.init_args
+  end
+  
+  private
+  
+    # Determines the path for the environment configuration file
+    def self.env_config
+      Merb.dir_for(:config) / "environments" / (Merb.environment + ".rb")
+    end
+  
+    # Checks to see whether or not an environment configuration exists
+    def self.env_config?
+      Merb.environment && File.exist?(env_config)
+    end
+    
+    # Loads the environment configuration file, if any
+    def self.load_env_config
+      load(env_config) if env_config?
+    end
+  
+    # Determines the init file to use, if any
+    def self.initfile
+      if Merb::Config[:init_file]
+        Merb::Config[:init_file].chomp(".rb") + ".rb"
+      else
+        Merb.dir_for(:config) / "init.rb"
+      end
+    end
+    
+    # Loads the init file, should one exist
+    def self.load_initfile
+      load(initfile) if File.exists?(initfile)
+    end
   
 end
 
@@ -328,7 +354,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
           end
         end
         
-        klasses.concat(failed_classes)
+        # keep list of classes unique
+        failed_classes.each { |k| klasses.push(k) unless klasses.include?(k) }
         
         #stop processing if nothing loads or if everything has loaded
         break if(klasses.size == size_at_start || klasses.size == 0)
@@ -360,12 +387,16 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
           superklass.send(:_subclasses_list).delete(klass.to_s)          
         end
       end
-  
+      
       parts = const.to_s.split("::")
       base = parts.size == 1 ? Object : Object.full_const_get(parts[0..-2].join("::"))
-      object = parts[-1].intern
-      Merb.logger.debug("Removing constant #{object} from #{base}")
-      base.send(:remove_const, object) if object
+      object = parts[-1].to_s
+      begin
+        base.send(:remove_const, object)
+        Merb.logger.debug("Removed constant #{object} from #{base}")
+      rescue NameError
+        Merb.logger.debug("Failed to remove constant #{object} from #{base}")
+      end
     end
   end
   

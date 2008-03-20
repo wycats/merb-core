@@ -285,7 +285,7 @@ module Merb::Test::Rspec::ViewMatchers
   #
   #   # Check for <div attr="val">
   #   body.should have_tag(:div, :attr => :val)
-  def have_tag(tag, attributes)
+  def have_tag(tag, attributes = {})
     HasTag.new(tag, attributes)
   end
 

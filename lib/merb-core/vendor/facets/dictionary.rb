@@ -56,7 +56,7 @@
 #   hsh = Dictionary['z', 1, 'a', 2, 'c', 3]
 #   p hsh.keys     #=> ['z','a','c']
 #
-#   # but this don't preserve order
+#   # but this doesn't preserve order
 #   hsh = Dictionary['z'=>1, 'a'=>2, 'c'=>3]
 #   p hsh.keys     #=> ['a','c','z']
 #
