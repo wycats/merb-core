@@ -72,8 +72,28 @@ class Merb::Dispatcher
     # to the error controller
     rescue => exception
       Merb.logger.error(Merb.exception(exception))
-      exception = controller_exception(exception)
-      dispatch_exception(request, exception)
+      unless request.xhr?
+        exception = controller_exception(exception)
+        dispatch_exception(request, exception)
+      else
+        Struct.new(:headers, :status, :body).new({}, 500,
+          <<-HERE
+#{exception.message}
+ 
+Params:
+#{(request.params || {}).map { |p,v| "  #{p}: #{v}\n"}.join("\n")}
+ 
+Session:
+#{(request.session || {}).map { |p,v| "  #{p}: #{v}\n"}.join("\n")}
+ 
+Cookies:
+#{(request.cookies || {}).map { |p,v| "  #{p}: #{v}\n"}.join("\n")}
+ 
+Stacktrace:
+#{exception.backtrace.join("\n")}
+          HERE
+        )
+      end
     end
     
     private

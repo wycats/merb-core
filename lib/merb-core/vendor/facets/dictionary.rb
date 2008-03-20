@@ -407,6 +407,17 @@ class Dictionary
     each { |k,v| ary << [k,v] }
     ary
   end
+  
+  def to_json
+    buf = "{"
+    map do |k,v|
+      buf << k.to_s.inspect
+      buf << ": "
+      buf << v.to_json
+    end.join(", ")
+    buf << "}"
+    buf
+  end
 
   def to_s
     self.to_a.to_s
