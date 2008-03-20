@@ -409,13 +409,13 @@ class Dictionary
   end
   
   def to_json
-    buf = "{"
+    buf = "["
     map do |k,v|
-      buf << k.to_s.inspect
-      buf << ": "
+      buf << k.to_json
+      buf << ", "
       buf << v.to_json
     end.join(", ")
-    buf << "}"
+    buf << "]"
     buf
   end
 
