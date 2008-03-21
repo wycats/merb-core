@@ -412,6 +412,20 @@ class Merb::AbstractController
     uri
   end
   
+  # ==== Parameters
+  # name<~to_sym, Hash>:: The name of the URL to generate.
+  # rparams<Hash>:: Parameters for the route generation.
+  #
+  # ==== Returns
+  # String:: The generated  *full* with protocol + hostname + URL.
+  #
+  # ==== Alternatives
+  # If a hash is used as the first argument, a default route will be
+  # generated based on it and rparams.
+  def url_with_host(name, rparams={})
+    uri =  request.protocol + request.host + url(name, rparams)
+  end
+  
   private
   # ==== Parameters
   # filters<Array[Filter]>:: The filter list that this should be added to.
