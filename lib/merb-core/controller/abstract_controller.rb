@@ -418,12 +418,11 @@ class Merb::AbstractController
   # rparams<Hash>:: Parameters for the route generation.
   #
   # ==== Returns
-  # String:: The generated  *full* with protocol + hostname + URL.
+  # String:: The generated url with protocol + hostname + URL.
   #
   # ==== Alternatives
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
-
   def absolute_url(name, rparams={})
     request.protocol + request.host + url(name, rparams)
   end
