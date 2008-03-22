@@ -15,24 +15,36 @@ module Merb::Test::Fixtures::Controllers
 
   class HtmlDefault < Responder; end
 
-  class ClassProvides < Responder; 
+  class ClassProvides < Responder
     provides :xml
   end
 
-  class LocalProvides < Responder; 
-    
+  class LocalProvides < Responder
     def index
       provides :xml
       render
     end
   end
 
-  class MultiProvides < Responder; 
-    
+  class MultiProvides < Responder
     def index
       provides :html, :js
       render
     end
   end
-
+  
+  class ClassOnlyProvides < Responder
+    only_provides :text, :xml
+    
+    def index
+      "nothing"
+    end
+  end
+  
+  class OnlyProvides < Responder
+    def index
+      only_provides :text, :xml
+      "nothing"
+    end
+  end
 end
