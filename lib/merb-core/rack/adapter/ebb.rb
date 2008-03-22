@@ -11,12 +11,11 @@ module Merb
       #
       # ==== Options (opts)
       # :host<String>:: The hostname that Thin should serve.
-      # :port<Fixnum>:: The port Thin should bind to.
-      # :app<String>>:: The application name.
+      # :port<Fixnum>:: The port Ebb should bind to.
+      # :app:: The application
       def self.start(opts={})
         Merb.logger.warn!("Using Ebb adapter")
-        server = ::Ebb::Server.new(opts[:app], opts)
-        server.start
+        ::Ebb.start_server(opts[:app], opts)
       end
     end
   end
