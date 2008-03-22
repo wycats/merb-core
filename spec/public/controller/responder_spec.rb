@@ -82,4 +82,14 @@ describe Merb::Controller, " responds" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "application/html")
     lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
   end
+
+  it "should properly remove formats when does_not_provide is called in action" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::OnlyProvides, :index, {}, :http_accept => "application/html")
+    lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
+  end
+
+  it "should properly remove formats when does_not_provide is called in controller" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "application/html")
+    lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
+  end
 end
