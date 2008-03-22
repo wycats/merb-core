@@ -12,6 +12,8 @@ class Merb::Controller < Merb::AbstractController
   
   include Merb::ResponderMixin
   include Merb::ControllerMixin
+
+  attr_accessor :route
   
   class << self
     
@@ -204,8 +206,4 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
-
-  # ==== Returns
-  # Hash:: The route that was extracted from the request object.
-  def route()   request.route   end
 end
