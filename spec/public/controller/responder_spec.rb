@@ -62,4 +62,24 @@ describe Merb::Controller, " responds" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::LocalProvides, :index, :format => "xml")
     controller.content_type.should == :xml    
   end
+  
+  it "should properly add formats when only_provides is called in action" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::OnlyProvides, :index, {}, :http_accept => "application/xml")
+    controller.content_type.should == :xml
+  end
+
+  it "should properly remove formats when only_provides is called in action" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::OnlyProvides, :index, {}, :http_accept => "application/html")
+    lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
+  end
+
+  it "should properly add formats when only_provides is called in controller" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "application/xml")
+    controller.content_type.should == :xml
+  end
+
+  it "should properly remove formats when only_provides is called in controller" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "application/html")
+    lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
+  end
 end
