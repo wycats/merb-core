@@ -423,7 +423,7 @@ class Merb::AbstractController
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
   def url_with_host(name, rparams={})
-    uri =  request.protocol + request.host + url(name, rparams)
+    request.protocol + request.host + url(name, rparams)
   end
   
   private

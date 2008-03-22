@@ -21,7 +21,7 @@ module Merb
       #   A 3 element tuple consisting of response status, headers and body.
       def call(env) 
         strip_path_prefix(env) if @path_prefix  # Strip out the path_prefix if one was set 
-        path = env['PATH_INFO'].chomp('/')
+        path = env['PATH_INFO'] ? env['PATH_INFO'].chomp('/') : ""
         cached_path = (path.empty? ? 'index' : path) + '.html'
         Merb.logger.info "Request: #{path}"
         if file_exist?(path) && env['REQUEST_METHOD'] =~ /GET|HEAD/ # Serve the file if it's there and the request method is GET or HEAD

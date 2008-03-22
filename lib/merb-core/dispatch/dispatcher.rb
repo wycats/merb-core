@@ -27,7 +27,6 @@ class Merb::Dispatcher
     def handle(rack_env)
       start   = Time.now
       request = Merb::Request.new(rack_env)
-      Merb.logger.info("Params: #{request.params.inspect}")
       
       route_index, route_params = Merb::Router.match(request)
       
@@ -36,6 +35,8 @@ class Merb::Dispatcher
       end
       request.route_params = route_params
       request.params.merge! route_params
+      
+      Merb.logger.info("Params: #{request.params.inspect}")
       
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
