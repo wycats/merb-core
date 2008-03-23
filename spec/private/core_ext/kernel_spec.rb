@@ -13,21 +13,7 @@ describe "Kernel#require" do
     Merb.logger.should_receive(:error!).with("foo")
     Kernel.rescue_require("redcloth", "foo")
   end
-  
-  it "should be able to require files and throw a VERY useful error message if it fails" do
-    Kernel.should_receive(:require).and_raise(LoadError)
-    Kernel.should_receive(:exit).and_return(true)
-    Merb.logger.should_receive(:error).once.with(/Could not find/)
-    Merb.logger.should_receive(:error).once.with(/Please be sure/)    
-    Kernel.requires "foo"
-  end
 
-  it "should be able to require files and print a succeed message if it passes" do
-    Kernel.should_receive(:require).and_return(true)
-    Merb.logger.should_receive(:debug).with(/loading library 'foo'/)
-    Kernel.requires "foo"
-    
-  end
   
 end
 

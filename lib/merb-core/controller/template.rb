@@ -198,7 +198,7 @@ module Erubis
     def def_method(object, method_name, filename=nil)
       m = object.is_a?(Module) ? :module_eval : :instance_eval
       setup = "@_engine = 'erb'"
-      object.__send__(m, "def #{method_name}; #{setup}; #{@src}; end", filename || @filename || '(erubis)')
+      object.__send__(m, "def #{method_name}(locals={}); #{setup}; #{@src}; end", filename || @filename || '(erubis)')
     end
    
   end

@@ -89,30 +89,6 @@ module Kernel
       end
     end
   end
-    
-  # Attempts to require and logs a message of the require whether it is
-  # successful or not.
-  #
-  # ==== Parameters
-  # library<~to_s>:: The library to attempt to require.
-  def requires(library)
-    # TODO: Extract messages out into a messages file. This will also be the first step towards internationalization.
-    # TODO: adjust this message once logging refactor is complete.
-    require(library)
-    message = "loading library '#{library}' from #{__app_file_trace__.first} ..."
-    Merb.logger.debug(message)
-  rescue LoadError
-    # TODO: adjust the two messages below to use merb's logger.error/info once logging refactor is complete.
-    message = "<e> Could not find '#{library}' as either a library or gem, loaded from #{__app_file_trace__.first}.\n"
-    Merb.logger.error(message)
-    
-    # Print a helpful message
-    message =  " <i> Please be sure that if '#{library}': \n"
-    message << " <i>   * is a normal ruby library (file), be sure that the path of the library it is present in the $LOAD_PATH via $LOAD_PATH.unshift(\"/path/to/#{library}\") \n"
-    message << " <i>   * is included within a gem, be sure that you are specifying the gem as a dependency \n"
-    Merb.logger.error(message)
-    exit # Missing library/gem must be addressed.
-  end
   
   # Does a basic require, and prints a message if an error occurs.
   #
