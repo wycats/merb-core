@@ -154,13 +154,6 @@ class Merb::Controller < Merb::AbstractController
   # @semipublic
   def initialize(request, status=200, headers={'Content-Type' => 'text/html; charset=utf-8'})
     super()
-    if request.params.key?(_session_id_key)
-      # Checks to see if a route allows fixation: 
-      # r.match('/foo').to(:controller => 'foo').fixatable 
-      if request.route.allow_fixation?
-        request.cookies[_session_id_key] = request.params[_session_id_key]
-      end
-    end
     @request, @status, @headers = request, status, headers
   end
   
@@ -201,9 +194,21 @@ class Merb::Controller < Merb::AbstractController
   # ==== Note
   # Headers are passed into the cookie object so that you can do:
   #   cookies[:foo] = "bar"
-  def cookies() @_cookies ||= ::Merb::Cookies.new(request.cookies, @headers)  end
+  def cookies() @_cookies ||= _setup_cookies end
     
   # ==== Returns
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
+    
+  private
+
+  # Create a default cookie jar, and pre-set a fixation cookie
+  # if fixation is enabled
+  def _setup_cookies
+    cookies = ::Merb::Cookies.new(request.cookies, @headers)
+    if request.params.key?(_session_id_key) && route.allow_fixation?
+      cookies[_session_id_key] = request.params[_session_id_key]
+    end
+    cookies
+  end
 end
