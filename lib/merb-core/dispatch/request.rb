@@ -162,10 +162,8 @@ module Merb
     # ==== Returns
     # String:: The raw post.
     def raw_post
-      @body.rewind
-      res = @body.read
-      @body.rewind
-      res
+      @body.rewind if @body.respond_to?(:rewind)
+      @body.read
     end
     
     # ==== Returns
