@@ -65,7 +65,7 @@ class Merb::Dispatcher
 
       controller = dispatch_action(klass, action, request)
       controller._benchmarks[:dispatch_time] = Time.now - start
-      controller.route = Merb::Router.routes[route_index]
+      controller.route = Merb::Router.routes[route_index] if route_index
       Merb.logger.info controller._benchmarks.inspect
       Merb.logger.flush
 
