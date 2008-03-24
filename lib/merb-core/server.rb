@@ -163,7 +163,8 @@ module Merb
       # ==== Alternatives
       # If group is left out, the user will be used as the group.
       def change_privilege(user, group=user)
-        Merb.logger.warn! "Changing privileges to #{user}:#{group}"
+        
+        puts "Changing privileges to #{user}:#{group}"
         
         uid, gid = Process.euid, Process.egid
         target_uid = Etc.getpwnam(user).uid
@@ -176,7 +177,7 @@ module Merb
           Process::UID.change_privilege(target_uid)
         end
       rescue Errno::EPERM => e
-        Merb.logger.error "Couldn't change user and group to #{user}:#{group}: #{e}"
+        puts "Couldn't change user and group to #{user}:#{group}: #{e}"
       end
     end
   end
