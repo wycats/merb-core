@@ -209,7 +209,7 @@ class Merb::AbstractController
     when :filter_chain_completed  then _call_action(action_name)
     when String                   then caught
     when nil                      then _filters_halted
-    when Symbol                   then send(caught)
+    when Symbol                   then __send__(caught)
     when Proc                     then caught.call(self)
     else
       raise MerbControllerError, "The before filter chain is broken dude. wtf?"
