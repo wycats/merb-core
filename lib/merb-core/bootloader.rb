@@ -358,6 +358,9 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         failed_classes.each { |k| klasses.push(k) unless klasses.include?(k) }
         
         #stop processing if nothing loads or if everything has loaded
+        if klasses.size == size_at_start && klasses.size != 0
+          raise LoadError, "Could not load #{failed_classes.inspect}."
+        end
         break if(klasses.size == size_at_start || klasses.size == 0)
       end
     end
