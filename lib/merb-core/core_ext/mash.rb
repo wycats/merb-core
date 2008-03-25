@@ -72,7 +72,7 @@ class Mash < Hash
   alias_method :member?, :key?
 
   # ==== Parameters
-  # key<Object>:: The key to fetch. This willbe run through convert_key.
+  # key<Object>:: The key to fetch. This will be run through convert_key.
   # extras:: Default value.
   #
   # ==== Returns
@@ -83,7 +83,7 @@ class Mash < Hash
 
   # ==== Parameters
   # indices<Array>::
-  #   The keys to retrieve values for. These will be run through convert_key.
+  #   The keys to retrieve values for. These will be run through +convert_key+.
   def values_at(*indices) 
     indices.collect {|key| self[convert_key(key)]} 
   end
