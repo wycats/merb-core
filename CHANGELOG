@@ -1,3 +1,60 @@
+== 0.9.2 "appropriate response to reality" 2008-03-24
+* removed Merb.logger calls due to the fact the bootloader did not ran by now and it is not initialized.
+* use __send__ rather than send
+* Fixed exception setting route when route_index is nil
+* memoize the raw_post body after its called once
+* fix Request#raw_post to respect bodies with no rewind method
+* remove Kernel#requires it wasn't being used.
+* Move fixation to post initialize
+* add specs for does_not_provide
+* Add specs for action-level only_provides
+* Make controller.route work
+* Update Ebb adapter to work with latest Ebb 0.1.0 [Ry Dahl]
+* fix PATH_INFO bug for fcgi
+* Rename url_with_host to absolute_url
+* Add url_with_host() and allow params to be pushed into FCGI adapter
+* More correct to_json of dictionary.
+* Modify dispatcher to be sane to XHRs; add to_json to dictionaries.
+* Added html_escape around the exception.message in the show details section.
+* Fixed bug not allowing have_tag to be called without a attribute hash, even when one is not desired
+* refactor and clean up Merb::BootLoader::Dependencies [James Herdman]
+* Merb::BootLoader::LoadClasses should keep unique list of classes
+* Logger now works as expected, fixed ReloadClasses bootloader
+* Fixes cookie sessions when the session is blanked out.
+* catch_content should default to :for_layout
+* Added --sandbox (-S) option for IRB console
+* Added Merb.testing? method
+* Fixes the dispatch_to request helper to conver the action name to a string.
+* Added Merb.testing? method
+* Fixed critical bug in LoadClasses BootLoader concerning reloading
+* Important changes to the BootLoader process
+* Added Kernel.load_dependencies method; better docs/comments.
+* Bugfixes concerning BootLoader and load order in general
+* fully qualify fcgi rack handler
+* Set mongrel as default adapter unless other alternative options are specified
+* Fix configuring session_id_key so that it works
+* url(:foo, 3) should notice 3 is a Fixnum, and use it instead of 3.id
+* make load order of core_ext explicit
+* Modifies before/after in BootLoader to actually work.
+* ix not-available vs. not-provided bug in content negotiation
+* Fixed display bug which caused default error exception pages to improperly display drop-down twirly if the path name exceeded the line length.
+* remove symbolize_keys! as we don't use it anywhere. by now..
+* Rework bootloader to make more sense for flat apps (specifically framework load)
+* More fixes to the flat autoloader
+* remove custom_* resource route, use :member or :collection instead
+* fix logger specs
+* Fixes bug with framework not being defined.
+* make sure logger bang! methods do not flush unless the proper log level is used.
+* Updates the request spec to account for the new from_xml behaviour
+* Adds specs and changes for compatibility with ActiveSupport.  There is one caveat.  It will not change YAML generated Hash keys to strings if they are defined as symbols as is currently the behaviour of ActiveSupport.
+* update the logger. no longer accept an optional block to call.
+* remove some vestigal config defaults
+* Add rack adapter for Ebb, damn it's fast!
+* coerce the port to an integer when starting mongrel (jruby compat)
+* remove specs for dependency as they were broittle and not testing the right thing.
+* Fixes #155 (_perform_content_negotiation doesn't find */* if it comes last in the accept header order, and nothing else matches)
+* Changes use_test to wrap only the call to dependencies in the check for Merb.environment == "test"
+
 == 0.9.1 "Some are half-wild, and some are just outlaws." 2008-02-29
 
 * As a last resort, look for */* in the formats before throwing NotAcceptable (TODO: Clean this up)
