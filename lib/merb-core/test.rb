@@ -8,5 +8,3 @@ module Merb; module Test; end; end
 require 'merb-core/test/helpers'
 
 require 'merb-core/test/matchers'
-
-require 'merb-core/test/example_groups'
