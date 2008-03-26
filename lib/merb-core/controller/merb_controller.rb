@@ -207,10 +207,6 @@ class Merb::Controller < Merb::AbstractController
   # Create a default cookie jar, and pre-set a fixation cookie
   # if fixation is enabled
   def _setup_cookies
-    cookies = ::Merb::Cookies.new(request.cookies, @headers)
-    if request.params.key?(_session_id_key) && route.allow_fixation?
-      cookies[_session_id_key] = request.params[_session_id_key]
-    end
-    cookies
+    ::Merb::Cookies.new(request.cookies, @headers)
   end
 end
