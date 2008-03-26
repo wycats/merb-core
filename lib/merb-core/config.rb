@@ -162,7 +162,7 @@ module Merb
             options[:merb_root] = File.expand_path(root)
           end
 
-          opts.on("-a", "--adapter mongrel", "The rack adapter to use to run merb[mongrel, emongrel, thin, fastcgi, webrick, runner, irb]") do |adapter|
+          opts.on("-a", "--adapter mongrel", "The rack adapter to use to run merb[mongrel, emongrel, thin, ebb, fastcgi, webrick, runner, irb]") do |adapter|
             options[:adapter] = adapter
           end
 
