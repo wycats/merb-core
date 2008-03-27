@@ -102,6 +102,12 @@ describe Merb::Logger do
       @logger.close
     end
 
+    it "shouldn't call the close method if the log is a terminal" do
+      @logger.log.should_receive(:tty?).and_return(true)
+      @logger.log.should_not_receive(:close)
+      @logger.close
+    end
+
     it "should set the stored log attribute to nil" do
       @logger.close
       @logger.log.should eql(nil)
