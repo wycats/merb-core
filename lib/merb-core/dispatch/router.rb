@@ -11,6 +11,7 @@ module Merb
     
     @@named_routes = {}
     @@routes = []
+    @@compiler_mutex = Mutex.new
     cattr_accessor :routes, :named_routes
     
     class << self
@@ -52,13 +53,15 @@ module Merb
       # ==== Returns
       # String:: A routing lambda statement generated from the routes.
       def compiled_statement
-        @@compiled_statement = "def match(request)\n"
-        @@compiled_statement << "  params = request.params\n"
-        @@compiled_statement << "  cached_path = request.path\n  cached_method = request.method.to_s\n  "
-        @@routes.each_with_index { |route, i| @@compiled_statement << route.compile(i == 0) }
-        @@compiled_statement << "  else\n    [nil, {}]\n"
-        @@compiled_statement << "  end\n"
-        @@compiled_statement << "end"
+        @@compiler_mutex.synchronize do
+          @@compiled_statement = "def match(request)\n"
+          @@compiled_statement << "  params = request.params\n"
+          @@compiled_statement << "  cached_path = request.path\n  cached_method = request.method.to_s\n  "
+          @@routes.each_with_index { |route, i| @@compiled_statement << route.compile(i == 0) }
+          @@compiled_statement << "  else\n    [nil, {}]\n"
+          @@compiled_statement << "  end\n"
+          @@compiled_statement << "end"
+        end
       end
 
       # Defines the match function for this class based on the
