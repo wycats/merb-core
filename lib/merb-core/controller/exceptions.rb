@@ -174,7 +174,7 @@ module Merb
 
       class BadRequest                  < Merb::ControllerExceptions::ClientError; STATUS = 400; end
 
-        class MultiPartParseError       < Merb::ControllerExceptions::BadRequest; end
+      class MultiPartParseError         < Merb::ControllerExceptions::BadRequest; end
 
       class Unauthorized                < Merb::ControllerExceptions::ClientError; STATUS = 401; end
 
@@ -184,11 +184,11 @@ module Merb
 
       class NotFound                    < Merb::ControllerExceptions::ClientError; STATUS = 404; end
 
-        class ActionNotFound            < Merb::ControllerExceptions::NotFound; end
+      class ActionNotFound              < Merb::ControllerExceptions::NotFound; end
 
-        class TemplateNotFound          < Merb::ControllerExceptions::NotFound; end
+      class TemplateNotFound            < Merb::ControllerExceptions::NotFound; end
 
-        class LayoutNotFound            < Merb::ControllerExceptions::NotFound; end
+      class LayoutNotFound              < Merb::ControllerExceptions::NotFound; end
 
       class MethodNotAllowed            < Merb::ControllerExceptions::ClientError; STATUS = 405; end
 
