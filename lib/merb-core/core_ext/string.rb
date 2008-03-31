@@ -8,9 +8,18 @@ class String
   # String:: The string with all regexp special characters escaped.
   #
   # ==== Examples
-  #   "\*?{}.".escape_regexp #=> "\\*\\?\\{\\}\\."
+  #   "*?{}.".escape_regexp #=> "\\*\\?\\{\\}\\."
   def escape_regexp
     Regexp.escape self
+  end
+  
+  # ==== Returns
+  # String:: The string with all regexp special characters unescaped.
+  #
+  # ==== Examples
+  #   "\\*\\?\\{\\}\\.".unescape_regexp #=> "*?{}."
+  def unescape_regexp
+    self.gsub(/\\([\.\?\|\(\)\[\]\{\}\^\$\*])/, '\1')
   end
   
   # ==== Returns
