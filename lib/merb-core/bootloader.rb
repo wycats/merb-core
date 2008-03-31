@@ -339,27 +339,34 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       klasses.uniq!
       
       while klasses.size > 0
-        # note size to make sure things are loading
+        # Note size to make sure things are loading
         size_at_start = klasses.size
         
-        #list of failed classes
+        # List of failed classes
         failed_classes = []
+        # Map classes to exceptions
+        error_map = {}
         
         klasses.each do |klass|
           klasses.delete(klass)
           begin
             load_file klass
           rescue NameError => ne
+            error_map[klass] = ne
             failed_classes.push(klass)
           end
         end
         
-        # keep list of classes unique
+        # Keep list of classes unique
         failed_classes.each { |k| klasses.push(k) unless klasses.include?(k) }
         
-        #stop processing if nothing loads or if everything has loaded
+        # Stop processing if nothing loads or if everything has loaded
         if klasses.size == size_at_start && klasses.size != 0
-          raise LoadError, "Could not load #{failed_classes.inspect}."
+          # Write all remaining failed classes and their exceptions to the log
+          error_map.only(*failed_classes).each do |klass, e|
+            Merb.logger.fatal! "Could not load #{klass}:\n\n#{e.message} - (#{e.class})\n\n#{(e.backtrace || []).join("\n")}"
+          end
+          raise LoadError, "Could not load #{failed_classes.inspect} (see log for details)."
         end
         break if(klasses.size == size_at_start || klasses.size == 0)
       end
@@ -401,6 +408,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         Merb.logger.debug("Failed to remove constant #{object} from #{base}")
       end
     end
+    
   end
   
 end

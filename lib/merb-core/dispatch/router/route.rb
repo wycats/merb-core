@@ -130,7 +130,7 @@ module Merb
             else
               raise "Segment type '#{segment.class}' can't be converted to a string"
             end
-          (value.respond_to?(:to_param) ? value.to_param : value).to_s
+          (value.respond_to?(:to_param) ? value.to_param : value).to_s.unescape_regexp
         end.join
         if query_params && !query_params.empty?
           url += "?" + Merb::Request.params_to_query_string(query_params)
