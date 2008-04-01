@@ -186,13 +186,13 @@ module Merb
       opts.update(Merb::Const::DEFAULT_SEND_FILE_OPTIONS.merge(opts))
       disposition = opts[:disposition].dup || 'attachment'
       disposition << %(; filename="#{opts[:filename]}")
+      headers.update(
+        'Content-Type'              => opts[:type].strip,  # fixes a problem with extra '\r' with some browsers
+        'Content-Disposition'       => disposition,
+        'Content-Transfer-Encoding' => 'binary',
+        'CONTENT-LENGTH'            => opts[:content_length]
+      )
       Proc.new{|response|
-        response.headers.update(
-          'Content-Type'              => opts[:type].strip,  # fixes a problem with extra '\r' with some browsers
-          'Content-Disposition'       => disposition,
-          'Content-Transfer-Encoding' => 'binary',
-          'CONTENT-LENGTH'            => opts[:content_length]
-        )
         response.send_status(opts[:content_length])
         response.send_header
         stream.call(response)
