@@ -209,6 +209,7 @@ class Merb::AbstractController
     _call_filters(_after_filters) 
     @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
     finalize_session
+    @body
   end
   
   # This method exists to provide an overridable hook for ActionArgs
