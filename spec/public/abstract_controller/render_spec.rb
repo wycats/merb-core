@@ -46,6 +46,18 @@ describe Merb::AbstractController, " rendering templates" do
   it "should support rendering plain strings with the controller layout" do
     dispatch_should_make_body("RenderTemplateControllerLayout", "Controller: the index")
   end
+  
+  it "should support rendering templates without any layout (even if the default layout exists)" do
+    dispatch_should_make_body("RenderNoDefaultAppLayout", "the index")
+  end
+  
+  it "should inherit the layout setting from a parent controller class" do
+    dispatch_should_make_body("RenderNoDefaultAppLayoutInherited", "the index")
+  end
+
+  it "should support reverting to the default layout" do
+    dispatch_should_make_body("RenderDefaultAppLayoutInheritedOverride", "App: the index")
+  end  
 
   it "should support rendering templates with a custom location" do
     dispatch_should_make_body("RenderTemplateCustomLocation", "Wonderful")

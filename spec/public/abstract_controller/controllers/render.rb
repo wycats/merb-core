@@ -58,6 +58,18 @@ module Merb::Test::Fixtures
       self._template_root = File.dirname(__FILE__) / "alt_views"      
     end  
     
+    class RenderNoDefaultAppLayout < RenderString
+      self._template_root = File.dirname(__FILE__) / "alt_views"
+      self.layout false
+    end
+    
+    class RenderNoDefaultAppLayoutInherited < RenderNoDefaultAppLayout
+    end
+    
+    class RenderDefaultAppLayoutInheritedOverride < RenderNoDefaultAppLayout
+      self.default_layout
+    end
+    
     class RenderTemplateCustomLocation < RenderTemplate      
       def _template_location(action, type = nil, controller = controller_name)  
         "wonderful/#{action}"

@@ -158,15 +158,6 @@ class Merb::AbstractController
       HERE
       super
     end
-    
-    # ==== Parameters
-    # layout<~to_s>:: The layout that should be used for this class
-    # 
-    # ==== Returns
-    # ~to_s:: The layout that was passed in
-    def layout(layout)
-      self._layout = layout
-    end
   end
   
   attr_accessor :_benchmarks, :_thrown_content

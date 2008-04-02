@@ -5,9 +5,47 @@ module Merb::RenderMixin
   # ==== Parameters
   # base<Module>:: Module that is including RenderMixin (probably a controller)
   def self.included(base)
+    base.extend(ClassMethods)
     base.class_eval do
-      class_inheritable_accessor :_layout, :_cached_templates
+      class_inheritable_accessor :_default_render_options
     end
+  end
+  
+  module ClassMethods
+    
+    # Return the default render options.
+    #
+    # ==== Returns
+    # Hash:: An options hash
+    def default_render_options
+      self._default_render_options ||= {}
+    end
+    
+    # Set default render options at the class level.
+    #
+    # ==== Parameters
+    # opts<Hash>:: An options hash
+    def render_options(opts)
+      self._default_render_options = opts
+    end
+    
+    # Set the default layout to use or nil/false to disable layout rendering.
+    # This is a shortcut for render_options :layout => false. 
+    #
+    # ==== Parameters
+    # layout<~to_s>:: The layout that should be used for this class
+    # 
+    # ==== Returns
+    # Hash:: The default render options.
+    def layout(layout)
+      self.default_render_options.update(:layout => (layout ? layout : false))
+    end
+    
+    # Enable the default layout logic - reset the layout option.
+    def default_layout
+      self.default_render_options.delete(:layout)
+    end
+    
   end
   
   # Render the specified item, with the specified options.
@@ -45,6 +83,9 @@ module Merb::RenderMixin
   def render(thing = nil, opts = {})
     # render :format => :xml means render nil, :format => :xml
     opts, thing = thing, nil if thing.is_a?(Hash)
+    
+    # Merge with class level default render options
+    opts = self.class.default_render_options.merge(opts)
     
     # If you don't specify a thing to render, assume they want to render the current action
     thing ||= action_name.to_sym
@@ -124,6 +165,8 @@ module Merb::RenderMixin
   
   # If the render fails (i.e. a template was not found)
   rescue TemplateNotFound
+    # Merge with class level default render options
+    opts = self.class.default_render_options.merge(opts)
     
     # Figure out what to transform and raise NotAcceptable unless there's a transform method assigned
     transform = Merb.mime_transform_method(content_type)
@@ -235,9 +278,7 @@ module Merb::RenderMixin
   #   one in to this method), and not found. No error will be raised if no
   #   layout was specified, and the default layouts were not found.
   def _get_layout(layout = nil)
-    if _layout && !layout
-      layout = _layout.instance_of?(Symbol) && self.respond_to?(_layout, true) ? send(_layout) : _layout
-    end
+    layout = layout.instance_of?(Symbol) && self.respond_to?(layout, true) ? send(layout) : layout
     layout = layout.to_s if layout
     
     # If a layout was provided, throw an error if it's not found
