@@ -9,7 +9,7 @@ class Mash < Hash
   # ==== Alternatives
   # If constructor is a Hash, a new mash will be created based on the keys of
   # the hash and no default value will be set.
-  def initialize(constructor = {}) 
+  def initialize(constructor = {})
     if constructor.is_a?(Hash) 
       super() 
       update(constructor) 
@@ -146,7 +146,7 @@ class Mash < Hash
     when Hash 
       value.to_mash 
     when Array 
-      value.collect { |e| e.is_a?(Hash) ? e.to_mash : e } 
+      value.collect { |e| convert_value(e) } 
     else 
       value 
     end 

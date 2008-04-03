@@ -156,9 +156,9 @@ Stacktrace:
         request.params[:original_cookies] = request.cookies.dup rescue {}
         request.params[:exception] = exception
         request.params[:action] = exception_klass.name
-      
+        
         dispatch_action(klass, exception_klass.name, request, exception.class::STATUS)
-      rescue => dispatch_issue
+      rescue => dispatch_issue       
         dispatch_issue = controller_exception(dispatch_issue)  
         # when no action/template exist for an exception, or an
         # exception occurs on an InternalServerError the message is
@@ -174,7 +174,9 @@ Stacktrace:
             retry
           else
             dispatch_default_exception(klass, request, exception)
-          end
+          end       
+        elsif request.params[:exception].is_a?(dispatch_issue.class)
+          dispatch_default_exception(klass, request, dispatch_issue)
         elsif dispatch_issue.is_a?(Merb::ControllerExceptions::InternalServerError)
           dispatch_default_exception(klass, request, dispatch_issue)
         else
