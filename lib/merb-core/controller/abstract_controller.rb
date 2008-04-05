@@ -201,7 +201,7 @@ class Merb::AbstractController
     when String                   then caught
     when nil                      then _filters_halted
     when Symbol                   then __send__(caught)
-    when Proc                     then instance_eval(&caught)
+    when Proc                     then caught.call(self)
     else
       raise MerbControllerError, "The before filter chain is broken dude. wtf?"
     end
