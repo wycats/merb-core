@@ -28,7 +28,7 @@ module Merb::Test::Fixtures::Controllers
   
   class AuthenticateBasicAuthentication < Testing
     def index
-      basic_authentication.authenticate { |u, p| u == "Fred" && p == "secret" } ? "authenticated" : "denied"
+      basic_authentication.authenticate { |u, p| "Fred:secret" }
     end
   end
   

@@ -74,28 +74,10 @@ end
 
 describe Merb::Controller, "#basic_authentication.authenticate" do
   
-  it "should be false on invalid username and password" do
-    u, p = "John", "password"
-    response = dispatch_with_basic_authentication_to(Merb::Test::Fixtures::Controllers::AuthenticateBasicAuthentication, :index, u, p)
-    response.body.should == "denied"
-  end
-  
-  it "should be false on invalid username and valid password" do
-    u, p = "John", "secret"
-    response = dispatch_with_basic_authentication_to(Merb::Test::Fixtures::Controllers::AuthenticateBasicAuthentication, :index, u, p)
-    response.body.should == "denied"
-  end
-  
-  it "should be false on valid username and invalid password" do
-    u, p = "Fred", "password"
-    response = dispatch_with_basic_authentication_to(Merb::Test::Fixtures::Controllers::AuthenticateBasicAuthentication, :index, u, p)
-    response.body.should == "denied"
-  end
-  
-  it "should be true on valid username and password" do
+  it "should pass in the username and password and return the result of the block" do
     u, p = "Fred", "secret"
     response = dispatch_with_basic_authentication_to(Merb::Test::Fixtures::Controllers::AuthenticateBasicAuthentication, :index, u, p)
-    response.body.should == "authenticated"
+    response.body.should == "Fred:secret"
   end
 
 end
