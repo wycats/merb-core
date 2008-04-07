@@ -29,7 +29,7 @@ describe "basic_authentication in general", :shared => true do
     response.status.should == 401
   end
   
-  it "should call the action on invalid username and password" do
+  it "should call the action on valid username and password" do
     u, p = "Fred", "secret"
     response = dispatch_with_basic_authentication_to(Merb::Test::Fixtures::Controllers::BasicAuthentication, :index, u, p)
     response.body.should == "authenticated"
