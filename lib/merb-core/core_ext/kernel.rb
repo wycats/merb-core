@@ -120,7 +120,12 @@ module Kernel
     end
     begin
       Merb.generator_scope.delete(:merb_default)
-      orm_plugin = orm.to_s.match(/^merb_/) ? orm.to_s : "merb_#{orm}"
+      orm_plugin = case orm.to_s
+        when /^merb_/   then orm.to_s
+        when 'dm_core'  then 'dm-merb'
+        else "merb_#{orm}"
+        end
+      
       Merb.generator_scope.unshift(orm.to_sym) unless Merb.generator_scope.include?(orm.to_sym)
       Kernel.dependency(orm_plugin)
     rescue LoadError => e
