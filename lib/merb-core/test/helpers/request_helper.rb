@@ -126,7 +126,7 @@ module Merb
       #   the action being dispatched.
       #
       # ==== Example
-      #   dispatch_to(MyController, :create, :name => 'Homer' ) do
+      #   dispatch_with_basic_authentication_to(MyController, :create, 'Fred', 'secret', :name => 'Homer' ) do
       #     self.stub!(:current_user).and_return(@user)
       #   end
       #
