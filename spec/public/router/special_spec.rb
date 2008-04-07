@@ -24,10 +24,14 @@ describe "Routes that are restricted based on incoming params" do
   
   it "should allow you to restrict routes to POST requests" do
     Merb::Router.prepare do |r|
-      r.match("/:controller/create/:id").
+      r.match("/:controller/create/:id", :method => :post).
         to(:action => "create")
     end
     route_to("/foo/create/12", :method => "post").should have_route(
+      :controller => "foo", :action => "create", :id => "12"
+    )
+    
+    route_to("/foo/create/12", :method => "get").should_not have_route(
       :controller => "foo", :action => "create", :id => "12"
     )
   end
