@@ -12,6 +12,7 @@ class Merb::Controller < Merb::AbstractController
   
   include Merb::ResponderMixin
   include Merb::ControllerMixin
+  include Merb::AuthenticationMixin
 
   attr_accessor :route
   

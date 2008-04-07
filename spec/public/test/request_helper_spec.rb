@@ -31,6 +31,41 @@ describe Merb::Test::RequestHelper do
       dispatch_to(@controller_klass, :index)
     end
   end
+  
+  describe "#dispatch_with_basic_authentication_to" do
+
+    before(:all) do
+      @controller_klass = Merb::Test::DispatchController
+    end
+
+    it "should dispatch to the given controller and action" do
+      Merb::Test::ControllerAssertionMock.should_receive(:called).with(:index)
+
+      dispatch_with_basic_authentication_to(@controller_klass, :index, "Fred", "secret")
+    end
+
+    it "should dispatch to the given controller and action with authentication token" do
+      Merb::Test::ControllerAssertionMock.should_receive(:called).with(:show)
+
+      controller = dispatch_with_basic_authentication_to(@controller_klass, :show, "Fred", "secret")
+
+      controller.request.env["X_HTTP_AUTHORIZATION"].should == "Basic #{Base64.encode64("Fred:secret")}"
+    end
+    
+    it "should dispatch to the given controller and action with authentication token and params" do
+      Merb::Test::ControllerAssertionMock.should_receive(:called).with(:show)
+
+      controller = dispatch_with_basic_authentication_to(@controller_klass, :show, "Fred", "secret", :name => "Fred")
+
+      controller.request.env["X_HTTP_AUTHORIZATION"].should == "Basic #{Base64.encode64("Fred:secret")}"
+      controller.params[:name].should == "Fred"
+    end
+
+    it "should not hit the router to match it's route" do
+      Merb::Router.should_not_receive(:match)
+      dispatch_with_basic_authentication_to(@controller_klass, :index, "Fred", "secret")
+    end
+  end
 
   describe "#get" do
     before(:each) do 

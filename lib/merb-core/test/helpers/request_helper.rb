@@ -104,6 +104,46 @@ module Merb
 
         dispatch_request(request, controller_klass, action, &blk)
       end
+      
+      
+      # Dispatches an action to the given class and using HTTP Basic Authentication
+      # This bypasses the router and is suitable for unit testing of controllers.
+      #
+      # ==== Parameters
+      # controller_klass<Controller>::
+      #   The controller class object that the action should be dispatched to.
+      # action<Symbol>:: The action name, as a symbol.
+      # username<String>:: The username.
+      # password<String>:: The password.
+      # params<Hash>::
+      #   An optional hash that will end up as params in the controller instance.
+      # env<Hash>::
+      #   An optional hash that is passed to the fake request. Any request options
+      #   should go here (see +fake_request+), including :req or :post_body
+      #   for setting the request body itself.
+      # &blk::
+      #   The controller is yielded to the block provided for actions *prior* to
+      #   the action being dispatched.
+      #
+      # ==== Example
+      #   dispatch_with_basic_authentication_to(MyController, :create, 'Fred', 'secret', :name => 'Homer' ) do
+      #     self.stub!(:current_user).and_return(@user)
+      #   end
+      #
+      # ==== Note
+      # Does not use routes.
+      #
+      #---
+      # @public
+      def dispatch_with_basic_authentication_to(controller_klass, action, username, password, params = {}, env = {}, &blk)
+        action = action.to_s
+        request_body = { :post_body => env[:post_body], :req => env[:req] }
+        env["X_HTTP_AUTHORIZATION"] = "Basic #{Base64.encode64("#{username}:#{password}")}"
+        request = fake_request(env.merge(
+          :query_string => Merb::Request.params_to_query_string(params)), request_body)
+        
+        dispatch_request(request, controller_klass, action, &blk)
+      end
   
       # An HTTP GET request that operates through the router.
       #
