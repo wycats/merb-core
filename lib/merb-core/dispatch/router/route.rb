@@ -132,6 +132,10 @@ module Merb
             end
           (value.respond_to?(:to_param) ? value.to_param : value).to_s.unescape_regexp
         end.join
+        if query_params && format = query_params.delete(:format)
+          format = fallback[:format] if format == :current
+          url += ".#{format}"
+        end
         if query_params && !query_params.empty?
           url += "?" + Merb::Request.params_to_query_string(query_params)
         end
