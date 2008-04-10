@@ -26,7 +26,7 @@ describe Merb::Test::RequestHelper do
       controller.params[:name].should == "Fred"
     end
 
-    it "should not hit the router to match it's route" do
+    it "should not hit the router to match its route" do
       Merb::Router.should_not_receive(:match)
       dispatch_to(@controller_klass, :index)
     end
@@ -61,7 +61,7 @@ describe Merb::Test::RequestHelper do
       controller.params[:name].should == "Fred"
     end
 
-    it "should not hit the router to match it's route" do
+    it "should not hit the router to match its route" do
       Merb::Router.should_not_receive(:match)
       dispatch_with_basic_authentication_to(@controller_klass, :index, "Fred", "secret")
     end

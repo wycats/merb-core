@@ -92,7 +92,7 @@ module Merb
       # ==== Returns
       # Boolean::
       #   True if this route is a regexp, i.e. its behavior or one of the
-      #   behaviors ancestors is a regexp.
+      #   behavior's ancestors is a regexp.
       def regexp?
         behavior.regexp? || behavior.send(:ancestors).any? { |a| a.regexp? }
       end

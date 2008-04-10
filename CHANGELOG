@@ -2,7 +2,7 @@
 * removed Merb.logger calls due to the fact the bootloader did not ran by now and it is not initialized.
 * use __send__ rather than send
 * Fixed exception setting route when route_index is nil
-* memoize the raw_post body after its called once
+* memoize the raw_post body after it's called once
 * fix Request#raw_post to respect bodies with no rewind method
 * remove Kernel#requires it wasn't being used.
 * Move fixation to post initialize
