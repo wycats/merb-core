@@ -156,6 +156,7 @@ module Merb
         data, digest = Merb::Request.unescape(cookie).split('--')
         return {} if data.blank?
         unless digest == generate_digest(data)
+          delete
           raise TamperedWithCookie, "Maybe the site's session_secret_key has changed?"
         end
         Marshal.load(Base64.decode64(data))
