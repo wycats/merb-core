@@ -337,6 +337,16 @@ module Merb::RenderMixin
     @_caught_content[obj]
   end
   
+  # Called in templates to test for the existence of previously thrown content.
+  #
+  # ==== Parameters
+  # obj<Object>:: The key in the thrown_content hash. Defaults to :for_layout.
+  #---
+  # @public
+  def thrown_content?(obj = :for_layout)
+    @_caught_content.key?(obj)
+  end
+  
   # Called in templates to store up content for later use. Takes a string
   # and/or a block. First, the string is evaluated, and then the block is
   # captured using the capture() helper provided by the template languages. The
