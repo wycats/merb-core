@@ -242,7 +242,7 @@ class Merb::AbstractController
         case filter
         when Symbol, String
           if rule.key?(:with)
-            args = rule.delete(:with)
+            args = rule[:with]
             send(filter, *args)
           else
             send(filter)
