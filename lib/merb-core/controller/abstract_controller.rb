@@ -14,6 +14,7 @@
 # ==== Examples
 #   before :some_filter
 #   before :authenticate, :exclude => [:login, :signup]
+#   before :has_role, :with => ["Admin"], :exclude => [:index,:show]
 #   before Proc.new {|c| c.some_method }, :only => :foo
 #   before :authorize, :unless => logged_in?  
 #
@@ -239,7 +240,13 @@ class Merb::AbstractController
     (filter_set || []).each do |filter, rule|
       if _call_filter_for_action?(rule, action_name) && _filter_condition_met?(rule)
         case filter
-        when Symbol, String then send(filter)
+        when Symbol, String
+          if rule.key?(:with)
+            args = rule.delete(:with)
+            send(filter, *args)
+          else
+            send(filter)
+          end
         when Proc           then self.instance_eval(&filter)
         end
       end
