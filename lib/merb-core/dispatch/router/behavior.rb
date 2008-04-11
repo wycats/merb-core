@@ -336,6 +336,7 @@ module Merb
       #    # GET     /posts/:id(\.:format)?    :action => "show"
       #    # GET     /posts/:id[;/]edit        :action => "edit"
       #    # PUT     /posts/:id(\.:format)?    :action => "update"
+      #    # GET     /posts/:id[;/]delete      :action => "delete"
       #    # DELETE  /posts/:id(\.:format)?    :action => "destroy"
       #
       #  # Nesting resources
@@ -438,6 +439,7 @@ module Merb
       #    # GET     /account/(\.:format)?       :action => "show"
       #    # GET     /account/[;/]edit           :action => "edit"
       #    # PUT     /account/(\.:format)?       :action => "update"
+      #    # GET     /account/[;/]delete         :action => "delete"
       #    # DELETE  /account/(\.:format)?       :action => "destroy"
       #
       # You can optionally pass :namespace and :controller to refine the routing
