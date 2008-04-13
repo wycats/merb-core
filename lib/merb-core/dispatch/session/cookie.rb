@@ -19,8 +19,9 @@ module Merb
     # has changed.
     def finalize_session
       new_session = request.session.read_cookie
-      
-      cookies.set_cookie(_session_id_key, new_session, Time.now + _session_expiry) 
+      if @original_session != new_session
+        cookies.set_cookie(_session_id_key, new_session, :expires => (Time.now + _session_expiry))
+      end
     end
 
     # ==== Returns
@@ -80,7 +81,7 @@ module Merb
     # ==== Raises
     # CookieOverflow:: Session contains too much information.
     def read_cookie
-      unless @data.nil? or @data.empty? 
+      unless @data.nil?
         updated = marshal(@data)
         raise CookieOverflow if updated.size > MAX
         updated
