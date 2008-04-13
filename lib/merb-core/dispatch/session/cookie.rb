@@ -20,9 +20,7 @@ module Merb
     def finalize_session
       new_session = request.session.read_cookie
       
-      if @original_session != new_session
-        set_cookie(_session_id_key, new_session, Time.now + _session_expiry) 
-      end
+      cookies.set_cookie(_session_id_key, new_session, Time.now + _session_expiry) 
     end
 
     # ==== Returns
