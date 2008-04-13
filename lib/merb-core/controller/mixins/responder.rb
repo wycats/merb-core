@@ -295,7 +295,12 @@ module Merb
       specifics = accepts & _provided_formats
       return specifics.first unless specifics.length == 0
       return _provided_formats.first if accepts.include? :all
-      raise Merb::ControllerExceptions::NotAcceptable
+      message  = "A format (%s) that isn't provided (%s) has been requested. "
+      message += "Make sure the action provides the format, and be "
+      message += "careful of before filters which won't recognize "
+      message += "formats provided within actions."
+      raise Merb::ControllerExceptions::NotAcceptable,
+        (message % [accepts.join(', '), _provided_formats.join(', ')])
     end
 
     # Returns the output format for this request, based on the 
