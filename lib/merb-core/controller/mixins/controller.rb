@@ -255,7 +255,9 @@ module Merb
       # ==== Raises
       # NotImplemented:: The Rack adapter doens't support streaming.
       def must_support_streaming!
-        raise(NotImplemented, "Current Rack adapter does not support streaming") unless request.env['rack.streaming']
+        unless request.env['rack.streaming']
+          raise(Merb::ControllerExceptions::NotImplemented, "Current Rack adapter does not support streaming")
+        end
       end
   end
 end
