@@ -11,7 +11,7 @@ describe Merb::Rack::Application do
   
   it "should return a MockResponse" do
     res = Rack::MockRequest.new(@app).get("")
-    res.should be_kind_of Rack::MockResponse
+    res.should be_kind_of(Rack::MockResponse)
   end
   
 end  
