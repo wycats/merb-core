@@ -19,7 +19,7 @@ class String
   # ==== Examples
   #   "\\*\\?\\{\\}\\.".unescape_regexp #=> "*?{}."
   def unescape_regexp
-    self.gsub(/\\([\.\?\|\(\)\[\]\{\}\^\$\*\+])/, '\1')
+    self.gsub(/\\([\.\?\|\(\)\[\]\{\}\^\$\*\+\-])/, '\1')
   end
   
   # ==== Returns
