@@ -158,7 +158,12 @@ module Merb::RenderMixin
   def display(object, thing = nil, opts = {})
     # display @object, "path/to/foo" means display @object, nil, :template => "path/to/foo"
     # display @object, :template => "path/to/foo" means display @object, nil, :template => "path/to/foo"
-    opts[:template], thing = thing, nil if thing.is_a?(String) || thing.is_a?(Hash)
+    case thing
+    when String
+      opts[:template], thing = thing, nil
+    when Hash
+      opts, thing = thing, nil
+    end
     
     # Try to render without the object
     render(thing || action_name.to_sym, opts)

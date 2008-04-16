@@ -15,6 +15,14 @@ describe Merb::Controller, " displaying objects based on mime type" do
   it "should use a template if specified" do
     dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplate, :index).body.should == "Custom: Template"
   end
+  
+  it "should accept a layout argument" do
+    dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplateArgument, :index).body.should == "Custom Arg: Template"
+  end
+  
+  it "should accept a template path argument" do
+    dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplateArgument, :index_by_arg).body.should == "Template"
+  end
 
   it "should use other mime-types if they are provided on the class level" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::DisplayClassProvides, :index, {}, :http_accept => "application/xml")
@@ -29,6 +37,5 @@ describe Merb::Controller, " displaying objects based on mime type" do
   it "should use mime-types that are provided at the local level" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::DisplayLocalProvides, :index, {}, :http_accept => "application/xml")
     controller.body.should == "<XML:Model />"    
-  end
-  
+  end  
 end

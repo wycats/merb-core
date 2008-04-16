@@ -210,22 +210,19 @@ module Merb
       return
     end  
   
-    # Sets a cookie to be included in the response. This method is used
-    # primarily internally in Merb.
+    # Sets a cookie to be included in the response.
     #
     # If you need to set a cookie, then use the +cookies+ hash.
     #
     # ==== Parameters
     # name<~to_s>:: A name for the cookie.
     # value<~to_s>:: A value for the cookie.
-    # expires<~gmtime:~strftime>:: An expiration time for the cookie.
+    # expires<~gmtime:~strftime, Hash>:: An expiration time for the cookie, or a hash of cookie options.
+    # ---
+    # @public
     def set_cookie(name, value, expires)
-      (headers['Set-Cookie'] ||=[]) << (Merb::Const::SET_COOKIE % [
-        name.to_s, 
-        ::Merb::Request.escape(value.to_s), 
-        # Cookie expiration time must be GMT. See RFC 2109
-        expires.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
-      ])
+      options = expires.is_a?(Hash) ? expires : {:expires => expires}
+      cookies.set_cookie(name, value, options)
     end
     
     # Marks a cookie as deleted and gives it an expires stamp in the past. This

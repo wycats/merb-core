@@ -74,7 +74,7 @@ module Merb
           begin
             response.status = status.to_i
             headers.each { |k, vs|
-              vs.to_s.each { |v|
+              vs.each { |v|
                 response.header[k] = v
               }
             }
