@@ -13,6 +13,12 @@ module Merb
         end
       end
 
+      def deferred?(env)
+        strip_path_prefix(env) if @path_prefix  # Strip out the path_prefix if one was set 
+        path = env['PATH_INFO'] ? env['PATH_INFO'].chomp('/') : ""
+        path =~ Merb.deferred_actions
+      end
+      
       # ==== Parameters
       # env<Hash>:: Environment variables to pass on to the application.
       #
