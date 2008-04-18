@@ -21,7 +21,12 @@ module Merb
       def deferred?(env)
         strip_path_prefix(env) if @path_prefix  # Strip out the path_prefix if one was set 
         path = env['PATH_INFO'] ? env['PATH_INFO'].chomp('/') : ""
-        path =~ Merb.deferred_actions
+        if path =~ Merb.deferred_actions
+          Merb.logger.info! "Deferring Request: #{path}"
+          true
+        else
+          false
+        end    
       end
       
       # ==== Parameters

@@ -15,6 +15,7 @@ module Merb
       # :app:: The application
       def self.start(opts={})
         Merb.logger.warn!("Using Ebb adapter")
+        Merb::Dispatcher.use_mutex = false
         ::Ebb.start_server(opts[:app], opts)
       end
     end

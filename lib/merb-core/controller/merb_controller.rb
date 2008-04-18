@@ -113,7 +113,8 @@ class Merb::Controller < Merb::AbstractController
       @callable_actions
     end
     
-  end
+    
+  end # class << self
   
   # The location to look for a template for a particular controller, action,
   # and mime-type. This is overridden from AbstractController, which defines a
