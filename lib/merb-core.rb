@@ -147,7 +147,13 @@ module Merb
     def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
 
     def deferred_actions
-      @deferred ||= /#{Merb::Config[:deferred_actions].join("|")}/
+      @deferred ||= begin
+        if Merb::Config[:deferred_actions].empty?
+          /^\0$/
+        else  
+          /#{Merb::Config[:deferred_actions].join("|")}/
+        end
+      end  
     end
 
     # Allows flat apps by setting no default framework directories and yielding
