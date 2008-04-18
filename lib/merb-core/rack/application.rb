@@ -12,7 +12,12 @@ module Merb
           @path_prefix = /^#{Regexp.escape(prefix)}/
         end
       end
-
+      
+      # ==== Parameters
+      # env<Hash>:: Environment variables to pass on to the application.
+      #
+      # ==== Returns
+      # true or false::
       def deferred?(env)
         strip_path_prefix(env) if @path_prefix  # Strip out the path_prefix if one was set 
         path = env['PATH_INFO'] ? env['PATH_INFO'].chomp('/') : ""

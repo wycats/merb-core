@@ -146,6 +146,10 @@ module Merb
     # String:: The root directory of the Merb framework.
     def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
 
+    def deferred_actions
+      @deferred ||= /#{Merb::Config[:deferred_actions].join("|")}/
+    end
+
     # Allows flat apps by setting no default framework directories and yielding
     # a Merb::Router instance. This is optional since the router will
     # automatically configure the app with default routes.
