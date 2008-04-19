@@ -28,17 +28,21 @@ end
 
 
 
-describe "Kernel misc." do
+describe "Kernel#extract_options_from_args!" do
   it "should extract options from args" do
     args = ["foo", "bar", {:baz => :bar}]
     Kernel.extract_options_from_args!(args).should == {:baz => :bar}
     args.should == ["foo", "bar"]
   end
+end
 
+
+
+describe "Kernel#debugger" do
   it "should throw a useful error if there's no debugger" do
     Merb.logger.should_receive(:info!).with "\n***** Debugger requested, but was not " +
-                        "available: Start server with --debugger " +
-                        "to enable *****\n"
+      "available: Start server with --debugger " +
+      "to enable *****\n"
     Kernel.debugger
   end
 end
