@@ -168,13 +168,13 @@ module Merb::Test::Rspec::ControllerMatchers
     
     # ==== Parameters
     # target<Symbol>::
-    #   A format (e.g., :html, :json, etc.)
+    #   A ControllerClass or controller_instance
     #
     # ==== Returns
-    # Boolean:: True if the provided formats include the target
+    # Boolean:: True if the formats provided by the target controller/class include the expected
     def matches?(target)
       @target = target
-      provided_formats.include?( target )
+      provided_formats.include?( @expected )
     end
 
     # ==== Returns
@@ -192,7 +192,7 @@ module Merb::Test::Rspec::ControllerMatchers
     # ==== Returns
     # Array[Symbol]:: The formats the expected provides
     def provided_formats
-      @expected.class_provided_formats
+      @target.class_provided_formats
     end
   end
 

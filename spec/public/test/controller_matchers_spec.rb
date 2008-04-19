@@ -381,21 +381,21 @@ module Merb::Test::Rspec
       end
 
       it 'should match for formats a controller class provides' do
-        Provide.new( TestController ).matches?( :xml ).should be_true
+        Provide.new( :xml ).matches?( TestController ).should be_true
       end
 
       it 'should match for formats a controller instance provides' do
         t = TestController.new( fake_request )
-        Provide.new( t ).matches?( :xml ).should be_true
+        Provide.new( :xml ).matches?( t ).should be_true
       end
 
       it 'should not match for formats a controller class does not provide' do
-        Provide.new( TestController ).matches?( :yaml ).should be_false
+        Provide.new( :yaml ).matches?( TestController ).should be_false
       end
 
       it 'should not match for formats a controller instance does not provide' do
         t = TestController.new( fake_request )
-        Provide.new( t ).matches?( :yaml ).should be_false
+        Provide.new( :yaml ).matches?( t ).should be_false
       end
     end
   end
