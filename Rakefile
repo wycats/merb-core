@@ -130,17 +130,17 @@ task :aok => [:specs, :rcov]
 def setup_specs(name, spec_cmd='spec', run_opts = "-c -f s")
   desc "Run all specs (#{name})"
   task "specs:#{name}" do
-    run_specs("spec/**/*_spec.rb", spec_cmd, run_opts)
+    run_specs("spec/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
 
   desc "Run private specs (#{name})"
   task "specs:#{name}:private" do
-    run_specs("spec/private/**/*_spec.rb", spec_cmd, run_opts)
+    run_specs("spec/private/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
 
   desc "Run public specs (#{name})"
   task "specs:#{name}:public" do
-    run_specs("spec/public/**/*_spec.rb", spec_cmd, run_opts)
+    run_specs("spec/public/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
 
   # With profiling formatter
