@@ -107,3 +107,75 @@ describe "Kernel#load_dependency" do
     end
   end
 end
+
+
+
+describe "Kernel#dependencies" do
+  it "deferres load of dependencies given as String" do
+    self.should_receive(:dependency).with("hpricot").and_return(true)
+
+    begin
+      dependencies("hpricot")
+    rescue LoadError => e
+      # sanity check, should never happen
+    end
+  end
+
+  it "deferres load of dependencies given as Array" do
+    self.should_receive(:dependency).with("hpricot").and_return(true)
+    self.should_receive(:dependency).with("rake").and_return(true)
+
+    begin
+      dependencies("hpricot", "rake")
+    rescue LoadError => e
+      # sanity check, should never happen
+    end
+  end
+
+  it "deferres load of dependencies given as Hash" do
+    self.should_receive(:dependency).with("hpricot", "0.6").and_return(true)
+    self.should_receive(:dependency).with("rake", "0.8.1").and_return(true)
+
+    begin
+      dependencies("hpricot" => "0.6", "rake" => "0.8.1")
+    rescue LoadError => e
+      # sanity check, should never happen
+    end
+  end
+end
+
+
+
+describe "Kernel#load_dependencies" do
+  it "loads dependencies given as String immediately" do
+    self.should_receive(:load_dependency).with("hpricot").and_return(true)
+
+    begin
+      load_dependencies("hpricot")
+    rescue LoadError => e
+      # sanity check, should never happen
+    end
+  end
+
+  it "loads dependencies given as Array immediately" do
+    self.should_receive(:load_dependency).with("hpricot").and_return(true)
+    self.should_receive(:load_dependency).with("rake").and_return(true)
+
+    begin
+      load_dependencies("hpricot", "rake")
+    rescue LoadError => e
+      # sanity check, should never happen
+    end
+  end
+
+  it "loads dependencies given as Hash immediately" do
+    self.should_receive(:load_dependency).with("hpricot", "0.6").and_return(true)
+    self.should_receive(:load_dependency).with("rake", "0.8.1").and_return(true)
+
+    begin
+      load_dependencies("hpricot" => "0.6", "rake" => "0.8.1")
+    rescue LoadError => e
+      # sanity check, should never happen
+    end
+  end
+end
