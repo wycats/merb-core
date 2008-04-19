@@ -158,6 +158,44 @@ module Merb::Test::Rspec::ControllerMatchers
     end
   end
 
+  class Provide
+
+    # === Parameters
+    # Symbol:: A format to check
+    def initialize(expected)
+      @expected = expected
+    end
+    
+    # ==== Parameters
+    # target<Symbol>::
+    #   A format (e.g., :html, :json, etc.)
+    #
+    # ==== Returns
+    # Boolean:: True if the provided formats include the target
+    def matches?(target)
+      @target = target
+      provided_formats.include?( target )
+    end
+
+    # ==== Returns
+    # String:: The failure message.
+    def failure_message
+      "expected #{@target.name} to provide #{@expected}, but it doesn't"
+    end
+
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
+    def negative_failure_message
+      "expected #{@target.name} not to provide #{@expected}, but it does"
+    end
+
+    # ==== Returns
+    # Array[Symbol]:: The formats the expected provides
+    def provided_formats
+      @expected.class_provided_formats
+    end
+  end
+
   # Passes if the target was redirected, or the target is a redirection (300
   # level) response code.
   #
@@ -266,4 +304,13 @@ module Merb::Test::Rspec::ControllerMatchers
   end
 
   alias_method :be_client_error, :be_missing
+
+  # Passes if the controller actually provides the target format
+  #
+  # ==== Examples
+  #   ControllerClass.should provide( :html )
+  #   controller_instance.should provide( :xml )
+  def provide( expected )
+    Provide.new( expected )
+  end
 end
