@@ -47,8 +47,9 @@ describe "Plugins","use_orm" do
       and_return(true)
     use_orm(:activerecord)
   end
-
 end
+
+
 
 describe "Plugins","use_test" do
   before(:each) do
