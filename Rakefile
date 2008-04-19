@@ -127,20 +127,36 @@ task :aok => [:specs, :rcov]
 #   t.spec_files = Dir["spec/**/*_spec.rb"].sort
 # end
 
-def setup_specs(name, spec_cmd='spec')
+def setup_specs(name, spec_cmd='spec', run_opts = "-c -f s")
   desc "Run all specs (#{name})"
   task "specs:#{name}" do
-    run_specs("spec/**/*_spec.rb", spec_cmd)
+    run_specs("spec/**/*_spec.rb", spec_cmd, run_opts)
   end
 
   desc "Run private specs (#{name})"
   task "specs:#{name}:private" do
-    run_specs("spec/private/**/*_spec.rb", spec_cmd)
+    run_specs("spec/private/**/*_spec.rb", spec_cmd, run_opts)
   end
 
   desc "Run public specs (#{name})"
   task "specs:#{name}:public" do
-    run_specs("spec/public/**/*_spec.rb", spec_cmd)
+    run_specs("spec/public/**/*_spec.rb", spec_cmd, run_opts)
+  end
+
+  # With profiling formatter
+  desc "Run all specs (#{name}) with profiling formatter"
+  task "specs:#{name}_profiled" do
+    run_specs("spec/**/*_spec.rb", spec_cmd, "-c -f o")
+  end
+
+  desc "Run private specs (#{name}) with profiling formatter"
+  task "specs:#{name}_profiled:private" do
+    run_specs("spec/private/**/*_spec.rb", spec_cmd, "-c -f o")
+  end
+
+  desc "Run public specs (#{name}) with profiling formatter"
+  task "specs:#{name}_profiled:public" do
+    run_specs("spec/public/**/*_spec.rb", spec_cmd, "-c -f o")
   end
 end
 
@@ -244,7 +260,7 @@ namespace :repo do
       system "svn update"
     end
   end
-  
+
   desc "commit modified changes to the repository"
   task :commit do
     if File.directory?(".git")
@@ -253,24 +269,24 @@ namespace :repo do
       system "svn commit"
     end
   end
-  
+
 end
 
 # Run specific tests or test files. Searches nested spec directories as well.
-# 
+#
 # Based on a technique popularized by Geoffrey Grosenbach
 rule "" do |t|
   spec_cmd = (RUBY_PLATFORM =~ /java/) ? "jruby -S spec" : "spec"
   # spec:spec_file:spec_name
   if /spec:(.*)$/.match(t.name)
     arguments = t.name.split(':')
-    
+
     file_name = arguments[1]
     spec_name = arguments[2..-1]
 
     spec_filename = "#{file_name}_spec.rb"
     specs = Dir["spec/**/#{spec_filename}"]
-    
+
     if path = specs.detect { |f| spec_filename == File.basename(f) }
       run_file_name = path
     else
@@ -279,7 +295,7 @@ rule "" do |t|
     end
 
     example = " -e '#{spec_name}'" unless spec_name.empty?
-    
+
     sh "#{spec_cmd} #{run_file_name} --format specdoc --colour #{example}"
   end
 end
