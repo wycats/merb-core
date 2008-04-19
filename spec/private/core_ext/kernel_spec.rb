@@ -58,3 +58,52 @@ describe "Kernel#dependency" do
     dependency("dm_merb", ">= 0.9")
   end
 end
+
+
+describe "Kernel#load_dependency" do
+  before :each do
+
+  end
+
+  it "DOES NOT add dependency to the list" do
+    lambda {
+      begin
+        load_dependency("rspec", ">= 1.1.2")
+      rescue LoadError => e
+        # some people may have no RSpec gem
+      end
+    }.should_not change(Merb::BootLoader::Dependencies.dependencies, :size)
+  end
+
+  it "DOES NOT defer load to boot loader run and requires it right away" do
+    self.should_receive(:require)
+
+    begin
+      load_dependency("rspec", ">= 1.1.2")
+    rescue LoadError => e
+      # some people may have no RSpec gem
+    end
+  end
+
+  it "logs on events using info level" do
+    self.should_receive(:require)
+    Merb.logger.should_receive(:info!)
+
+    begin
+      load_dependency("rspec", ">= 1.1.2")
+    rescue LoadError => e
+      # some people may have no RSpec gem
+    end
+  end
+
+  it "tries to be smart by checking if Merb is frozen" do
+    self.should_receive(:require)
+    Merb.should_receive(:frozen?).and_return(true)
+
+    begin
+      load_dependency("merb-core")
+    rescue LoadError => e
+      # some people may have no RSpec gem
+    end
+  end
+end
