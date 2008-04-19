@@ -1,7 +1,7 @@
 require "pathname"
 
 class String
-  
+
   class InvalidPathConversion < Exception; end
 
   # ==== Returns
@@ -12,7 +12,7 @@ class String
   def escape_regexp
     Regexp.escape self
   end
-  
+
   # ==== Returns
   # String:: The string with all regexp special characters unescaped.
   #
@@ -21,7 +21,7 @@ class String
   def unescape_regexp
     self.gsub(/\\([\.\?\|\(\)\[\]\{\}\^\$\*\+\-])/, '\1')
   end
-  
+
   # ==== Returns
   # String:: The string converted to snake case.
   #
@@ -37,9 +37,10 @@ class String
   # ==== Examples
   #   "foo_bar".camel_case #=> "FooBar"
   def camel_case
+    return self if self !~ /_/ && self =~ /[A-Z]+.*/
     split('_').map{|e| e.capitalize}.join
   end
-  
+
   # ==== Returns
   # String:: The path string converted to a constant name.
   #
@@ -48,7 +49,7 @@ class String
   def to_const_string
     gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
   end
-  
+
   # ==== Returns
   # String::
   #   The path that is associated with the constantized string, assuming a
@@ -71,7 +72,7 @@ class String
   def /(o)
     File.join(self, o.to_s)
   end
-  
+
   def relative_path_from(other)
     Pathname.new(self).relative_path_from(Pathname.new(other)).to_s
   end
