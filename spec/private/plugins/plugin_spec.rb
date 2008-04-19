@@ -18,13 +18,13 @@ end
 
 describe "Plugins","use_orm" do
   before(:each) do
-    Merb.generator_scope.replace [:merb_default, :merb, :rspec]    
+    Merb.generator_scope.replace [:merb_default, :merb, :rspec]
     Kernel.stub!(:dependency)
   end
-  
+
   it "should raise an error if use_orm is called twice" do
     use_orm(:activerecord)
-    lambda { use_orm(:datamapper) }.should raise_error
+    lambda { use_orm(:datamapper) }.should raise_error("Don't call use_orm more than once")
   end
 
   it "should not have :merb_default in GENERATOR_SCOPE with use_orm(:activerecord)" do
@@ -41,13 +41,13 @@ describe "Plugins","use_orm" do
     use_orm(:activerecord)
     Merb.generator_scope.first.should == :activerecord
   end
-  
+
   it "should call dependency :merb_activerecord with use_orm(:activerecord)" do
     Kernel.should_receive(:dependency).with("merb_activerecord").once.
       and_return(true)
     use_orm(:activerecord)
   end
-  
+
 end
 
 describe "Plugins","use_test" do
@@ -55,7 +55,7 @@ describe "Plugins","use_test" do
     Merb.generator_scope.replace [:merb_default, :merb, :rspec]
     Kernel.stub!(:dependency)
   end
-  
+
   it "should have :rspec in GENERATOR_SCOPE by default" do
     Merb.generator_scope.should include(:rspec)
   end
@@ -74,7 +74,7 @@ describe "Plugins","use_test" do
     use_test(:test_unit)
     Merb.generator_scope.last.should == :test_unit
   end
-  
+
   it "should raise an error if called with an unsupported test framework" do
     lambda { use_test(:fiddlefaddle) }.should raise_error
   end

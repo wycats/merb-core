@@ -9,7 +9,7 @@ module Kernel
   def dependency(name, *ver)
     Merb::BootLoader::Dependencies.dependencies << [name, ver]
   end
-  
+
   # Loads the given string as a gem.
   #
   # ==== Parameters
@@ -28,7 +28,7 @@ module Kernel
     try_framework = Merb.frozen?
     begin
       # If this is a piece of merb, and we're frozen, try to require
-      # first, so we can pick it up from framework/, 
+      # first, so we can pick it up from framework/,
       # otherwise try activating the gem
       if name =~ /^merb/ && try_framework
         require name
@@ -63,7 +63,7 @@ module Kernel
       end
     end
   end
-  
+
   # Loads both gem and library dependencies that are passed in as arguments.
   #
   # ==== Parameters
@@ -89,7 +89,7 @@ module Kernel
       end
     end
   end
-  
+
   # Does a basic require, and prints a message if an error occurs.
   #
   # ==== Parameters
@@ -100,7 +100,7 @@ module Kernel
   rescue LoadError, RuntimeError
     Merb.logger.error!(message) if message
   end
-  
+
   # Used in Merb.root/config/init.rb to tell Merb which ORM (Object Relational
   # Mapper) you wish to use. Currently Merb has plugins to support
   # ActiveRecord, DataMapper, and Sequel.
@@ -115,25 +115,76 @@ module Kernel
   #   # This will use the DataMapper generator for your ORM
   #   $ ruby script/generate model MyModel
   def use_orm(orm)
-    if !Merb.generator_scope.include?(:merb_default) && !Merb.generator_scope.include?(orm.to_sym)
-      raise "Don't call use_orm more than once"
-    end
+    raise "Don't call use_orm more than once" if already_registred_orm?(orm)
+
     begin
       Merb.generator_scope.delete(:merb_default)
-      orm_plugin = case orm.to_s
-        when /^merb_/   then orm.to_s
-        when 'dm_core'  then 'dm-merb'
-        else "merb_#{orm}"
-        end
-      
-      Merb.generator_scope.unshift(orm.to_sym) unless Merb.generator_scope.include?(orm.to_sym)
+      orm_plugin = resolve_orm_plugin_name(orm)
+
+      register_orm(orm)
       Kernel.dependency(orm_plugin)
     rescue LoadError => e
       Merb.logger.warn!("The #{orm_plugin} gem was not found.  You may need to install it.")
       raise e
     end
   end
-  
+
+  # Use to check whether given ORM already registred at generator scope
+  #
+  # ==== Parameters
+  # orm<~to_sym>::
+  #   ORM alias, like :activerecord, :datamapper or :sequel. :dm_core is an ad hoc solution.
+  #
+  # ==== Returns
+  # Boolean::
+  #   true if ORM is already registred, false otherwise
+  #
+  #--
+  # private
+  def already_registred_orm?(orm)
+    !Merb.generator_scope.include?(:merb_default) && !Merb.generator_scope.include?(orm.to_sym)
+  end
+
+  # Registers ORM at generator scope.
+  #
+  # ==== Parameters
+  # orm<~to_sym>::
+  #   ORM alias, like :activerecord, :datamapper or :sequel. :dm_core is an ad hoc solution.
+  #--
+  # private
+  def register_orm(orm)
+    Merb.generator_scope.unshift(orm.to_sym) unless Merb.generator_scope.include?(orm.to_sym)
+  end
+
+  # Registers ORM alias into ORM plugin gem name.
+  #
+  # ==== Parameters
+  # orm<~to_sym>::
+  #   ORM alias, like :activerecord, :datamapper or :sequel. :dm_core is an ad hoc solution.
+  #
+  # ==== Notes
+  #   DataMapper is in the process of rewrite and this introduces number of specific notes.
+  #
+  #   dm_core is used as an ad hoc solution because Datamapper team decided to mantain
+  #   Merb plugin on their own.
+  #
+  #   So :datamapper uses merb_datamapper (old) for DM 0.3 and :dm_core uses new dm-merb for DM 0.9.
+  #
+  # ==== Examples
+  #
+  # resolve_orm_plugin_name(:activerecord)      # => merb_activerecord
+  # resolve_orm_plugin_name(:merb_activerecord) # => merb_activerecord
+  # resolve_orm_plugin_name(:dm_core)           # => dm-merb
+  #--
+  # private
+  def resolve_orm_plugin_name(orm)
+    case orm.to_s
+        when /^merb_/   then orm.to_s
+        when 'dm_core'  then 'dm-merb'
+        else "merb_#{orm}"
+        end
+  end
+
   # Used in Merb.root/config/init.rb to tell Merb which testing framework to
   # use. Currently Merb has plugins to support RSpec and Test::Unit.
   #
@@ -148,19 +199,19 @@ module Kernel
   #   # This will now use the RSpec generator for tests
   #   $ ruby script/generate controller MyController
   def use_test(test_framework, *test_dependencies)
-    raise "use_test only supports :rspec and :test_unit currently" unless 
+    raise "use_test only supports :rspec and :test_unit currently" unless
       [:rspec, :test_unit].include?(test_framework.to_sym)
     Merb.generator_scope.delete(:rspec)
     Merb.generator_scope.delete(:test_unit)
     Merb.generator_scope.push(test_framework.to_sym)
-    
+
     dependencies test_dependencies if Merb.env == "test" || Merb.env.nil?
   end
-  
+
   # ==== Returns
   # Array[String]:: A stack trace of the applications files.
   def __app_file_trace__
-    caller.select do |call| 
+    caller.select do |call|
       call.include?(Merb.root) && !call.include?(Merb.root + "/framework")
     end.map do |call|
       file, line = call.scan(Regexp.new("#{Merb.root}/(.*):(.*)")).first
@@ -224,7 +275,7 @@ module Kernel
 
     area
   end
-  
+
   # Takes a block, profiles the results of running the block 100 times and
   # writes out the results in a file.
   #
@@ -249,7 +300,7 @@ module Kernel
   #   end
   #
   # Assuming that the total time taken for #puts calls was less than 5% of the
-  # total time to run, #puts won't appear in the profile report. 
+  # total time to run, #puts won't appear in the profile report.
   # The code block will be run 30 times.
   def __profile__(name, min=1, iter=100)
     require 'ruby-prof' unless defined?(RubyProf)
@@ -264,8 +315,8 @@ module Kernel
                           :print_file => true})
     end
     return_result
-  end  
-  
+  end
+
   # Extracts an options hash if it is the last item in the args array. Used
   # internally in methods that take *args.
   #
@@ -280,7 +331,7 @@ module Kernel
   def extract_options_from_args!(args)
     args.pop if Hash === args.last
   end
-  
+
   # Checks that the given objects quack like the given conditions.
   #
   # ==== Parameters
@@ -295,13 +346,13 @@ module Kernel
       raise ArgumentError, "#{k.inspect} doesn't quack like #{v.inspect}" unless k.quacks_like?(v)
     end
   end
-  
+
   unless Kernel.respond_to?(:debugger)
 
     # Define debugger method so that code even works if debugger was not
     # requested. Drops a note to the logs that Debugger was not available.
     def debugger
-       Merb.logger.info! "\n***** Debugger requested, but was not " + 
+       Merb.logger.info! "\n***** Debugger requested, but was not " +
                         "available: Start server with --debugger " +
                         "to enable *****\n"
     end
