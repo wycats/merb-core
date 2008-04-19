@@ -15,7 +15,7 @@ module Merb
           env['rack.input'] = req
           super(DEFAULT_ENV.merge(env))
         end
-    
+
         private
         DEFAULT_ENV = Mash.new({
           'SERVER_NAME' => 'localhost',
@@ -38,7 +38,7 @@ module Merb
           'GATEWAY_INTERFACE' => 'CGI/1.2',
           'HTTP_ACCEPT' => 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5',
           'HTTP_CONNECTION' => 'keep-alive',
-          'REQUEST_METHOD' => 'GET'      
+          'REQUEST_METHOD' => 'GET'
         }) unless defined?(DEFAULT_ENV)
       end
 
@@ -50,7 +50,7 @@ module Merb
       # :post_body<String>:: The post body for the request.
       # :req<String>::
       #   The request string. This will only be used if :post_body is left out.
-      # 
+      #
       # ==== Returns
       # FakeRequest:: A Request object that is built based on the parameters.
       #
@@ -66,7 +66,7 @@ module Merb
         else
           req = opt[:req]
         end
-        FakeRequest.new(env, StringIO.new(req || '')) 
+        FakeRequest.new(env, StringIO.new(req || ''))
       end
 
       # Dispatches an action to the given class. This bypasses the router and is
@@ -104,8 +104,8 @@ module Merb
 
         dispatch_request(request, controller_klass, action, &blk)
       end
-      
-      
+
+
       # Dispatches an action to the given class and using HTTP Basic Authentication
       # This bypasses the router and is suitable for unit testing of controllers.
       #
@@ -141,10 +141,10 @@ module Merb
         env["X_HTTP_AUTHORIZATION"] = "Basic #{Base64.encode64("#{username}:#{password}")}"
         request = fake_request(env.merge(
           :query_string => Merb::Request.params_to_query_string(params)), request_body)
-        
+
         dispatch_request(request, controller_klass, action, &blk)
       end
-  
+
       # An HTTP GET request that operates through the router.
       #
       # ==== Parameters
@@ -159,7 +159,7 @@ module Merb
         env[:request_method] = "GET"
         request(path, params, env, &block)
       end
-  
+
       # An HTTP POST request that operates through the router.
       #
       # ==== Parameters
@@ -174,7 +174,7 @@ module Merb
         env[:request_method] = "POST"
         request(path, params, env, &block)
       end
-  
+
       # An HTTP PUT request that operates through the router.
       #
       # ==== Parameters
@@ -189,7 +189,7 @@ module Merb
         env[:request_method] = "PUT"
         request(path, params, env, &block)
       end
-  
+
       # An HTTP DELETE request that operates through the router
       #
       # ==== Parameters
@@ -218,7 +218,7 @@ module Merb
       # blk<Proc>:: The block is executed in the context of the controller.
       #
       # ==== Example
-      #   request(path, :create, :name => 'Homer' ) do
+      #   request(path, { :name => 'Homer' }, { :request_method => "PUT" }) do
       #     self.stub!(:current_user).and_return(@user)
       #   end
       #
@@ -226,25 +226,25 @@ module Merb
       # Uses Routes.
       #
       #---
-      # @semi-public  
+      # @semi-public
       def request(path, params = {}, env= {}, &block)
         env[:request_method] ||= "GET"
         env[:request_uri] = path
         multipart = env.delete(:test_with_multipart)
-    
+
         request = fake_request(env)
-    
+
         opts = check_request_for_route(request) # Check that the request will be routed correctly
         klass = Object.full_const_get(opts.delete(:controller).to_const_string)
         action = opts.delete(:action).to_s
         params.merge!(opts)
-  
+
         multipart.nil? ? dispatch_to(klass, action, params, env, &block) : dispatch_multipart_to(klass, action, params, env, &block)
       end
 
 
       # The workhorse for the dispatch*to helpers.
-      # 
+      #
       # ==== Parameters
       # request<Merb::Test::FakeRequest, Merb::Request>::
       #   A request object that has been setup for testing.
@@ -273,7 +273,7 @@ module Merb
       end
 
       # Checks to see that a request is routable.
-      # 
+      #
       # ==== Parameters
       # request<Merb::Test::FakeRequest, Merb::Request>::
       #   The request object to inspect.
