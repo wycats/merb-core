@@ -73,6 +73,14 @@ class String
     File.join(self, o.to_s)
   end
 
+  # ==== Parameters ====
+  # other<String>:: Base path to calculate against
+  #
+  # ==== Returns ====
+  # String:: Relative path from between the two
+  #
+  # ==== Example ====
+  # "/opt/local/lib".relative_path_from("/opt/local/lib/ruby/site_ruby") # => "../.."
   def relative_path_from(other)
     Pathname.new(self).relative_path_from(Pathname.new(other)).to_s
   end
