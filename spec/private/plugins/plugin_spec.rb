@@ -80,3 +80,73 @@ describe "Plugins","use_test" do
     lambda { use_test(:fiddlefaddle) }.should raise_error
   end
 end
+
+
+describe "Plugins", "register_orm" do
+  before(:each) do
+    Merb.generator_scope.replace [:merb_default, :merb, :rspec]
+    Kernel.stub!(:dependency)
+  end
+
+  it "registers ORM plugin at generator scope" do
+    register_orm(:sequel)
+
+    Merb.generator_scope.should include(:sequel)
+  end
+end
+
+
+
+describe "Plugins", "registred_orm?" do
+  before(:each) do
+    Merb.generator_scope.replace [:merb_default, :merb, :rspec]
+    Kernel.stub!(:dependency)
+  end
+
+  it "returns false unless ORM is registred" do
+    registred_orm?(:sequel).should be(false)
+  end
+
+  it "returns true once ORM is registred" do
+    use_orm(:sequel)
+
+    registred_orm?(:sequel).should be(false)
+  end
+end
+
+
+
+
+describe "Plugins", "register_test_framework" do
+  before(:each) do
+    Merb.generator_scope.replace [:merb_default, :merb, :rspec]
+    Kernel.stub!(:dependency)
+  end
+
+  it "registers test framework at generator scope" do
+    register_test_framework(:test_unit)
+
+    Merb.generator_scope.should include(:test_unit)
+  end
+end
+
+
+
+describe "Plugins", "supported_test_framework?" do
+  before(:each) do
+    Merb.generator_scope.replace [:merb_default, :merb, :rspec]
+    Kernel.stub!(:dependency)
+  end
+
+  it "supports RSpec" do
+    supported_test_framework?(:rspec).should be(true)
+  end
+
+  it "supports Test::Unit" do
+    supported_test_framework?(:rspec).should be(true)
+  end
+
+  it "DOES NOT yet support MSpec (of Rubinius fame)" do
+    supported_test_framework?(:mspec).should be(false)
+  end
+end

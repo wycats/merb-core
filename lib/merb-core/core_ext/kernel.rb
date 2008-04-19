@@ -140,7 +140,7 @@ module Kernel
   #   true if ORM is already registred, false otherwise
   #
   #--
-  # private
+  # semi-public
   def registred_orm?(orm)
     !Merb.generator_scope.include?(:merb_default) && !Merb.generator_scope.include?(orm.to_sym)
   end
@@ -199,13 +199,35 @@ module Kernel
   #   # This will now use the RSpec generator for tests
   #   $ ruby script/generate controller MyController
   def use_test(test_framework, *test_dependencies)
-    raise "use_test only supports :rspec and :test_unit currently" unless
-      [:rspec, :test_unit].include?(test_framework.to_sym)
-    Merb.generator_scope.delete(:rspec)
-    Merb.generator_scope.delete(:test_unit)
-    Merb.generator_scope.push(test_framework.to_sym)
+    raise "use_test only supports :rspec and :test_unit currently" unless supported_test_framework?(test_framework)
+    register_test_framework(test_framework)
 
     dependencies test_dependencies if Merb.env == "test" || Merb.env.nil?
+  end
+
+  # Check whether Merb supports test framework. Currently Merb has plugins to support RSpec and Test::Unit.
+  #
+  # ==== Parameters
+  # test_framework<Symbol>::
+  #   The test framework to check. Currently only supports :rspec and :test_unit.
+  #--
+  # semi-public
+  def supported_test_framework?(test_framework)
+    [:rspec, :test_unit].include?(test_framework.to_sym)
+  end
+
+  # Register test framework at generator scope. Currently Merb has plugins to support RSpec and Test::Unit.
+  #
+  # ==== Parameters
+  # test_framework<Symbol>::
+  #   The test framework to check. Currently only supports :rspec and :test_unit but the check is performed before registration if you use API.
+  #--
+  # private
+  def register_test_framework(test_framework)
+    Merb.generator_scope.delete(:rspec)
+    Merb.generator_scope.delete(:test_unit)
+
+    Merb.generator_scope.push(test_framework.to_sym)
   end
 
   # ==== Returns
