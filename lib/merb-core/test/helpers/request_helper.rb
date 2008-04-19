@@ -154,7 +154,9 @@ module Merb
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see +fake_request+).
-      # &block:: The block is executed in the context of the controller.
+      # &blk::
+      #   The controller is yielded to the block provided for actions *prior* to
+      #   the action being dispatched.
       def get(path, params = {}, env = {}, &block)
         env[:request_method] = "GET"
         request(path, params, env, &block)
@@ -169,7 +171,9 @@ module Merb
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see fake_request).
-      # &block:: The block is executed in the context of the controller.
+      # &blk::
+      #   The controller is yielded to the block provided for actions *prior* to
+      #   the action being dispatched.
       def post(path, params = {}, env = {}, &block)
         env[:request_method] = "POST"
         request(path, params, env, &block)
@@ -184,7 +188,9 @@ module Merb
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see fake_request).
-      # &block:: The block is executed in the context of the controller.
+      # &blk::
+      #   The controller is yielded to the block provided for actions *prior* to
+      #   the action being dispatched.
       def put(path, params = {}, env = {}, &block)
         env[:request_method] = "PUT"
         request(path, params, env, &block)
@@ -199,7 +205,9 @@ module Merb
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see fake_request).
-      # &block:: The block is executed in the context of the controller.
+      # &blk::
+      #   The controller is yielded to the block provided for actions *prior* to
+      #   the action being dispatched.
       def delete(path, params = {}, env = {}, &block)
         env[:request_method] = "DELETE"
         request(path, params, env, &block)
@@ -215,7 +223,9 @@ module Merb
       # env<Hash>::
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see +fake_request+).
-      # blk<Proc>:: The block is executed in the context of the controller.
+      # &blk::
+      #   The controller is yielded to the block provided for actions *prior* to
+      #   the action being dispatched.
       #
       # ==== Example
       #   request(path, { :name => 'Homer' }, { :request_method => "PUT" }) do
@@ -251,7 +261,9 @@ module Merb
       # controller_klass<Merb::Controller>::
       #   The class object off the controller to dispatch the action to.
       # action<Symbol>:: The action to dispatch the request to.
-      # blk<Proc>:: The block will execute in the context of the controller itself.
+      # &blk::
+      #   The controller is yielded to the block provided for actions *prior* to
+      #   the action being dispatched.
       #
       # ==== Returns
       # An instance of +controller_klass+ based on the parameters.
