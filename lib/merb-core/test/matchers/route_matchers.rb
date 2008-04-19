@@ -19,9 +19,9 @@ module Merb::Test::Rspec::RouteMatchers
     def matches?(target)
       @target_env = target.dup
       @target_controller, @target_action = @target_env.delete(:controller).to_s, @target_env.delete(:action).to_s
-      
+
       @target_controller = "#{target.delete(:namespace)}::#{@target_controller}" if target.has_key?(:namespace)
-      
+
       @expected_controller.snake_case == @target_controller.snake_case && @expected_action == @target_action && match_parameters(@target_env)
     end
 
@@ -49,29 +49,20 @@ module Merb::Test::Rspec::RouteMatchers
     # with the key :id set to parameters.to_param.
     def with(parameters)
       @paramter_matcher = ParameterMatcher.new(parameters)
-      
+
       self
     end
 
     # ==== Returns
     # String:: The failure message.
     def failure_message
-      "expected the request to route to #{camelize(@expected_controller)}##{@expected_action}, but was #{camelize(@target_controller)}##{@target_action}"
+      "expected the request to route to #{@expected_controller.camel_case}##{@expected_action}, but was #{@target_controller.camel_case}##{@target_action}"
     end
-  
+
     # ==== Returns
     # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
-      "expected the request not to route to #{camelize(@expected_controller)}##{@expected_action}, but it did"
-    end
-
-    # ==== Parameters
-    # word<~to_s>:: The word to camelize.
-    #
-    # ==== Returns
-    # String:: The word camelized.
-    def camelize(word)
-      word.to_s.gsub(/^[a-z]|(\_[a-z])/) { |a| a.upcase.gsub("_", "") }
+      "expected the request not to route to #{@expected_controller.camel_case}##{@expected_action}, but it did"
     end
   end
 
@@ -98,7 +89,7 @@ module Merb::Test::Rspec::RouteMatchers
     # Boolean:: True if the route parameters match the expected ones.
     def matches?(parameter_hash)
       @actual = parameter_hash.dup.except(:controller, :action)
-    
+
       @expected.all? {|(k, v)| @actual.has_key?(k) && @actual[k] == v}
     end
 
