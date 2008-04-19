@@ -40,8 +40,7 @@ def run_specs(globs, spec_cmd='spec', run_opts = "-c -f s")
   else
     print "\e[31m"
   end
-  puts "#{examples} examples, #{failures} failures, #{errors} errors, #{pending} pending"
-
-  puts "suite run in #{time.real} seconds"
+  puts "#{examples} examples, #{failures} failures, #{errors} errors, #{pending} pending, #{sprintf("suite run in %3.3f seconds", time.real)}"
+  # TODO: we need to report pending examples all together
   print "\e[0m"
 end
