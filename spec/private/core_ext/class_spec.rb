@@ -3,12 +3,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 class ProphecyOfSmalltalk
 end
 
-describe Class, "#class_inheritable_array" do
-
-end
-
-
-
 describe Class, "#reset_inheritable_attributes" do
   it "resets @inheritable_attributes to empty Hash unless EMPTY_INHERITABLE_ATTRIBUTES constant is defined" do
     ProphecyOfSmalltalk.reset_inheritable_attributes
