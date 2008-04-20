@@ -140,7 +140,7 @@ module Kernel
   #   true if ORM is already registred, false otherwise
   #
   #--
-  # semi-public
+  # @semi-public
   def registred_orm?(orm)
     !Merb.generator_scope.include?(:merb_default) && !Merb.generator_scope.include?(orm.to_sym)
   end
@@ -151,7 +151,7 @@ module Kernel
   # orm<~to_sym>::
   #   ORM alias, like :activerecord, :datamapper or :sequel. :dm_core is an ad hoc solution.
   #--
-  # private
+  # @private
   def register_orm(orm)
     Merb.generator_scope.unshift(orm.to_sym) unless Merb.generator_scope.include?(orm.to_sym)
   end
@@ -176,7 +176,7 @@ module Kernel
   # resolve_orm_plugin_name(:merb_activerecord) # => merb_activerecord
   # resolve_orm_plugin_name(:dm_core)           # => dm-merb
   #--
-  # private
+  # @private
   def resolve_orm_plugin_name(orm)
     case orm.to_s
         when /^merb_/   then orm.to_s
@@ -211,7 +211,7 @@ module Kernel
   # test_framework<Symbol>::
   #   The test framework to check. Currently only supports :rspec and :test_unit.
   #--
-  # semi-public
+  # @semi-public
   def supported_test_framework?(test_framework)
     [:rspec, :test_unit].include?(test_framework.to_sym)
   end
@@ -222,7 +222,7 @@ module Kernel
   # test_framework<Symbol>::
   #   The test framework to check. Currently only supports :rspec and :test_unit but the check is performed before registration if you use API.
   #--
-  # private
+  # @private
   def register_test_framework(test_framework)
     Merb.generator_scope.delete(:rspec)
     Merb.generator_scope.delete(:test_unit)
