@@ -400,6 +400,18 @@ end
 class ToHashParser # :nodoc:
 
   def self.from_xml(xml)
+    if defined?(Hpricot)
+      # TODO: actually use Hpricot which is
+      #       many times faster than REXML
+      #       and is not cracked up in recent
+      #       Ruby 1.8.x branch releases.
+      self.from_xml_with_rexml(xml)
+    else
+      self.from_xml_with_rexml(xml)
+    end
+  end
+
+  def self.from_xml_with_rexml(xml)
     stack = []
     parser = REXML::Parsers::BaseParser.new(xml)
 
