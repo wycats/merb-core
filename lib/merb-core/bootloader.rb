@@ -324,11 +324,6 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to load.
     def load_file(file)
-      # TODO: it would be cool to get rid of ObjectSpace
-      #       because it is kinda sticks us to MRI,
-      #       and we want to be Ruby implementation agnostic.
-      #       Though it won't be easy so additional investigation
-      #       is required.
       klasses = ObjectSpace.classes.dup
       load file
       LOADED_CLASSES[file] = ObjectSpace.classes - klasses
