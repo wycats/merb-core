@@ -79,4 +79,29 @@ describe Object, "#full_const_get" do
   it "acts as a global function" do
     lambda { April::In::Paris.full_const_get("PERFORMER") }.should raise_error(NameError)
   end
+
+  it "raises an exception if constant is undefined" do
+    lambda { self.full_const_get("We::May::Never::Meet::Again") }.should raise_error(NameError)
+  end
+end
+
+
+
+describe Object, "#make_module" do
+  it "defines module from a string name" do
+    Object.make_module("Cant::Take::That::Away::From::Me")
+
+    defined?(Cant::Take::That::Away::From::Me).should == "constant"
+  end
+
+  it "is OK if module already defined" do
+    module Merb
+      module Is
+        module Modular
+        end
+      end
+    end
+
+    lambda { Object.make_module("Merb::Is::Modular") }.should_not raise_error
+  end
 end
