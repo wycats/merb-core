@@ -36,3 +36,47 @@ describe Object, "#quacks_like" do
     "Foo".should_not be_quacks_like({})
   end
 end
+
+
+
+describe Object, "#full_const_get" do
+  class April
+    class In
+      class Paris
+        PERFORMER = "Ella Fitzgerald"
+      end
+    end
+  end
+
+  module Succubus
+    module In
+      module Rapture
+        PERFORMER = "Dimmu Borgir"
+      end
+    end
+  end
+
+  it "returns constant corresponding to the name" do
+    self.full_const_get("April").should == April
+  end
+
+  it "handles nested classes" do
+    self.full_const_get("April::In::Paris").should == April::In::Paris
+  end
+
+  it "handles nested modules" do
+    self.full_const_get("Succubus::In::Rapture").should == Succubus::In::Rapture
+  end
+
+  it "handles in-scoped constants in modules" do
+    self.full_const_get("Succubus::In::Rapture::PERFORMER").should == "Dimmu Borgir"
+  end
+
+  it "handles in-scoped constants in classes" do
+    self.full_const_get("April::In::Paris::PERFORMER").should == "Ella Fitzgerald"
+  end
+
+  it "acts as a global function" do
+    lambda { April::In::Paris.full_const_get("PERFORMER") }.should raise_error(NameError)
+  end
+end
