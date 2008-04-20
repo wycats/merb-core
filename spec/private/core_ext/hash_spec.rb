@@ -14,6 +14,7 @@ describe Hash, "environmentize_keys!" do
   end
 end
 
+
 describe Hash, "only" do
   before do
     @hash = { :one => 'ONE', 'two' => 'TWO', 3 => 'THREE' }
@@ -24,6 +25,7 @@ describe Hash, "only" do
     @hash.only(:one, 3).should == { :one => 'ONE', 3 => 'THREE' }
   end
 end
+
 
 describe Hash, "except" do
   before do
@@ -36,6 +38,7 @@ describe Hash, "except" do
   end
 end
 
+
 describe Hash, "to_xml_attributes" do
   before do
     @hash = { :one => "ONE", "two" => "TWO" }
@@ -47,6 +50,7 @@ describe Hash, "to_xml_attributes" do
     attrs.should match(/two="TWO"/m)
   end
 end
+
 
 describe Hash, "from_xml" do
   it "should transform a simple tag with content" do
@@ -487,8 +491,8 @@ describe Hash, "from_xml" do
 
     Hash.from_xml(xml_string)['person'].should == expected_hash
   end
-
 end
+
 
 describe Hash, 'to_params' do
   before do
