@@ -14,13 +14,13 @@ class Hash
     #
     # ===== Typecasting
     # Typecasting is performed on elements that have a +type+ attribute:
-    # integer:: 
+    # integer::
     # boolean:: Anything other than "true" evaluates to false.
     # datetime::
     #   Returns a Time object. See Time documentation for valid Time strings.
     # date::
     #   Returns a Date object. See Date documentation for valid Date strings.
-    # 
+    #
     # Keys are automatically converted to +snake_case+
     #
     # ==== Examples
@@ -34,15 +34,15 @@ class Hash
     #     <is-cool type='boolean'>true</is-cool>
     #   </user>
     #
-    # evaluates to 
-    # 
-    #   { "user" => { 
+    # evaluates to
+    #
+    #   { "user" => {
     #       "gender"    => "m",
     #       "age"       => 35,
     #       "name"      => "Home Simpson",
     #       "dob"       => DateObject( 1998-01-01 ),
     #       "joined_at" => TimeObject( 2000-04-28 23:01),
-    #       "is_cool"   => true 
+    #       "is_cool"   => true
     #     }
     #   }
     #
@@ -54,7 +54,7 @@ class Hash
     # evaluates to
     #
     #   { "story" => "A Quick <em>brown</em> Fox" }
-    # 
+    #
     # ====== Attributes other than type on a node containing text
     #   <story is-good='false'>
     #     A Quick <em>brown</em> Fox
@@ -73,15 +73,19 @@ class Hash
       ToHashParser.from_xml(xml)
     end
   end
-  
+
   # ==== Returns
   # Mash:: This hash as a Mash for string or symbol key access.
+  #
+  # This class has semantics of ActiveSupport's HashWithIndifferentAccess
+  # and we only have it so that people can write
+  # params[:key] instead of params['key'].
   def to_mash
     hash = Mash.new(self)
     hash.default = default
     hash
   end
-  
+
   # ==== Returns
   # String:: This hash as a query string
   #
@@ -97,7 +101,7 @@ class Hash
   def to_params
     params = ''
     stack = []
-    
+
     each do |k, v|
       if v.is_a?(Hash)
         stack << [k,v]
@@ -105,7 +109,7 @@ class Hash
         params << "#{k}=#{v}&"
       end
     end
-    
+
     stack.each do |parent, hash|
       hash.each do |k, v|
         if v.is_a?(Hash)
@@ -115,11 +119,11 @@ class Hash
         end
       end
     end
-    
+
     params.chop! # trailing &
     params
   end
-  
+
   # ==== Parameters
   # *allowed:: The hash keys to include.
   #
@@ -129,10 +133,10 @@ class Hash
   # ==== Examples
   #   { :one => 1, :two => 2, :three => 3 }.only(:one)
   #     #=> { :one => 1 }
-  def only(*allowed) 
+  def only(*allowed)
     reject { |k,v| !allowed.include?(k) }
   end
-  
+
   # ==== Parameters
   # *rejected:: The hash keys to exclude.
   #
@@ -142,10 +146,10 @@ class Hash
   # ==== Examples
   #   { :one => 1, :two => 2, :three => 3 }.except(:one)
   #     #=> { :two => 2, :three => 3 }
-  def except(*rejected) 
+  def except(*rejected)
     reject { |k,v| rejected.include?(k) }
   end
-  
+
   # ==== Returns
   # String:: The hash as attributes for an XML tag.
   #
@@ -154,12 +158,12 @@ class Hash
   #     #=> 'one="1" two="TWO"'
   def to_xml_attributes
     map do |k,v|
-      %{#{k.to_s.camel_case.sub(/^(.{1,1})/) { |m| m.downcase }}="#{v}"} 
+      %{#{k.to_s.camel_case.sub(/^(.{1,1})/) { |m| m.downcase }}="#{v}"}
     end.join(' ')
   end
-  
+
   alias_method :to_html_attributes, :to_xml_attributes
-  
+
   # ==== Parameters
   # html_class<~to_s>::
   #   The HTML class to add to the :class key. The html_class will be
@@ -178,7 +182,7 @@ class Hash
       self[:class] = html_class.to_s
     end
   end
-  
+
   # Converts all keys into string values. This is used during reloading to
   # prevent problems when classes are no longer declared.
   #
@@ -188,7 +192,7 @@ class Hash
   def protect_keys!
     keys.each {|key| self[key.to_s] = delete(key) }
   end
-  
+
   # Attempts to convert all string keys into Class keys. We run this after
   # reloading to convert protected hashes back into usable hashes.
   #
@@ -197,11 +201,11 @@ class Hash
   #   hash = { "One" => 1, "Two" => 2 }.unproctect_keys!
   #   hash # => { One => 1, Two => 2 }
   def unprotect_keys!
-    keys.each do |key| 
+    keys.each do |key|
       (self[Object.full_const_get(key)] = delete(key)) rescue nil
     end
   end
-  
+
   # Destructively and non-recursively convert each key to an uppercase string,
   # deleting nil values along the way.
   #
@@ -218,7 +222,7 @@ class Hash
       self[key.to_s.upcase] = val
     end
     self
-  end  
+  end
 end
 
 require 'rexml/parsers/streamparser'
@@ -233,7 +237,7 @@ require 'rexml/light/node'
 class REXMLUtilityNode # :nodoc:
   attr_accessor :name, :attributes, :children, :type
   cattr_accessor :typecasts, :available_typecasts
-  
+
   self.typecasts = {}
   self.typecasts["integer"]       = lambda{|v| v.nil? ? nil : v.to_i}
   self.typecasts["boolean"]       = lambda{|v| v.nil? ? nil : (v.strip != "false")}
@@ -247,14 +251,14 @@ class REXMLUtilityNode # :nodoc:
   self.typecasts["string"]        = lambda{|v| v.to_s}
   self.typecasts["yaml"]          = lambda{|v| v.nil? ? nil : YAML.load(v)}
   self.typecasts["base64Binary"]  = lambda{|v| Base64.decode64(v)}
-  
+
   self.available_typecasts = self.typecasts.keys
 
   def initialize(name, attributes = {})
     @name         = name.tr("-", "_")
     # leave the type alone if we don't know what it is
     @type         = self.class.available_typecasts.include?(attributes["type"]) ? attributes.delete("type") : attributes["type"]
-    
+
     @nil_element  = attributes.delete("nil") == "true"
     @attributes   = undasherize_keys(attributes)
     @children     = []
@@ -268,7 +272,7 @@ class REXMLUtilityNode # :nodoc:
 
   def to_hash
     if @type == "file"
-      f = StringIO.new(::Base64.decode64(@children.first || ""))  
+      f = StringIO.new(::Base64.decode64(@children.first || ""))
       class << f
         attr_accessor :original_filename, :content_type
       end
@@ -276,13 +280,13 @@ class REXMLUtilityNode # :nodoc:
       f.content_type = attributes['content_type'] || 'application/octet-stream'
       return {name => f}
     end
-    
+
     if @text
       return { name => typecast_value( translate_xml_entities( inner_html ) ) }
     else
       #change repeating groups into an array
       groups = @children.inject({}) { |s,e| (s[e.name] ||= []) << e; s }
-      
+
       out = nil
       if @type == "array"
         out = []
@@ -294,7 +298,7 @@ class REXMLUtilityNode # :nodoc:
           end
         end
         out = out.flatten
-        
+
       else # If Hash
         out = {}
         groups.each do |k,v|
@@ -322,11 +326,11 @@ class REXMLUtilityNode # :nodoc:
   #
   # ==== Parameters
   # value<String>:: The value that is being typecast.
-  # 
+  #
   # ==== :type options
-  # "integer":: 
+  # "integer"::
   #   converts +value+ to an integer with #to_i
-  # "boolean":: 
+  # "boolean"::
   #   checks whether +value+, after removing spaces, is the literal
   #   "true"
   # "datetime"::
@@ -388,7 +392,7 @@ class REXMLUtilityNode # :nodoc:
 
   # ==== Alias
   # #to_html
-  def to_s 
+  def to_s
     to_html
   end
 end
@@ -398,7 +402,7 @@ class ToHashParser # :nodoc:
   def self.from_xml(xml)
     stack = []
     parser = REXML::Parsers::BaseParser.new(xml)
-    
+
     while true
       event = parser.pull
       case event[0]
