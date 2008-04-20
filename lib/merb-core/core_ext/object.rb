@@ -18,7 +18,7 @@ class Object
   #       puts self
   #     end
   #   end
-  # 
+  #
   #   def String.add_meta_var(var)
   #     self.meta_class.instance_eval do
   #       define_method var do
@@ -67,7 +67,7 @@ class Object
   #    false.blank?      #=>  true
   #    "".blank?         #=>  true
   #    "     ".blank?    #=>  true
-  #    " hey ho ".blank? #=>  false  
+  #    " hey ho ".blank? #=>  false
   def blank?
     if respond_to?(:empty?) && respond_to?(:strip)
       empty? or strip.empty?
@@ -89,8 +89,9 @@ class Object
     list.each {|x| obj = obj.const_get(x) }
     obj
   end
-  
-  # Makes a module from a string (e.g. Foo::Bar::Baz)
+
+  # Defines module from a string name (e.g. Foo::Bar::Baz)
+  # If method already exists, no exception raised.
   #
   # ==== Parameters
   # name<String>:: The name of the full module name to make
@@ -106,7 +107,7 @@ class Object
       #{ender}
     HERE
   end
-  
+
   # ==== Parameters
   # duck<Symbol, Class, Array>:: The thing to compare the object to.
   #
@@ -132,5 +133,4 @@ class Object
       false
     end
   end
-
 end
