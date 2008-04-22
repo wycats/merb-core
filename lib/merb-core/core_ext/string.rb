@@ -2,8 +2,6 @@ require "pathname"
 
 class String
 
-  class InvalidPathConversion < Exception; end
-
   # ==== Returns
   # String:: The string with all regexp special characters escaped.
   #
