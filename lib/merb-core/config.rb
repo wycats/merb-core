@@ -142,7 +142,7 @@ module Merb
             options[:cluster] = nodes
           end
 
-          opts.on("-I", "--init-file FILE", "Name of the file to load first") do |init_file|
+          opts.on("-I", "--init-file FILE", "File to use for initialization on load, defaults to config/init.rb") do |init_file|
             options[:init_file] = init_file
           end
 
