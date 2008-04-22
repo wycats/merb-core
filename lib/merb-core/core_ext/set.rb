@@ -1,4 +1,9 @@
 module Merb
+  # Simple set implementation
+  # on top of Hash with mergins support.
+  #
+  # In particular this is used to store
+  # a set of callable actions of controller.
   class SimpleSet < Hash
 
     # ==== Parameters
@@ -33,9 +38,9 @@ module Merb
     def inspect
       "#<SimpleSet: {#{keys.map {|x| x.inspect}.join(", ")}}>"
     end
-  
+
     # def to_a
     alias_method :to_a, :keys
-    
-  end
-end
+
+  end # SimpleSet
+end # Merb
