@@ -1,23 +1,23 @@
 class Merb::Controller < Merb::AbstractController
-  
+
   class_inheritable_accessor :_hidden_actions, :_shown_actions
   cattr_accessor :_subclasses, :_session_id_key, :_session_secret_key, :_session_expiry
   self._subclasses = Set.new
 
   def self.subclasses_list() _subclasses end
-  
+
   self._session_secret_key = nil
   self._session_id_key = Merb::Config[:session_id_key] || '_session_id'
   self._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
-  
+
   include Merb::ResponderMixin
   include Merb::ControllerMixin
   include Merb::AuthenticationMixin
 
   attr_accessor :route
-  
+
   class << self
-    
+
     # ==== Parameters
     # klass<Merb::Controller>::
     #   The Merb::Controller inheriting from the base class.
@@ -35,7 +35,7 @@ class Merb::Controller < Merb::AbstractController
     # ==== Returns
     # Array[String]::
     #   An array of actions that should not be possible to dispatch to.
-    # 
+    #
     #---
     # @public
     def hide_action(*names)
@@ -52,7 +52,7 @@ class Merb::Controller < Merb::AbstractController
     # Array[String]::
     #   An array of actions that should be dispatched to even if they would not
     #   otherwise be.
-    # 
+    #
     # ==== Example
     #   module Foo
     #     def self.included(base)
@@ -75,7 +75,7 @@ class Merb::Controller < Merb::AbstractController
     end
 
     # This list of actions that should not be callable.
-    # 
+    #
     # ==== Returns
     # Array[String]:: An array of actions that should not be dispatchable.
     def _hidden_actions
@@ -84,14 +84,14 @@ class Merb::Controller < Merb::AbstractController
     end
 
     # This list of actions that should be callable.
-    # 
+    #
     # ==== Returns
     # Array[String]::
     #   An array of actions that should be dispatched to even if they would not
     #   otherwise be.
     def _shown_actions
       actions = read_inheritable_attribute(:_shown_actions)
-      actions ? actions : write_inheritable_attribute(:_shown_actions, [])      
+      actions ? actions : write_inheritable_attribute(:_shown_actions, [])
     end
 
     # The list of actions that are callable, after taking defaults,
@@ -99,7 +99,7 @@ class Merb::Controller < Merb::AbstractController
     # once, the first time an action is dispatched for this controller.
     #
     # ==== Returns
-    # Array[String]:: A list of actions that should be callable.
+    # SimpleSet[String]:: A set of actions that should be callable.
     def callable_actions
       unless @callable_actions
         callables = []
@@ -112,10 +112,10 @@ class Merb::Controller < Merb::AbstractController
       end
       @callable_actions
     end
-    
-    
+
+
   end # class << self
-  
+
   # The location to look for a template for a particular controller, action,
   # and mime-type. This is overridden from AbstractController, which defines a
   # version of this that does not involve mime-types.
@@ -136,12 +136,12 @@ class Merb::Controller < Merb::AbstractController
   # @public
   def _template_location(action, type = nil, controller = controller_name)
     "#{controller}/#{action}.#{type}"
-  end  
-  
+  end
+
   # Build a new controller.
   #
   # Sets the variables that came in through the dispatch as available to
-  # the controller. 
+  # the controller.
   #
   # This method uses the :session_id_cookie_only and :query_string_whitelist
   # configuration options. See CONFIG for more details.
@@ -149,7 +149,7 @@ class Merb::Controller < Merb::AbstractController
   # ==== Parameters
   # request<Merb::Request>:: The Merb::Request that came in from Mongrel.
   # status<Integer>:: An integer code for the status. Defaults to 200.
-  # headers<Hash{header => value}>:: 
+  # headers<Hash{header => value}>::
   #   A hash of headers to start the controller with. These headers can be
   #   overridden later by the #headers method.
   #---
@@ -158,7 +158,7 @@ class Merb::Controller < Merb::AbstractController
     super()
     @request, @status, @headers = request, status, headers
   end
-  
+
   # Dispatch the action.
   #
   # ==== Parameters
@@ -180,16 +180,16 @@ class Merb::Controller < Merb::AbstractController
     end
     @_benchmarks[:action_time] = Time.now - start
   end
-  
+
   attr_reader :request, :headers
   attr_accessor :status
-  
+
   # ==== Returns
   # Hash:: The parameters from the request object
   def params()  request.params  end
-    
+
   # ==== Returns
-  # Merb::Cookies:: 
+  # Merb::Cookies::
   #   A new Merb::Cookies instance representing the cookies that came in
   #   from the request object
   #
@@ -197,11 +197,11 @@ class Merb::Controller < Merb::AbstractController
   # Headers are passed into the cookie object so that you can do:
   #   cookies[:foo] = "bar"
   def cookies() @_cookies ||= _setup_cookies end
-    
+
   # ==== Returns
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
-    
+
   private
 
   # Create a default cookie jar, and pre-set a fixation cookie
