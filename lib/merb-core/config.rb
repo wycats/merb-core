@@ -91,7 +91,7 @@ module Merb
       # ==== Returns
       # String:: The config as YAML.
       def to_yaml
-        @configuration.to_yaml  
+        @configuration.to_yaml
       end
 
       # Sets up the configuration by storing the given settings.
@@ -121,7 +121,7 @@ module Merb
           opts.release = Merb::RELEASE
 
           opts.banner = "Usage: merb [uGdcIpPhmailLerkKX] [argument]"
-          opts.define_head "Merb Mongrel+ Erb. Lightweight replacement for ActionPack."
+          opts.define_head "Merb. Pocket rocket web framework"
           opts.separator '*'*80
           opts.separator 'If no flags are given, Merb starts in the foreground on port 4000.'
           opts.separator '*'*80
@@ -169,7 +169,7 @@ module Merb
           opts.on("-i", "--irb-console", "This flag will start merb in irb console mode. All your models and other classes will be available for you in an irb session.") do |console|
             options[:adapter] = 'irb'
           end
-          
+
           opts.on("-S", "--sandbox", "This flag will enable a sandboxed irb console. If your ORM supports transactions, all edits will be rolled back on exit.") do |sandbox|
             options[:sandbox] = true
           end
@@ -186,7 +186,7 @@ module Merb
             options[:environment] = env
           end
 
-          opts.on("-r", "--script-runner ['RUBY CODE'| FULL_SCRIPT_PATH]", 
+          opts.on("-r", "--script-runner ['RUBY CODE'| FULL_SCRIPT_PATH]",
           "Command-line option to run scripts and/or code in the merb app.") do |code_or_file|
             options[:runner_code] = code_or_file
             options[:adapter] = 'runner'
@@ -207,7 +207,7 @@ module Merb
               options[:use_mutex] = false
             else
               options[:use_mutex] = true
-            end   
+            end
           end
 
           opts.on("-D", "--debugger", "Run merb using rDebug.") do
@@ -223,7 +223,7 @@ module Merb
           end
 
           opts.on("-?", "-H", "--help", "Show this help message") do
-            puts opts  
+            puts opts
             exit
           end
         end
@@ -250,7 +250,7 @@ module Merb
       def configure(&block)
         ConfigBlock.new(self, &block) if block_given?
       end
-      
+
       # Allows retrieval of single key config values via Merb.config.<key>
       # Allows single key assignment via Merb.config.<key> = ...
       #
