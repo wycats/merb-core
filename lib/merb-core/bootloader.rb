@@ -255,7 +255,8 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
       load(env_config) if env_config?
     end
 
-    # Determines the init file to use, if any
+    # Determines the init file to use, if any.
+    # By default Merb uses init.rb from application config directory.
     def self.initfile
       if Merb::Config[:init_file]
         Merb::Config[:init_file].chomp(".rb") + ".rb"
