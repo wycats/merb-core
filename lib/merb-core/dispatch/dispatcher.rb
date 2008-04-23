@@ -35,9 +35,7 @@ class Merb::Dispatcher
       end
       request.route_params = route_params
       request.params.merge! route_params
-      
-      Merb.logger.info("Params: #{request.params.inspect}")
-      
+            
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
       unless controller_name
@@ -60,6 +58,8 @@ class Merb::Dispatcher
       rescue NameError
         raise Merb::ControllerExceptions::NotFound
       end
+
+      Merb.logger.info("Params: #{klass._filter_params(request.params).inspect}")
 
       action = route_params[:action]
 
