@@ -213,11 +213,7 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
-<<<<<<< HEAD:lib/merb-core/controller/merb_controller.rb
 
-=======
-
->>>>>>> wycats:lib/merb-core/controller/merb_controller.rb
   private
 
   # Create a default cookie jar, and pre-set a fixation cookie
