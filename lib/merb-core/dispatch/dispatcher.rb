@@ -35,9 +35,7 @@ class Merb::Dispatcher
       end
       request.route_params = route_params
       request.params.merge! route_params
-      
-      Merb.logger.info("Params: #{request.params.inspect}")
-      
+            
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
       unless controller_name
@@ -61,11 +59,19 @@ class Merb::Dispatcher
         raise Merb::ControllerExceptions::NotFound
       end
 
+      Merb.logger.info("Params: #{klass._filter_params(request.params).inspect}")
+
       action = route_params[:action]
 
+      if route_index && route = Merb::Router.routes[route_index]
+        #Fixate the session ID if it is enabled on the route
+        if route.allow_fixation? && request.params.key?(Merb::Controller._session_id_key)
+          request.cookies[Merb::Controller._session_id_key] = request.params[Merb::Controller._session_id_key]
+        end
+      end      
+
       controller = dispatch_action(klass, action, request)
-      controller._benchmarks[:dispatch_time] = Time.now - start
-      controller.route = Merb::Router.routes[route_index] if route_index
+      controller._benchmarks[:dispatch_time] = Time.now - start  
       Merb.logger.info controller._benchmarks.inspect
       Merb.logger.flush
 

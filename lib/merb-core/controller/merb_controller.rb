@@ -113,6 +113,18 @@ class Merb::Controller < Merb::AbstractController
       @callable_actions
     end
 
+    # This is a stub method so plugins can implement param filtering if they want.
+    #
+    # ==== Parameters
+    # params<Hash{Symbol => String}>:: A list of params
+    #
+    # ==== Returns
+    # Hash{Symbol => String}:: A new list of params, filtered as desired
+    #---
+    # @semipublic
+    def _filter_params(params)
+      params
+    end
 
   end # class << self
 
@@ -201,16 +213,16 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
+<<<<<<< HEAD:lib/merb-core/controller/merb_controller.rb
 
+=======
+
+>>>>>>> wycats:lib/merb-core/controller/merb_controller.rb
   private
 
   # Create a default cookie jar, and pre-set a fixation cookie
   # if fixation is enabled
   def _setup_cookies
-    cookies = ::Merb::Cookies.new(request.cookies, @headers)
-    if request.params.key?(_session_id_key) && route.allow_fixation?
-      cookies[_session_id_key] = request.params[_session_id_key]
-    end
-    cookies
+    ::Merb::Cookies.new(request.cookies, @headers)
   end
 end

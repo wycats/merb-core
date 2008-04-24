@@ -17,6 +17,7 @@ module Merb
       def initialize(conditions, params, behavior = nil, &conditional_block)
         @conditions, @params, @behavior = conditions, params, behavior
         @conditional_block = conditional_block
+        @fixation=false
         if @behavior && (path = @behavior.merged_original_conditions[:path])
           @segments = segments_from_path(path)
         end
