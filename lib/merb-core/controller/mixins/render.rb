@@ -132,7 +132,9 @@ module Merb::RenderMixin
   # thing<String, Symbol>::
   #   The thing to attempt to render via #render before calling the transform
   #   method on the object. Defaults to nil.
-  # opts<Hash>:: An options hash that will be passed on to #render
+  # opts<Hash>:: 
+  #   An options hash that will be used for rendering
+  #   (passed on to #render or serialization methods like #to_json or #to_xml)
   # 
   # ==== Returns
   # String::
@@ -152,21 +154,33 @@ module Merb::RenderMixin
   #   display @object, :layout => "zoo"
   #   #=> display @object, nil, :layout => "zoo"
   #
+  # ==== Options
+  #
+  # :template                a template to use for rendering
+  # :serialization_options   options that will be pass to serialization method
+  #                          like #to_json or #to_xml
+  #
   # ==== Note
   # The transformed object will not be used in a layout unless a :layout is
   # explicitly passed in the opts.
+  #
+  # If you need to pass extra parameters to serialization method, for instance,
+  # to exclude some of attributes or serialize associations, use
+  # :serialization_options option.
   def display(object, thing = nil, opts = {})
     # display @object, "path/to/foo" means display @object, nil, :template => "path/to/foo"
     # display @object, :template => "path/to/foo" means display @object, nil, :template => "path/to/foo"
+    template_opt = opts.delete(:template)
+    
     case thing
     when String
-      opts[:template], thing = thing, nil
+      template_opt, thing = thing, nil
     when Hash
       opts, thing = thing, nil
     end
     
     # Try to render without the object
-    render(thing || action_name.to_sym, opts)
+    render(thing || action_name.to_sym, opts.merge(:template => template_opt))
   
   # If the render fails (i.e. a template was not found)
   rescue TemplateNotFound
@@ -176,15 +190,14 @@ module Merb::RenderMixin
     # Figure out what to transform and raise NotAcceptable unless there's a transform method assigned
     transform = Merb.mime_transform_method(content_type)
     raise NotAcceptable unless transform && object.respond_to?(transform)
-    
-    # Throw the transformed object for later consumption by the layout
-    throw_content(:for_layout, object.send(transform))
-  
+
     # Only use a layout if one was specified
-    if opts[:layout]
+    layout_opt = opts.delete(:layout)
+    
+    if layout_opt
       # Look for the layout under the default layout directly. If it's not found, reraise
       # the TemplateNotFound error
-      template = _template_location(opts[:layout], layout.index(".") ? content_type : nil, "layout")      
+      template = _template_location(layout_opt, layout.index(".") ? content_type : nil, "layout")      
       layout = _template_for(_template_root / template) ||
         (raise TemplateNotFound, "No layout found at #{_template_root / template}.*")      
               
@@ -193,6 +206,12 @@ module Merb::RenderMixin
     
     # Otherwise, just render the transformed object
     else
+      unless opts.empty?
+        # there are options for serialization method
+        throw_content(:for_layout, object.send(transform, opts))
+      else
+        throw_content(:for_layout, object.send(transform))
+      end  
       catch_content(:for_layout)
     end
   end

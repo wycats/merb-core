@@ -37,5 +37,15 @@ describe Merb::Controller, " displaying objects based on mime type" do
   it "should use mime-types that are provided at the local level" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::DisplayLocalProvides, :index, {}, :http_accept => "application/xml")
     controller.body.should == "<XML:Model />"    
-  end  
+  end
+  
+  it "passes all options to serialization method like :to_json" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithSerializationOptions, :index, {}, :http_accept => "application/json")
+    controller.body.should == "{ 'include': 'beer, jazz', 'exclude': 'idiots' }"
+  end
+  
+  it "passes single argument to serialization method like :to_json" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithSerializationOptions, :index_that_passes_empty_hash, {}, :http_accept => "application/json")
+    controller.body.should == "{ 'include': '', 'exclude': '' }"
+  end
 end
