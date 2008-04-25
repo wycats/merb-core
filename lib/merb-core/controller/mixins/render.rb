@@ -154,19 +154,28 @@ module Merb::RenderMixin
   #   display @object, :layout => "zoo"
   #   #=> display @object, nil, :layout => "zoo"
   #
+  # If you need to pass extra parameters to serialization method, for instance,
+  # to exclude some of attributes or serialize associations, just pass options
+  # for it.
+  # For instance, 
+  #
+  # display	@locations, :except => [:locatable_type, :locatable_id], :include => [:locatable]
+  #
+  # serializes object with polymorphic association,	not raw	locatable_* attributes.
+  #
+  #  
   # ==== Options
   #
   # :template                a template to use for rendering
-  # :serialization_options   options that will be pass to serialization method
+  # :layout                  a layout to use for rendering
+  
+  # all other options        options that will be pass to serialization method
   #                          like #to_json or #to_xml
   #
   # ==== Note
   # The transformed object will not be used in a layout unless a :layout is
   # explicitly passed in the opts.
   #
-  # If you need to pass extra parameters to serialization method, for instance,
-  # to exclude some of attributes or serialize associations, use
-  # :serialization_options option.
   def display(object, thing = nil, opts = {})
     # display @object, "path/to/foo" means display @object, nil, :template => "path/to/foo"
     # display @object, :template => "path/to/foo" means display @object, nil, :template => "path/to/foo"
