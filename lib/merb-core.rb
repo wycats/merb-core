@@ -235,6 +235,18 @@ module Merb
       $TESTING || Merb::Config[:testing]
     end
 
+    # Ask the question about which environment you're in.
+    # ==== Parameters
+    # env<Symbol, String>:: Name of the environment to query
+    # 
+    # ==== Examples
+    # Merb.env #=> production
+    # Merb.env?(:production) #=> true
+    # Merb.env?(:development) #=> false
+    def env?(env)
+      Merb.env == env.to_s
+    end
+
     # If block was given configures using the block.
     #
     # ==== Parameters
@@ -299,6 +311,10 @@ module Merb
       @rakefiles ||= ['merb-core/test/tasks/spectasks']
       @rakefiles += rakefiles
     end
+    
+    
+    
+    
   end
 end
 
