@@ -318,6 +318,8 @@ module Merb
       # :member<Hash>:
       #   Special settings and resources related to a specific member of this
       #   resource.
+      # :keys<Array>:
+      #   A list of the keys to be used instead of :id with the resource in the order of the url.
       #
       # ==== Block parameters
       # next_level<Behavior>:: The child behavior.
@@ -351,15 +353,16 @@ module Merb
         next_level = match "/#{name}"
 
         name_prefix = options.delete :name_prefix
+        matched_keys =  options[:keys] ? options.delete(:keys).map{|k| ":#{k}"}.join("/")  : ":id"
 
         if name_prefix.nil? && !namespace.nil?
           name_prefix = namespace_to_name_prefix namespace
         end
-        
+
         unless @@parent_resource.empty?
           parent_resource = namespace_to_name_prefix @@parent_resource.join('_')
         end
-        
+
         options[:controller] ||= merged_params[:controller] || name.to_s
 
         singular = name.to_s.singularize
@@ -372,41 +375,45 @@ module Merb
         if member = options.delete(:member)
           member.each_pair do |action, methods|
             behaviors << Behavior.new(
-              { :path => %r{^/:id[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
-              { :action => action.to_s }, next_level
+            { :path => %r{^/#{matched_keys}[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
+            { :action => action.to_s }, next_level
             )
-            next_level.match("/:id/#{action}").to_route.name(:"#{action}_#{route_singular_name}")
+            next_level.match("/#{matched_keys}/#{action}").to_route.name(:"#{action}_#{route_singular_name}")
           end
         end
 
         if collection = options.delete(:collection)
           collection.each_pair do |action, methods|
             behaviors << Behavior.new(
-              { :path => %r{^[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
-              { :action => action.to_s }, next_level
+            { :path => %r{^[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
+            { :action => action.to_s }, next_level
             )
             next_level.match("/#{action}").to_route.name(:"#{action}_#{route_plural_name}")
           end
         end
 
-        routes = many_behaviors_to(behaviors + next_level.send(:resources_behaviors), options)
+        routes = many_behaviors_to(behaviors + next_level.send(:resources_behaviors, matched_keys), options)
+
+
 
         # Add names to some routes
         [['', :"#{route_plural_name}"],
-         ['/:id', :"#{route_singular_name}"],
-         ['/new', :"new_#{route_singular_name}"],
-         ['/:id/edit', :"edit_#{route_singular_name}"],
-         ['/:id/delete', :"delete_#{route_singular_name}"]
+        ["/#{matched_keys}", :"#{route_singular_name}"],
+        ['/new', :"new_#{route_singular_name}"],
+        ["/#{matched_keys}/edit", :"edit_#{route_singular_name}"],
+        ["/#{matched_keys}/delete", :"delete_#{route_singular_name}"]
         ].each do |path,name|
           next_level.match(path).to_route.name(name)
         end
-        
+
+
+        parent_keys = (matched_keys == ":id") ? ":#{singular}_id" : matched_keys
         if block_given?
           @@parent_resource.push(singular)
-          yield next_level.match("/:#{singular}_id")
+          yield next_level.match("/#{parent_keys}")
           @@parent_resource.pop
         end
-        
+
         routes
       end
 
@@ -592,22 +599,22 @@ module Merb
       end
 
       # ==== Parameters
-      # parent<Merb::Router::Behavior>::
-      #   The parent behavior for the generated resource behaviors.
+      # matched_keys<String>::
+      #   The keys to match
       #
       # ==== Returns
       # Array:: Behaviors for a RESTful resource.
-      def resources_behaviors(parent = self)
+      def resources_behaviors(matched_keys = ":id")
         [
-          Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :get },    { :action => "index" },   parent),
-          Behavior.new({ :path => %r[^/index(\.:format)?$], :method => :get },    { :action => "index" },   parent),
-          Behavior.new({ :path => %r[^/new$],               :method => :get },    { :action => "new" },     parent),
-          Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :post },   { :action => "create" },  parent),
-          Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :get },    { :action => "show" },    parent),
-          Behavior.new({ :path => %r[^/:id[;/]edit$],       :method => :get },    { :action => "edit" },    parent),
-          Behavior.new({ :path => %r[^/:id[;/]delete$],     :method => :get },    { :action => "delete" },  parent),
-          Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :put },    { :action => "update" },  parent),
-          Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :delete }, { :action => "destroy" }, parent)
+          Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :get },    { :action => "index" },   self),
+          Behavior.new({ :path => %r[^/index(\.:format)?$], :method => :get },    { :action => "index" },   self),
+          Behavior.new({ :path => %r[^/new$],               :method => :get },    { :action => "new" },     self),
+          Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :post },   { :action => "create" },  self),
+          Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :get },    { :action => "show" },    self),
+          Behavior.new({ :path => %r[^/#{matched_keys}[;/]edit$],       :method => :get },    { :action => "edit" },    self),
+          Behavior.new({ :path => %r[^/#{matched_keys}[;/]delete$],     :method => :get },    { :action => "delete" },  self),
+          Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :put },    { :action => "update" },  self),
+          Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :delete }, { :action => "destroy" }, self)
         ]
       end
 

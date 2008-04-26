@@ -12,6 +12,9 @@ Merb::Router.prepare do |r|
   r.resource :foo do |f|
     f.resources :comments
   end
+  r.resources :domains, :keys => [:domain] do |d|
+    d.resources :emails, :keys => [:username]
+  end
 end
 
 describe "nested resources routes" do
@@ -30,5 +33,9 @@ describe "nested resources routes" do
 
   it "should match a get to /foo/comments to the comments controller and index action" do
     route_to('/foo/comments', :method => :get).should have_route(:controller => 'comments', :action => 'index', :id => nil)
+  end
+  
+  it "should match a get to /domains/merbivore_com/emails to the emails controller and index action with domain => 'merbivore_com" do
+     route_to('/domains/merbivore_com/emails', :method => :get).should have_route(:controller => 'emails', :action => 'index', :username => nil, :domain => 'merbivore_com')
   end
 end
