@@ -146,12 +146,11 @@ module Merb
     # String:: The root directory of the Merb framework.
     def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
     # ==== Returns
-    #
-    # Regular expression against which deferred actions
-    # are matched by Rack application handler.
+    # RegExp::
+    #   Regular expression against which deferred actions
+    #   are matched by Rack application handler.
     #
     # ==== Note
-    #
     # Concatenates :deferred_actions configuration option
     # values.
     def deferred_actions
