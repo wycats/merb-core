@@ -145,6 +145,7 @@ module Merb
     # ==== Returns
     # String:: The root directory of the Merb framework.
     def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
+
     # ==== Returns
     # RegExp::
     #   Regular expression against which deferred actions
