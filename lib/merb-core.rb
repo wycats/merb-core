@@ -28,7 +28,7 @@ module Merb
       Merb.root = Merb::Config[:merb_root]
       Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
     end
-    
+
     # Start the Merb environment, but only if it hasn't been loaded yet.
     #
     # ==== Parameters
@@ -40,7 +40,7 @@ module Merb
         @started = true
       end
     end
-    
+
     # Restart the Merb environment explicitly.
     #
     # ==== Parameters
@@ -52,9 +52,9 @@ module Merb
     end
 
     attr_accessor :environment, :load_paths, :adapter
-    
+
     alias :env :environment
-    
+
     Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)
 
     # This is the core mechanism for setting up your application layout
@@ -145,15 +145,23 @@ module Merb
     # ==== Returns
     # String:: The root directory of the Merb framework.
     def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
-
+    # ==== Returns
+    #
+    # Regular expression against which deferred actions
+    # are matched by Rack application handler.
+    #
+    # ==== Note
+    #
+    # Concatenates :deferred_actions configuration option
+    # values.
     def deferred_actions
       @deferred ||= begin
         if Merb::Config[:deferred_actions].empty?
           /^\0$/
-        else  
+        else
           /#{Merb::Config[:deferred_actions].join("|")}/
         end
-      end  
+      end
     end
 
     # Allows flat apps by setting no default framework directories and yielding
@@ -203,7 +211,7 @@ module Merb
     def frozen!
       @frozen = true
     end
-    
+
     # Load configuration and assign logger.
     #
     # ==== Parameters
@@ -212,7 +220,7 @@ module Merb
       Merb::Config.setup({ :log_file => STDOUT, :log_level => :warn, :log_auto_flush => true }.merge(options))
       Merb::BootLoader::Logger.run
     end
-    
+
     # Load all basic dependencies (selected BootLoaders only).
     #
     # ==== Parameters
@@ -223,12 +231,12 @@ module Merb
       Merb::BootLoader::Dependencies.run
       Merb::BootLoader::BeforeAppRuns.run
     end
-    
+
     # Reload the framework.
     def reload
       Merb::BootLoader::ReloadClasses.reload
     end
-    
+
     # ==== Returns
     # Boolean:: True if Merb is running via spec_helper.rb or other TEST scenario.
     def testing?
@@ -254,13 +262,13 @@ module Merb
     #     session_secret_key "0d05a226affa226623eb18700"
     #     exception_details  true
     #     reload_classes     true
-    #     reload_time        0.5 
+    #     reload_time        0.5
     #   end
     def config(&block)
       Merb::Config.configure(&block) if block_given?
       Config
     end
-    
+
     # Disables the given core components, like a Gem for example.
     #
     # ==== Parameters
@@ -268,25 +276,25 @@ module Merb
     def disable(*components)
       disabled_components.push *components
     end
-    
+
     # ==== Parameters
     # Array:: All components that should be disabled.
     def disabled_components=(components)
       disabled_components.replace components
     end
-    
+
     # ==== Returns
     # Array:: All components that have been disabled.
     def disabled_components
       Merb::Config[:disabled_components] ||= []
     end
-    
+
     # ==== Returns
     # Boolean:: True if all components (or just one) are disabled.
     def disabled?(*components)
       components.all? { |c| disabled_components.include?(c) }
     end
-    
+
     # ==== Returns
     # Array:: All Rakefiles for plugins.
     def rakefiles
