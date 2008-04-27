@@ -219,6 +219,7 @@ module Merb
     end
 
     # Used by script/frozen-merb and other freezers to mark Merb as frozen.
+    # See Merb::GlobalHelpers.frozen? for more details on framework freezing.
     def frozen!
       @frozen = true
     end
