@@ -298,8 +298,8 @@ module Kernel
     area
   end
 
-  # Takes a block, profiles the results of running the block 100 times and
-  # writes out the results in a file.
+  # Takes a block, profiles the results of running the block
+  # specified number of times and generates HTML report.
   #
   # ==== Parameters
   # name<~to_s>::
@@ -323,7 +323,7 @@ module Kernel
   #
   # Assuming that the total time taken for #puts calls was less than 5% of the
   # total time to run, #puts won't appear in the profile report.
-  # The code block will be run 30 times.
+  # The code block will be run 30 times in the example above.
   def __profile__(name, min=1, iter=100)
     require 'ruby-prof' unless defined?(RubyProf)
     return_result = ''
