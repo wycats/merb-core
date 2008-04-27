@@ -315,6 +315,10 @@ module Merb
     # ==== Returns
     # Hash:: The current configuration.
     #
+    # ==== Notes
+    # See Merb::GlobalHelpers.load_config for configuration
+    # options list.
+    #
     # ==== Examples
     #   Merb.config do
     #     beer               "good"
