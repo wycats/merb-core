@@ -207,6 +207,13 @@ module Merb
 
     # ==== Returns
     # Boolean:: True if Merb is running via script/frozen-merb or other freezer.
+    #
+    # ==== Note
+    # Freezing means bundling framework libraries with your application
+    # making it independent from environment it runs in. This is a good
+    # practice to freeze application framework and gems it uses and
+    # very useful when application is run in some sort of sandbox,
+    # for instance, shared hosting with preconfigured gems.
     def frozen?
       @frozen
     end
