@@ -151,7 +151,7 @@ module Merb
     #   Regular expression against which deferred actions
     #   are matched by Rack application handler.
     #
-    # ==== Note
+    # ==== Notes
     # Concatenates :deferred_actions configuration option
     # values.
     def deferred_actions
@@ -192,7 +192,7 @@ module Merb
     # file<String>:: The file that defines this session type.
     # description<String>:: An optional description of the session type.
     #
-    # ==== Note
+    # ==== Notes
     # Merb currently supports memory, cookie and memcache session
     # types.
     def register_session_type(name, file, description = nil)
@@ -208,7 +208,7 @@ module Merb
     # ==== Returns
     # Boolean:: True if Merb is running via script/frozen-merb or other freezer.
     #
-    # ==== Note
+    # ==== Notes
     # Freezing means bundling framework libraries with your application
     # making it independent from environment it runs in. This is a good
     # practice to freeze application framework and gems it uses and
