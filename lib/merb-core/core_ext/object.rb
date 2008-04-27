@@ -133,4 +133,14 @@ class Object
       false
     end
   end
+  
+  # ==== Parameters
+  # arrayish<Array>:: Container to check, to see if it includes the object.
+  #
+  # ==== Returns
+  # Boolean: True if the object is included in arrayish
+  def in?(arrayish)
+    return false unless arrayish.respond_to?("include?")
+    arrayish.include?(self)
+  end
 end
