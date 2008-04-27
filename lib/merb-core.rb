@@ -260,7 +260,11 @@ module Merb
     #
     # :log_auto_flush<Boolean>::  whether the log should automatically
     #                             flush after new messages are
-    #                             added, defaults to false.
+    #                             added, defaults to true.
+    #
+    # :log_file<IO>::             IO for logger. Default is STDOUT.
+    #
+    # :log_level<Symbol>::        logger level, default is :warn
     #
     # :disabled_components<Array[Symbol]>::
     #   array of disabled component names,
