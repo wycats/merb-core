@@ -191,6 +191,10 @@ module Merb
     # name<~to_s>:: Name of the session type to register.
     # file<String>:: The file that defines this session type.
     # description<String>:: An optional description of the session type.
+    #
+    # ==== Note
+    # Merb currently supports memory, cookie and memcache session
+    # types.
     def register_session_type(name, file, description = nil)
       @registered_session_types ||= Dictionary.new
       @registered_session_types[name] = {
