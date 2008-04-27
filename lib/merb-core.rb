@@ -228,6 +228,53 @@ module Merb
     #
     # ==== Parameters
     # options<Hash>:: Options to pass on to the Merb config.
+    #
+    # ==== Options
+    # :host<String>::             host to bind to,
+    #                             default is 0.0.0.0.
+    #
+    # :port<Fixnum>::             port to run Merb application on,
+    #                             default is 4000.
+    #
+    # :adapter<String>::          name of Rack adapter to use,
+    #                             default is "runner"
+    #
+    # :reload_classes<Boolean>::  whether Merb should reload
+    #                             classes on each request,
+    #                             default is true
+    #
+    # :environment<String>::      name of environment to use,
+    #                             default is development
+    #
+    # :merb_root<String>::        Merb application root,
+    #                             default is Dir.pwd
+    #
+    # :use_mutex<Boolean>::       turns action dispatch synchronization
+    #                             on or off, default is on (true)
+    #
+    # :session_id_key<String>::   session identifier,
+    #                             default is _session_id
+    #
+    # :log_delimiter<String>::    what Merb logger uses as delimiter
+    #                             between message sections, default is " ~ "
+    #
+    # :log_auto_flush<Boolean>::  whether the log should automatically
+    #                             flush after new messages are
+    #                             added, defaults to false.
+    #
+    # :disabled_components<Array[Symbol]>::
+    #   array of disabled component names,
+    #   for instance, to disable json gem,
+    #   specify :json. Default is empty array.
+    #
+    # :deferred_actions<Array(Symbol, String)]>::
+    #   names of actions that should be deferred
+    #   no matter what controller they belong to.
+    #   Default is empty array.
+    #
+    # Some of these options come from command line on Merb
+    # application start, some of them are set in Merb init file
+    # or environment-specific.
     def load_config(options = {})
       Merb::Config.setup({ :log_file => STDOUT, :log_level => :warn, :log_auto_flush => true }.merge(options))
       Merb::BootLoader::Logger.run
