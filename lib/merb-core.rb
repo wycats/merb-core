@@ -134,7 +134,7 @@ module Merb
     end
 
     # ==== Returns
-    # String:: The directory that contains the log file.
+    # String:: Path to directory that contains the log file.
     def log_path
       case Merb::Config[:log_file]
       when String then File.dirname(Merb::Config[:log_file])
