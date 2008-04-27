@@ -136,11 +136,12 @@ class Object
   
   # ==== Parameters
   # arrayish<Array>:: Container to check, to see if it includes the object.
+  # more<Objects>:: additional args, will be flattened into arrayish
   #
   # ==== Returns
-  # Boolean: True if the object is included in arrayish
-  def in?(arrayish)
-    return false unless arrayish.respond_to?("include?")
+  # Boolean: True if the object is included in arrayish (+ more)
+  def in?(arrayish,*more)
+    arrayish = more.unshift(arrayish) unless more.empty?
     arrayish.include?(self)
   end
 end

@@ -107,15 +107,15 @@ describe Object, "#make_module" do
 end
 
 describe Object, "#in?" do
-  it "should be false if the argument does not respond to include?" do
-    4.in?(5).should be_false
-  end
-  
   it "should be true if the argument includes self" do
     4.in?([1,2,4,5]).should be_true
   end
   
   it "should be false if the argument does not include self" do
     4.in?([1,2,3,5]).should be_false
+  end
+  
+  it "should splat the args so [] are not required" do
+    4.in?(1,2,3,4,5).should be_true
   end
 end
