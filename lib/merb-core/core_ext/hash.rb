@@ -342,7 +342,7 @@ class REXMLUtilityNode # :nodoc:
   # Integer, true, false, Time, Date, Object::
   #   The result of typecasting +value+.
   #
-  # ==== Note
+  # ==== Notes
   # If +self+ does not have a "type" key, or if it's not one of the
   # options specified above, the raw +value+ will be returned.
   def typecast_value(value)

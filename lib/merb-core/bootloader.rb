@@ -160,7 +160,7 @@ end
 # path, and whose values can be passed into Merb.push_path (see Merb.push_path
 # for full details).
 #
-# ==== Note
+# ==== Notes
 # All paths will default to Merb.root, so you can get a flat-file structure by
 # doing Merb::Config[:framework] = {}.
 #

@@ -172,7 +172,7 @@ module Merb::RenderMixin
   # all other options        options that will be pass to serialization method
   #                          like #to_json or #to_xml
   #
-  # ==== Note
+  # ==== Notes
   # The transformed object will not be used in a layout unless a :layout is
   # explicitly passed in the opts.
   #

@@ -54,7 +54,7 @@ module Merb
       # ==== Returns
       # FakeRequest:: A Request object that is built based on the parameters.
       #
-      # ==== Note
+      # ==== Notes
       # If you pass a post body, the content-type will be set to URL-encoded.
       #
       #---
@@ -91,7 +91,7 @@ module Merb
       #     self.stub!(:current_user).and_return(@user)
       #   end
       #
-      # ==== Note
+      # ==== Notes
       # Does not use routes.
       #
       #---
@@ -130,7 +130,7 @@ module Merb
       #     self.stub!(:current_user).and_return(@user)
       #   end
       #
-      # ==== Note
+      # ==== Notes
       # Does not use routes.
       #
       #---
@@ -232,7 +232,7 @@ module Merb
       #     self.stub!(:current_user).and_return(@user)
       #   end
       #
-      # ==== Note
+      # ==== Notes
       # Uses Routes.
       #
       #---
@@ -268,7 +268,7 @@ module Merb
       # ==== Returns
       # An instance of +controller_klass+ based on the parameters.
       #
-      # ==== Note
+      # ==== Notes
       # Does not use routes.
       #
       #---

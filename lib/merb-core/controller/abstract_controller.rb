@@ -101,7 +101,7 @@ class Merb::AbstractController
   #   Indicating where to look for the template for the current controller,
   #   action, and content-type.
   #
-  # ==== Note
+  # ==== Notes
   # The type is irrelevant for controller-types that don't support
   # content-type negotiation, so we default to not include it in the
   # superclass.
@@ -322,7 +322,7 @@ class Merb::AbstractController
   #   Filter options (see class documentation under <tt>Filter Options</tt>).
   # &block:: Currently ignored.
   #
-  # ==== Note
+  # ==== Notes
   # If the filter already exists, its options will be replaced with opts.
   def self.after(filter = nil, opts = {}, &block)
     add_filter(self._after_filters, filter, opts)
@@ -334,7 +334,7 @@ class Merb::AbstractController
   #   Filter options (see class documentation under <tt>Filter Options</tt>).
   # &block:: A block to use as a filter if filter is nil.
   #
-  # ==== Note
+  # ==== Notes
   # If the filter already exists, its options will be replaced with opts.
   def self.before(filter = nil, opts = {}, &block)
     add_filter(self._before_filters, filter || block, opts)

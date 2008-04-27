@@ -67,7 +67,7 @@ module Merb::Template
     #   The module to put the compiled method into. Defaults to
     #   Merb::InlineTemplates
     #
-    # ==== Note
+    # ==== Notes
     # Even though this method supports inlining into any module, the method
     # must be available to instances of AbstractController that will use it.
     #---

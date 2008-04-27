@@ -226,7 +226,7 @@ class Class
   # key<~to_s, String, Symbol>:: inheritable attribute name
   # value<Anything but Array or Hash>:: value of inheritable attribute
   #
-  # ==== Note
+  # ==== Notes
   # If inheritable attributes storage has it's default value,
   # a new frozen hash, it is set to new Hash that is not frozen.
   def write_inheritable_attribute(key, value)
@@ -242,7 +242,7 @@ class Class
   # key<~to_s, String, Symbol>:: inheritable attribute name
   # value<Array>:: value of inheritable attribute
   #
-  # ==== Note
+  # ==== Notes
   # Inheritable array is re-created on each write.
   def write_inheritable_array(key, elements)
     write_inheritable_attribute(key, []) if read_inheritable_attribute(key).nil?
@@ -255,7 +255,7 @@ class Class
   # key<~to_s, String, Symbol>:: inheritable attribute name
   # value<Hash>:: value of inheritable attribute
   #
-  # ==== Note
+  # ==== Notes
   # Inheritable hash is re-created on each write.
   def write_inheritable_hash(key, hash)
     write_inheritable_attribute(key, {}) if read_inheritable_attribute(key).nil?

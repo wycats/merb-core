@@ -53,7 +53,7 @@ module Merb
     # ==== Parameters
     # key<Symbol>:: The key that represents the mime-type to remove.
     #
-    # ==== Note
+    # ==== Notes
     # :all is the key for */*; It can't be removed.
     def remove_mime_type(key)
       return false if key == :all

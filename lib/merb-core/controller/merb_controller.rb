@@ -140,7 +140,7 @@ class Merb::Controller < Merb::AbstractController
   #   The name of the controller that will be rendered. Defaults to
   #   controller_name.
   #
-  # ==== Note
+  # ==== Notes
   # By default, this renders ":controller/:action.:type". To change this,
   # override it in your application class or in individual controllers.
   #
@@ -205,7 +205,7 @@ class Merb::Controller < Merb::AbstractController
   #   A new Merb::Cookies instance representing the cookies that came in
   #   from the request object
   #
-  # ==== Note
+  # ==== Notes
   # Headers are passed into the cookie object so that you can do:
   #   cookies[:foo] = "bar"
   def cookies() @_cookies ||= _setup_cookies end

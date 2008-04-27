@@ -101,7 +101,7 @@ module Merb::Test::MultipartRequestHelper
   #     self.stub!(:current_user).and_return(@user)
   #   end
   #
-  # ==== Note
+  # ==== Notes
   # Set your option to contain a file object to simulate file uploads.
   #   
   # Does not use routes.
@@ -124,7 +124,7 @@ module Merb::Test::MultipartRequestHelper
   #   should go here (see +fake_request+).
   # block<Proc>:: The block is executed in the context of the controller.
   #
-  # ==== Note
+  # ==== Notes
   # To include an uploaded file, put a file object as a value in params.
   def multipart_post(path, params = {}, env = {}, &block)
     env[:request_method] = "POST"
@@ -144,7 +144,7 @@ module Merb::Test::MultipartRequestHelper
   #   should go here (see +fake_request+).
   # block<Proc>:: The block is executed in the context of the controller.
   #
-  # ==== Note
+  # ==== Notes
   # To include an uplaoded file, put a file object as a value in params.
   def multipart_put(path, params = {}, env = {}, &block)
     env[:request_method] = "PUT"
