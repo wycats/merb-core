@@ -301,7 +301,8 @@ module Merb
     end
 
     # ==== Returns
-    # Boolean:: True if Merb is running via spec_helper.rb or other TEST scenario.
+    # Boolean:: True if Merb environment is testing for instance,
+    # Merb is running with RSpec, Test::Unit of other testing facility.
     def testing?
       $TESTING || Merb::Config[:testing]
     end
