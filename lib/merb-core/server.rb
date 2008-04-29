@@ -163,7 +163,10 @@ module Merb
         if Merb::Config[:pid_file]
           pidfile = Merb::Config[:pid_file]
           if Merb::Config[:cluster]
-            Merb::Config[:pid_file].gsub(/\.pid$/, ".#{port}.pid")
+            ext = File.extname(Merb::Config[:pid_file])
+            base = File.basename(Merb::Config[:pid_file], ext)
+            dir = File.dirname(Merb::Config[:pid_file])
+            File.join(dir, "#{base}.#{port}#{ext}")
           else
             Merb::Config[:pid_file]
           end

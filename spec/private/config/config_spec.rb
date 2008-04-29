@@ -75,9 +75,9 @@ describe Merb::Config do
   end
   
   it "should support setting of PIDfile with cluster nodes" do
-    Merb::Config.parse_args(["-P", "merb.pid", "-c", "2", "-p", "6000"])
-    Merb::Server.pid_file(6000).should == "merb.6000.pid"
-    Merb::Server.pid_file(6001).should == "merb.6001.pid"
+    Merb::Config.parse_args(["-P", "/tmp/merb.pidfile", "-c", "2", "-p", "6000"])
+    Merb::Server.pid_file(6000).should == "/tmp/merb.6000.pidfile"
+    Merb::Server.pid_file(6001).should == "/tmp/merb.6001.pidfile"
   end
   
   it "should support default PIDfile setting" do
