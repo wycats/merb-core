@@ -51,8 +51,8 @@ module Merb
       # Boolean::
       #   True if Merb is running on the specified port.
       def alive?(port)
-        f = "#{Merb.log_path}" / "merb.#{port}.pid"
-        pid = IO.read(f).chomp.to_i
+        pidfile = pid_file(port)
+        pid = IO.read(pidfile).chomp.to_i
         Process.kill(0, pid)
         true
       rescue
@@ -69,7 +69,10 @@ module Merb
       def kill(port, sig=9)
         Merb::BootLoader::BuildFramework.run
         begin
-          Dir[Merb.log_path/ "merb.#{port == 'all' ? '*' : port }.pid"].each do |f|
+          pidfiles = port == "all" ?
+            pid_files : [ pid_file(port) ]
+            
+          pidfiles.each do |f|          
             pid = IO.read(f).chomp.to_i
             begin
               Process.kill(sig, pid)
@@ -127,11 +130,7 @@ module Merb
       # If Merb::Config[:pid_file] has been specified, that will be used
       # instead of the port based PID file.
       def remove_pid_file(port)
-        if Merb::Config[:pid_file]
-          pidfile = Merb::Config[:pid_file]
-        else
-          pidfile = Merb.log_path / "merb.#{port}.pid"
-        end
+        pidfile = pid_file(port)
         FileUtils.rm(pidfile) if File.exist?(pidfile)
       end
 
@@ -145,15 +144,52 @@ module Merb
       # If Merb::Config[:pid_file] has been specified, that will be used
       # instead of the port based PID file.
       def store_pid(port)
-        FileUtils.mkdir_p(Merb.log_path) unless File.directory?(Merb.log_path)
-        if Merb::Config[:pid_file]
-          pidfile = Merb::Config[:pid_file]
-        else
-          pidfile = Merb.log_path / "merb.#{port}.pid"
-        end
+        pidfile = pid_file(port)
+        FileUtils.mkdir_p(File.dirname(pidfile)) unless File.directory?(File.dirname(pidfile))
         File.open(pidfile, 'w'){ |f| f.write("#{Process.pid}") }
       end
           
+      # Gets the pid file for the specified port.
+      #
+      # ==== Parameters
+      # port<~to_s>::
+      #   The port of the Merb process to whom the the PID file belongs to.
+      #
+      # ==== Returns
+      # String::
+      #   Location of pid file for specified port. If clustered and pid_file option
+      #   is specified, it adds the port value to the path.
+      def pid_file(port)
+        if Merb::Config[:pid_file]
+          pidfile = Merb::Config[:pid_file]
+          if Merb::Config[:cluster]
+            Merb::Config[:pid_file].gsub(/\.pid$/, ".#{port}.pid")
+          else
+            Merb::Config[:pid_file]
+          end
+        else
+          pidfile = Merb.log_path / "merb.#{port}.pid"
+          Merb.log_path / "merb.#{port}.pid"
+        end
+      end
+
+      # Get a list of the pid files.
+      #
+      # ==== Returns
+      # Array::
+      #   List of pid file paths. If not clustered, array contains a single path.
+      def pid_files
+        if Merb::Config[:pid_file]
+          if Merb::Config[:cluster]
+            Dir[Merb::Config[:pid_file] + ".*.pid"]
+          else
+            [ Merb::Config[:pid_file] ]
+          end
+        else
+          Dir[Merb.log_path / "merb.*.pid"]
+        end
+       end      
+      
       # Change privileges of the process to the specified user and group.
       #
       # ==== Parameters

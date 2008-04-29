@@ -68,6 +68,22 @@ describe Merb::Config do
     Merb::Config.parse_args(["-P", "pidfile"])
     Merb::Config[:pid_file].should == "pidfile"
   end
+  
+  it "should have server return PIDfile setting as is with no cluster nodes" do
+    Merb::Config.parse_args(["-P", "pidfile", "-p", "6000"])
+    Merb::Server.pid_file(6000).should == "pidfile"
+  end
+  
+  it "should support setting of PIDfile with cluster nodes" do
+    Merb::Config.parse_args(["-P", "merb.pid", "-c", "2", "-p", "6000"])
+    Merb::Server.pid_file(6000).should == "merb.6000.pid"
+    Merb::Server.pid_file(6001).should == "merb.6001.pid"
+  end
+  
+  it "should support default PIDfile setting" do
+    Merb::Config.parse_args(["-p", "6000"])
+    Merb::Server.pid_file(6000).should == Merb.log_path / "merb.6000.pid"
+  end
 
   it "should support -h to set the hostname" do
     Merb::Config.parse_args(["-h", "hostname"])
@@ -135,5 +151,5 @@ describe Merb::Config do
     Merb.should be_testing
     $TESTING = true; Merb::Config[:testing] = false # reset
   end
-  
+    
 end
