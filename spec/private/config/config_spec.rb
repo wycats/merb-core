@@ -97,12 +97,12 @@ describe Merb::Config do
   
   it "should support -K for a graceful kill" do
     Merb::Server.should_receive(:kill).with("all", 1)
-    Merb::Config.parse_args(["-K", "all"])
+    Merb.start(["-K", "all"])
   end
 
   it "should support -k for a hard kill" do
     Merb::Server.should_receive(:kill).with("all", 9)
-    Merb::Config.parse_args(["-k", "all"])
+    Merb.start(["-k", "all"])
   end
   
   it "should support -X off to turn off the mutex" do

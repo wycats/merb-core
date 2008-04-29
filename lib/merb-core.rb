@@ -26,7 +26,14 @@ module Merb
       end
       Merb.environment = Merb::Config[:environment]
       Merb.root = Merb::Config[:merb_root]
-      Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
+      case Merb::Config[:action]
+      when :kill 
+        Merb::Server.kill(Merb::Config[:port], 1)
+      when :kill_9 
+        Merb::Server.kill(Merb::Config[:port], 9)
+      else
+        Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
+      end      
     end
     
     # Start the Merb environment, but only if it hasn't been loaded yet.
