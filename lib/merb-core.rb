@@ -14,6 +14,7 @@ module Merb
   class << self
 
     # Startup Merb by setting up the Config and starting the server.
+    # This is where Merb application environment and root path are set.
     #
     # ==== Parameters
     # argv<String, Hash>::
@@ -178,7 +179,7 @@ module Merb
     end
 
     # ==== Returns
-    # String:: The root directory of the Merb framework.
+    # String:: The path of root directory of the Merb framework.
     def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
 
     # ==== Returns
@@ -330,7 +331,8 @@ module Merb
       Merb::BootLoader::BeforeAppRuns.run
     end
 
-    # Reload the framework.
+    # Reload application and framework classes.
+    # See Merb::BootLoader::ReloadClasses for details.
     def reload
       Merb::BootLoader::ReloadClasses.reload
     end
@@ -411,13 +413,20 @@ module Merb
     end
 
     # ==== Returns
-    # Array:: All Rakefiles for plugins.
+    # Array(String):: Paths Rakefiles are loaded from.
+    #
+    # ==== Notes
+    # Recommended way to find out what paths Rakefiles
+    # are loaded from.
     def rakefiles
       @rakefiles ||= ['merb-core/test/tasks/spectasks']
     end
 
     # ==== Parameters
-    # *rakefiles:: Rakefiles to add to the list of plugin Rakefiles.
+    # *rakefiles:: Rakefile pathss to add to the list of Rakefiles.
+    #
+    # ==== Notes
+    # Recommended way to add Rakefiles load path for plugins authors.
     def add_rakefiles(*rakefiles)
       @rakefiles ||= ['merb-core/test/tasks/spectasks']
       @rakefiles += rakefiles
