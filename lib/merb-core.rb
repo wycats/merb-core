@@ -59,7 +59,25 @@ module Merb
 
     # This is the core mechanism for setting up your application layout
     # merb-core won't set a default application layout, but merb-more will
-    # use the app/:type layout that is in use in Merb 0.5.
+    # use the app/:type layout:
+    #
+    # app/models      for models
+    # app/mailers     for mailers (special type of controllers)
+    # app/parts       for parts, Merb components
+    # app/views       for templates
+    # app/controllers for controller
+    #
+    # ==== Examples
+    #
+    # This method gives you a way to build up your own application
+    # structure, for instance, to reflect the structure Rails
+    # uses to simplify transition of legacy application, you can
+    # set it up like this:
+    #
+    # Merb.push_path(:models,      Merb.root / "app" / "models",      "**/*.rb")
+    # Merb.push_path(:mailers,     Merb.root / "app" / "models",      "**/*.rb")
+    # Merb.push_path(:controllers, Merb.root / "app" / "controllers", "**/*.rb")
+    # Merb.push_path(:views,       Merb.root / "app" / "views",       "**/*.rb")
     #
     # ==== Parameters
     # type<Symbol>:: The type of path being registered (i.e. :view)
@@ -72,6 +90,23 @@ module Merb
       load_paths[type] = [path, file_glob]
     end
 
+    # Removes given types of application components
+    # from load path Merb uses for autoloading.
+    #
+    # ==== Parameters
+    # *args<Array(Symbol)>::
+    #   components names, for instance, :views, :models
+    #
+    # ==== Examples
+    # Using this combined with Merb::GlobalHelpers.push_path
+    # you can make your Merb application use legacy Rails
+    # application components.
+    #
+    # Merb.root = "path/to/legacy/app/root"
+    # Merb.remove_paths(:mailers)
+    # Merb.push_path(:mailers,     Merb.root / "app" / "models",      "**/*.rb")
+    #
+    # Will make Merb use app/models for mailers just like Ruby on Rails does.
     def remove_paths(*args)
       args.each {|arg| load_paths.delete(arg)}
     end
@@ -310,7 +345,7 @@ module Merb
     # Ask the question about which environment you're in.
     # ==== Parameters
     # env<Symbol, String>:: Name of the environment to query
-    # 
+    #
     # ==== Examples
     # Merb.env #=> production
     # Merb.env?(:production) #=> true
@@ -387,10 +422,10 @@ module Merb
       @rakefiles ||= ['merb-core/test/tasks/spectasks']
       @rakefiles += rakefiles
     end
-    
-    
-    
-    
+
+
+
+
   end
 end
 
