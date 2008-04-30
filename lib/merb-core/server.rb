@@ -1,6 +1,6 @@
 require 'etc'
 module Merb
-  
+
   # Server encapsulates the management of Merb daemons.
   class Server
     class << self
@@ -29,9 +29,9 @@ module Merb
             else
               raise "Merb is already running on port: #{port}"
             end
-          end   
+          end
         elsif Merb::Config[:daemonize]
-          unless alive?(@port)  
+          unless alive?(@port)
             remove_pid_file(@port)
             daemonize(@port)
           else
@@ -86,7 +86,7 @@ module Merb
               puts "Failed to kill PID #{pid}: #{e.message}"
             end
           end
-        ensure  
+        ensure
           exit
         end
       end
@@ -110,14 +110,16 @@ module Merb
               change_privilege(Merb::Config[:user], Merb::Config[:group])
             else
               change_privilege(Merb::Config[:user])
-            end    
-          end  
+            end
+          end
           BootLoader.run
           Merb.adapter.start(Merb::Config.to_hash)
         end
       end
 
-      # Removes a PID file from the filesystem.
+      # Removes a PID file used by the server from the filesystem.
+      # This uses :pid_file options from configuration when provided
+      # or merb.<port>.pid in log directory by default.
       #
       # ==== Parameters
       # port<~to_s>::
@@ -136,6 +138,8 @@ module Merb
       end
 
       # Stores a PID file on the filesystem.
+      # This uses :pid_file options from configuration when provided
+      # or merb.<port>.pid in log directory by default.
       #
       # ==== Parameters
       # port<~to_s>::
@@ -153,7 +157,7 @@ module Merb
         end
         File.open(pidfile, 'w'){ |f| f.write("#{Process.pid}") }
       end
-          
+
       # Change privileges of the process to the specified user and group.
       #
       # ==== Parameters
@@ -163,13 +167,13 @@ module Merb
       # ==== Alternatives
       # If group is left out, the user will be used as the group.
       def change_privilege(user, group=user)
-        
+
         puts "Changing privileges to #{user}:#{group}"
-        
+
         uid, gid = Process.euid, Process.egid
         target_uid = Etc.getpwnam(user).uid
         target_gid = Etc.getgrnam(group).gid
-      
+
         if uid != target_uid || gid != target_gid
           # Change process ownership
           Process.initgroups(user, target_gid)
