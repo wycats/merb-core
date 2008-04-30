@@ -193,13 +193,13 @@ module Merb
           end
 
           opts.on("-K", "--graceful PORT or all", "Gracefully kill one merb proceses by port number.  Use merb -K all to gracefully kill all merbs.") do |ports|
-            @configuration = defaults.merge(options)
-            Merb::Server.kill(ports, 1)
+            options[:action] = :kill
+            options[:port] = ports
           end
 
           opts.on("-k", "--kill PORT or all", "Kill one merb proceses by port number.  Use merb -k all to kill all merbs.") do |port|
-            @configuration = defaults.merge(options)
-            Merb::Server.kill(port, 9)
+            options[:action] = :kill_9
+            options[:port] = port
           end
 
           opts.on("-X", "--mutex on/off", "This flag is for turning the mutex lock on and off.") do |mutex|
