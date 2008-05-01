@@ -12,8 +12,8 @@ class Custom < Application
   
   private
   
-  def _template_location(action, type = nil, controller = controller_name)  
-    "wonderful/#{action}"
+  def _template_location(context, type = nil, controller = controller_name)  
+    "wonderful/#{context}"
   end
   
 end

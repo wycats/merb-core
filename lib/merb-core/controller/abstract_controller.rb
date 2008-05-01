@@ -90,7 +90,7 @@ class Merb::AbstractController
   # structure for your app.
   #
   # ==== Parameters
-  # action<~to_s>:: The controller action.
+  # context<~to_s>:: The controller context (the action or template name).
   # type<~to_s>:: The content type. Defaults to nil.
   # controller<~to_s>::
   #   The name of the controller. Defaults to controller_name.
@@ -99,7 +99,7 @@ class Merb::AbstractController
   # ==== Returns
   # String:: 
   #   Indicating where to look for the template for the current controller,
-  #   action, and content-type.
+  #   context, and content-type.
   #
   # ==== Notes
   # The type is irrelevant for controller-types that don't support
@@ -115,8 +115,8 @@ class Merb::AbstractController
   # of controller/action.mime.type
   #---
   # @public
-  def _template_location(action, type = nil, controller = controller_name)
-    "#{controller}/#{action}"
+  def _template_location(context, type = nil, controller = controller_name)
+    controller ? "#{controller}/#{context}" : context
   end
 
   # ==== Returns

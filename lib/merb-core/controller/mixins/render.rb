@@ -336,24 +336,30 @@ module Merb::RenderMixin
   # and template location of the first match.
   #
   # ==== Parameters
-  # thing<Object>:: The controller action.
+  # context<Object>:: The controller action or template basename.
   # content_type<~to_s>:: The content type. Defaults to nil.
   # controller<~to_s>:: The name of the controller. Defaults to nil.
   #
   # ==== Options (opts)
   # :template<String>::
   #   The location of the template to use. Defaults to whatever matches this
-  #   thing, content_type and controller.
+  #   context, content_type and controller.
   #
   # ==== Returns
   # Array[Symbol, String]::
   #   A pair consisting of the template method and location.
-  def _template_for(thing, content_type, controller=nil, opts={})
+  def _template_for(context, content_type, controller=nil, opts={})
     template_method = nil
     template_location = nil
     
     self.class._template_roots.reverse_each do |root, template_location| 
-      template_location = root / (opts[:template] || self.send(template_location, thing, content_type, controller))
+      if opts[:template] # use the given template as the location context
+        template_location = root / self.send(template_location, opts[:template], content_type, nil)
+        template_method = Merb::Template.template_for(template_location)
+        break if template_method && self.respond_to?(template_method)
+      end
+      
+      template_location = root / (opts[:template] || self.send(template_location, context, content_type, controller))
       template_method = Merb::Template.template_for(template_location)
       break if template_method && self.respond_to?(template_method)
     end

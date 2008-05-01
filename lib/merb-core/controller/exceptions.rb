@@ -58,7 +58,7 @@ module Merb
   #       "team@cowboys.com", 
   #       "Exception occured at #{Time.now}", 
   #       params[:exception])
-  #     render :inline => 'Something is wrong, but the team are on it!'
+  #     render 'Something is wrong, but the team are on it!'
   #   end
   #
   # Note: The special param[:exception] is available in all Exception actions 
@@ -100,6 +100,11 @@ module Merb
       # ==== Returns
       # String:: The snake cased name of the error without the namespace.
       def name; self.class.name; end
+
+      # === Returns
+      # Integer:: The status-code of the error.
+      def status; self.class.status; end
+      alias :to_i :status
 
       class << self
 

@@ -128,12 +128,12 @@ class Merb::Controller < Merb::AbstractController
 
   end # class << self
 
-  # The location to look for a template for a particular controller, action,
+  # The location to look for a template for a particular controller, context,
   # and mime-type. This is overridden from AbstractController, which defines a
   # version of this that does not involve mime-types.
   #
   # ==== Parameters
-  # action<~to_s>:: The name of the action that will be rendered.
+  # context<~to_s>:: The name of the action or template basename that will be rendered.
   # type<~to_s>::
   #    The mime-type of the template that will be rendered. Defaults to nil.
   # controller<~to_s>::
@@ -146,8 +146,8 @@ class Merb::Controller < Merb::AbstractController
   #
   #---
   # @public
-  def _template_location(action, type = nil, controller = controller_name)
-    "#{controller}/#{action}.#{type}"
+  def _template_location(context, type = nil, controller = controller_name)
+    controller ? "#{controller}/#{context}.#{type}" : "#{context}.#{type}"
   end
 
   # Build a new controller.
