@@ -73,7 +73,7 @@ module Merb::AuthenticationMixin
 
     def request
       @controller.headers['WWW-Authenticate'] = 'Basic realm="%s"' % @realm
-      throw :halt, @controller.render("HTTP Basic: Access denied.\n", :status => Unauthorized::STATUS, :layout => false)
+      throw :halt, @controller.render("HTTP Basic: Access denied.\n", :status => Unauthorized.status, :layout => false)
     end
     
     protected

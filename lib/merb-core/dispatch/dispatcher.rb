@@ -163,7 +163,7 @@ Stacktrace:
         request.params[:exception] = exception
         request.params[:action] = exception_klass.name
         
-        dispatch_action(klass, exception_klass.name, request, exception.class::STATUS)
+        dispatch_action(klass, exception_klass.name, request, exception.class.status)
       rescue => dispatch_issue       
         dispatch_issue = controller_exception(dispatch_issue)  
         # when no action/template exist for an exception, or an
@@ -210,7 +210,7 @@ Stacktrace:
     #   An array containing the Merb::Controller that was dispatched to and the
     #   error's name. For instance, a NotFound error's name is "not_found".
     def dispatch_default_exception(klass, request, e)
-      controller = klass.new(request, e.class::STATUS)
+      controller = klass.new(request, e.class.status)
       if e.is_a? Merb::ControllerExceptions::Redirection
         controller.headers.merge!('Location' => e.message)
         controller.body = %{ } #fix

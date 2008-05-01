@@ -169,7 +169,7 @@
 	<div class="internalError">
 		
 		<div class="header">
-			<h1><%= @exception_name %> <sup class="error_<%= @exception.class::STATUS %>"><%= @exception.class::STATUS %></sup></h1>
+			<h1><%= @exception_name %> <sup class="error_<%= @exception.class.status %>"><%= @exception.class.status %></sup></h1>
 			<% if show_details = ::Merb::Config[:exception_details] -%>
 				<h2><%= html_escape(@exception.message) %></h2>
 			<% else -%>
