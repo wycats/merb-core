@@ -1,4 +1,3 @@
-require 'memcache_util'
 module Merb
 
   module SessionMixin #:nodoc:
@@ -19,7 +18,11 @@ module Merb
     # session has changed.
     def finalize_session 
       if @_fingerprint != Marshal.dump(request.session.data).hash
-        ::Cache.put("session:#{request.session.session_id}", request.session.data)
+        begin
+          CACHE.set("session:#{request.session.session_id}", request.session.data)
+        rescue => err
+          Merb.logger.debug("MemCache Error: #{err.message}")
+        end
       end
       set_cookie(_session_id_key, request.session.session_id, Time.now + _session_expiry) if (@_new_cookie || request.session.needs_new_cookie)
     end
@@ -34,7 +37,7 @@ module Merb
   ##
   # Sessions stored in memcached.
   #
-  # Requires setup in your +init.rb+:
+  # Requires setup in your +init.rb+.
   #
   #   require 'memcache'
   #   CACHE = MemCache.new('127.0.0.1:11211', { :namespace => 'my_app' })
@@ -42,6 +45,12 @@ module Merb
   # And a setting in +init.rb+:
   #
   #   c[:session_store] = 'memcache'
+  #
+  # If you are using the memcached gem instead of memcache-client, you must setup like this:
+  #
+  #   require 'memcached'
+  #   CACHE = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
+  #
   class MemCacheSession
 
     attr_accessor :session_id
@@ -75,7 +84,11 @@ module Merb
       #   sessions matched session_id, a new MemCacheSession will be generated.
       def persist(session_id)
         unless session_id.blank?
-          session = ::Cache.get("session:#{session_id}")
+          begin
+            session = CACHE.get("session:#{session_id}")
+          rescue => err
+            Merb.logger.debug("MemCache Error: #{err.message}")
+          end
           if session.nil?
             # Not in memcached, but assume that cookie exists
             session = new(session_id)
@@ -92,7 +105,6 @@ module Merb
           session_object.data = session
           [session_object, session_object.session_id]
         end
-
       end
 
       # Don't try to reload in dev mode.

@@ -68,6 +68,22 @@ describe Merb::Config do
     Merb::Config.parse_args(["-P", "pidfile"])
     Merb::Config[:pid_file].should == "pidfile"
   end
+  
+  it "should have server return PIDfile setting as is with no cluster nodes" do
+    Merb::Config.parse_args(["-P", "pidfile", "-p", "6000"])
+    Merb::Server.pid_file(6000).should == "pidfile"
+  end
+  
+  it "should support setting of PIDfile with cluster nodes" do
+    Merb::Config.parse_args(["-P", "/tmp/merb.pidfile", "-c", "2", "-p", "6000"])
+    Merb::Server.pid_file(6000).should == "/tmp/merb.6000.pidfile"
+    Merb::Server.pid_file(6001).should == "/tmp/merb.6001.pidfile"
+  end
+  
+  it "should support default PIDfile setting" do
+    Merb::Config.parse_args(["-p", "6000"])
+    Merb::Server.pid_file(6000).should == Merb.log_path / "merb.6000.pid"
+  end
 
   it "should support -h to set the hostname" do
     Merb::Config.parse_args(["-h", "hostname"])
@@ -97,12 +113,12 @@ describe Merb::Config do
   
   it "should support -K for a graceful kill" do
     Merb::Server.should_receive(:kill).with("all", 1)
-    Merb::Config.parse_args(["-K", "all"])
+    Merb.start(["-K", "all"])
   end
 
   it "should support -k for a hard kill" do
     Merb::Server.should_receive(:kill).with("all", 9)
-    Merb::Config.parse_args(["-k", "all"])
+    Merb.start(["-k", "all"])
   end
   
   it "should support -X off to turn off the mutex" do
@@ -135,5 +151,5 @@ describe Merb::Config do
     Merb.should be_testing
     $TESTING = true; Merb::Config[:testing] = false # reset
   end
-  
+    
 end
