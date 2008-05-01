@@ -153,6 +153,14 @@ module English
       #   "boys".singular      #=> boy
       #   "tomatoes".singular  #=> tomato
       #
+      # ==== Parameters
+      # word<String>:: word to singularize
+      #
+      # ==== Returns
+      # <String>:: singularized form of word
+      #
+      # ==== Notes
+      # Aliased as singularize (a Railism)
       def singular(word)
         if result = singular_of[word]
           return result.dup
@@ -173,6 +181,14 @@ module English
       #   "boy".plural     #=> boys
       #   "tomato".plural  #=> tomatoes
       #
+      # ==== Parameters
+      # word<String>:: word to pluralize
+      #
+      # ==== Returns
+      # <String>:: pluralized form of word
+      #
+      # ==== Notes
+      # Aliased as pluralize (a Railism)
       def plural(word)
         if result = plural_of[word]
           return result.dup
