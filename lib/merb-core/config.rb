@@ -166,6 +166,10 @@ module Merb
             options[:adapter] = adapter
           end
 
+          opts.on("-R", "--rackup FILE", "Load an alternate Rack config file (default is config/rack.rb)") do |rackup|
+            options[:rackup] = rackup
+          end
+
           opts.on("-i", "--irb-console", "This flag will start merb in irb console mode. All your models and other classes will be available for you in an irb session.") do |console|
             options[:adapter] = 'irb'
           end
