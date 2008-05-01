@@ -1,4 +1,4 @@
-        
+
         class Reloader < Application
         end
 
