@@ -39,6 +39,7 @@ module Merb
           end
         else
           trap('TERM') { exit }
+          trap('INT') { puts "\nExiting"; exit }
           BootLoader.run
           Merb.adapter.start(Merb::Config.to_hash)
         end
