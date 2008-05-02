@@ -160,6 +160,22 @@ describe Merb::Test::RequestHelper do
       controller.params[:id].should   == "my_id"
     end
   end
+  
+  describe "#request" do
+    before(:each) do 
+      Merb::Router.prepare do |r| 
+        r.namespace :namespaced do |namespaced|
+          namespaced.resources :spec_helper_controller
+        end
+      end
+    end
+    
+    it "should get namespaced index action" do
+      Merb::Test::ControllerAssertionMock.should_receive(:called).with(:index)
+      controller = request("/namespaced/spec_helper_controller")
+      controller.class.should == Namespaced::SpecHelperController
+    end
+  end
 end
 
 module Merb::Test::RequestHelper
