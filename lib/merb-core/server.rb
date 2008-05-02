@@ -189,7 +189,10 @@ module Merb
       def pid_files
         if Merb::Config[:pid_file]
           if Merb::Config[:cluster]
-            Dir[Merb::Config[:pid_file] + ".*.pid"]
+            ext = File.extname(Merb::Config[:pid_file])
+            base = File.basename(Merb::Config[:pid_file], ext)
+            dir = File.dirname(Merb::Config[:pid_file])
+            Dir[dir / "#{base}.*#{ext}"]
           else
             [ Merb::Config[:pid_file] ]
           end
