@@ -45,6 +45,8 @@ describe Merb::Request, " query and body params" do
   
   {"foo=bar&baz=bat"        => {"foo" => "bar", "baz" => "bat"},
    "foo[]=bar&foo[]=baz"    => {"foo" => ["bar", "baz"]},
+   "foo[][bar]=1&foo[][bar]=2"  => {"foo" => [{"bar" => "1"},{"bar" => "2"}]},
+   "foo[bar][][baz]=1&foo[bar][][baz]=2"  => {"foo" => {"bar" => [{"baz" => "1"},{"baz" => "2"}]}},
    "foo[1]=bar&foo[2]=baz"  => {"foo" => {"1" => "bar", "2" => "baz"}}}.each do |query, parse|
 
      it "should convert #{query.inspect} to #{parse.inspect} in the query string" do
