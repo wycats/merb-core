@@ -57,7 +57,7 @@ module Merb::Test::Rspec::ControllerMatchers
     def failure_message
       msg = "expected #{inspect_target} to redirect to <#{@expected}>, but "
       if @redirected
-        msg << "was <#{target_location}>" 
+        msg << "was <#{target_location}>"
       else
         msg << "there was no redirection"
       end
@@ -161,11 +161,11 @@ module Merb::Test::Rspec::ControllerMatchers
   class Provide
 
     # === Parameters
-    # Symbol:: A format to check
+    # expected<Symbol>:: A format to check
     def initialize(expected)
       @expected = expected
     end
-    
+
     # ==== Parameters
     # target<Symbol>::
     #   A ControllerClass or controller_instance
@@ -202,7 +202,7 @@ module Merb::Test::Rspec::ControllerMatchers
   # ==== Examples
   #   # Passes if the controller was redirected
   #   controller.should redirect
-  #   
+  #
   #   # Also works if the target is the response code
   #   controller.status.should redirect
   #
@@ -244,7 +244,7 @@ module Merb::Test::Rspec::ControllerMatchers
   # ==== Examples
   #   # Passes if the controller call was successful
   #   controller.should respond_successfully
-  #   
+  #
   #   # Also works if the target is the response code
   #   controller.status.should respond_successfully
   #
@@ -272,7 +272,7 @@ module Merb::Test::Rspec::ControllerMatchers
   # ==== Examples
   #   # Passes if the controller call was unknown or not understood
   #   controller.should be_missing
-  #   
+  #
   #   # Also passes if the target is a response code
   #   controller.status.should be_missing
   #
@@ -306,6 +306,9 @@ module Merb::Test::Rspec::ControllerMatchers
   alias_method :be_client_error, :be_missing
 
   # Passes if the controller actually provides the target format
+  #
+  # === Parameters
+  # expected<Symbol>:: A format to check
   #
   # ==== Examples
   #   ControllerClass.should provide( :html )
