@@ -549,14 +549,12 @@ module Merb
           parms[key] = val
         elsif after == "[]"
           (parms[key] ||= []) << val
+        elsif after =~ %r(^\[\])
+          parms[key] ||= []
+          parms[key] << normalize_params({}, after, val)
         else
-          if after =~ %r(^\[\])
-            parms[key] ||= []
-            parms[key] << normalize_params({}, after, val)
-          else
-            parms[key] ||= {}
-            parms[key] = normalize_params(parms[key], after, val)
-          end
+          parms[key] ||= {}
+          parms[key] = normalize_params(parms[key], after, val)
         end
         parms
       end
