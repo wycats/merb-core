@@ -153,7 +153,7 @@ module Merb
     # Hash:: The stored session data.
     def unmarshal(cookie)
       if cookie
-        data, digest = Merb::Request.unescape(cookie).split('--')
+        data, digest = cookie.split('--')
         return {} if data.blank?
         unless digest == generate_digest(data)
           delete
