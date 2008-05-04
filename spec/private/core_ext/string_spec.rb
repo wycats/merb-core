@@ -74,7 +74,9 @@ describe String, "#snake_case" do
   end
 
   it "handles CamelCase with more than 2 capital letter in a row" do
-    "CNNNews".snake_case.should == "c_n_n_news"
+    "CNN".snake_case.should == "cnn"
+    "CNNNews".snake_case.should == "cnn_news"
+    "HeadlineCNNNews".snake_case.should == "headline_cnn_news"
   end
 
   it "does NOT change one word lowercase" do

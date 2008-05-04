@@ -194,7 +194,21 @@ class Merb::Controller < Merb::AbstractController
   end
 
   attr_reader :request, :headers
-  attr_accessor :status
+  attr_reader :status
+
+  # Set the response status code.
+  #
+  # ==== Parameters
+  # s<Fixnum, Symbol>:: A status-code or named http-status
+  def status=(s)
+    if s.is_a?(Symbol) && STATUS_CODES.key?(s)
+      @status = STATUS_CODES[s]
+    elsif s.is_a?(Fixnum)
+      @status = s
+    else
+      raise ArgumentError, "Status should be of type Fixnum or Symbol, was #{s.class}"
+    end
+  end
 
   # ==== Returns
   # Hash:: The parameters from the request object
