@@ -74,9 +74,19 @@ module Merb
     # app/parts       for parts, Merb components
     # app/views       for templates
     # app/controllers for controller
+    # lib             for libraries
+    #
+    # ==== Notes
+    # Autoloading for lib uses empty glob by default. If you
+    # want to have your libraries under lib use autoload, add
+    # the following to Merb init file:
+    #
+    # Merb.push_path(:lib, Merb.root / "lib", "**/*.rb") # glob set explicity.
+    #
+    # Then lib/magicwand/lib/magicwand.rb with MagicWand module will
+    # be autoloaded when you first access that constant.
     #
     # ==== Examples
-    #
     # This method gives you a way to build up your own application
     # structure, for instance, to reflect the structure Rails
     # uses to simplify transition of legacy application, you can
