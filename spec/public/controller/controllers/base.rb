@@ -28,6 +28,7 @@ module Merb::Test::Fixtures
       include Inclusion
       
       def index
+        self.status = :ok
         "index"
       end
 

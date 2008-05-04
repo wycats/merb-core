@@ -25,8 +25,12 @@ class String
   #
   # ==== Examples
   #   "FooBar".snake_case #=> "foo_bar"
+  #   "HeadlineCNNNews".snake_case #=> "headline_cnn_news"
+  #   "CNN".snake_case #=> "cnn"
   def snake_case
-    gsub(/\B[A-Z]/, '_\&').downcase
+    return self.downcase if self =~ /^[A-Z]+$/
+    self.gsub(/([A-Z]+)(?=[A-Z][a-z]?)|\B[A-Z]/, '_\&') =~ /_*(.*)/
+      return $+.downcase
   end
 
   # ==== Returns

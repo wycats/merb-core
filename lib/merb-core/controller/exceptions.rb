@@ -111,7 +111,7 @@ module Merb
         # ==== Returns
         # String:: The snake cased name of the class without the namespace.
         def name
-          self.to_s.snake_case.split('::').last
+          self.to_s.split('::').last.snake_case
         end
       
         # Get the actual status-code for an Exception class.
@@ -171,7 +171,7 @@ module Merb
         # ==== Parameters
         # num<~to_i>:: The status code
         def register_status_code(klass, code)
-          STATUS_CODES[klass.name.snake_case.to_sym] = code.to_i
+          STATUS_CODES[klass.name.to_sym] = code.to_i
         end
         
       end
