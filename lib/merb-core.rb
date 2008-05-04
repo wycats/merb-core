@@ -28,13 +28,13 @@ module Merb
       Merb.environment = Merb::Config[:environment]
       Merb.root = Merb::Config[:merb_root]
       case Merb::Config[:action]
-      when :kill 
+      when :kill
         Merb::Server.kill(Merb::Config[:port], 1)
-      when :kill_9 
+      when :kill_9
         Merb::Server.kill(Merb::Config[:port], 9)
       else
         Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
-      end      
+      end
     end
 
     # Start the Merb environment, but only if it hasn't been loaded yet.
@@ -281,6 +281,9 @@ module Merb
     #
     # :adapter<String>::          name of Rack adapter to use,
     #                             default is "runner"
+    #
+    # :rackup<String>::           name of Rack init file to use,
+    #                             default is "rack.rb"
     #
     # :reload_classes<Boolean>::  whether Merb should reload
     #                             classes on each request,

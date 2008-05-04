@@ -16,7 +16,9 @@ module Merb
       def self.start(opts={})
         Merb.logger.warn!("Using Ebb adapter")
         Merb::Dispatcher.use_mutex = false
-        ::Ebb.start_server(opts[:app], opts)
+        th = Thread.new { ::Ebb.start_server(opts[:app], opts) }
+        Merb::Server.change_privilege
+        th.join
       end
     end
   end

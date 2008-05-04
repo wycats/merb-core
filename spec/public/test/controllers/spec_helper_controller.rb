@@ -28,3 +28,11 @@ class SpecHelperController < Merb::Controller
     Merb::Test::ControllerAssertionMock.called(:destroy)
   end  
 end
+
+module Namespaced
+  class SpecHelperController < Merb::Controller
+    def index
+      Merb::Test::ControllerAssertionMock.called(:index)
+    end
+  end
+end
