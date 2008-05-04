@@ -39,6 +39,7 @@ module Merb
           end
         else
           trap('TERM') { exit }
+          trap('INT') { puts "\nExiting"; exit }
           BootLoader.run
           Merb.adapter.start(Merb::Config.to_hash)
         end
@@ -108,18 +109,21 @@ module Merb
           Dir.chdir Merb::Config[:merb_root]
           at_exit { remove_pid_file(port) }
           Merb::Config[:port] = port
-          if Merb::Config[:user]
-            if Merb::Config[:group]
-              change_privilege(Merb::Config[:user], Merb::Config[:group])
-            else
-              change_privilege(Merb::Config[:user])
-            end
-          end
           BootLoader.run
           Merb.adapter.start(Merb::Config.to_hash)
         end
       end
 
+      def change_privilege
+        if Merb::Config[:user]
+          if Merb::Config[:group]
+            _change_privilege(Merb::Config[:user], Merb::Config[:group])
+          else
+            _change_privilege(Merb::Config[:user])
+          end
+        end
+      end
+      
       # Removes a PID file used by the server from the filesystem.
       # This uses :pid_file options from configuration when provided
       # or merb.<port>.pid in log directory by default.
@@ -188,7 +192,10 @@ module Merb
       def pid_files
         if Merb::Config[:pid_file]
           if Merb::Config[:cluster]
-            Dir[Merb::Config[:pid_file] + ".*.pid"]
+            ext = File.extname(Merb::Config[:pid_file])
+            base = File.basename(Merb::Config[:pid_file], ext)
+            dir = File.dirname(Merb::Config[:pid_file])
+            Dir[dir / "#{base}.*#{ext}"]
           else
             [ Merb::Config[:pid_file] ]
           end
@@ -205,7 +212,7 @@ module Merb
       #
       # ==== Alternatives
       # If group is left out, the user will be used as the group.
-      def change_privilege(user, group=user)
+      def _change_privilege(user, group=user)
 
         puts "Changing privileges to #{user}:#{group}"
 

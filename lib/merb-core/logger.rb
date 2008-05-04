@@ -161,7 +161,7 @@ module Merb
     # Close and remove the current log object.
     def close
       flush
-      @log.close if @log.respond_to?(:close)
+      @log.close if @log.respond_to?(:close) && !@log.tty?
       @log = nil
     end
 

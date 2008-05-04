@@ -550,15 +550,19 @@ class Merb::BootLoader::ChooseAdapter < Merb::BootLoader
 end
 
 class Merb::BootLoader::RackUpApplication < Merb::BootLoader
-
-  # Setup the Merb Rack App or read a rack.rb config file located at the
-  # Merb.root or Merb.root / config / rack.rb with the same syntax as the
-  # rackup tool that comes with rack. Automatically evals the rack.rb file in
+  # Setup the Merb Rack App or read a rackup file located at
+  # Merb::Config[:rackup] with the same syntax as the
+  # rackup tool that comes with rack. Automatically evals the file in
   # the context of a Rack::Builder.new { } block. Allows for mounting
   # additional apps or middleware.
   def self.run
     if File.exists?(Merb.dir_for(:config) / "rack.rb")
-      Merb::Config[:app] =  eval("::Rack::Builder.new {( #{IO.read(Merb.dir_for(:config) / 'rack.rb')}\n )}.to_app", TOPLEVEL_BINDING, __FILE__, __LINE__)
+      Merb::Config[:rackup] ||= Merb.dir_for(:config) / "rack.rb"
+    end
+
+    if Merb::Config[:rackup]
+      rackup_code = File.read(Merb::Config[:rackup])
+      Merb::Config[:app] = eval("::Rack::Builder.new {( #{rackup_code}\n )}.to_app", TOPLEVEL_BINDING, Merb::Config[:rackup])
     else
       Merb::Config[:app] = ::Merb::Rack::Application.new
     end

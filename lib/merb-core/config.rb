@@ -162,8 +162,12 @@ module Merb
             options[:merb_root] = File.expand_path(root)
           end
 
-          opts.on("-a", "--adapter mongrel", "The rack adapter to use to run merb[mongrel, emongrel, thin, fastcgi, webrick, runner, irb]") do |adapter|
+          opts.on("-a", "--adapter mongrel", "The rack adapter to use to run merb[mongrel, emongrel, thin, ebb, fastcgi, webrick, runner, irb]") do |adapter|
             options[:adapter] = adapter
+          end
+
+          opts.on("-R", "--rackup FILE", "Load an alternate Rack config file (default is config/rack.rb)") do |rackup|
+            options[:rackup] = rackup
           end
 
           opts.on("-i", "--irb-console", "This flag will start merb in irb console mode. All your models and other classes will be available for you in an irb session.") do |console|

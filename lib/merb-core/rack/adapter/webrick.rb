@@ -27,6 +27,7 @@ module Merb
         }
      
         server = ::WEBrick::HTTPServer.new(options)
+        Merb::Server.change_privilege
         server.mount("/", ::Rack::Handler::WEBrick, opts[:app])
         server.start
       end

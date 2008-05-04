@@ -22,9 +22,9 @@ describe Merb::Logger do
 
   describe "#new" do
     it "should call set_log with the arguments it was passed." do
-      pending("How do we catch an initialize in a spec?")
-      # Merb::Logger.should_receive(:set_log).with(Merb.log_file).and_return(true)
-      # Merb::Logger.new(Merb.log_file)
+      logger = Merb::Logger.allocate # create an object sans initialization
+      logger.should_receive(:set_log).with('a partridge', 'a pear tree', 'a time bomb').and_return(true)
+      logger.send(:initialize, 'a partridge', 'a pear tree', 'a time bomb')
     end
   end
   
@@ -99,6 +99,12 @@ describe Merb::Logger do
 
     it "should call the close method if the log responds to close" do
       @logger.log.should_receive(:close)
+      @logger.close
+    end
+
+    it "shouldn't call the close method if the log is a terminal" do
+      @logger.log.should_receive(:tty?).and_return(true)
+      @logger.log.should_not_receive(:close)
       @logger.close
     end
 

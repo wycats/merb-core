@@ -28,13 +28,13 @@ module Merb
       Merb.environment = Merb::Config[:environment]
       Merb.root = Merb::Config[:merb_root]
       case Merb::Config[:action]
-      when :kill 
+      when :kill
         Merb::Server.kill(Merb::Config[:port], 1)
-      when :kill_9 
+      when :kill_9
         Merb::Server.kill(Merb::Config[:port], 9)
       else
         Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
-      end      
+      end
     end
 
     # Start the Merb environment, but only if it hasn't been loaded yet.
@@ -74,9 +74,19 @@ module Merb
     # app/parts       for parts, Merb components
     # app/views       for templates
     # app/controllers for controller
+    # lib             for libraries
+    #
+    # ==== Notes
+    # Autoloading for lib uses empty glob by default. If you
+    # want to have your libraries under lib use autoload, add
+    # the following to Merb init file:
+    #
+    # Merb.push_path(:lib, Merb.root / "lib", "**/*.rb") # glob set explicity.
+    #
+    # Then lib/magicwand/lib/magicwand.rb with MagicWand module will
+    # be autoloaded when you first access that constant.
     #
     # ==== Examples
-    #
     # This method gives you a way to build up your own application
     # structure, for instance, to reflect the structure Rails
     # uses to simplify transition of legacy application, you can
@@ -281,6 +291,9 @@ module Merb
     #
     # :adapter<String>::          name of Rack adapter to use,
     #                             default is "runner"
+    #
+    # :rackup<String>::           name of Rack init file to use,
+    #                             default is "rack.rb"
     #
     # :reload_classes<Boolean>::  whether Merb should reload
     #                             classes on each request,

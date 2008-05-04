@@ -20,6 +20,7 @@ module Merb
           opts[:host] =  "#{opts[:host]}-#{opts[:port]}"
         end  
         server = ::Thin::Server.start(opts[:host], opts[:port].to_i, opts[:app])
+        Merb::Server.change_privilege
         ::Thin::Logging.silent = true
         server.start!
       end

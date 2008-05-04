@@ -57,7 +57,7 @@ module Merb::Test::Rspec::ControllerMatchers
     def failure_message
       msg = "expected #{inspect_target} to redirect to <#{@expected}>, but "
       if @redirected
-        msg << "was <#{target_location}>" 
+        msg << "was <#{target_location}>"
       else
         msg << "there was no redirection"
       end
@@ -158,13 +158,51 @@ module Merb::Test::Rspec::ControllerMatchers
     end
   end
 
+  class Provide
+
+    # === Parameters
+    # expected<Symbol>:: A format to check
+    def initialize(expected)
+      @expected = expected
+    end
+
+    # ==== Parameters
+    # target<Symbol>::
+    #   A ControllerClass or controller_instance
+    #
+    # ==== Returns
+    # Boolean:: True if the formats provided by the target controller/class include the expected
+    def matches?(target)
+      @target = target
+      provided_formats.include?( @expected )
+    end
+
+    # ==== Returns
+    # String:: The failure message.
+    def failure_message
+      "expected #{@target.name} to provide #{@expected}, but it doesn't"
+    end
+
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
+    def negative_failure_message
+      "expected #{@target.name} not to provide #{@expected}, but it does"
+    end
+
+    # ==== Returns
+    # Array[Symbol]:: The formats the expected provides
+    def provided_formats
+      @target.class_provided_formats
+    end
+  end
+
   # Passes if the target was redirected, or the target is a redirection (300
   # level) response code.
   #
   # ==== Examples
   #   # Passes if the controller was redirected
   #   controller.should redirect
-  #   
+  #
   #   # Also works if the target is the response code
   #   controller.status.should redirect
   #
@@ -206,7 +244,7 @@ module Merb::Test::Rspec::ControllerMatchers
   # ==== Examples
   #   # Passes if the controller call was successful
   #   controller.should respond_successfully
-  #   
+  #
   #   # Also works if the target is the response code
   #   controller.status.should respond_successfully
   #
@@ -234,7 +272,7 @@ module Merb::Test::Rspec::ControllerMatchers
   # ==== Examples
   #   # Passes if the controller call was unknown or not understood
   #   controller.should be_missing
-  #   
+  #
   #   # Also passes if the target is a response code
   #   controller.status.should be_missing
   #
@@ -266,4 +304,16 @@ module Merb::Test::Rspec::ControllerMatchers
   end
 
   alias_method :be_client_error, :be_missing
+
+  # Passes if the controller actually provides the target format
+  #
+  # === Parameters
+  # expected<Symbol>:: A format to check
+  #
+  # ==== Examples
+  #   ControllerClass.should provide( :html )
+  #   controller_instance.should provide( :xml )
+  def provide( expected )
+    Provide.new( expected )
+  end
 end
