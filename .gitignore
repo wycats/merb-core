@@ -11,3 +11,4 @@ coverage
 .DS_Store
 *.pid
 *.gem
+TAGS
