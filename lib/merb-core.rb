@@ -65,9 +65,10 @@ module Merb
 
     Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)
 
-    # This is the core mechanism for setting up your application layout
-    # merb-core won't set a default application layout, but merb-more will
-    # use the app/:type layout:
+    # This is the core mechanism for setting up your application layout.
+    # There are three application layouts in Merb:
+    #
+    # Regular app/:type layout of Ruby on Rails fame:
     #
     # app/models      for models
     # app/mailers     for mailers (special type of controllers)
@@ -75,6 +76,16 @@ module Merb
     # app/views       for templates
     # app/controllers for controller
     # lib             for libraries
+    #
+    # Flat application layout:
+    #
+    # application.rb       for models, controllers, mailers, etc
+    # config/init.rb       for initialization and router configuration
+    # config/framework.rb  for framework and dependencies configuration
+    # views                for views
+    #
+    # and Camping-style "very flat" application layout, where the whole Merb
+    # application and configs fit into a single file.
     #
     # ==== Notes
     # Autoloading for lib uses empty glob by default. If you
