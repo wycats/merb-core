@@ -35,14 +35,14 @@ module Kernel
       else
         gem(name, *ver) if ver
         require name
-        Merb.logger.info!("loading gem '#{name}' from #{__app_file_trace__.first} ...")
+        Merb.logger.info!("loading gem '#{name}' ...")
       end
     rescue LoadError
       if try_framework
         try_framework = false
         retry
       else
-        Merb.logger.info!("loading gem '#{name}' from #{__app_file_trace__.first} ...")
+        Merb.logger.info!("loading gem '#{name}' ...")
         # Failed requiring as a gem, let's try loading with a normal require.
         require name
       end
@@ -228,17 +228,6 @@ module Kernel
     Merb.generator_scope.delete(:test_unit)
 
     Merb.generator_scope.push(test_framework.to_sym)
-  end
-
-  # ==== Returns
-  # Array[String]:: A stack trace of the applications files.
-  def __app_file_trace__
-    caller.select do |call|
-      call.include?(Merb.root) && !call.include?(Merb.root + "/framework")
-    end.map do |call|
-      file, line = call.scan(Regexp.new("#{Merb.root}/(.*):(.*)")).first
-      "#{file}:#{line}"
-    end
   end
 
   # ==== Parameters
