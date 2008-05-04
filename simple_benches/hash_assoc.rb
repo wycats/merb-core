@@ -444,16 +444,16 @@ hsh = {:x => :y, :z => :a, :b => :c, :d => :e, :f => :g, :h => :i, :j => :k, :l 
 arr = hsh.to_a
 dic = Dictionary[*arr.flatten]
 
-# Benchmark.bmbm do |x|
-#   x.report("Hash") do
-#     TIMES.times { hsh[:b] }
-#   end
-#   
-#   x.report("Array") do
-#     TIMES.times { arr.assoc(:b) }
-#   end
-#   
-#   x.report("Dicrionary") do
-#     TIMES.times{ dic[:b] }
-#   end
-# end
+Benchmark.bmbm do |x|
+  x.report("Hash") do
+    TIMES.times { hsh[:b] }
+  end
+  
+  x.report("Array") do
+    TIMES.times { arr.assoc(:b) }
+  end
+  
+  x.report("Dictionary") do
+    TIMES.times{ dic[:b] }
+  end
+end
