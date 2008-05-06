@@ -12,6 +12,10 @@ describe Merb::Controller, " displaying objects based on mime type" do
     running { dispatch_to(Merb::Test::Fixtures::Controllers::DisplayHtmlDefault, :index) }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
   end
   
+  it "should set header location to url if :location provided as string options" do
+    dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithStringLocation, :index, {}, :http_accept => "application/json").headers['Location'].should =~ /1/
+  end
+  
   it "should use a template if specified" do
     dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplate, :index).body.should == "Custom: Template"
   end
