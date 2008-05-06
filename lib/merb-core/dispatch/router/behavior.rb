@@ -440,7 +440,7 @@ module Merb
       #
       # ==== Examples
       #
-      #  r.resources :account # will result in the typical RESTful CRUD
+      #  r.resource :account # will result in the typical RESTful CRUD
       #    # GET     /account/new                :action => "new"
       #    # POST    /account/?(\.:format)?,     :action => "create"
       #    # GET     /account/(\.:format)?       :action => "show"
