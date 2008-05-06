@@ -311,9 +311,9 @@ module Merb::RenderMixin
   # ==== Returns
   # Hash:: The options hash that was passed in.
   def _handle_location!(opts)
-    # scope it
-    use_header_url = nil
     if header_location = opts.delete(:location)
+      # scope it
+      use_header_url = nil
       if header_location.is_a? String
         # Hope they know what they're doing
         use_header_url = header_location

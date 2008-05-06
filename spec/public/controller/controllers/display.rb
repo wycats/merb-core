@@ -61,7 +61,7 @@ module Merb::Test::Fixtures::Controllers
     provides :json
     def index
       @obj = SomeModel.new
-      display @obj, :location => "/some_objs/#{@obj.to_param}"
+      display @obj, :location => "/some_resources/#{@obj.to_param}"
     end
   end
   
