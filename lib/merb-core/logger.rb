@@ -39,7 +39,6 @@ module Merb
 
   class Logger
 
-    attr_accessor :aio
     attr_accessor :level
     attr_accessor :delimiter
     attr_accessor :auto_flush
@@ -65,32 +64,6 @@ module Merb
 
     private
 
-    # Define the write method based on if asynchronous IO an be used.
-    #
-    # ==== Notes
-    # The idea here is that instead of performing an 'if' conditional check on
-    # each logging we do it once when the log object is setup.
-    def set_write_method
-      @log.instance_eval do
-
-        # ==== Returns
-        # Boolean:: True if asynchronous IO can be used.
-        def aio?
-          @aio = !Merb.environment.to_s.match(/development|test/) && 
-          !RUBY_PLATFORM.match(/java|mswin/) &&
-          !(@log == STDOUT) &&
-          @log.respond_to?(:write_nonblock)
-        end
-
-        undef write_method if defined? write_method #:nodoc:
-        if aio?
-          alias :write_method :write_nonblock
-        else
-          alias :write_method :write
-        end
-      end
-    end
-
     # Readies a log for writing.
     #
     # ==== Parameters
@@ -109,7 +82,6 @@ module Merb
         @log.sync = true
         @log.write("#{Time.now.httpdate} #{delimiter} info #{delimiter} Logfile created\n")
       end
-      set_write_method
     end
 
     public
@@ -155,7 +127,7 @@ module Merb
     # Flush the entire buffer to the log object.
     def flush
       return unless @buffer.size > 0
-      @log.write_method(@buffer.slice!(0..-1).to_s)
+      @log.write(@buffer.slice!(0..-1).to_s)
     end
 
     # Close and remove the current log object.
