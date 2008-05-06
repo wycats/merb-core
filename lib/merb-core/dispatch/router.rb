@@ -75,7 +75,7 @@ module Merb
       #
       # ==== Parameters
       # name<~to_sym, Hash>:: The name of the route to generate.
-      # params<Hash>:: The params to use in the route generation.
+      # params<Hash, Fixnum, Object>:: The params to use in the route generation.
       # fallback<Hash>:: Parameters for generating a fallback URL.
       #
       # ==== Returns
@@ -85,7 +85,9 @@ module Merb
       # If name is a hash, it will be merged with params and passed on to
       # generate_for_default_route along with fallback.
       def generate(name, params = {}, fallback = {})
+        params.reject! { |k,v| v.nil? } if params.is_a? Hash
         if name.is_a? Hash
+          name.reject! { |k,v| v.nil? }
           return generate_for_default_route(name.merge(params), fallback)
         end
         name = name.to_sym
