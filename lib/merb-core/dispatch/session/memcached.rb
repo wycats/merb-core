@@ -22,6 +22,7 @@ module Merb
           CACHE.set("session:#{request.session.session_id}", request.session.data)
         rescue => err
           Merb.logger.debug("MemCache Error: #{err.message}")
+          Merb::SessionMixin::finalize_session_exception_callbacks.each {|x| x.call(err) }
         end
       end
       set_cookie(_session_id_key, request.session.session_id, Time.now + _session_expiry) if (@_new_cookie || request.session.needs_new_cookie)
@@ -88,6 +89,7 @@ module Merb
             session = CACHE.get("session:#{session_id}")
           rescue => err
             Merb.logger.debug("MemCache Error: #{err.message}")
+            Merb::SessionMixin::persist_exception_callbacks.each {|x| x.call(err) }
           end
           if session.nil?
             # Not in memcached, but assume that cookie exists
