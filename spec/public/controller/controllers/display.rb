@@ -9,6 +9,9 @@ module Merb::Test::Fixtures::Controllers
       excludes = options[:except].first rescue ""
       "{ 'include': '#{includes}', 'exclude': '#{excludes}' }"
     end
+    def to_param
+      "1"
+    end
   end
   
   class Testing < Merb::Controller
@@ -51,6 +54,14 @@ module Merb::Test::Fixtures::Controllers
     def index_by_arg
       @obj = SomeModel.new
       display @obj, "merb/test/fixtures/controllers/display_with_template_argument/index.html"
+    end
+  end
+  
+  class DisplayWithStringLocation < Display
+    provides :json
+    def index
+      @obj = SomeModel.new
+      display @obj, :location => "/some_resources/#{@obj.to_param}"
     end
   end
   

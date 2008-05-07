@@ -89,7 +89,7 @@ module Merb::RenderMixin
     
     # If you don't specify a thing to render, assume they want to render the current action
     thing ||= action_name.to_sym
-
+    
     # Content negotiation
     opts[:format] ? (self.content_type = opts[:format]) : content_type 
     
@@ -294,6 +294,35 @@ module Merb::RenderMixin
   # Hash:: The options hash that was passed in.
   def _handle_options!(opts)
     self.status = opts[:status].to_i if opts[:status]
+    _handle_location!(opts)
+    opts
+  end
+
+  # Handle the :location option appropriately
+  #
+  # ==== Parameters
+  # opts<Hash>:: The options hash that was passed to the render
+  # 
+  # ==== Options
+  # :location
+  #    Either the URL headers['Location'] should be set to, or
+  #    an object with a determinable resource URL
+  #    
+  # ==== Returns
+  # Hash:: The options hash that was passed in.
+  def _handle_location!(opts)
+    if header_location = opts.delete(:location)
+      # scope it
+      use_header_url = nil
+      if header_location.is_a? String
+        # Hope they know what they're doing
+        use_header_url = header_location
+      # Removed magic url :klass, @obj detection. Reconsider adding it?
+      end
+      # If we couldn't figure anything out, best let the user know
+      raise "Unable to determine `:location' given #{header_location.inspect}" if use_header_url.nil?
+      headers['Location'] = use_header_url
+    end
     opts
   end
 
