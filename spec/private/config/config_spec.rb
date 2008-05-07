@@ -49,7 +49,7 @@ describe Merb::Config do
     Merb::Config[:group].should == "tester"
   end
 
-  it "should support -f to set the filename to run Merb as" do
+  it "should support -d to daemonize Merb" do
     Merb::Config.parse_args(["-d"])
     Merb::Config[:daemonize].should == true
   end
