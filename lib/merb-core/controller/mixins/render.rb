@@ -305,8 +305,7 @@ module Merb::RenderMixin
   # 
   # ==== Options
   # :location
-  #    Either the URL headers['Location'] should be set to, or
-  #    an object with a determinable resource URL
+  #    Sets headers['Location'] to the provided URL
   #    
   # ==== Returns
   # Hash:: The options hash that was passed in.
