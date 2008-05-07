@@ -12,7 +12,7 @@ describe Merb::Controller, " displaying objects based on mime type" do
     running { dispatch_to(Merb::Test::Fixtures::Controllers::DisplayHtmlDefault, :index) }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
   end
   
-  it "should set header location to url if :location provided as string options" do
+  it "should set headers['Location'] to string provided by :location" do
     dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithStringLocation, :index, {}, :http_accept => "application/json").headers['Location'].should =~ /some_resources/
   end
   
