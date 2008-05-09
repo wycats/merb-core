@@ -72,6 +72,8 @@ class Merb::AbstractController
   include Merb::InlineTemplates
   
   class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root
+  
+  FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
 
   # ==== Returns
   # String:: The controller name in path form, e.g. "admin/items".
@@ -435,8 +437,8 @@ class Merb::AbstractController
   #
   # ==== Raises
   # ArgumentError::
-  #   Both :only and :exclude, or :if and :unless given, or filter is not a
-  #   Symbol, String or Proc.
+  #   Both :only and :exclude, or :if and :unless given, if filter is not a
+  #   Symbol, String or Proc, or if an unknown option is passed.
   def self.add_filter(filters, filter, opts={})
     raise(ArgumentError,
       "You can specify either :only or :exclude but 
@@ -445,6 +447,10 @@ class Merb::AbstractController
      raise(ArgumentError,
        "You can specify either :if or :unless but 
         not both at the same time for the same filter.") if opts.key?(:if) && opts.key?(:unless)
+        
+    opts.each_key do |key| raise(ArgumentError,
+      "You can only specify known filter options, #{key} is invalid.") unless FILTER_OPTIONS.include?(key)
+    end
 
     opts = normalize_filters!(opts)
 
