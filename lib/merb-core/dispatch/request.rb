@@ -213,7 +213,7 @@ module Merb
     # ==== Returns
     # String:: The request URI.
     def uri
-      @env['REQUEST_URI'] || @env['REQUEST_PATH']
+      @env['REQUEST_PATH'] || @env['REQUEST_URI']
     end
 
     # ==== Returns
