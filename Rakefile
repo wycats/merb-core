@@ -59,7 +59,6 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "json_pure"
   s.add_dependency "rspec"
   s.add_dependency "rack"
-  s.add_dependency "hpricot"
   s.add_dependency "mime-types"
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
