@@ -433,9 +433,12 @@ class Merb::BootLoader::Templates < Merb::BootLoader
       # We separate the two maps because most of controllers will have
       # the same _template_root, so it's silly to be globbing the same
       # path over and over.
-      template_paths = Merb::AbstractController._abstract_subclasses.map do |klass|
-        Object.full_const_get(klass)._template_root
-      end.uniq.compact.map {|path| Dir["#{path}/**/*.#{extension_glob}"] }
+      controller_view_paths = []
+      Merb::AbstractController._abstract_subclasses.each do |klass|
+        next if (const = Object.full_const_get(klass))._template_root.blank?
+        controller_view_paths += const._template_roots.map { |pair| pair.first }
+      end
+      template_paths = controller_view_paths.uniq.compact.map { |path| Dir["#{path}/**/*.#{extension_glob}"] }
 
       # This gets the templates that might be created outside controllers
       # template roots.  eg app/views/shared/*
