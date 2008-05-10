@@ -272,7 +272,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
 
 end
 
-class Merb::BootLoader::BeforeAppRuns < Merb::BootLoader
+class Merb::BootLoader::BeforeAppLoads < Merb::BootLoader
 
   # Call any before_app_loads hooks that were registered via before_app_loads
   # in any plugins.

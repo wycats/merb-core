@@ -359,7 +359,7 @@ module Merb
       load_config(options)
       Merb::BootLoader::BuildFramework.run
       Merb::BootLoader::Dependencies.run
-      Merb::BootLoader::BeforeAppRuns.run
+      Merb::BootLoader::BeforeAppLoads.run
     end
 
     # Reload application and framework classes.
