@@ -322,6 +322,9 @@ module Merb
     # :session_id_key<String>::   session identifier,
     #                             default is _session_id
     #
+    # :session_store<String>::    session store to use (one of cookies,
+    #                             memcache or memory)
+    #
     # :log_delimiter<String>::    what Merb logger uses as delimiter
     #                             between message sections, default is " ~ "
     #
