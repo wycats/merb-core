@@ -16,7 +16,7 @@ module Merb
 
     # Finalizes the session by storing the session ID in a cookie, if the
     # session has changed.
-    def finalize_session 
+    def finalize_session
       if @_fingerprint != Marshal.dump(request.session.data).hash
         begin
           CACHE.set("session:#{request.session.session_id}", request.session.data)
@@ -83,6 +83,10 @@ module Merb
       # Array::
       #   A pair consisting of a MemCacheSession and the session's ID. If no
       #   sessions matched session_id, a new MemCacheSession will be generated.
+      #
+      # ==== Notes
+      # If there are persiste exceptions callbacks to execute, they all get executed
+      # when Memcache library raises an exception.
       def persist(session_id)
         unless session_id.blank?
           begin
@@ -117,20 +121,20 @@ module Merb
     end
 
     # Regenerate the session ID.
-    def regenerate 
-      @session_id = Merb::SessionMixin::rand_uuid 
-      self.needs_new_cookie=true 
-    end 
-      
+    def regenerate
+      @session_id = Merb::SessionMixin::rand_uuid
+      self.needs_new_cookie=true
+    end
+
     # Recreates the cookie with the default expiration time. Useful during log
     # in for pushing back the expiration date.
-    def refresh_expiration 
-      self.needs_new_cookie=true 
-    end 
-     
+    def refresh_expiration
+      self.needs_new_cookie=true
+    end
+
     # Deletes the session by emptying stored data.
-    def delete  
-      @data = {} 
+    def delete
+      @data = {}
     end
 
     # ==== Returns
@@ -138,11 +142,11 @@ module Merb
     def loaded?
       !! @data
     end
-    
+
     # ==== Parameters
     # k<~to_s>:: The key of the session parameter to set.
     # v<~to_s>:: The value of the session parameter to set.
-    def []=(k, v) 
+    def []=(k, v)
       @data[k] = v
     end
 
@@ -151,18 +155,18 @@ module Merb
     #
     # ==== Returns
     # String:: The value of the session parameter.
-    def [](k) 
-      @data[k] 
+    def [](k)
+      @data[k]
     end
 
     # Yields the session data to an each block.
     #
     # ==== Parameter
     # &b:: The block to pass to each.
-    def each(&b) 
-      @data.each(&b) 
+    def each(&b)
+      @data.each(&b)
     end
-    
+
     private
 
     # Attempts to redirect any messages to the data object.
