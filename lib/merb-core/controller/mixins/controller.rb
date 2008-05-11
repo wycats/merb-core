@@ -101,7 +101,7 @@ module Merb
     # ==== Examples
     #   redirect("/posts/34")
     #   redirect("http://www.merbivore.com/")
-    #   redirect("http://www.merbivore.com/")
+    #   redirect("http://www.merbivore.com/", true)
     def redirect(url, permanent = false)
       self.status = permanent ? 301 : 302
       Merb.logger.info("Redirecting to: #{url} (#{self.status})")
