@@ -22,25 +22,35 @@ module Merb
         @cluster = cluster
         if @cluster
           @port.to_i.upto(@port.to_i + @cluster.to_i-1) do |port|
+            pidfile = pid_file(port)
+            pid = IO.read(pidfile).chomp.to_i
+
             unless alive?(port)
               remove_pid_file(port)
-              puts "Starting merb server on port: #{port}"
+              puts "Starting merb server on port #{port}, pid file: #{pidfile} and process id is #{pid}"
               daemonize(port)
             else
-              raise "Merb is already running on port: #{port}"
+              raise "Merb is already running: port is #{port}, pid file: #{pidfile}, process id is #{pid}"
             end
           end
         elsif Merb::Config[:daemonize]
+          pidfile = pid_file(port)
+          pid = IO.read(pidfile).chomp.to_i
+
           unless alive?(@port)
+            puts "Removing pid file #{pidfile}, port is #{port}..."
             remove_pid_file(@port)
+            puts "Daemonizing..."
             daemonize(@port)
           else
-            raise "Merb is already running on port: #{port}"
+            raise "Merb is already running: port is #{port}, pid file: #{pidfile}, process id is #{pid}"
           end
         else
           trap('TERM') { exit }
           trap('INT') { puts "\nExiting"; exit }
+          puts "Running bootloaders..."
           BootLoader.run
+          puts "Starting Rack adapter..."
           Merb.adapter.start(Merb::Config.to_hash)
         end
       end
@@ -52,8 +62,11 @@ module Merb
       # Boolean::
       #   True if Merb is running on the specified port.
       def alive?(port)
+        puts "About to check if port #{port} is alive..."
         pidfile = pid_file(port)
+        puts "Pidfile is #{pidfile}..."
         pid = IO.read(pidfile).chomp.to_i
+        puts "Process id is #{pid}"
         Process.kill(0, pid)
         true
       rescue
@@ -72,8 +85,8 @@ module Merb
         begin
           pidfiles = port == "all" ?
             pid_files : [ pid_file(port) ]
-            
-          pidfiles.each do |f|          
+
+          pidfiles.each do |f|
             pid = IO.read(f).chomp.to_i
             begin
               Process.kill(sig, pid)
@@ -98,6 +111,7 @@ module Merb
       # ==== Parameters
       # port<~to_s>:: The port of the Merb process to daemonize.
       def daemonize(port)
+        puts "About to fork..."
         fork do
           Process.setsid
           exit if fork
@@ -117,13 +131,15 @@ module Merb
       def change_privilege
         if Merb::Config[:user]
           if Merb::Config[:group]
+            puts "About to change privilege to group #{Merb::Config[:group]} and user #{Merb::Config[:user]}"
             _change_privilege(Merb::Config[:user], Merb::Config[:group])
           else
+            puts "About to change privilege to user #{Merb::Config[:user]}"
             _change_privilege(Merb::Config[:user])
           end
         end
       end
-      
+
       # Removes a PID file used by the server from the filesystem.
       # This uses :pid_file options from configuration when provided
       # or merb.<port>.pid in log directory by default.
@@ -137,6 +153,7 @@ module Merb
       # instead of the port based PID file.
       def remove_pid_file(port)
         pidfile = pid_file(port)
+        puts "Removing pid file #{pidfile} (port is #{port})"
         FileUtils.rm(pidfile) if File.exist?(pidfile)
       end
 
@@ -153,10 +170,11 @@ module Merb
       # instead of the port based PID file.
       def store_pid(port)
         pidfile = pid_file(port)
+        puts "pid file stored at #{pidfile}"
         FileUtils.mkdir_p(File.dirname(pidfile)) unless File.directory?(File.dirname(pidfile))
         File.open(pidfile, 'w'){ |f| f.write("#{Process.pid}") }
       end
-          
+
       # Gets the pid file for the specified port.
       #
       # ==== Parameters
@@ -202,8 +220,8 @@ module Merb
         else
           Dir[Merb.log_path / "merb.*.pid"]
         end
-       end      
-      
+       end
+
       # Change privileges of the process to the specified user and group.
       #
       # ==== Parameters
