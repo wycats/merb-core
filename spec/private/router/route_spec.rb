@@ -23,7 +23,6 @@ end
 describe Merb::Router, ".prepare" do
   before :each do
     Merb::Router.routes = []
-    # sanity check
   end
 
   it "adds prepared routes to existing" do
