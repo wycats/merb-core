@@ -56,6 +56,6 @@ namespace :spec do
     t.spec_files = Dir['spec/**/*_spec.rb'].sort
     t.libs = ['lib', 'server/lib' ]
     t.rcov = true
-    t.rcov_opts = ["--exclude config,spec,#{Gem::path.join(',')}"]    
+    t.rcov_opts = ["--exclude 'config,spec,#{Gem::path.join(',')}'"]    
   end
 end
