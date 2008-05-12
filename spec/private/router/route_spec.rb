@@ -86,3 +86,91 @@ describe Merb::Router, ".prepend" do
     Merb::Router.named_routes[:appended].index.should == 0
   end
 end
+
+
+
+describe Merb::Router, ".generate", "given a Symbol" do
+  before :each do
+    Merb::Router.prepare do |r|
+      r.match("/elements/").to(:controller => "elements").name(:elements)
+    end
+  end
+
+  it "searches among named routes" do
+    Merb::Router.generate(:elements).should == "/elements/"
+  end
+
+  it "raises RuntimeError when named route is not found" do
+    lambda { Merb::Router.generate(:mountains) }.should raise_error(RuntimeError, /Named route not found/)
+  end
+end
+
+
+
+describe Merb::Router, ".generate", "given a Hash" do
+  before :each do
+    Merb::Router.prepare do |r|
+      r.match("/elements/").to(:controller => "elements").name(:elements)
+    end
+  end
+
+  it "uses default routes mapping" do
+    Merb::Router.generate({ :controller => "elements", :action => "show", :id => "fire" }).should == "/elements/show/fire"
+  end
+
+  it "appends extra parameters to URL" do
+    Merb::Router.generate({ :controller => "elements", :action => "search" }, { :q => "water" }).should == "/elements/search?q=water"
+  end
+
+  it "uses fallback hash when controller is not available" do
+    Merb::Router.generate({ :action => "show", :id => "Olympus" }, {}, { :controller => "mountains" }).should == "/mountains/show/Olympus"
+  end
+
+  it "uses fallback hash when action is not available" do
+    Merb::Router.generate({ :controller => "mountains", :id => "Olympus" }, {}, { :action => "show" }).should == "/mountains/show/Olympus"
+  end
+
+  it "ignores nil parameters" do
+    Merb::Router.generate({ :controller => "mountains", :action => nil, :id => "Olympus" }, {}, { :action => "show" }).should == "/mountains/show/Olympus"
+  end
+
+  it "respects format parameter" do
+    Merb::Router.generate({ :controller => "elements", :action => "show", :id => "fire", :format => :json }).should == "/elements/show/fire.json"
+  end
+end
+
+
+
+describe Merb::Router, ".generate_for_default_route", "given a Hash" do
+  before :each do
+    Merb::Router.prepare do |r|
+      r.match("/elements/").to(:controller => "elements").name(:elements)
+    end
+  end
+
+  it "uses default routes mapping" do
+    Merb::Router.generate_for_default_route({ :controller => "elements", :action => "show", :id => "fire" }, {}).should == "/elements/show/fire"
+  end
+
+  it "respects format parameter" do
+    Merb::Router.generate({ :controller => "elements", :action => "show", :id => "fire", :format => :json }).should == "/elements/show/fire.json"
+  end
+
+  it "requires both parameters to be present" do
+    lambda {
+      Merb::Router.generate_for_default_route({ :controller => "elements", :action => "show", :id => "fire" })
+    }.should raise_error(ArgumentError)
+  end
+
+  it "uses fallback hash when controller is not available" do
+    Merb::Router.generate_for_default_route({ :action => "show", :id => "Olympus" }, { :controller => "mountains" }).should == "/mountains/show/Olympus"
+  end
+
+  it "uses fallback hash when action is not available" do
+    Merb::Router.generate_for_default_route({ :controller => "mountains", :id => "Olympus" }, { :action => "show" }).should == "/mountains/show/Olympus"
+  end
+
+  it "ignores nil parameters" do
+    Merb::Router.generate_for_default_route({ :controller => "mountains", :action => nil, :id => "Olympus" }, { :action => "show" }).should == "/mountains/show/Olympus"
+  end
+end
