@@ -23,11 +23,11 @@ module Merb
         if @cluster
           @port.to_i.upto(@port.to_i + @cluster.to_i-1) do |port|
             pidfile = pid_file(port)
-            pid = IO.read(pidfile).chomp.to_i
+            pid = IO.read(pidfile).chomp.to_i if File.exist?(pidfile)
 
             unless alive?(port)
               remove_pid_file(port)
-              puts "Starting merb server on port #{port}, pid file: #{pidfile} and process id is #{pid}"
+              puts "Starting merb server on port #{port}, pid file: #{pidfile} and process id is #{pid}" if Merb::Config[:verbose]
               daemonize(port)
             else
               raise "Merb is already running: port is #{port}, pid file: #{pidfile}, process id is #{pid}"
@@ -35,12 +35,11 @@ module Merb
           end
         elsif Merb::Config[:daemonize]
           pidfile = pid_file(port)
-          pid = IO.read(pidfile).chomp.to_i
+          pid = IO.read(pidfile).chomp.to_i if File.exist?(pidfile)
 
           unless alive?(@port)
-            puts "Removing pid file #{pidfile}, port is #{port}..."
             remove_pid_file(@port)
-            puts "Daemonizing..."
+            puts "Daemonizing..." if Merb::Config[:verbose]
             daemonize(@port)
           else
             raise "Merb is already running: port is #{port}, pid file: #{pidfile}, process id is #{pid}"
@@ -48,9 +47,9 @@ module Merb
         else
           trap('TERM') { exit }
           trap('INT') { puts "\nExiting"; exit }
-          puts "Running bootloaders..."
+          puts "Running bootloaders..." if Merb::Config[:verbose]
           BootLoader.run
-          puts "Starting Rack adapter..."
+          puts "Starting Rack adapter..." if Merb::Config[:verbose]
           Merb.adapter.start(Merb::Config.to_hash)
         end
       end
@@ -62,11 +61,11 @@ module Merb
       # Boolean::
       #   True if Merb is running on the specified port.
       def alive?(port)
-        puts "About to check if port #{port} is alive..."
+        puts "About to check if port #{port} is alive..." if Merb::Config[:verbose]
         pidfile = pid_file(port)
-        puts "Pidfile is #{pidfile}..."
+        puts "Pidfile is #{pidfile}..." if Merb::Config[:verbose]
         pid = IO.read(pidfile).chomp.to_i
-        puts "Process id is #{pid}"
+        puts "Process id is #{pid}" if Merb::Config[:verbose]
         Process.kill(0, pid)
         true
       rescue
@@ -111,7 +110,7 @@ module Merb
       # ==== Parameters
       # port<~to_s>:: The port of the Merb process to daemonize.
       def daemonize(port)
-        puts "About to fork..."
+        puts "About to fork..." if Merb::Config[:verbose]
         fork do
           Process.setsid
           exit if fork
@@ -131,10 +130,10 @@ module Merb
       def change_privilege
         if Merb::Config[:user]
           if Merb::Config[:group]
-            puts "About to change privilege to group #{Merb::Config[:group]} and user #{Merb::Config[:user]}"
+            puts "About to change privilege to group #{Merb::Config[:group]} and user #{Merb::Config[:user]}" if Merb::Config[:verbose]
             _change_privilege(Merb::Config[:user], Merb::Config[:group])
           else
-            puts "About to change privilege to user #{Merb::Config[:user]}"
+            puts "About to change privilege to user #{Merb::Config[:user]}" if Merb::Config[:verbose]
             _change_privilege(Merb::Config[:user])
           end
         end
@@ -153,7 +152,7 @@ module Merb
       # instead of the port based PID file.
       def remove_pid_file(port)
         pidfile = pid_file(port)
-        puts "Removing pid file #{pidfile} (port is #{port})"
+        puts "Removing pid file #{pidfile} (port is #{port})..."
         FileUtils.rm(pidfile) if File.exist?(pidfile)
       end
 
@@ -170,8 +169,9 @@ module Merb
       # instead of the port based PID file.
       def store_pid(port)
         pidfile = pid_file(port)
-        puts "pid file stored at #{pidfile}"
+        puts "Storing pid file to #{pidfile}..."
         FileUtils.mkdir_p(File.dirname(pidfile)) unless File.directory?(File.dirname(pidfile))
+        puts "Created directory, writing process id..." if Merb::Config[:verbose]
         File.open(pidfile, 'w'){ |f| f.write("#{Process.pid}") }
       end
 
