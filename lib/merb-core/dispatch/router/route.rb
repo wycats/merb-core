@@ -167,7 +167,7 @@ module Merb
         segments
       end
 
-      # Names this route in Router.
+      # Names this route in Router. Name must be a Symbol.
       #
       # ==== Parameters
       # symbol<Symbol>:: The name of the route.
