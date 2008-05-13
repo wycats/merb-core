@@ -166,6 +166,7 @@ module English
           return result.dup
         end
         result = word.dup
+        return result if singular_of.value? result
         singularization_rules.each do |(match, replacement)|
           break if result.gsub!(match, replacement)
         end
@@ -216,6 +217,10 @@ module English
     word 'sheep'
     word 'moose'
     word 'hovercraft'
+    word 'grass'
+    word 'news'
+    word 'rain'
+    word 'milk'
 
     # Two arguments defines a singular and plural exception.
 
@@ -237,7 +242,7 @@ module English
     word 'torpedo'   , 'torpedoes'
     word 'quiz'      , 'quizes'
     word 'matrix'    , 'matrices'
-    word 'vertex'    , 'vetices'
+    word 'vertex'    , 'vertices'
     word 'index'     , 'indices'
     word 'ox'        , 'oxen'
     word 'mouse'     , 'mice'
@@ -245,10 +250,16 @@ module English
     word 'thesis'    , 'theses'
     word 'thief'     , 'thieves'
     word 'analysis'  , 'analyses'
+    word 'erratum'   , 'errata'
+    word 'phenomenon', 'phenomena'
+    word 'octopus'   , 'octopi'
+    word 'thesaurus' , 'thesauri'
+    word 'movie'     , 'movies'
+    word 'cactus'    , 'cacti'
 
     # One-way singularization exception (convert plural to singular).
 
-    singular_word 'cactus', 'cacti'
+    # singular_word 'cactus', 'cacti'
 
     # General rules.
 
