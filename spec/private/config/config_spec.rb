@@ -71,7 +71,7 @@ describe Merb::Config do
 
   it "should have server return PIDfile setting as is with no cluster nodes" do
     Merb::Config.parse_args(["-P", "pidfile", "-p", "6000"])
-    Merb::Server.pid_file(6000).should == "pidfile"    
+    Merb::Server.pid_file(6000).should == "pidfile"
     Merb::Server.pid_files.should == ["pidfile"]
   end
 
@@ -79,7 +79,7 @@ describe Merb::Config do
     Merb::Config.parse_args(["-P", "/tmp/merb.pidfile", "-c", "2", "-p", "6000"])
     Merb::Server.pid_file(6000).should == "/tmp/merb.6000.pidfile"
     Merb::Server.pid_file(6001).should == "/tmp/merb.6001.pidfile"
-    
+
     Dir.should_receive(:[]).with("/tmp/merb.*.pidfile")
     Merb::Server.pid_files
   end
@@ -87,7 +87,7 @@ describe Merb::Config do
   it "should support default PIDfile setting" do
     Merb::Config.parse_args(["-p", "6000"])
     Merb::Server.pid_file(6000).should == Merb.log_path / "merb.6000.pid"
-    
+
     Dir.should_receive(:[]).with(Merb.log_path / "merb.*.pid")
     Merb::Server.pid_files
   end
@@ -164,4 +164,19 @@ describe Merb::Config do
     $TESTING = true; Merb::Config[:testing] = false # reset
   end
 
+  it "supports -V to turn on verbose mode" do
+    Merb::Config[:verbose] = false
+    Merb::Config.parse_args(["-V"])
+    Merb::Config[:verbose].should be(true)
+  end
+
+  it "supports --verbose to turn on verbose mode" do
+    Merb::Config[:verbose] = false
+    Merb::Config.parse_args(["--verbose"])
+    Merb::Config[:verbose].should be(true)
+  end
+
+  it "has verbose mode turned off by default" do
+    Merb::Config[:verbose].should be(false)
+  end
 end

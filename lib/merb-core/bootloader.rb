@@ -131,6 +131,10 @@ class Merb::BootLoader::Logger < Merb::BootLoader
   end
 end
 
+# Stores pid file.
+#
+# Only run if daemonization or clustering options specified on start.
+# Port is taken from Merb::Config and must be already set at this point.
 class Merb::BootLoader::DropPidFile <  Merb::BootLoader
   class << self
 

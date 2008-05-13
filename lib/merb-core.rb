@@ -103,10 +103,10 @@ module Merb
     # uses to simplify transition of legacy application, you can
     # set it up like this:
     #
-    # Merb.push_path(:models,      Merb.root / "app" / "models",      "**/*.rb")
-    # Merb.push_path(:mailers,     Merb.root / "app" / "models",      "**/*.rb")
-    # Merb.push_path(:controllers, Merb.root / "app" / "controllers", "**/*.rb")
-    # Merb.push_path(:views,       Merb.root / "app" / "views",       "**/*.rb")
+    # Merb.push_path(:model,      Merb.root / "app" / "models",      "**/*.rb")
+    # Merb.push_path(:mailer,     Merb.root / "app" / "models",      "**/*.rb")
+    # Merb.push_path(:controller, Merb.root / "app" / "controllers", "**/*.rb")
+    # Merb.push_path(:view,       Merb.root / "app" / "views",       "**/*.rb")
     #
     # ==== Parameters
     # type<Symbol>:: The type of path being registered (i.e. :view)
@@ -132,8 +132,8 @@ module Merb
     # application components.
     #
     # Merb.root = "path/to/legacy/app/root"
-    # Merb.remove_paths(:mailers)
-    # Merb.push_path(:mailers,     Merb.root / "app" / "models",      "**/*.rb")
+    # Merb.remove_paths(:mailer)
+    # Merb.push_path(:mailer,     Merb.root / "app" / "models",      "**/*.rb")
     #
     # Will make Merb use app/models for mailers just like Ruby on Rails does.
     def remove_paths(*args)
@@ -321,6 +321,9 @@ module Merb
     #
     # :session_id_key<String>::   session identifier,
     #                             default is _session_id
+    #
+    # :session_store<String>::    session store to use (one of cookies,
+    #                             memcache or memory)
     #
     # :log_delimiter<String>::    what Merb logger uses as delimiter
     #                             between message sections, default is " ~ "

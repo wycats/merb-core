@@ -22,7 +22,8 @@ module Merb
           :log_delimiter          => " ~ ",
           :log_auto_flush         => false,
           :disabled_components    => [],
-          :deferred_actions       => []
+          :deferred_actions       => [],
+          :verbose                => false
         }
       end
 
@@ -224,6 +225,10 @@ module Merb
               puts "You need to install ruby-debug to run the server in debugging mode. With gems, use 'gem install ruby-debug'"
               exit
             end
+          end
+
+          opts.on("-V", "--verbose", "Print extra information") do
+            options[:verbose] = true
           end
 
           opts.on("-?", "-H", "--help", "Show this help message") do
