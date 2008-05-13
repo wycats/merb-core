@@ -1,11 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe Language::English::Inflect, "#singular" do
-  before :each do
-
-  end
-
-  it "handles regular cases"
+  # ==== Singularization: exceptional cases
 
   it "singularizes equipment => equipment" do
     "equipment".singular.should == "equipment"
@@ -119,7 +115,8 @@ describe Language::English::Inflect, "#singular" do
     "quizes".singular.should == "quiz"
   end
 
-  # bug exposed by this specs suite, this MUST pass
+  # used to be a bug exposed by this specs suite,
+  # this MUST pass or we've got regression
   it "singularizes vertices => vertex" do
     "vertices".singular.should == "vertex"
   end
@@ -156,8 +153,19 @@ describe Language::English::Inflect, "#singular" do
     "forums".singular.should == "forum"
   end
 
+
+
+  # ==== Singularization: bugs, typos and reported issues
+
   # LH ticket #318 for merb-core
   it "singularizes forum => forum" do
     "forum".singular.should == "forum"
   end
+
+
+
+
+  # ==== Singularization: rules
+
+
 end
