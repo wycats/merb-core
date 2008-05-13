@@ -217,6 +217,7 @@ module English
     word 'sheep'
     word 'moose'
     word 'hovercraft'
+    word 'grass'
 
     # Two arguments defines a singular and plural exception.
 
@@ -246,6 +247,9 @@ module English
     word 'thesis'    , 'theses'
     word 'thief'     , 'thieves'
     word 'analysis'  , 'analyses'
+    word 'erratum'   , 'errata'
+    word 'phenomenon', 'phenomena'
+    word 'octopus'   , 'octopi'
     word 'forum'     , 'forum'
 
     # One-way singularization exception (convert plural to singular).

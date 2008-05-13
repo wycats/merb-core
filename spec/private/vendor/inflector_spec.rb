@@ -149,9 +149,19 @@ describe Language::English::Inflect, "#singular" do
     "analyses".singular.should == "analysis"
   end
 
-  it "singularizes forums => forum" do
-    "forums".singular.should == "forum"
+  it "singularizes octopi => octopus" do
+    "octopi".singular.should == "octopus"
   end
+
+  it "singularizes grass => grass" do
+    "grass".singular.should == "grass"
+  end
+
+  it "singularizes phenomena => phenomenon" do
+    "phenomena".singular.should == "phenomenon"
+  end
+
+
 
 
 
@@ -165,7 +175,88 @@ describe Language::English::Inflect, "#singular" do
 
 
 
+
   # ==== Singularization: rules
 
+  it "singularizes forums => forum" do
+    "forums".singular.should == "forum"
+  end
 
+  it "singularizes hives => hive" do
+    "hives".singular.should == "hive"
+  end
+
+  it "singularizes athletes => athlete" do
+    "athletes".singular.should == "athlete"
+  end
+
+  it "singularizes dwarves => dwarf" do
+    "dwarves".singular.should == "dwarf"
+  end
+
+  it "singularizes heroes => hero" do
+    "heroes".singular.should == "hero"
+  end
+
+  it "singularizes zeroes => zero" do
+    "zeroes".singular.should == "zero"
+  end
+
+  it "singularizes men => man" do
+    "men".singular.should == "man"
+  end
+
+  it "singularizes women => woman" do
+    "women".singular.should == "woman"
+  end
+
+  it "singularizes sportsmen => sportsman" do
+    "sportsmen".singular.should == "sportsman"
+  end
+
+  it "singularizes branches => branch" do
+    "branches".singular.should == "branch"
+  end
+
+  it "singularizes crunches => crunch" do
+    "crunches".singular.should == "crunch"
+  end
+
+  it "singularizes trashes => trash" do
+    "trashes".singular.should == "trash"
+  end
+
+  it "singularizes mashes => mash" do
+    "mashes".singular.should == "mash"
+  end
+
+  it "singularizes errata => erratum" do
+    "errata".singular.should == "erratum"
+  end
+
+
+
+  it "singularizes foxes => fox" do
+    "foxes".singular.should == "fox"
+  end
+
+  it "singularizes flies => fly" do
+    "flies".singular.should == "fly"
+  end
+
+  it "singularizes rays => ray" do
+    "rays".singular.should == "ray"
+  end
+
+  it "singularizes sprays => spray" do
+    "sprays".singular.should == "spray"
+  end
+
+  it "singularizes cats => cat" do
+    "cats".singular.should == "cat"
+  end
+
+  it "singularizes rats => rat" do
+    "rats".singular.should == "rat"
+  end
 end
