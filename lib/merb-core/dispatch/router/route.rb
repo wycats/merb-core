@@ -1,8 +1,58 @@
 require 'merb-core/controller/mixins/responder'
 module Merb
-  
-  class Router
 
+  class Router
+    # Route instances incapsulate information about particular route
+    # definition. Route definition just ties
+    # number of conditions (like URL matching a regexp) with
+    # resulting hash of so called route parameters:
+    # controller, action, format and named parameters
+    # from the URL.
+    #
+    #
+    # When you have the following routes definition:
+    #
+    # Merb::Router.prepare do |r|
+    #   r.resources :continents do |c|
+    #     c.resources :countries
+    #   end
+    # end
+    #
+    # Router creates number of conventional routes for
+    # each resource.
+    #
+    # ==== Route conditions.
+    #
+    # Route conditions include path and may also include
+    # user agent, HTTP request method and format (MIME type).
+    # Here is example of Route conditions:
+    # {
+    #   :path => /^\/continents\/?(\.([^\/.,;?]+))?$/,
+    #   :method => /^get$/
+    # }
+    #
+    #
+    # Route parameters is a Hash with controller name,
+    # action name and parameters key/value pairs.
+    # It is then merged with request.params hash.
+    #
+    # Example of route parameters:
+    #
+    # {
+    #   :action => "\"index\"",
+    #   :format => "path2",
+    #   :controller => "\"continents\""
+    # }
+    #
+    #
+    # ==== Compilation of route.
+    #
+    # When Merb routes are compiled, each route produces
+    # a string with eval-able if/elsif condition statement.
+    # This statement together with others constructs body
+    # of Merb::Router.match method.
+    # Condition statements are Ruby code in form of string.
+    #
     class Route
       attr_reader :conditions, :conditional_block
       attr_reader :params, :behavior, :segments, :index, :symbol
@@ -13,7 +63,7 @@ module Merb
       # behavior<Merb::Router::Behavior>::
       #   The associated behavior. Defaults to nil.
       # &conditional_block::
-      #		A block with the conditions to be met for the route to take effect.
+      #   A block with the conditions to be met for the route to take effect.
       def initialize(conditions, params, behavior = nil, &conditional_block)
         @conditions, @params, @behavior = conditions, params, behavior
         @conditional_block = conditional_block
@@ -25,14 +75,14 @@ module Merb
 
       # ==== Returns
       # Boolean:: True if fixation is allowed.
-      def allow_fixation? 
+      def allow_fixation?
         @fixation
-      end 
-         
+      end
+
       # ==== Parameters
       # enabled<Boolean>:: True enables fixation on the route.
-      def fixatable(enable=true) 
-        @fixation = enable 
+      def fixatable(enable=true)
+        @fixation = enable
         self
       end
 
@@ -43,20 +93,20 @@ module Merb
           str << (seg.is_a?(Symbol) ? ":#{seg}" : seg)
         end
       end
-      
+
       # Registers the route in the Router.routes array.
       def register
         @index = Router.routes.size
         Router.routes << self
         self
       end
-      
+
       # ==== Returns
       # Array:: All the symbols in the segments array.
       def symbol_segments
         segments.select{ |s| s.is_a?(Symbol) }
       end
-      
+
       # Turn a path into string and symbol segments so it can be reconstructed,
       # as in the case of a named route.
       #
@@ -77,7 +127,7 @@ module Merb
         segments << strip[path] unless path.empty?
         segments
       end
-      
+
       # Names this route in Router.
       #
       # ==== Parameters
@@ -97,7 +147,7 @@ module Merb
       def regexp?
         behavior.regexp? || behavior.send(:ancestors).any? { |a| a.regexp? }
       end
-      
+
       # ==== Parameters
       # params<Hash>:: Optional parameters for the route.
       # fallback<Hash>:: Optional parameters for the fallback route.
@@ -116,7 +166,7 @@ module Merb
                 params[segment] || fallback[segment]
                 query_params.delete segment
               else
-                if segment == :id && params.respond_to?(:to_param) 
+                if segment == :id && params.respond_to?(:to_param)
                   params.to_param
                 elsif segment == :id && params.is_a?(Fixnum)
                   params
@@ -158,7 +208,7 @@ module Merb
           " (#{value.inspect} =~ #{regexp_string}) #{" && (" + captures + ")" unless captures.empty?}"
         end
         @conditions.each_pair do |key, value|
-          
+
           # Note: =~ is slightly faster than .match
           cond << case key
           when :path then condition_string[key, value, "cached_path"]
