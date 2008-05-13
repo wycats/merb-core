@@ -32,13 +32,19 @@ module Merb
     #   A list of possible values sent in the Accept header, such as text/html,
     #   that should be associated with this content-type.
     # new_response_headers<Hash>::
-    #   The response headers to set for the the mime type.
-    def add_mime_type(key, transform_method, mimes, new_response_headers = {}) 
+    #   The response headers to set for the the mime type. For example: 
+    #   'Content-Type' => 'application/json; charset=utf-8'; As a shortcut for
+    #   the common charset option, use :charset => 'utf-8', which will be
+    #   correctly appended to the mimetype itself.
+    # &block:: a block which recieves the current controller when the format
+    #   is set (in the controller's #content_type method)
+    def add_mime_type(key, transform_method, mimes, new_response_headers = {}, &block) 
       enforce!(key => Symbol, mimes => Array)
       ResponderMixin::TYPES.update(key => 
         {:accepts           => mimes, 
          :transform_method  => transform_method,
-         :response_headers  => new_response_headers })
+         :response_headers  => new_response_headers,
+         :response_block    => block })
 
       Merb::RenderMixin.class_eval <<-EOS, __FILE__, __LINE__
         def render_#{key}(thing = nil, opts = {})

@@ -460,7 +460,7 @@ end
 # :yaml:: to_yaml, application/x-yaml or text/yaml
 # :text:: to_text, text/plain
 # :html:: to_html, text/html or application/xhtml+xml or application/html
-# :xml:: to_xml, application/xml or text/xml or application/x-xml, adds "Encoding: UTF-8" response header
+# :xml:: to_xml, application/xml or text/xml or application/x-xml
 # :js:: to_json, text/javascript ot application/javascript or application/x-javascript
 # :json:: to_json, application/json or text/x-json
 class Merb::BootLoader::MimeTypes < Merb::BootLoader
@@ -468,12 +468,12 @@ class Merb::BootLoader::MimeTypes < Merb::BootLoader
   # Registers the default MIME types.
   def self.run
     Merb.add_mime_type(:all,  nil,      %w[*/*])
-    Merb.add_mime_type(:yaml, :to_yaml, %w[application/x-yaml text/yaml])
-    Merb.add_mime_type(:text, :to_text, %w[text/plain])
-    Merb.add_mime_type(:html, :to_html, %w[text/html application/xhtml+xml application/html])
-    Merb.add_mime_type(:xml,  :to_xml,  %w[application/xml text/xml application/x-xml], :Encoding => "UTF-8")
-    Merb.add_mime_type(:js,   :to_json, %w[text/javascript application/javascript application/x-javascript])
-    Merb.add_mime_type(:json, :to_json, %w[application/json text/x-json])
+    Merb.add_mime_type(:yaml, :to_yaml, %w[application/x-yaml text/yaml], :charset => "utf-8")
+    Merb.add_mime_type(:text, :to_text, %w[text/plain], :charset => "utf-8")
+    Merb.add_mime_type(:html, :to_html, %w[text/html application/xhtml+xml application/html], :charset => "utf-8")
+    Merb.add_mime_type(:xml,  :to_xml,  %w[application/xml text/xml application/x-xml], :charset => "utf-8")
+    Merb.add_mime_type(:js,   :to_json, %w[text/javascript application/javascript application/x-javascript], :charset => "utf-8")
+    Merb.add_mime_type(:json, :to_json, %w[application/json text/x-json], :charset => "utf-8")
   end
 end
 
