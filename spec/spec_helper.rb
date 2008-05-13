@@ -7,7 +7,7 @@ require File.join(File.dirname(__FILE__), "..", "lib", "merb-core")
 
 # A better +be_kind_of+ with more informative error messages.
 #
-# The default +be_kind_of+ just says 
+# The default +be_kind_of+ just says
 #
 #   "expected to return true but got false"
 #
@@ -16,13 +16,9 @@ require File.join(File.dirname(__FILE__), "..", "lib", "merb-core")
 #   "expected File but got Tempfile"
 
 module Merb
-  
   module Test
-    
     module RspecMatchers
-      
       class BeKindOf
-
         def initialize(expected) # + args
           @expected = expected
         end
@@ -43,7 +39,6 @@ module Merb
         def description
           "be_kind_of #{@target}"
         end
-
       end
 
       def be_kind_of(expected) # + args
@@ -52,20 +47,20 @@ module Merb
     end
 
     module Helper
-      
       def running(&blk) blk; end
-      
+
       def executing(&blk) blk; end
-      
+
       def doing(&blk) blk; end
-      
-      def calling(&blk) blk; end      
+
+      def calling(&blk) blk; end
     end
   end
 end
 
+
 Spec::Runner.configure do |config|
   config.include Merb::Test::Helper
   config.include Merb::Test::RspecMatchers
-  config.include Merb::Test::RequestHelper  
+  config.include Merb::Test::RequestHelper
 end
