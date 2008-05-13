@@ -130,6 +130,7 @@ module Merb
       end
 
       # Registers the route in the Router.routes array.
+      # After registration route has index.
       def register
         @index = Router.routes.size
         Router.routes << self
