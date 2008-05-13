@@ -121,6 +121,9 @@ module Merb
         self
       end
 
+      # Concatenates all route segments and returns result.
+      # Symbol segments have colon preserved.
+      #
       # ==== Returns
       # String:: The route as a string, e.g. "admin/:controller/:id".
       def to_s
