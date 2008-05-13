@@ -129,8 +129,8 @@ describe Language::English::Inflect, "#plural" do
     "vertex".plural.should == "vertices"
   end
 
-  it "pluralizes index => indeces" do
-    "index".plural.should == "indeces"
+  it "pluralizes index => indices" do
+    "index".plural.should == "indices"
   end
 
   it "pluralizes ox => oxen" do

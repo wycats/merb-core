@@ -219,6 +219,8 @@ module English
     word 'hovercraft'
     word 'grass'
     word 'news'
+    word 'rain'
+    word 'milk'
 
     # Two arguments defines a singular and plural exception.
 
