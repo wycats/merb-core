@@ -255,14 +255,11 @@ module English
     word 'octopus'   , 'octopi'
     word 'thesaurus' , 'thesauri'
     word 'movie'     , 'movies'
-
-    # FIXME: should be handled differently
-    # this is not exception anyway
-    word 'forum'     , 'forum'
+    word 'cactus'    , 'cacti'
 
     # One-way singularization exception (convert plural to singular).
 
-    singular_word 'cactus', 'cacti'
+    # singular_word 'cactus', 'cacti'
 
     # General rules.
 

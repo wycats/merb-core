@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 describe Language::English::Inflect, "#singular" do
-  # ==== Singularization: exceptional cases
+  # ==== exceptional cases
 
   it "singularizes equipment => equipment" do
     "equipment".singular.should == "equipment"
@@ -181,18 +181,13 @@ describe Language::English::Inflect, "#singular" do
 
 
 
-  # ==== Singularization: bugs, typos and reported issues
-
-  # LH ticket #318 for merb-core
-  it "singularizes forum => forum" do
-    "forum".singular.should == "forum"
-  end
+  # ==== bugs, typos and reported issues
 
 
 
 
 
-  # ==== Singularization: rules
+  # ==== rules
 
   it "singularizes forums => forum" do
     "forums".singular.should == "forum"
@@ -482,5 +477,9 @@ describe Language::English::Inflect, "#singular" do
 
   it "singularizes arenas => arena" do
     "arenas".singular.should == "arena"
+  end
+
+  it "singularizes spams => spam" do
+    "spams".singular.should == "spam"
   end
 end
