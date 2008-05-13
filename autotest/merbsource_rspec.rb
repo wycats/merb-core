@@ -19,25 +19,6 @@ $VERBOSE = false
 # 6. Updating merb.rb reruns all specs
 class RspecCommandError < StandardError; end
 
-module Autotest::Growl
-
-   def self.growl title, msg, img, pri=0, sticky=""
-     system "growlnotify -n autotest --image #{img} -p #{pri} -m #{msg.inspect} #{title} #{sticky}"
-   end
-
-  Autotest.add_hook :ran_command do |at|
-    results = [at.results].flatten.join("\n")
-    output = results.slice(/(\d+)\s+examples?,\s*(\d+)\s+failures?(,\s*(\d+)\s+not implemented)?/) 
-      if output
-        if $~[2].to_i > 0
-          growl "FAIL", "#{output}", "~/.autotest_images/fail.png", 2
-       else
-         growl "Pass", "#{output}", "~/.autotest_images/pass.png" 
-       end
-     end
-   end 
- end
-
 class Autotest::MerbsourceRspec < Autotest
   
   Autotest.add_hook :initialize do |at|
