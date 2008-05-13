@@ -351,7 +351,7 @@ module Merb
       unless Merb.available_mime_types.has_key?(type)
         raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
       end        
-      headers['Content-Type'] = Merb.available_mime_types[type][:request_headers].first
+      headers['Content-Type'] = Merb.available_mime_types[type][:accepts].first
       @_content_type = type
     end
     
@@ -440,7 +440,7 @@ module Merb
     #   All Accept header values, such as "text/html", that match this type.
     def synonyms
       @syns ||= Merb.available_mime_types.values.map do |e| 
-        e[:request_headers] if e[:request_headers].include?(@media_range)
+        e[:accepts] if e[:accepts].include?(@media_range)
       end.compact.flatten
     end
 
@@ -456,7 +456,7 @@ module Merb
     # Symbol: The type as a symbol, e.g. :html.
     def to_sym
       Merb.available_mime_types.select{|k,v| 
-        v[:request_headers] == synonyms || v[:request_headers][0] == synonyms[0]}.flatten.first
+        v[:accepts] == synonyms || v[:accepts][0] == synonyms[0]}.flatten.first
     end
 
     # ==== Returns
