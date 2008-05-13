@@ -82,6 +82,12 @@ module Merb
     #
     # When route is added to set of routes, it is called route
     # registration. Registred route knows it's index in routes set.
+    #
+    # ==== Fixation
+    # Fixatable routes allow setting of session key from GET params
+    # found in incoming request. This is very useful to allow certain
+    # URLs to be used by rich media applications and other kinds
+    # of clients that have no other way of passing session identifier.
     class Route
       attr_reader :conditions, :conditional_block
       attr_reader :params, :behavior, :segments, :index, :symbol
