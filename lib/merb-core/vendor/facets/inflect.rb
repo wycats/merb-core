@@ -218,6 +218,7 @@ module English
     word 'moose'
     word 'hovercraft'
     word 'grass'
+    word 'news'
 
     # Two arguments defines a singular and plural exception.
 
@@ -250,6 +251,11 @@ module English
     word 'erratum'   , 'errata'
     word 'phenomenon', 'phenomena'
     word 'octopus'   , 'octopi'
+    word 'thesaurus' , 'thesauri'
+    word 'movie'     , 'movies'
+
+    # FIXME: should be handled differently
+    # this is not exception anyway
     word 'forum'     , 'forum'
 
     # One-way singularization exception (convert plural to singular).

@@ -31,6 +31,10 @@ describe Language::English::Inflect, "#singular" do
     "sheep".singular.should == "sheep"
   end
 
+  it "singularizes news => news" do
+    "news".singular.should == "news"
+  end
+
   it "singularizes moose => moose" do
     "moose".singular.should == "moose"
   end
@@ -41,6 +45,10 @@ describe Language::English::Inflect, "#singular" do
 
   it "singularizes cactus => cacti" do
     "cacti".singular.should == "cactus"
+  end
+
+  it "singularizes thesauri => thesaurus" do
+    "thesauri".singular.should == "thesaurus"
   end
 
   it "singularizes matrices => matrix" do
@@ -230,19 +238,17 @@ describe Language::English::Inflect, "#singular" do
     "mashes".singular.should == "mash"
   end
 
+  it "singularizes crosses => cross" do
+    "crosses".singular.should == "cross"
+  end
+
   it "singularizes errata => erratum" do
     "errata".singular.should == "erratum"
   end
 
+  # FIXME: add -ia => -ium cases
 
-
-  it "singularizes foxes => fox" do
-    "foxes".singular.should == "fox"
-  end
-
-  it "singularizes flies => fly" do
-    "flies".singular.should == "fly"
-  end
+  # FIXME: add -ra => -rum cases
 
   it "singularizes rays => ray" do
     "rays".singular.should == "ray"
@@ -252,11 +258,221 @@ describe Language::English::Inflect, "#singular" do
     "sprays".singular.should == "spray"
   end
 
+  # Merriam-Webster dictionary says
+  # preys is correct, too.
+  it "singularizes preys => prey" do
+    "preys".singular.should == "prey"
+  end
+
+  it "singularizes toys => toy" do
+    "toys".singular.should == "toy"
+  end
+
+  it "singularizes joys => joy" do
+    "joys".singular.should == "joy"
+  end
+
+  it "singularizes buys => buy" do
+    "buys".singular.should == "buy"
+  end
+
+  it "singularizes guys => guy" do
+    "guys".singular.should == "guy"
+  end
+
+  it "singularizes cries => cry" do
+    "cries".singular.should == "cry"
+  end
+
+  it "singularizes flies => fly" do
+    "flies".singular.should == "fly"
+  end
+
+  it "singularizes foxes => fox" do
+    "foxes".singular.should == "fox"
+  end
+
+  it "singularizes elves => elf" do
+    "elves".singular.should == "elf"
+  end
+
+  it "singularizes shelves => shelf" do
+    "shelves".singular.should == "shelf"
+  end
+
+  it "singularizes pluses => plus" do
+    "pluses".singular.should == "plus"
+  end
+
   it "singularizes cats => cat" do
     "cats".singular.should == "cat"
   end
 
   it "singularizes rats => rat" do
     "rats".singular.should == "rat"
+  end
+
+  it "singularizes roses => rose" do
+    "roses".singular.should == "rose"
+  end
+
+  it "singularizes projects => project" do
+    "projects".singular.should == "project"
+  end
+
+  it "singularizes posts => post" do
+    "posts".singular.should == "post"
+  end
+
+  it "singularizes articles => article" do
+    "articles".singular.should == "article"
+  end
+
+  it "singularizes locations => location" do
+    "locations".singular.should == "location"
+  end
+
+  it "singularizes friends => friend" do
+    "friends".singular.should == "friend"
+  end
+
+  it "singularizes links => link" do
+    "links".singular.should == "link"
+  end
+
+  it "singularizes urls => url" do
+    "urls".singular.should == "url"
+  end
+
+  it "singularizes accounts => account" do
+    "accounts".singular.should == "account"
+  end
+
+  it "singularizes servers => server" do
+    "servers".singular.should == "server"
+  end
+
+  it "singularizes fruits => fruit" do
+    "fruits".singular.should == "fruit"
+  end
+
+  it "singularizes maps => map" do
+    "maps".singular.should == "map"
+  end
+
+  it "singularizes incomes => income" do
+    "incomes".singular.should == "income"
+  end
+
+  it "singularizes pings => ping" do
+    "pings".singular.should == "ping"
+  end
+
+  it "singularizes events => event" do
+    "events".singular.should == "event"
+  end
+
+  it "singularizes proofs => proof" do
+    "proofs".singular.should == "proof"
+  end
+
+  it "singularizes typos => typo" do
+    "typos".singular.should == "typo"
+  end
+
+  it "singularizes attachments => attachment" do
+    "attachments".singular.should == "attachment"
+  end
+
+  it "singularizes downloads => download" do
+    "downloads".singular.should == "download"
+  end
+
+  it "singularizes assets => asset" do
+    "assets".singular.should == "asset"
+  end
+
+  it "singularizes jobs => job" do
+    "jobs".singular.should == "job"
+  end
+
+  it "singularizes cities => city" do
+    "cities".singular.should == "city"
+  end
+
+  it "singularizes packages => package" do
+    "packages".singular.should == "package"
+  end
+
+  it "singularizes commits => commit" do
+    "commits".singular.should == "commit"
+  end
+
+  it "singularizes versions => version" do
+    "versions".singular.should == "version"
+  end
+
+  it "singularizes documents => document" do
+    "documents".singular.should == "document"
+  end
+
+  it "singularizes editions => edition" do
+    "editions".singular.should == "edition"
+  end
+
+  it "singularizes movies => movie" do
+    "movies".singular.should == "movie"
+  end
+
+  it "singularizes songs => song" do
+    "songs".singular.should == "song"
+  end
+
+  it "singularizes invoices => invoice" do
+    "invoices".singular.should == "invoice"
+  end
+
+  it "singularizes products => product" do
+    "products".singular.should == "product"
+  end
+
+  it "singularizes books => book" do
+    "books".singular.should == "book"
+  end
+
+  it "singularizes tickets => ticket" do
+    "tickets".singular.should == "ticket"
+  end
+
+  it "singularizes games => game" do
+    "games".singular.should == "game"
+  end
+
+  it "singularizes tournaments => tournament" do
+    "tournaments".singular.should == "tournament"
+  end
+
+  it "singularizes prizes => prize" do
+    "prizes".singular.should == "prize"
+  end
+
+  it "singularizes prices => price" do
+    "prices".singular.should == "price"
+  end
+
+  it "singularizes installations => installation" do
+    "installations".singular.should == "installation"
+  end
+
+  it "singularizes dates => date" do
+    "dates".singular.should == "date"
+  end
+
+  it "singularizes schedules => schedule" do
+    "schedules".singular.should == "schedule"
+  end
+
+  it "singularizes arenas => arena" do
+    "arenas".singular.should == "arena"
   end
 end
