@@ -3,24 +3,22 @@ module Merb
 
   class Router
     # Route instances incapsulate information about particular route
-    # definition. Route definition just ties
-    # number of conditions (like URL matching a regexp) with
-    # resulting hash of so called route parameters:
+    # definition. Route definition ties
+    # number of conditions (URL match, HTTP request method) with
+    # resulting hash of route parameters:
     # controller, action, format and named parameters
     # from the URL.
     #
-    #
-    # When you have the following routes definition:
+    # The following routes definition:
     #
     # Merb::Router.prepare do |r|
     #   r.match("api/:action/:token.:format").to(:controller => "dev").fixatable
     # end
     #
-    # you tie URLs matching certain paths with controller named "dev"
-    # and specify fixation for that route. Path and request method are
+    # maps URL matching pattern to controller named "dev"
+    # and specifies fixation for that route. Path and request method are
     # route conditions, controller name, action name, format and
     # value of segment we decided to call :token are route parameters.
-    #
     #
     # ==== How route definitions are used.
     #
@@ -30,17 +28,24 @@ module Merb
     # of Merb::Router.match method.
     # Condition statements are Ruby code in form of string.
     #
+    # ==== Segments.
+    #
+    # Route definitions use conventional syntax for named parameters.
+    # This splits route path into segments. Static (not changing) segments
+    # represented internally as strings, named parameters are stored
+    # as symbols and called symbol segments. Symbol segments
+    # map to groups in regular expression in resulting condition statement.
     #
     # ==== Route conditions.
     #
-    # Because route conditions include path mathcing,
+    # Because route conditions include path matching,
     # regular expression is created from string that uses
     # :segment format to fetch groups and assign them to
     # named parameters. This regular expression is used
     # to produce compiled statement mentioned above.
     #
     # Route conditions may also include
-    # user agent,
+    # user agent. Symbol segments
     #
     # Here is example of Route conditions:
     # {
@@ -65,6 +70,18 @@ module Merb
     #
     # Router takes first matching route and uses it's parameters
     # to dispatch request to certain controller and action.
+    #
+    # ==== Behavior
+    #
+    # Each route has utility collaborator called behavior
+    # that incapsulates additional information about route
+    # (like namespace or if route is deferred) and also
+    # provides utility methods.
+    #
+    # ==== Route registration.
+    #
+    # When route is added to set of routes, it is called route
+    # registration. Registred route knows it's index in routes set.
     class Route
       attr_reader :conditions, :conditional_block
       attr_reader :params, :behavior, :segments, :index, :symbol
