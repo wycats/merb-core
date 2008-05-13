@@ -106,7 +106,7 @@ describe Merb::Controller, " responds" do
   end
   
   it "should return the correct HTTP headers which were set when the format was added" do
-    Merb.add_mime_type(:foo, nil, %w[application/foo], "Foo" => 'bar', "Content-Language" => 'en', :charset => 'utf-8')
+    Merb.add_mime_type(:foo, nil, %w[application/foo], "Foo" => 'bar', "Content-Language" => "en", :charset => "utf-8")
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::FooFormatProvides, :index, :format => "foo")
     controller.headers.keys.should_not include(:charset)
     controller.headers["Content-Type"].should == "application/foo; charset=utf-8"
@@ -115,12 +115,20 @@ describe Merb::Controller, " responds" do
   end
   
   it "should return the correct HTTP headers using the block given when the format was added" do
-    Merb.add_mime_type(:foo, nil, %w[application/foo], "Foo" => 'bar') do |controller|
+    Merb.add_mime_type(:foo, nil, %w[application/foo], "Foo" => "bar") do |controller|
       controller.headers["Action-Name"] = controller.action_name
     end
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::FooFormatProvides, :index, :format => "foo")
     controller.headers["Content-Type"].should == "application/foo"
     controller.headers["Action-Name"].should == "index"
+    controller.headers["Foo"] = "bar"
+  end
+  
+  it "should not overwrite runtime-set headers with default format response headers" do
+    Merb.add_mime_type(:foo, nil, %w[application/foo], "Foo" => "bar", "Content-Language" => "en")
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::FooFormatProvides, :show, :format => "foo")
+    controller.headers["Content-Language"].should == "nl"
+    controller.headers["Biz"] = "buzz"
     controller.headers["Foo"] = "bar"
   end
   

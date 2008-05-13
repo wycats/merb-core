@@ -71,6 +71,13 @@ module Merb::Test::Fixtures::Controllers
     def index
       render "nothing"
     end
+    
+    def show
+      headers["Content-Language"] = 'nl'
+      headers["Biz"] = "buzz"
+      render "nothing"
+    end
+    
   end
   
 end

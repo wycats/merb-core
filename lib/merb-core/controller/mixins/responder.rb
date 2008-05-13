@@ -358,7 +358,10 @@ module Merb
         headers['Content-Type'] += "; charset=#{Merb.available_mime_types[type][:response_headers][:charset]}" 
       end
       # merge any format specific response headers - Content-Type is allowed to be overwritten by this
-      headers.update(Merb.available_mime_types[type][:response_headers].except(:charset))
+      Merb.available_mime_types[type][:response_headers].each do |key, value|
+        next if key == :charset || headers.key?(key)
+        headers[key] = value
+      end
       if Merb.available_mime_types[type][:response_block].respond_to?(:call)
         Merb.available_mime_types[type][:response_block].call(self)
       end
