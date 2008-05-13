@@ -187,6 +187,8 @@ module Merb
         behavior.regexp? || behavior.send(:ancestors).any? { |a| a.regexp? }
       end
 
+      # Generates URL using route segments and given parameters.
+      #
       # ==== Parameters
       # params<Hash>:: Optional parameters for the route.
       # fallback<Hash>:: Optional parameters for the fallback route.
