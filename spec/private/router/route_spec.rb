@@ -327,3 +327,31 @@ describe Merb::Router::Route, "#if_conditions" do
     @two_symbol_route.if_conditions({}).should == [" (/^\\/world\\/continents\\/([^\\/.,;?]+)\\/countries\\/([^\\/.,;?]+)$/ =~ cached_path)  && (path1, path2 = $1, $2)"]
   end
 end
+
+
+
+describe Merb::Router::Route, "#if_conditions" do
+  before :each do
+    Merb::Router.prepare do |r|
+      r.match(/api\/(.*)/).to(:controller => "api", :token => "[1]").name(:regexpy)
+      r.match("/world/countries/:name").to(:controller => "countries").name(:non_regexpy)
+      r.match("/world/continents/:continent/countries/:country").to(:controller => "world_map").name(:two_symbol_segments)
+    end
+
+    @regexp_route   = Merb::Router.named_routes[:regexpy]
+    @non_regexp_route = Merb::Router.named_routes[:non_regexpy]
+    @two_symbol_route = Merb::Router.named_routes[:two_symbol_segments]
+  end
+
+  it "uses if in compiled statement when argument is false" do
+    @regexp_route.compile(false).should =~ /\s*elsif/
+  end
+
+  it "uses elsif in compiled statement when argument is true" do
+    @non_regexp_route.compile(true).should =~ /^if/
+  end
+
+  it "uses if in compiled statement by default" do
+    @regexp_route.compile.should =~ /\s*elsif/
+  end
+end
