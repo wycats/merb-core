@@ -289,3 +289,41 @@ describe Merb::Router::Route, "#generate" do
     @non_regexp_route.generate({ :name => stub('US', :to_param => 'USA') }).should == "/world/countries/USA"
   end
 end
+
+
+
+describe Merb::Router::Route, "#if_conditions" do
+  before :each do
+    Merb::Router.prepend do |r|
+      r.match(/api\/(.*)/).to(:controller => "api", :token => "[1]").name(:regexpy)
+      r.match("/world/countries/:name").to(:controller => "countries").name(:non_regexpy)
+      r.match("/world/continents/:continent/countries/:country").to(:controller => "world_map").name(:two_symbol_segments)
+    end
+
+    @regexp_route   = Merb::Router.named_routes[:regexpy]
+    @non_regexp_route = Merb::Router.named_routes[:non_regexpy]
+    @two_symbol_route = Merb::Router.named_routes[:two_symbol_segments]
+  end
+
+  it "returns array with =~ statements" do
+    # just to show you what it looks like
+    @non_regexp_route.if_conditions({}).should == [" (/^\\/world\\/countries\\/([^\\/.,;?]+)$/ =~ cached_path)  && (path1 = $1)"]
+  end
+
+  it "returns array of syntactically valid Ruby code statements that can be evaluated" do
+    cached_path = "/world/countries/Italy"
+    eval(@non_regexp_route.if_conditions({}).first)
+    # raises nothing and passes
+  end
+
+  it "works with regexp routes" do
+    cached_path = "/api/signin"
+    eval(@regexp_route.if_conditions({}).first)
+    # raises nothing and passes
+  end
+
+  it "adds conditions and match group for each symbol segment of route" do
+    # again, just to show you what it looks like
+    @two_symbol_route.if_conditions({}).should == [" (/^\\/world\\/continents\\/([^\\/.,;?]+)\\/countries\\/([^\\/.,;?]+)$/ =~ cached_path)  && (path1, path2 = $1, $2)"]
+  end
+end
