@@ -235,6 +235,9 @@ module Merb
         url
       end
 
+      # Generates and returns if statement used to
+      # construct final condition statement of the route.
+      #
       # ==== Params
       # params_as_string<String>::
       #   The params hash as a string, e.g. ":foo => 'bar'".
