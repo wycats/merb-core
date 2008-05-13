@@ -269,7 +269,8 @@ module Merb
         cond
       end
 
-      # Compiles the route to a form used by Merb::Router.
+      # Compiles the route to a form used by Merb::Router. This form sometimes
+      # referred as condition statement of the route.
       #
       # ==== Parameters
       # first<Boolean>::
