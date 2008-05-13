@@ -35,6 +35,14 @@ describe Language::English::Inflect, "#singular" do
     "news".singular.should == "news"
   end
 
+  it "singularizes rain => rain" do
+    "rain".singular.should == "rain"
+  end
+
+  it "singularizes milk => milk" do
+    "milk".singular.should == "milk"
+  end
+
   it "singularizes moose => moose" do
     "moose".singular.should == "moose"
   end
