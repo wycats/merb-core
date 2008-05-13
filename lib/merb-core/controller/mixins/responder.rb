@@ -103,7 +103,7 @@ module Merb
     
     # ==== Parameters
     # base<Module>:: The module that ResponderMixin was mixed into
-    def self.included(base) # :nodoc:
+    def self.included(base)
       base.extend(ClassMethods)
       base.class_eval do
         class_inheritable_accessor :class_provided_formats
@@ -285,7 +285,7 @@ module Merb
     # 3. If it's */*, use the first provided format
     # 4. Look for one that is provided, in order of request
     # 5. Raise 406 if none found
-    def _perform_content_negotiation # :nodoc:
+    def _perform_content_negotiation
       raise Merb::ControllerExceptions::NotAcceptable if _provided_formats.empty?
       if (fmt = params[:format]) && !fmt.empty?
         accepts = [fmt.to_sym]

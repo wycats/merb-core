@@ -1,6 +1,6 @@
 module Merb
 
-  module SessionMixin #:nodoc:
+  module SessionMixin
 
     # Adds a before and after dispatch hook for setting up the memcached
     # session store.
@@ -108,7 +108,7 @@ module Merb
       end
 
       # Don't try to reload in dev mode.
-      def reloadable? #:nodoc:
+      def reloadable?
         false
       end
 

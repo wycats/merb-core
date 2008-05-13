@@ -1,6 +1,6 @@
 module Merb
 
-  module SessionMixin #:nodoc:
+  module SessionMixin
 
     # Adds a before and after dispatch hook for setting up the memory session
     # store.

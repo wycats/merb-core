@@ -237,7 +237,7 @@ module Merb
         Merb::Config.setup(options)
       end
 
-      attr_accessor :configuration #:nodoc:
+      attr_accessor :configuration
 
       # Set configuration parameters from a code block, where each method
       # evaluates to a config parameter.
@@ -261,7 +261,7 @@ module Merb
       # ==== Parameters
       # method<~to_s>:: Method name as hash key value.
       # *args:: Value to set the configuration parameter to.
-      def method_missing(method, *args) #:nodoc:
+      def method_missing(method, *args)
         if method.to_s[-1,1] == '='
           @configuration[method.to_s.tr('=','').to_sym] = *args
         else
@@ -271,14 +271,14 @@ module Merb
 
     end # class << self
 
-    class ConfigBlock #:nodoc:
+    class ConfigBlock
 
-      def initialize(klass, &block) #:nodoc:
+      def initialize(klass, &block)
         @klass = klass
         instance_eval(&block)
       end
 
-      def method_missing(method, *args) #:nodoc:
+      def method_missing(method, *args)
         @klass[method] = *args
       end
 
