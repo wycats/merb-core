@@ -1,18 +1,41 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
+
+class MockTimedExecutor
+  def self.every(seconds, &block)
+    @@scheduled_action = block
+  end
+  def self.run_task
+    @@scheduled_action.call 
+  end
+end
+
+RealTimedExecutor = Merb::BootLoader::ReloadClasses::TimedExecutor
+Merb::BootLoader::ReloadClasses::TimedExecutor = MockTimedExecutor
+
 Merb.start :environment => 'test',
            :merb_root => File.dirname(__FILE__) / "directory"
 
-describe "The reloader" do
-  SLEEP_TIME = 0.5
-
-  def reload!
-    Merb::BootLoader::ReloadClasses.reload
+describe "TimedExecutor" do
+  it "should call a block of code repeatedly in the background" do
+    list_of_things = []
+    
+    RealTimedExecutor.every(0.1) do
+      list_of_things << "Something"
+    end
+    
+    sleep 0.5
+    
+    list_of_things.should_not be_empty
+    list_of_things.size.should > 1
   end
+  
+end
+
+describe "The reloader" do
 
   before :all do
     @reload_file = File.dirname(__FILE__) / "directory" / "app" / "controllers" / "reload.rb"
-    File.open(@reload_file, "w") do |f|
-      @text = <<-END
+    @text =  <<-END
 
         class Reloader < Application
         end
@@ -20,10 +43,16 @@ describe "The reloader" do
         class Hello < Application
         end
       END
-      f.puts @text
-    end
+     update_file @text
+     MockTimedExecutor.run_task
+  end
 
-    sleep SLEEP_TIME
+  def update_file(contents)
+    mtime = File.mtime(@reload_file)
+    f = File.open(@reload_file, "w") do |f|
+      f.puts contents
+    end
+    FileUtils.touch(@reload_file, :mtime => mtime + 30)
   end
 
   it "should reload files that were changed" do
@@ -31,10 +60,7 @@ describe "The reloader" do
     defined?(Reloader).should_not be_nil
     defined?(Reloader2).should be_nil
 
-    sleep SLEEP_TIME
-
-    File.open(@reload_file, "w") do |f|
-      f.puts <<-END
+    update_file <<-END
 
         class Reloader < Application
         end
@@ -42,18 +68,17 @@ describe "The reloader" do
         class Reloader2
         end
       END
-    end
-
-    sleep SLEEP_TIME
-
+     
+    MockTimedExecutor.run_task
+    
     defined?(Hello).should be_nil
     defined?(Reloader).should_not be_nil
     defined?(Reloader2).should_not be_nil
   end
 
   it "should remove classes for _abstract_subclasses" do
-    File.open(@reload_file, "w") do |f|
-      f.puts <<-END
+    
+    update_file <<-END
 
         class Reloader < Application
         end
@@ -61,9 +86,8 @@ describe "The reloader" do
         class Reloader2 < Application
         end
       END
-    end
-
-    sleep SLEEP_TIME
+    
+    MockTimedExecutor.run_task
 
     Merb::AbstractController._abstract_subclasses.should include("Reloader")
     Merb::AbstractController._abstract_subclasses.should include("Reloader2")
@@ -73,9 +97,7 @@ describe "The reloader" do
   end
 
   after :each do
-    sleep SLEEP_TIME
-    File.open(@reload_file, "w") do |f|
-      f.puts @text
-    end
+    update_file @text
+    MockTimedExecutor.run_task
   end
 end
