@@ -88,6 +88,11 @@ module Merb
     # found in incoming request. This is very useful to allow certain
     # URLs to be used by rich media applications and other kinds
     # of clients that have no other way of passing session identifier.
+    #
+    # ==== Conditional block.
+    # Conditional block is anonymous function that is evaluated
+    # when deferred routes are processed. Unless route is deferred,
+    # it has no condition block.
     class Route
       attr_reader :conditions, :conditional_block
       attr_reader :params, :behavior, :segments, :index, :symbol
