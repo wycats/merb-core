@@ -188,6 +188,7 @@ module Merb
       end
 
       # Generates URL using route segments and given parameters.
+      # If parameter value responds to :to_param, it is called.
       #
       # ==== Parameters
       # params<Hash>:: Optional parameters for the route.
