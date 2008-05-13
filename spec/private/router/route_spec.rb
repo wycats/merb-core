@@ -259,7 +259,7 @@ end
 
 describe Merb::Router::Route, "#generate" do
   before :each do
-    Merb::Router.prepend do |r|
+    Merb::Router.prepare do |r|
       r.match(/api\/(.*)/).to(:controller => "api", :token => "[1]").name(:regexpy)
       r.match("/world/countries/:name").to(:controller => "countries").name(:non_regexpy)
     end
@@ -294,7 +294,7 @@ end
 
 describe Merb::Router::Route, "#if_conditions" do
   before :each do
-    Merb::Router.prepend do |r|
+    Merb::Router.prepare do |r|
       r.match(/api\/(.*)/).to(:controller => "api", :token => "[1]").name(:regexpy)
       r.match("/world/countries/:name").to(:controller => "countries").name(:non_regexpy)
       r.match("/world/continents/:continent/countries/:country").to(:controller => "world_map").name(:two_symbol_segments)
