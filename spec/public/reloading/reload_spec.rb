@@ -3,7 +3,7 @@ Merb.start :environment => 'test',
            :merb_root => File.dirname(__FILE__) / "directory"
 
 describe "The reloader" do
-  SLEEP_TIME = 0.5
+  SLEEP_TIME = 1
 
   def reload!
     Merb::BootLoader::ReloadClasses.reload
