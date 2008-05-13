@@ -17,6 +17,8 @@ module Merb
   # compilation. Generated match method body contains
   # one if/elsif statement that picks first matching route
   # definition and sets values to named parameters of the route.
+  #
+  # Compilation is synchronized by mutex.
   class Router
     SEGMENT_REGEXP = /(:([a-z_][a-z0-9_]*|:))/
     SEGMENT_REGEXP_WITH_BRACKETS = /(:[a-z_]+)(\[(\d+)\])?/
