@@ -166,6 +166,7 @@ module English
           return result.dup
         end
         result = word.dup
+        return result if singular_of.value? result
         singularization_rules.each do |(match, replacement)|
           break if result.gsub!(match, replacement)
         end
@@ -237,7 +238,7 @@ module English
     word 'torpedo'   , 'torpedoes'
     word 'quiz'      , 'quizes'
     word 'matrix'    , 'matrices'
-    word 'vertex'    , 'vetices'
+    word 'vertex'    , 'vertices'
     word 'index'     , 'indices'
     word 'ox'        , 'oxen'
     word 'mouse'     , 'mice'
@@ -245,6 +246,7 @@ module English
     word 'thesis'    , 'theses'
     word 'thief'     , 'thieves'
     word 'analysis'  , 'analyses'
+    word 'forum'     , 'forum'
 
     # One-way singularization exception (convert plural to singular).
 
