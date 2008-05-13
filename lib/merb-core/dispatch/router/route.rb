@@ -13,24 +13,43 @@ module Merb
     # When you have the following routes definition:
     #
     # Merb::Router.prepare do |r|
-    #   r.resources :continents do |c|
-    #     c.resources :countries
-    #   end
+    #   r.match("api/:action/:token.:format").to(:controller => "dev").fixatable
     # end
     #
-    # Router creates number of conventional routes for
-    # each resource.
+    # you tie URLs matching certain paths with controller named "dev"
+    # and specify fixation for that route. Path and request method are
+    # route conditions, controller name, action name, format and
+    # value of segment we decided to call :token are route parameters.
+    #
+    #
+    # ==== How route definitions are used.
+    #
+    # When routes are compiled, each route produces
+    # a string with eval-able if/elsif condition statement.
+    # This statement together with others constructs body
+    # of Merb::Router.match method.
+    # Condition statements are Ruby code in form of string.
+    #
     #
     # ==== Route conditions.
     #
-    # Route conditions include path and may also include
-    # user agent, HTTP request method and format (MIME type).
+    # Because route conditions include path mathcing,
+    # regular expression is created from string that uses
+    # :segment format to fetch groups and assign them to
+    # named parameters. This regular expression is used
+    # to produce compiled statement mentioned above.
+    #
+    # Route conditions may also include
+    # user agent,
+    #
     # Here is example of Route conditions:
     # {
     #   :path => /^\/continents\/?(\.([^\/.,;?]+))?$/,
     #   :method => /^get$/
     # }
     #
+    #
+    # ==== Route parameters.
     #
     # Route parameters is a Hash with controller name,
     # action name and parameters key/value pairs.
@@ -44,15 +63,8 @@ module Merb
     #   :controller => "\"continents\""
     # }
     #
-    #
-    # ==== Compilation of route.
-    #
-    # When Merb routes are compiled, each route produces
-    # a string with eval-able if/elsif condition statement.
-    # This statement together with others constructs body
-    # of Merb::Router.match method.
-    # Condition statements are Ruby code in form of string.
-    #
+    # Router takes first matching route and uses it's parameters
+    # to dispatch request to certain controller and action.
     class Route
       attr_reader :conditions, :conditional_block
       attr_reader :params, :behavior, :segments, :index, :symbol
