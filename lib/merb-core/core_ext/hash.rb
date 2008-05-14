@@ -234,7 +234,7 @@ require 'rexml/light/node'
 # It's mainly just adding vowels, as I ht cd wth n vwls :)
 # This represents the hard part of the work, all I did was change the
 # underlying parser.
-class REXMLUtilityNode # :nodoc:
+class REXMLUtilityNode
   attr_accessor :name, :attributes, :children, :type
   cattr_accessor :typecasts, :available_typecasts
 
@@ -397,7 +397,7 @@ class REXMLUtilityNode # :nodoc:
   end
 end
 
-class ToHashParser # :nodoc:
+class ToHashParser
 
   def self.from_xml(xml)
     stack = []

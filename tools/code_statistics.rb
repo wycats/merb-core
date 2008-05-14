@@ -1,6 +1,6 @@
 
 
-class CodeStatistics #:nodoc:
+class CodeStatistics 
 
   TEST_TYPES = %w(Units Functionals Unit\ tests Functional\ tests Integration\ tests)
 

@@ -64,4 +64,20 @@ module Merb::Test::Fixtures::Controllers
       "nothing"
     end
   end
+  
+  class FooFormatProvides < Responder
+    only_provides :foo
+    
+    def index
+      render "nothing"
+    end
+    
+    def show
+      headers["Content-Language"] = 'nl'
+      headers["Biz"] = "buzz"
+      render "nothing"
+    end
+    
+  end
+  
 end

@@ -33,7 +33,7 @@ require "time" # httpdate
 #   Merb::Logger.new(log{String, IO},level{Symbol, String})
 module Merb
 
-  class << self #:nodoc:
+  class << self
     attr_accessor :logger
   end
 

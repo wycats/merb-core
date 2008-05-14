@@ -1,7 +1,9 @@
 module Merb
   
   module SessionMixin
-
+    @_finalize_session_exception_callbacks = []
+    @_persist_exception_callbacks = []
+    
     # ==== Returns
     # String:: A random 32 character string for use as a unique session ID.
     def rand_uuid
@@ -22,7 +24,23 @@ module Merb
       @_new_cookie = true
     end
     
-    module_function :rand_uuid, :needs_new_cookie!
+    def finalize_session_exception_callbacks(&block)
+      if block_given?
+        @_finalize_session_exception_callbacks << block
+      else
+        @_finalize_session_exception_callbacks
+      end
+    end
+    
+    def persist_exception_callbacks(&block)
+      if block_given?
+        @_persist_exception_callbacks << block
+      else
+        @_persist_exception_callbacks
+      end
+    end
+    
+    module_function :rand_uuid, :needs_new_cookie!, :finalize_session_exception_callbacks, :persist_exception_callbacks
   end
 
 end

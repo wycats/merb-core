@@ -1,22 +1,33 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 require 'ostruct'
 class SimpleRequest < OpenStruct
-  
+
   def method
     @table[:method]
   end
-  
+
   def params
     @table
   end
 end
 
 def prepare_route(from, to)
-  Merb::Router.prepare {|r| r.match(from).to(to)}  
+  Merb::Router.prepare {|r| r.match(from).to(to)}
 end
 
 def route_to(path, args = {}, protocol = "http://")
   Merb::Router.match(SimpleRequest.new({:protocol => protocol, :path => path}.merge(args)))[1]
+end
+
+def match_for(path, args = {}, protocol = "http://")
+  Merb::Router.match(SimpleRequest.new({:protocol => protocol, :path => path}.merge(args)))
+end
+
+def matched_route_for(*args)
+  # get route index
+  idx = match_for(*args)[0]
+
+  Merb::Router.routes[idx]
 end
 
 def generate(*args)
@@ -24,13 +35,13 @@ def generate(*args)
 end
 
 module Merb
-  
+
   module Test
-    
+
     module RspecMatchers
 
       class HaveRoute
-        
+
         def self.build(expected)
           this = new
           this.instance_variable_set("@expected", expected)
@@ -62,11 +73,11 @@ module Merb
       def have_route(expected)
         HaveRoute.build(expected)
       end
-      
+
       def have_nil_route
         have_route({})
       end
-  
+
     end
   end
 end

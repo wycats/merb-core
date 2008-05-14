@@ -51,7 +51,7 @@ module Merb::AuthenticationMixin
     BasicAuthentication.new(self, realm, &authenticator)
   end
   
-  class BasicAuthentication #:nodoc:
+  class BasicAuthentication
     # So we can have access to the status codes
     include Merb::ControllerExceptions
 
