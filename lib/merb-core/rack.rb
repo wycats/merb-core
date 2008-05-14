@@ -11,5 +11,10 @@ module Merb
     autoload :Runner,         "merb-core/rack/adapter/runner"    
     autoload :Thin,           "merb-core/rack/adapter/thin"
     autoload :WEBrick,        "merb-core/rack/adapter/webrick"
+    
+    autoload :Deferral,         "merb-core/rack/apps/deferral"
+    autoload :MerbApplication,    "merb-core/rack/apps/merb_application"
+    autoload :PathPrefix,      "merb-core/rack/apps/path_prefix"
+    autoload :Static,          "merb-core/rack/apps/static"
   end # Rack
 end # Merb

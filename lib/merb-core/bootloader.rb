@@ -578,18 +578,27 @@ end
 
 class Merb::BootLoader::ReloadClasses < Merb::BootLoader
 
+  class TimedExecutor
+    def self.every(seconds, &block)
+      Thread.abort_on_exception = true
+      Thread.new do
+        loop do
+          sleep( seconds )
+          block.call
+        end
+        Thread.exit
+      end
+    end
+  end
+
   # Setup the class reloader if it's been specified in config.
   def self.run
     return unless Merb::Config[:reload_classes]
 
-    Thread.abort_on_exception = true
-    Thread.new do
-      loop do
-        sleep( Merb::Config[:reload_time] || 0.5 )
-        reload
-      end
-      Thread.exit
+    TimedExecutor.every(Merb::Config[:reload_time] || 0.5) do
+      reload
     end
+    
   end
 
   # Reloads all files.
