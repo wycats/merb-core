@@ -366,7 +366,7 @@ module Merb::RenderMixin
   #
   # ==== Parameters
   # context<Object>:: The controller action or template basename.
-  # content_type<~to_s>:: The content type. Defaults to nil.
+  # content_type<~to_s>:: The content type (like html or json).
   # controller<~to_s>:: The name of the controller. Defaults to nil.
   #
   # ==== Options (opts)
