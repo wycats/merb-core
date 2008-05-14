@@ -42,6 +42,10 @@ module Merb::Test::Fixtures::Controllers
 
   class DisplayWithTemplate < Display
     layout :custom
+
+    def no_layout
+      render :layout => false
+    end
   end
 
 
