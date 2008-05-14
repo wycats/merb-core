@@ -563,6 +563,7 @@ class Merb::BootLoader::RackUpApplication < Merb::BootLoader
   # the context of a Rack::Builder.new { } block. Allows for mounting
   # additional apps or middleware.
   def self.run
+    require 'rack'
     if File.exists?(Merb.dir_for(:config) / "rack.rb")
       Merb::Config[:rackup] ||= Merb.dir_for(:config) / "rack.rb"
     end
@@ -571,7 +572,13 @@ class Merb::BootLoader::RackUpApplication < Merb::BootLoader
       rackup_code = File.read(Merb::Config[:rackup])
       Merb::Config[:app] = eval("::Rack::Builder.new {( #{rackup_code}\n )}.to_app", TOPLEVEL_BINDING, Merb::Config[:rackup])
     else
-      Merb::Config[:app] = ::Merb::Rack::Application.new
+      Merb::Config[:app] = ::Rack::Builder.new {
+         if prefix = ::Merb::Config[:path_prefix]
+           use Merb::Rack::PathPrefix, prefix
+         end
+         use Merb::Rack::Static, Merb.dir_for(:public)
+         run Merb::Rack::Application.new
+       }.to_app
     end
   end
 end

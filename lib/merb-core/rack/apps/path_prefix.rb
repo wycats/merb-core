@@ -1,6 +1,6 @@
 module Merb
   module Rack
-    class PathPrefix < Merb::Rack::AbstractMiddleware
+    class PathPrefix < Merb::Rack::Middleware
 
       def initialize(app, path_prefix = nil)
         super(app)

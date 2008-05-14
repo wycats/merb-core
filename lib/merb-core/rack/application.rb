@@ -1,42 +1,18 @@
-module Merb
-   module Rack
-     class AbstractMiddleware
-       
-       def initialize(app)
-         @app = app
-       end
-       
-       def deferred?(env)
-         @app.deferred?(env)  
-       end
-
-       def call(env)
-         @app.call(env)
-       end
-       
-     end
-   end
-end
-
-
-module Merb
-  
+module Merb  
   module Rack
-
-    class Application < Merb::Rack::AbstractMiddleware
-      # ==== Parameters
-      # options<Hash>::
-      #   Options for creating a new application. Currently ignored.
-      def initialize(options={})
-        @app = ::Rack::Builder.new {
-           if prefix = ::Merb::Config[:path_prefix]
-             use Merb::Rack::PathPrefix, prefix
-           end
-           use Merb::Rack::Deferral 
-           use Merb::Rack::Static, Merb.dir_for(:public)
-           run Merb::Rack::MerbApplication.new
-         }.to_app
-      end      
+    class Application
+      
+      def call(env) 
+        begin
+          controller = ::Merb::Dispatcher.handle(env)
+        rescue Object => e
+          return [500, {"Content-Type"=>"text/html"}, e.message + "<br/>" + e.backtrace.join("<br/>")]
+        end
+        Merb.logger.info "\n\n"
+        Merb.logger.flush
+        [controller.status, controller.headers, controller.body]
+      end
+      
     end
   end  
 end

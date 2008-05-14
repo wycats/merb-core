@@ -6,7 +6,7 @@ describe Merb::BootLoader::RackUpApplication do
     options = {:merb_root => File.dirname(__FILE__) / 'fixture'}
     Merb::Config.setup(options)
     app = Merb::BootLoader::RackUpApplication.run
-    app.class.should == Merb::Rack::Application
+    app.class.should == Merb::Rack::Static
   end
 
   it "should use rackup config that we specified" do

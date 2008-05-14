@@ -1,10 +1,10 @@
 module Merb
   module Rack
-    class Static < Merb::Rack::AbstractMiddleware
+    class Static < Merb::Rack::Middleware
 
       def initialize(app,directory)
         super(app)
-        @static_server = ::Rack::File.new directory
+        @static_server = ::Rack::File.new(directory)
       end
       
       def call(env)        
