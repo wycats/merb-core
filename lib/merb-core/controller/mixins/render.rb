@@ -33,7 +33,10 @@ module Merb::RenderMixin
     # This is a shortcut for render_options :layout => false.
     #
     # ==== Parameters
-    # layout<~to_s>:: The layout that should be used for this class
+    # layout<~to_s>:: The layout that should be used for this class.
+    #
+    # ==== Notes
+    # You can override by passing :layout => true to render method.
     #
     # ==== Returns
     # Hash:: The default render options.
@@ -68,7 +71,7 @@ module Merb::RenderMixin
   #   application. If you want to use an alternative content-type than the one
   #   that the base template was rendered as, you will need to do :layout =>
   #   "foo.#{content_type}" (i.e. "foo.json"). If you want to render without
-  #   layout, use :layout => false.
+  #   layout, use :layout => false. This overrides layout set by +layout+ method.
   #
   # ==== Returns
   # String:: The rendered template, including layout, if appropriate.
