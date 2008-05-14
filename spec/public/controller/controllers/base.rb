@@ -1,15 +1,10 @@
-
-
 module Merb::Test::Fixtures
-
   module Controllers
-    
     class Testing < Merb::Controller
       self._template_root = File.dirname(__FILE__) / "views"
     end
 
     module Inclusion
-
       def self.included(base)
         base.show_action(:baz)
       end
@@ -21,12 +16,11 @@ module Merb::Test::Fixtures
       def bat
         "bat"
       end
-      
     end
 
     class Base < Testing
       include Inclusion
-      
+
       def index
         self.status = :ok
         "index"
