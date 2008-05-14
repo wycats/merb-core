@@ -29,10 +29,12 @@ module Merb
       #   Options for creating a new application. Currently ignored.
       def initialize(options={})
         @app = ::Rack::Builder.new {
-           use Merb::Rack::PathPrefix, ::Merb::Config[:path_prefix]
+           if prefix = ::Merb::Config[:path_prefix]
+             use Merb::Rack::PathPrefix, prefix
+           end
            use Merb::Rack::Deferral 
            use Merb::Rack::Static, Merb.dir_for(:public)
-           run Merb::Rack::MerbDispatch.new
+           run Merb::Rack::MerbApplication.new
          }.to_app
       end      
     end

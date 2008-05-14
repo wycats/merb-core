@@ -1,6 +1,6 @@
 module Merb
   module Rack
-    class MerbDispatch
+    class MerbApplication
       
       def call(env) 
         begin

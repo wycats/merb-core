@@ -4,17 +4,16 @@ module Merb
 
       def initialize(app, path_prefix = nil)
         super(app)
-        if path_prefix
-          @path_prefix = /^#{Regexp.escape(path_prefix)}/
-        end
+        @path_prefix = /^#{Regexp.escape(path_prefix)}/
       end
       
       def deferred?(env)
-        strip_path_prefix(env) if @path_prefix 
+        strip_path_prefix(env) 
+        @app.deferred?(env)
       end
       
       def call(env)
-        strip_path_prefix(env) if @path_prefix 
+        strip_path_prefix(env) 
         @app.call(env)
       end
 
