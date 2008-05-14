@@ -271,7 +271,11 @@ module Merb::RenderMixin
       @_merb_partial_locals = opts
       sent_template = [with].flatten.map do |temp|
         @_merb_partial_locals[as.to_sym] = temp
-        send(template_method)
+        if template_method && self.respond_to?(template_method)
+          send(template_method)
+        else
+          raise TemplateNotFound, "Could not find template at #{template_location}.*"
+        end
       end.join
     else
       @_merb_partial_locals = opts
