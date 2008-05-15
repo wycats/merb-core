@@ -127,21 +127,6 @@ module Kernel
     end
   end
 
-  # Use to check whether given ORM already registred at generator scope
-  #
-  # ==== Parameters
-  # orm<~to_sym>::
-  #   ORM alias, like :activerecord, :datamapper or :sequel.
-  #
-  # ==== Returns
-  # Boolean::
-  #   true if ORM is already registred, false otherwise
-  #
-  #--
-  # @semi-public
-  def registred_orm?(orm)
-    Merb.generator_scope.include?(orm)
-  end
 
   # Registers ORM at generator scope.
   #
