@@ -111,7 +111,7 @@ module Merb
       #   Addational conditions that the request must meet in order to match.
       #   the keys must be methods that the Merb::Request instance will respond
       #   to.  The value is the string or regexp that matched the returned value.
-      #   Conditions are inherited by child routes. 
+      #   Conditions are inherited by child routes.
       # &block::
       #   Passes a new instance of a Behavior object into the optional block so
       #   that sub-matching and routes nesting may occur.
@@ -126,7 +126,7 @@ module Merb
       # ==== Examples
       #
       #   # registers /foo/bar to controller => "foo", :action => "bar"
-      #   # and /foo/baz to controller => "foo", :action => "caz"
+      #   # and /foo/baz to controller => "foo", :action => "baz"
       #   r.match "/foo" do |f|
       #     f.params[:controller] = 'foo'
       #     f.match("/bar").to(:action => "bar")
@@ -284,11 +284,11 @@ module Merb
       #     admin.resources :accounts
       #     admin.resource :email
       #   end
-      # 
+      #
       #   # /super_admin/accounts
       #   r.namespace(:admin, :path=>"super_admin") do |admin|
       #     admin.resources :accounts
-      #   end 
+      #   end
       #---
       # @public
       def namespace(name_or_path, options={}, &block)
@@ -468,11 +468,11 @@ module Merb
         if name_prefix.nil? && !namespace.nil?
           name_prefix = namespace_to_name_prefix namespace
         end
-        
+
         unless @@parent_resource.empty?
           parent_resource = namespace_to_name_prefix @@parent_resource.join('_')
         end
-        
+
         routes = next_level.to_resource options
 
         route_name = "#{name_prefix}#{name}"
