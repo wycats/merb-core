@@ -99,16 +99,16 @@ end
 
 # #326
 describe Kernel, "#registred_orm?" do
-  it "returns true if Merb.generator scope has orm alias and has not defaults flag" do
+  it "returns true if Merb.generator scope has orm alias" do
     Merb.generator_scope = [:rspec, :datamapper]
 
     registred_orm?(:datamapper).should be(true)
   end
 
-  it "returns false if Merb.generator scope has defaults flag" do
+  it "returns false if Merb.generator scope has no ORM alias" do
     Merb.generator_scope = [:merb_default, :rspec, :datamapper]
 
-    registred_orm?(:datamapper).should be(false)
+    registred_orm?(:sequel).should be(false)
   end
 end
 
