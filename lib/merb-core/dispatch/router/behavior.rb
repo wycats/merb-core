@@ -108,8 +108,10 @@ module Merb
       #   within the regular expression syntax.
       #   +path+ is optional.
       # conditions<Hash>::
-      #   This optional hash helps refine the settings for the route.
-      #   When combined with a block it can help keep your routes DRY
+      #   Addational conditions that the request must meet in order to match.
+      #   the keys must be methods that the Merb::Request instance will respond
+      #   to.  The value is the string or regexp that matched the returned value.
+      #   Conditions are inherited by child routes. 
       # &block::
       #   Passes a new instance of a Behavior object into the optional block so
       #   that sub-matching and routes nesting may occur.
@@ -125,15 +127,11 @@ module Merb
       #
       #   # registers /foo/bar to controller => "foo", :action => "bar"
       #   # and /foo/baz to controller => "foo", :action => "caz"
-      #   r.match "/foo", :controller => "foo" do |f|
+      #   r.match "/foo" do |f|
+      #     f.params[:controller] = 'foo'
       #     f.match("/bar").to(:action => "bar")
       #     f.match("/baz").to(:action => "caz")
       #   end
-      #
-      #   r.match "/foo", :controller => "foo" do |f|
-      #     f.match("/bar", :action => "bar")
-      #     f.match("/baz", :action => "caz")
-      #   end # => doesn't register any routes at all
       #
       #   # match also takes regular expressions
       #   r.match(%r[/account/([a-z]{4,6})]).to(:controller => "account",
