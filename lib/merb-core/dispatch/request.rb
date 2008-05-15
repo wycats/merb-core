@@ -113,10 +113,17 @@ module Merb
 
     # ==== Returns
     # Hash:: Parameters from body if this is a JSON request.
+    #
+    # ==== Notes
+    # If the JSON object parses as a Hash, it will be merged with the
+    # parameters hash.  If it parses to anything else (such as an Array, or
+    # if it inflates to an Object) it will be accessible via the inflated_object
+    # parameter.
     def json_params
       @json_params ||= begin
         if Merb::Const::JSON_MIME_TYPE_REGEXP.match(content_type)
-          JSON.parse(raw_post)
+          jobj = JSON.parse(raw_post)
+          jobj.kind_of?(Hash) ? jobj : { :inflated_object => jobj }
         end
       end
     end
