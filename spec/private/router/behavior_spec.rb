@@ -41,16 +41,3 @@ describe Merb::Router::Behavior, "#redirect" do
     @behavior.should redirect
   end
 end
-
-describe Merb::Dispatcher do
-  before :each do
-    Merb::Router.prepare do |r|
-      r.match('/old/location').redirect("/new/location", true)
-    end
-  end
-
-  it "redirects right away if route is redirecting" do
-    env = Rack::MockRequest.env_for("/old/location")
-    puts Merb::Dispatcher.handle(env).inspect
-  end
-end
