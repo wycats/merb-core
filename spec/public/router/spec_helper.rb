@@ -1,5 +1,12 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 require 'ostruct'
+
+require 'rack/mock'
+require 'stringio'
+Merb.start :environment => 'test',
+           :merb_root => File.dirname(__FILE__) / 'fixture'
+
+
 class SimpleRequest < OpenStruct
 
   def method

@@ -286,11 +286,11 @@ module Merb
       #     admin.resources :accounts
       #     admin.resource :email
       #   end
-      # 
+      #
       #   # /super_admin/accounts
       #   r.namespace(:admin, :path=>"super_admin") do |admin|
       #     admin.resources :accounts
-      #   end 
+      #   end
       #---
       # @public
       def namespace(name_or_path, options={}, &block)
@@ -470,11 +470,11 @@ module Merb
         if name_prefix.nil? && !namespace.nil?
           name_prefix = namespace_to_name_prefix namespace
         end
-        
+
         unless @@parent_resource.empty?
           parent_resource = namespace_to_name_prefix @@parent_resource.join('_')
         end
-        
+
         routes = next_level.to_resource options
 
         route_name = "#{name_prefix}#{name}"
@@ -584,6 +584,19 @@ module Merb
       # Boolean:: True if this behavior has a regexp.
       def regexp?
         @conditions_have_regexp
+      end
+
+      def redirect(url, permanent = true)
+        @redirects       = true
+        @redirect_url    = url
+        @redirect_status = permanent ? 301 : 302
+
+        # satisfy route compilation
+        self.to({})
+      end
+
+      def redirects?
+        @redirects
       end
 
     protected

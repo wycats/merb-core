@@ -1,8 +1,12 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'ostruct'
+require 'rack/mock'
+require 'stringio'
+Merb.start :environment => 'test',
+           :merb_root => File.dirname(__FILE__) / 'fixture'
+
 
 class SimpleRequest < OpenStruct
-
   def method
     @table[:method]
   end
@@ -35,5 +39,18 @@ describe Merb::Router::Behavior, "#redirect" do
   it "makes route redirecting" do
     @behavior = matched_route_for("/old/location").behavior
     @behavior.should redirect
+  end
+end
+
+describe Merb::Dispatcher do
+  before :each do
+    Merb::Router.prepare do |r|
+      r.match('/old/location').redirect("/new/location", true)
+    end
+  end
+
+  it "redirects right away if route is redirecting" do
+    env = Rack::MockRequest.env_for("/old/location")
+    puts Merb::Dispatcher.handle(env).inspect
   end
 end
