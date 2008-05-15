@@ -118,7 +118,6 @@ module Kernel
     raise "Don't call use_orm more than once" if registred_orm?(orm)
 
     begin
-      Merb.generator_scope.delete(:merb_default)
       register_orm(orm)
       orm_plugin = "merb_#{orm}"
       Kernel.dependency(orm_plugin)
@@ -141,7 +140,7 @@ module Kernel
   #--
   # @semi-public
   def registred_orm?(orm)
-    !Merb.generator_scope.include?(:merb_default) && !Merb.generator_scope.include?(orm.to_sym)
+    !Merb.generator_scope.include?(:merb_default)
   end
 
   # Registers ORM at generator scope.
@@ -152,6 +151,7 @@ module Kernel
   #--
   # @private
   def register_orm(orm)
+    Merb.generator_scope.delete(:merb_default)
     Merb.generator_scope.unshift(orm.to_sym) unless Merb.generator_scope.include?(orm.to_sym)
   end
 

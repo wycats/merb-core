@@ -97,23 +97,20 @@ end
 
 
 
-describe "Plugins", "registred_orm?" do
-  before(:each) do
-    Merb.generator_scope.replace [:merb_default, :merb, :rspec]
-    Kernel.stub!(:dependency)
+# #326
+describe Kernel, "#registred_orm?" do
+  it "returns true if Merb.generator scope has orm alias and has not defaults flag" do
+    Merb.generator_scope = [:rspec, :datamapper]
+
+    registred_orm?(:datamapper).should be(true)
   end
 
-  it "returns false unless ORM is registred" do
-    registred_orm?(:sequel).should be(false)
-  end
+  it "returns false if Merb.generator scope has defaults flag" do
+    Merb.generator_scope = [:merb_default, :rspec, :datamapper]
 
-  it "returns true once ORM is registred" do
-    use_orm(:sequel)
-
-    registred_orm?(:sequel).should be(false)
+    registred_orm?(:datamapper).should be(false)
   end
 end
-
 
 
 
