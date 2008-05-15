@@ -35,14 +35,14 @@ module Kernel
       else
         gem(name, *ver) if ver
         require name
-        Merb.logger.info!("loading gem '#{name}' from #{__app_file_trace__.first} ...")
+        Merb.logger.info!("loading gem '#{name}' ...")
       end
     rescue LoadError
       if try_framework
         try_framework = false
         retry
       else
-        Merb.logger.info!("loading gem '#{name}' from #{__app_file_trace__.first} ...")
+        Merb.logger.info!("loading gem '#{name}' ...")
         # Failed requiring as a gem, let's try loading with a normal require.
         require name
       end
@@ -119,9 +119,8 @@ module Kernel
 
     begin
       Merb.generator_scope.delete(:merb_default)
-      orm_plugin = resolve_orm_plugin_name(orm)
-
       register_orm(orm)
+      orm_plugin = "merb_#{orm}"
       Kernel.dependency(orm_plugin)
     rescue LoadError => e
       Merb.logger.warn!("The #{orm_plugin} gem was not found.  You may need to install it.")
@@ -133,7 +132,7 @@ module Kernel
   #
   # ==== Parameters
   # orm<~to_sym>::
-  #   ORM alias, like :activerecord, :datamapper or :sequel. :dm_core is an ad hoc solution.
+  #   ORM alias, like :activerecord, :datamapper or :sequel.
   #
   # ==== Returns
   # Boolean::
@@ -149,40 +148,11 @@ module Kernel
   #
   # ==== Parameters
   # orm<~to_sym>::
-  #   ORM alias, like :activerecord, :datamapper or :sequel. :dm_core is an ad hoc solution.
+  #   ORM alias, like :activerecord, :datamapper or :sequel.
   #--
   # @private
   def register_orm(orm)
     Merb.generator_scope.unshift(orm.to_sym) unless Merb.generator_scope.include?(orm.to_sym)
-  end
-
-  # Registers ORM alias into ORM plugin gem name.
-  #
-  # ==== Parameters
-  # orm<~to_sym>::
-  #   ORM alias, like :activerecord, :datamapper or :sequel. :dm_core is an ad hoc solution.
-  #
-  # ==== Notes
-  #   DataMapper is in the process of rewrite and this introduces number of specific notes.
-  #
-  #   dm_core is used as an ad hoc solution because Datamapper team decided to mantain
-  #   Merb plugin on their own.
-  #
-  #   So :datamapper uses merb_datamapper (old) for DM 0.3 and :dm_core uses new dm-merb for DM 0.9.
-  #
-  # ==== Examples
-  #
-  # resolve_orm_plugin_name(:activerecord)      # => merb_activerecord
-  # resolve_orm_plugin_name(:merb_activerecord) # => merb_activerecord
-  # resolve_orm_plugin_name(:dm_core)           # => dm-merb
-  #--
-  # @private
-  def resolve_orm_plugin_name(orm)
-    case orm.to_s
-        when /^merb_/   then orm.to_s
-        when 'dm_core'  then 'dm-merb'
-        else "merb_#{orm}"
-        end
   end
 
   # Used in Merb.root/config/init.rb to tell Merb which testing framework to
@@ -228,17 +198,6 @@ module Kernel
     Merb.generator_scope.delete(:test_unit)
 
     Merb.generator_scope.push(test_framework.to_sym)
-  end
-
-  # ==== Returns
-  # Array[String]:: A stack trace of the applications files.
-  def __app_file_trace__
-    caller.select do |call|
-      call.include?(Merb.root) && !call.include?(Merb.root + "/framework")
-    end.map do |call|
-      file, line = call.scan(Regexp.new("#{Merb.root}/(.*):(.*)")).first
-      "#{file}:#{line}"
-    end
   end
 
   # ==== Parameters

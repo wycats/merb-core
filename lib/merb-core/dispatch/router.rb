@@ -3,17 +3,33 @@ require 'merb-core/dispatch/router/behavior'
 require 'merb-core/dispatch/router/route'
 require 'merb-core/controller/mixins/responder'
 module Merb
+  # Router stores route definitions and finds first
+  # that matches incoming request URL.
+  #
+  # Then information from route is used by dispatcher to
+  # call action on the controller.
+  #
+  # ==== Routes compilation.
+  #
+  # Most interesting method of Router (and heart of
+  # route matching machinery) is match method generated
+  # on fly from routes definitions. It is called routes
+  # compilation. Generated match method body contains
+  # one if/elsif statement that picks first matching route
+  # definition and sets values to named parameters of the route.
+  #
+  # Compilation is synchronized by mutex.
   class Router
     SEGMENT_REGEXP = /(:([a-z_][a-z0-9_]*|:))/
     SEGMENT_REGEXP_WITH_BRACKETS = /(:[a-z_]+)(\[(\d+)\])?/
     JUST_BRACKETS = /\[(\d+)\]/
     PARENTHETICAL_SEGMENT_STRING = "([^\/.,;?]+)".freeze
-    
+
     @@named_routes = {}
     @@routes = []
     @@compiler_mutex = Mutex.new
     cattr_accessor :routes, :named_routes
-    
+
     class << self
 
       # Appends the generated routes to the current routes.
@@ -75,7 +91,7 @@ module Merb
       #
       # ==== Parameters
       # name<~to_sym, Hash>:: The name of the route to generate.
-      # params<Hash>:: The params to use in the route generation.
+      # params<Hash, Fixnum, Object>:: The params to use in the route generation.
       # fallback<Hash>:: Parameters for generating a fallback URL.
       #
       # ==== Returns
@@ -85,7 +101,9 @@ module Merb
       # If name is a hash, it will be merged with params and passed on to
       # generate_for_default_route along with fallback.
       def generate(name, params = {}, fallback = {})
+        params.reject! { |k,v| v.nil? } if params.is_a? Hash
         if name.is_a? Hash
+          name.reject! { |k,v| v.nil? }
           return generate_for_default_route(name.merge(params), fallback)
         end
         name = name.to_sym
@@ -139,6 +157,6 @@ module Merb
         url
       end
     end # self
-    
+
   end
 end

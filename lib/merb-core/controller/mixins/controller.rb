@@ -92,6 +92,8 @@ module Merb
     # ==== Parameters
     # url<String>::
     #   URL to redirect to. It can be either a relative or fully-qualified URL.
+    # permanent<Boolean>::
+    #   When true, return status 301 Moved Permanently
     #
     # ==== Returns
     # String:: Explanation of redirect.
@@ -99,9 +101,10 @@ module Merb
     # ==== Examples
     #   redirect("/posts/34")
     #   redirect("http://www.merbivore.com/")
-    def redirect(url)
-      Merb.logger.info("Redirecting to: #{url}")
-      self.status = 302
+    #   redirect("http://www.merbivore.com/", true)
+    def redirect(url, permanent = false)
+      self.status = permanent ? 301 : 302
+      Merb.logger.info("Redirecting to: #{url} (#{self.status})")
       headers['Location'] = url
       "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
     end

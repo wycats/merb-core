@@ -5,7 +5,7 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
 
 class Merb::BootLoader::AfterTest < Merb::BootLoader
-  after Merb::BootLoader::BeforeAppRuns
+  after Merb::BootLoader::BeforeAppLoads
   
   def self.run
   end
@@ -21,7 +21,7 @@ end
 describe "The BootLoader" do
   
   it "should support adding a BootLoader after another" do
-    idx = Merb::BootLoader.subclasses.index("Merb::BootLoader::BeforeAppRuns")
+    idx = Merb::BootLoader.subclasses.index("Merb::BootLoader::BeforeAppLoads")
     Merb::BootLoader.subclasses.index("Merb::BootLoader::AfterTest").should == idx + 1
   end
 

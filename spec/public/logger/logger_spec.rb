@@ -39,13 +39,13 @@ describe Merb::Logger do
     end
 
     it "should set the log level to :debug (0) when Merb.environment is development" do
-      Merb.should_receive(:environment).twice.and_return("development")
+      Merb.should_receive(:environment).and_return("development")
       @logger.set_log(Merb.log_path / "development.log")
       @logger.level.should eql(0)
     end
     
     it "should set the log level to :error (6) when Merb.environment is production" do
-      Merb.should_receive(:environment).twice.and_return("production")
+      Merb.should_receive(:environment).and_return("production")
       @logger.set_log(Merb.log_path / "production.log")
       @logger.level.should eql(4)
     end
@@ -72,14 +72,14 @@ describe Merb::Logger do
     end
     
     it "should immediately return if the buffer is empty" do
-      @logger.should_not_receive(:write_method)
+      @logger.should_not_receive(:write)
       @logger.flush
     end
 
     it "should call the write_method with the stringified contents of the buffer if the buffer is non-empty" do
       @logger.send(:<<, "a message")
       @logger.send(:<<, "another message")
-      @logger.log.should_receive(:write_method).with(" ~ a message\n ~ another message\n")
+      @logger.log.should_receive(:write).with(" ~ a message\n ~ another message\n")
       @logger.flush
     end
 

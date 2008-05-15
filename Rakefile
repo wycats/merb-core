@@ -26,6 +26,7 @@ require "lib/merb-core/test/run_specs"
 CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
 
 windows = (PLATFORM =~ /win32|cygwin/) rescue nil
+install_home = ENV['GEM_HOME'] ? "-i #{ENV['GEM_HOME']}" : ""
 
 SUDO = windows ? "" : "sudo"
 
@@ -59,7 +60,6 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "json_pure"
   s.add_dependency "rspec"
   s.add_dependency "rack"
-  s.add_dependency "hpricot"
   s.add_dependency "mime-types"
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
@@ -72,12 +72,12 @@ end
 
 desc "Run :package and install the resulting .gem"
 task :install => :package do
-  sh %{#{SUDO} gem install --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{SUDO} gem install #{install_home} --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :package and install the resulting .gem with jruby"
 task :jinstall => :package do
-  sh %{#{SUDO} jruby -S gem install pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{SUDO} jruby -S gem install #{install_home} pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :clean and uninstall the .gem"
@@ -90,14 +90,14 @@ namespace :github do
   task :update_gemspec do
     skip_fields = %w(new_platform original_platform)
     integer_fields = %w(specification_version)
-    
+
     result = "Gem::Specification.new do |s|\n"
-    spec.instance_variables.each do |ivar| 
+    spec.instance_variables.each do |ivar|
       value = spec.instance_variable_get(ivar)
       name  = ivar.split("@").last
       next if skip_fields.include?(name) || value.nil? || value == "" || (value.respond_to?(:empty?) && value.empty?)
       if name == "dependencies"
-        value.each do |d| 
+        value.each do |d|
           dep, *ver = d.to_s.split(" ")
           result <<  "  s.add_dependency #{dep.inspect}, #{ver.join(" ").inspect.gsub(/[()]/, "")}\n"
         end

@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'open3'
 require 'benchmark'
 
