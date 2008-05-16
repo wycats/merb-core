@@ -18,6 +18,15 @@ module Merb
     #   OR
     # A "staging" environment that runs like your "production"
     #
+    # ==== Examples
+    # From any environment config file (ie, development.rb, custom.rb, localdev.rb, etc)
+    #   staging.rb:
+    #     Merb.merge_env "production"         #We want to use all the settings production uses
+    #     Merb::Config.use { |c|
+    #       c[:log_level]         = "debug"   #except we want debug log level
+    #       c[:exception_details] = true      #and we want to see exception details
+    #     }
+    #
     # ==== Parameters
     # env<~String>:: Environment to run like
     # use_db<~Boolean>:: Should Merb use the merged environments DB connection
