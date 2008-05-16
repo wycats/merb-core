@@ -23,10 +23,8 @@ describe "Plugins","use_orm" do
   end
 
   it "should raise an error if use_orm is called twice" do
-    Merb.logger.should_receive(:warn)
-
     use_orm(:activerecord)
-    use_orm(:datamapper)
+    lambda { use_orm(:datamapper) }.should raise_error("Don't call use_orm more than once")
   end
 
   it "should not have :merb_default in GENERATOR_SCOPE with use_orm(:activerecord)" do

@@ -115,7 +115,7 @@ module Kernel
   #   # This will use the DataMapper generator for your ORM
   #   $ ruby script/generate model MyModel
   def use_orm(orm)
-    Merb.logger.warn "Don't call use_orm more than once" unless Merb.generator_scope.include?(:merb_default)
+    raise "Don't call use_orm more than once" unless Merb.generator_scope.include?(:merb_default)
 
     begin
       register_orm(orm)
