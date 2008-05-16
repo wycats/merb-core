@@ -97,26 +97,6 @@ end
 
 
 
-describe "Plugins", "registred_orm?" do
-  before(:each) do
-    Merb.generator_scope.replace [:merb_default, :merb, :rspec]
-    Kernel.stub!(:dependency)
-  end
-
-  it "returns false unless ORM is registred" do
-    registred_orm?(:sequel).should be(false)
-  end
-
-  it "returns true once ORM is registred" do
-    use_orm(:sequel)
-
-    registred_orm?(:sequel).should be(false)
-  end
-end
-
-
-
-
 describe "Plugins", "register_test_framework" do
   before(:each) do
     Merb.generator_scope.replace [:merb_default, :merb, :rspec]
