@@ -111,16 +111,16 @@ module Merb
       #   Addational conditions that the request must meet in order to match.
       #   the keys must be methods that the Merb::Request instance will respond
       #   to.  The value is the string or regexp that matched the returned value.
-      #   Conditions are inherited by child routes. 
+      #   Conditions are inherited by child routes.
       #
       #   The Following have special meaning:
-      #   * :method -- Limit this match based on the request method. (GET, 
+      #   * :method -- Limit this match based on the request method. (GET,
       #     POST, PUT, DELETE)
       #   * :path -- Used internally to maintain URL form information
-      #   * :controller and :action -- These can be used here instead of '#to', and 
+      #   * :controller and :action -- These can be used here instead of '#to', and
       #     will be inherited in the block.
       #   * :params -- Sets other key/value pairs that are placed in the params
-      #     hash. The value must be a hash. 
+      #     hash. The value must be a hash.
       # &block::
       #   Passes a new instance of a Behavior object into the optional block so
       #   that sub-matching and routes nesting may occur.
@@ -145,13 +145,18 @@ module Merb
       #   r.match ('/foo', :user_agent => /(MSIE|Gecko)/ )
       #        .to({:controller=>'foo', :action=>'popular')
       #
-      #   #Route GET and POST requests to different actions (see also #resources)
+      #   # Route GET and POST requests to different actions (see also #resources)
       #   r.match('/foo', :method=>:get).to(:action=>'show')
       #   r.mathc('/foo', :method=>:post).to(:action=>'create')
       #
       #   # match also takes regular expressions
+      #
       #   r.match(%r[/account/([a-z]{4,6})]).to(:controller => "account",
       #      :action => "show", :id => "[1]")
+      #
+      #   r.match(/\/?(en|es|fr|be|nl)?/).to(:language => "[1]") do |l|
+      #     l.match("/guides/:action/:id").to(:controller => "tour_guides")
+      #   end
       #---
       # @public
       def match(path = '', conditions = {}, &block)
