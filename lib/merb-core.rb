@@ -246,7 +246,34 @@ module Merb
 
     # Set up default variables under Merb
     attr_accessor :generator_scope, :klass_hashes
-    Merb.generator_scope = [:merb_default, :merb, :rspec]
+
+    # Returns registered ORM generators as symbols,
+    # for instance, :datamapper.
+    #
+    # ==== Returns
+    # <Array(Symbol>:: registered ORM generators.
+    def orm_generator_scope
+      @orm_generator_scope ||= [:merb_default]
+    end
+
+    # Returns registered test framework generators.
+    #
+    # ==== Returns
+    # <Array(Symbol>:: registred test framework generators.
+    def test_framework_generator_scope
+      @test_framework_generator_scope ||= [:rspec]
+    end
+
+    # Returns all registered generators plus Merb generator.
+    #
+    # ==== Returns
+    # <Array(Symbol>::
+    #   all registered generators, inc. needed by Merb itself.
+    def generator_scope
+      [:merb] + orm_generator_scope + test_framework_generator_scope
+    end
+
+
     Merb.klass_hashes = []
 
     attr_reader :registered_session_types

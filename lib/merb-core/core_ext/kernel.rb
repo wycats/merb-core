@@ -109,14 +109,15 @@ module Kernel
   # orm<~to_s>:: The ORM to use.
   #
   # ==== Examples
-  #   # This line goes in dependencies.yml
   #   use_orm :datamapper
   #
   #   # This will use the DataMapper generator for your ORM
-  #   $ ruby script/generate model MyModel
+  #   $ merb-gen model ActivityEvent
+  #
+  # ==== Notes
+  # If for some reason this is called more than once, latter
+  # call takes over other.
   def use_orm(orm)
-    raise "Don't call use_orm more than once" unless Merb.generator_scope.include?(:merb_default)
-
     begin
       register_orm(orm)
       orm_plugin = "merb_#{orm}"
@@ -136,8 +137,7 @@ module Kernel
   #--
   # @private
   def register_orm(orm)
-    Merb.generator_scope.delete(:merb_default)
-    Merb.generator_scope.unshift(orm.to_sym) unless Merb.generator_scope.include?(orm.to_sym)
+    Merb.orm_generator_scope.replace([orm])
   end
 
   # Used in Merb.root/config/init.rb to tell Merb which testing framework to
@@ -148,11 +148,10 @@ module Kernel
   #   The test framework to use. Currently only supports :rspec and :test_unit.
   #
   # ==== Examples
-  #   # This line goes in dependencies.yml
   #   use_test :rspec
   #
   #   # This will now use the RSpec generator for tests
-  #   $ ruby script/generate controller MyController
+  #   $ merb-gen model ActivityEvent
   def use_test(test_framework, *test_dependencies)
     raise "use_test only supports :rspec and :test_unit currently" unless supported_test_framework?(test_framework)
     register_test_framework(test_framework)
@@ -179,10 +178,7 @@ module Kernel
   #--
   # @private
   def register_test_framework(test_framework)
-    Merb.generator_scope.delete(:rspec)
-    Merb.generator_scope.delete(:test_unit)
-
-    Merb.generator_scope.push(test_framework.to_sym)
+    Merb.test_framework_generator_scope.replace([test_framework])
   end
 
   # ==== Parameters
