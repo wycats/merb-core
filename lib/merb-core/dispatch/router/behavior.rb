@@ -176,6 +176,22 @@ module Merb
         Route.new compiled_conditions, compiled_params, self, &conditional_block
       end
 
+      # Combines common case of match being used with
+      # to({}).
+      #
+      # ==== Returns
+      # <Route>:: route that uses params from named path segments.
+      #
+      # ==== Examples
+      # r.match!("/api/:token/:controller/:action/:id")
+      #
+      # is the same thing as
+      #
+      # r.match!("/api/:token/:controller/:action/:id").to({})
+      def match!(path = '', conditions = {}, &block)
+        self.match(path, conditions, &block).to({})
+      end
+
       # Creates a Route from one or more Behavior objects, unless a +block+ is
       # passed in.
       #
