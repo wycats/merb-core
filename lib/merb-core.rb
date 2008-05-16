@@ -13,6 +13,46 @@ module Merb
   module GlobalHelpers; end
   class << self
 
+    # Merge environment settings
+    # Can allow you to have a "localdev" that runs like your "development"
+    #   OR
+    # A "staging" environment that runs like your "production"
+    #
+    # ==== Parameters
+    # env<~String>:: Environment to run like
+    # use_db<~Boolean>:: Should Merb use the merged environments DB connection
+    #     Defaults to +false+
+    def merge_env(env,use_db=false)
+      if Merb.environment_info.nil?
+        Merb.environment_info = {
+          :real_env => Merb.environment,
+          :merged_envs => [],
+          :db_env => Merb.environment
+        }
+      end
+      
+      #Only load if it hasn't been loaded
+      unless Merb.environment_info[:merged_envs].member? env
+        Merb.environment_info[:merged_envs] << env
+        
+        env_file = Merb.dir_for(:config) / "environments" / ("#{env}.rb")
+        if File.exists?(env_file)
+          load(env_file)
+        else
+          Merb.logger.warn! "Environment file does not exist! #{env_file}"
+        end
+        
+      end
+      
+      # Mark specific environment to load when ORM loads,
+      # if multiple environments are loaded, the last one
+      # with use_db as TRUE will be loaded
+      if use_db
+        Merb.environment_info[:db_env] = env
+      end
+    end
+
+
     # Startup Merb by setting up the Config and starting the server.
     # This is where Merb application environment and root path are set.
     #
@@ -59,7 +99,7 @@ module Merb
       start_environment(Merb::Config.to_hash.merge(argv))
     end
 
-    attr_accessor :environment, :load_paths, :adapter
+    attr_accessor :environment, :load_paths, :adapter, :environment_info
 
     alias :env :environment
 

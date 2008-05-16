@@ -30,5 +30,16 @@ describe "Merb.env helpers" do
     end
   end
   
+  it "should allow an environment to merge another environments settings" do
+    %w(development test production staging demo custom).each do |e|
+
+      Merb.environment = e
+      Merb.start_environment
+      Merb.merge_env "some_other_env"
+      Merb.environment_info.nil?.should be_false
+      Merb.environment_info[:merged_envs].first.should == "some_other_env"
+    end
+  end
+  
   
 end
