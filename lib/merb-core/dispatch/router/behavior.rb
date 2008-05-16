@@ -159,8 +159,11 @@ module Merb
       # ==== Returns
       # Behavior:: The new behavior.
       def match_without_path(conditions = {})
-        new_behavior = self.class.new(conditions, {}, self)
-        conditions.delete :path if ['', '^$'].include?(conditions[:path])
+        params = conditions.delete(:params) || {} #parents params will be merged  in Route#new
+        params[:controller] = conditions.delete(:controller) || params[:controller]
+        params[:action] = conditions.delete(:action) || params[:action]
+        params.delete_if{|_k,value| value.nil?}
+        new_behavior = self.class.new(conditions, params, self)
         yield new_behavior if block_given?
         new_behavior
       end
@@ -776,7 +779,7 @@ module Merb
         compiled = {}
         params.each_pair do |key, value|
           unless value.is_a? String
-            raise ArgumentError, "param value must be string (#{value.inspect})"
+            raise ArgumentError, "param value for #{key.to_s} must be string (#{value.inspect})"
           end
           result = []
           value = value.dup
