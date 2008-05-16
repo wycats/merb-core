@@ -176,9 +176,8 @@ module Merb
       # Behavior:: The new behavior.
       def match_without_path(conditions = {})
         params = conditions.delete(:params) || {} #parents params will be merged  in Route#new
-        params[:controller] = conditions.delete(:controller) || params[:controller]
-        params[:action] = conditions.delete(:action) || params[:action]
-        params.delete_if{|_k,value| value.nil?}
+        params[:controller] = conditions.delete(:controller) if conditions[:controller]
+        params[:action] = conditions.delete(:action) if conditions[:action]
         new_behavior = self.class.new(conditions, params, self)
         yield new_behavior if block_given?
         new_behavior
