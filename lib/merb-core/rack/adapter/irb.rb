@@ -27,7 +27,8 @@ module Merb
           Merb::Router.named_routes.each do |name,route|
             # something weird happens when you combine sprintf and irb
             puts "Helper     : #{name}"
-            puts "HTTP method: #{route.conditions[:method] || 'GET'}"
+            meth = $1.upcase if route.conditions[:method].to_s =~ /(get|post|put|delete)/
+            puts "HTTP method: #{meth || 'GET'}"
             puts "Route      : #{route}"
             puts "Params     : #{route.params.inspect}"
             puts
