@@ -132,7 +132,7 @@ describe Merb::Test::Rspec::ViewMatchers do
     describe HasContent do
       before(:each) do
         @element = stub(:element)
-        @element.stub!(:inner_content).and_return <<-EOF
+        @element.stub!(:inner_text).and_return <<-EOF
           <div id='main'>
             <div class='inner'>hello, world!</div>
           </div>
@@ -175,7 +175,7 @@ describe Merb::Test::Rspec::ViewMatchers do
           hc = HasContent.new(/hello,\sworld!/)
           hc.matches?(@element)
           
-          hc.failure_message.should include(@element.inner_content)
+          hc.failure_message.should include(@element.inner_text)
         end
       end
     end
