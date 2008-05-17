@@ -84,7 +84,7 @@ module Merb
       # compiled_statement.
       def compile
         puts "compiled route: #{compiled_statement}" if $DEBUG
-        eval(compiled_statement, binding, __FILE__, __LINE__)
+        eval(compiled_statement, binding, "Generated Code for Router#match(#{__FILE__}:#{__LINE__})", 1)
       end
 
       # Generates a URL based on passed options.
