@@ -3,8 +3,8 @@ require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 Merb.environment = 'test'
 
 def reset_merb_generator_scope
-  Merb.orm_generator_scope.replace [:merb_default]
-  Merb.test_framework_generator_scope.replace [:rspec]
+  Merb.orm_generator_scope = :merb_default
+  Merb.test_framework_generator_scope = :rspec
   Kernel.stub!(:dependency)
 end
 
@@ -30,7 +30,7 @@ describe "Plugins", "ORM generator scope" do
   end
 
   it "has merb_default stub by default" do
-    Merb.orm_generator_scope.should include(:merb_default)
+    Merb.orm_generator_scope.should == :merb_default
   end
 end
 
@@ -81,7 +81,7 @@ describe "Plugins", "test framework generator scope" do
   end
 
   it "has rspec by default" do
-    Merb.test_framework_generator_scope.should include(:rspec)
+    Merb.test_framework_generator_scope.should == :rspec
   end
 end
 
@@ -122,7 +122,7 @@ describe "Plugins", "register_orm" do
   it "registers ORM plugin at orm generator scope" do
     register_orm(:sequel)
 
-    Merb.orm_generator_scope.should include(:sequel)
+    Merb.orm_generator_scope.should == :sequel
   end
 end
 

@@ -137,7 +137,7 @@ module Kernel
   #--
   # @private
   def register_orm(orm)
-    Merb.orm_generator_scope.replace([orm])
+    Merb.orm_generator_scope = orm
   end
 
   # Used in Merb.root/config/init.rb to tell Merb which testing framework to
@@ -178,7 +178,7 @@ module Kernel
   #--
   # @private
   def register_test_framework(test_framework)
-    Merb.test_framework_generator_scope.replace([test_framework])
+    Merb.test_framework_generator_scope = test_framework
   end
 
   # ==== Parameters
