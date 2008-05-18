@@ -59,7 +59,7 @@ class String
   #   The path that is associated with the constantized string, assuming a
   #   conventional structure.
   #
-  # @xample
+  # @example
   #   "FooBar::Baz".to_const_path # => "foo_bar/baz"
   def to_const_path
     snake_case.gsub(/::/, "/")

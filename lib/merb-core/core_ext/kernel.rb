@@ -183,7 +183,7 @@ module Kernel
   end
 
   # @param file<String> The file to read.
-  # @pram line<Fixnum> The line number to look for.
+  # @param line<Fixnum> The line number to look for.
   # @param size<Fixnum>
   #   Number of lines to include above and below the the line to look for.
   #   Defaults to 4.
