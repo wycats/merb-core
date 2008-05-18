@@ -4,28 +4,24 @@ class Hash
   class << self
     # Converts valid XML into a Ruby Hash structure.
     #
-    # ==== Paramters
-    # xml<String>:: A string representation of valid XML.
+    # @param xml<String> A string representation of valid XML.
     #
-    # ==== Notes
-    # * Mixed content is treated as text and any tags in it are left unparsed
-    # * Any attributes other than type on a node containing a text node will be
+    # @note Mixed content is treated as text and any tags in it are left unparsed
+    # @note Any attributes other than type on a node containing a text node will be
     #   discarded
     #
-    # ===== Typecasting
-    # Typecasting is performed on elements that have a +type+ attribute:
-    # integer::
-    # boolean:: Anything other than "true" evaluates to false.
-    # datetime::
-    #   Returns a Time object. See Time documentation for valid Time strings.
-    # date::
-    #   Returns a Date object. See Date documentation for valid Date strings.
+    # @details [Typecasting]
+    #   Typecasting is performed on elements that have a +type+ attribute:
+    #   integer::
+    #   boolean:: Anything other than "true" evaluates to false.
+    #   datetime::
+    #     Returns a Time object. See Time documentation for valid Time strings.
+    #   date::
+    #     Returns a Date object. See Date documentation for valid Date strings.
     #
     # Keys are automatically converted to +snake_case+
     #
-    # ==== Examples
-    #
-    # ===== Standard
+    # @example [Simple]
     #   <user gender='m'>
     #     <age type='integer'>35</age>
     #     <name>Home Simpson</name>
@@ -34,7 +30,7 @@ class Hash
     #     <is-cool type='boolean'>true</is-cool>
     #   </user>
     #
-    # evaluates to
+    #   evaluates to
     #
     #   { "user" => {
     #       "gender"    => "m",
@@ -46,50 +42,48 @@ class Hash
     #     }
     #   }
     #
-    # ===== Mixed Content
+    # @example [Mixed Content]
     #   <story>
     #     A Quick <em>brown</em> Fox
     #   </story>
     #
-    # evaluates to
+    #   evaluates to
     #
     #   { "story" => "A Quick <em>brown</em> Fox" }
     #
-    # ====== Attributes other than type on a node containing text
+    # @details [Attributes other than type on a node containing text]
     #   <story is-good='false'>
     #     A Quick <em>brown</em> Fox
     #   </story>
     #
-    # evaluates to
+    #   evaluates to
     #
     #   { "story" => "A Quick <em>brown</em> Fox" }
     #
     #   <bicep unit='inches' type='integer'>60</bicep>
     #
-    # evaluates with a typecast to an integer. But unit attribute is ignored.
+    #   evaluates with a typecast to an integer. But unit attribute is ignored.
     #
-    #    { "bicep" => 60 }
+    #   { "bicep" => 60 }
     def from_xml( xml )
       ToHashParser.from_xml(xml)
     end
   end
-
-  # ==== Returns
-  # Mash:: This hash as a Mash for string or symbol key access.
-  #
+  
   # This class has semantics of ActiveSupport's HashWithIndifferentAccess
   # and we only have it so that people can write
   # params[:key] instead of params['key'].
+  #
+  # @return <Mash> This hash as a Mash for string or symbol key access.
   def to_mash
     hash = Mash.new(self)
     hash.default = default
     hash
   end
 
-  # ==== Returns
-  # String:: This hash as a query string
+  # @return <String> This hash as a query string
   #
-  # ==== Examples
+  # @example
   #   { :name => "Bob",
   #     :address => {
   #       :street => '111 Ruby Ave.',
@@ -124,36 +118,31 @@ class Hash
     params
   end
 
-  # ==== Parameters
-  # *allowed:: The hash keys to include.
+  # @param *allowed<Array[(String, Symbol)]> The hash keys to include.
   #
-  # ==== Returns
-  # Hash:: A new hash with only the selected keys.
+  # @return <Hash> A new hash with only the selected keys.
   #
-  # ==== Examples
+  # @example
   #   { :one => 1, :two => 2, :three => 3 }.only(:one)
   #     #=> { :one => 1 }
   def only(*allowed)
     reject { |k,v| !allowed.include?(k) }
   end
 
-  # ==== Parameters
-  # *rejected:: The hash keys to exclude.
+  # @param *rejected<Array[(String, Symbol)] The hash keys to exclude.
   #
-  # ==== Returns
-  # Hash:: A new hash without the selected keys.
+  # @return <Hash> A new hash without the selected keys.
   #
-  # ==== Examples
+  # @example
   #   { :one => 1, :two => 2, :three => 3 }.except(:one)
   #     #=> { :two => 2, :three => 3 }
   def except(*rejected)
     reject { |k,v| rejected.include?(k) }
   end
 
-  # ==== Returns
-  # String:: The hash as attributes for an XML tag.
+  # @return <String> The hash as attributes for an XML tag.
   #
-  # ==== Examples
+  # @example
   #   { :one => 1, "two"=>"TWO" }.to_xml_attributes
   #     #=> 'one="1" two="TWO"'
   def to_xml_attributes
@@ -164,17 +153,15 @@ class Hash
 
   alias_method :to_html_attributes, :to_xml_attributes
 
-  # ==== Parameters
-  # html_class<~to_s>::
+  # @param html_class<#to_s>
   #   The HTML class to add to the :class key. The html_class will be
   #   concatenated to any existing classes.
   #
-  # ==== Examples
-  #   hash[:class] #=> nil
-  #   hash.add_html_class!(:selected)
-  #   hash[:class] #=> "selected"
-  #   hash.add_html_class!("class1 class2")
-  #   hash[:class] #=> "selected class1 class2"
+  # @example hash[:class] #=> nil
+  # @example hash.add_html_class!(:selected)
+  # @example hash[:class] #=> "selected"
+  # @example hash.add_html_class!("class1 class2")
+  # @example hash[:class] #=> "selected class1 class2"
   def add_html_class!(html_class)
     if self[:class]
       self[:class] = "#{self[:class]} #{html_class}"
@@ -186,7 +173,9 @@ class Hash
   # Converts all keys into string values. This is used during reloading to
   # prevent problems when classes are no longer declared.
   #
-  # === Examples
+  # @return <Array> An array of they hash's keys
+  #
+  # @example 
   #   hash = { One => 1, Two => 2 }.proctect_keys!
   #   hash # => { "One" => 1, "Two" => 2 }
   def protect_keys!
@@ -196,7 +185,7 @@ class Hash
   # Attempts to convert all string keys into Class keys. We run this after
   # reloading to convert protected hashes back into usable hashes.
   #
-  # === Examples
+  # @example
   #   # Provided that classes One and Two are declared in this scope:
   #   hash = { "One" => 1, "Two" => 2 }.unproctect_keys!
   #   hash # => { One => 1, Two => 2 }
@@ -209,10 +198,9 @@ class Hash
   # Destructively and non-recursively convert each key to an uppercase string,
   # deleting nil values along the way.
   #
-  # ==== Returns
-  # Hash:: The newly environmentized hash.
+  # @return <Hash> The newly environmentized hash.
   #
-  # ==== Examples
+  # @example
   #   { :name => "Bob", :contact => { :email => "bob@bob.com" } }.environmentize_keys!
   #     #=> { "NAME" => "Bob", "CONTACT" => { :email => "bob@bob.com" } }
   def environmentize_keys!
@@ -324,27 +312,25 @@ class REXMLUtilityNode
   # +node+ has #type == "integer",
   # {{[node.typecast_value("12") #=> 12]}}
   #
-  # ==== Parameters
-  # value<String>:: The value that is being typecast.
+  # @param value<String> The value that is being typecast.
   #
-  # ==== :type options
-  # "integer"::
-  #   converts +value+ to an integer with #to_i
-  # "boolean"::
-  #   checks whether +value+, after removing spaces, is the literal
-  #   "true"
-  # "datetime"::
-  #   Parses +value+ using Time.parse, and returns a UTC Time
-  # "date"::
-  #   Parses +value+ using Date.parse
+  # @details [:type options]
+  #   "integer"::
+  #     converts +value+ to an integer with #to_i
+  #   "boolean"::
+  #     checks whether +value+, after removing spaces, is the literal
+  #     "true"
+  #   "datetime"::
+  #     Parses +value+ using Time.parse, and returns a UTC Time
+  #   "date"::
+  #     Parses +value+ using Date.parse
   #
-  # ==== Returns
-  # Integer, true, false, Time, Date, Object::
+  # @return <Integer, TrueClass, FalseClass, Time, Date, Object>
   #   The result of typecasting +value+.
   #
-  # ==== Notes
-  # If +self+ does not have a "type" key, or if it's not one of the
-  # options specified above, the raw +value+ will be returned.
+  # @note
+  #   If +self+ does not have a "type" key, or if it's not one of the
+  #   options specified above, the raw +value+ will be returned.
   def typecast_value(value)
     return value unless @type
     proc = self.class.typecasts[@type]
@@ -353,13 +339,9 @@ class REXMLUtilityNode
 
   # Convert basic XML entities into their literal values.
   #
-  # ==== Parameters
-  # value<~gsub>::
-  #   An XML fragment.
+  # @param value<#gsub> An XML fragment.
   #
-  # ==== Returns
-  # ~gsub::
-  #   The XML fragment after converting entities.
+  # @return <#gsub> The XML fragment after converting entities.
   def translate_xml_entities(value)
     value.gsub(/&lt;/,   "<").
           gsub(/&gt;/,   ">").
@@ -383,15 +365,13 @@ class REXMLUtilityNode
 
   # Converts the node into a readable HTML node.
   #
-  # ==== Returns
-  # String:: The HTML node in text form.
+  # @return <String> The HTML node in text form.
   def to_html
     attributes.merge!(:type => @type ) if @type
     "<#{name}#{attributes.to_xml_attributes}>#{@nil_element ? '' : inner_html}</#{name}>"
   end
 
-  # ==== Alias
-  # #to_html
+  # @alias #to_html #to_s
   def to_s
     to_html
   end
