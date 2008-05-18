@@ -112,6 +112,15 @@ module Merb
       #   the keys must be methods that the Merb::Request instance will respond
       #   to.  The value is the string or regexp that matched the returned value.
       #   Conditions are inherited by child routes.
+      #
+      #   The Following have special meaning:
+      #   * :method -- Limit this match based on the request method. (GET,
+      #     POST, PUT, DELETE)
+      #   * :path -- Used internally to maintain URL form information
+      #   * :controller and :action -- These can be used here instead of '#to', and
+      #     will be inherited in the block.
+      #   * :params -- Sets other key/value pairs that are placed in the params
+      #     hash. The value must be a hash.
       # &block::
       #   Passes a new instance of a Behavior object into the optional block so
       #   that sub-matching and routes nesting may occur.
@@ -127,15 +136,27 @@ module Merb
       #
       #   # registers /foo/bar to controller => "foo", :action => "bar"
       #   # and /foo/baz to controller => "foo", :action => "baz"
-      #   r.match "/foo" do |f|
-      #     f.params[:controller] = 'foo'
+      #   r.match "/foo", :controller=>"foo" do |f|
       #     f.match("/bar").to(:action => "bar")
       #     f.match("/baz").to(:action => "caz")
       #   end
       #
+      #   #match only of the browser string contains MSIE or Gecko
+      #   r.match ('/foo', :user_agent => /(MSIE|Gecko)/ )
+      #        .to({:controller=>'foo', :action=>'popular')
+      #
+      #   # Route GET and POST requests to different actions (see also #resources)
+      #   r.match('/foo', :method=>:get).to(:action=>'show')
+      #   r.mathc('/foo', :method=>:post).to(:action=>'create')
+      #
       #   # match also takes regular expressions
+      #
       #   r.match(%r[/account/([a-z]{4,6})]).to(:controller => "account",
       #      :action => "show", :id => "[1]")
+      #
+      #   r.match(/\/?(en|es|fr|be|nl)?/).to(:language => "[1]") do |l|
+      #     l.match("/guides/:action/:id").to(:controller => "tour_guides")
+      #   end
       #---
       # @public
       def match(path = '', conditions = {}, &block)
@@ -159,8 +180,10 @@ module Merb
       # ==== Returns
       # Behavior:: The new behavior.
       def match_without_path(conditions = {})
-        new_behavior = self.class.new(conditions, {}, self)
-        conditions.delete :path if ['', '^$'].include?(conditions[:path])
+        params = conditions.delete(:params) || {} #parents params will be merged  in Route#new
+        params[:controller] = conditions.delete(:controller) if conditions[:controller]
+        params[:action] = conditions.delete(:action) if conditions[:action]
+        new_behavior = self.class.new(conditions, params, self)
         yield new_behavior if block_given?
         new_behavior
       end
@@ -174,6 +197,22 @@ module Merb
       def to_route(params = {}, &conditional_block)
         @params.merge! params
         Route.new compiled_conditions, compiled_params, self, &conditional_block
+      end
+
+      # Combines common case of match being used with
+      # to({}).
+      #
+      # ==== Returns
+      # <Route>:: route that uses params from named path segments.
+      #
+      # ==== Examples
+      # r.match!("/api/:token/:controller/:action/:id")
+      #
+      # is the same thing as
+      #
+      # r.match!("/api/:token/:controller/:action/:id").to({})
+      def match!(path = '', conditions = {}, &block)
+        self.match(path, conditions, &block).to({})
       end
 
       # Creates a Route from one or more Behavior objects, unless a +block+ is
@@ -584,6 +623,19 @@ module Merb
         @conditions_have_regexp
       end
 
+      def redirect(url, permanent = true)
+        @redirects       = true
+        @redirect_url    = url
+        @redirect_status = permanent ? 301 : 302
+
+        # satisfy route compilation
+        self.to({})
+      end
+
+      def redirects?
+        @redirects
+      end
+
     protected
 
       # ==== Parameters
@@ -747,7 +799,7 @@ module Merb
         compiled = {}
         params.each_pair do |key, value|
           unless value.is_a? String
-            raise ArgumentError, "param value must be string (#{value.inspect})"
+            raise ArgumentError, "param value for #{key.to_s} must be string (#{value.inspect})"
           end
           result = []
           value = value.dup

@@ -251,13 +251,13 @@ module Merb::Test::Rspec::ViewMatchers
     # ==== Returns
     # String:: The failure message.
     def failure_message
-      "expected the following element's content to #{content_message}:\n#{@element.inner_content}"
+      "expected the following element's content to #{content_message}:\n#{@element.inner_text}"
     end
 
     # ==== Returns
     # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
-      "expected the following element's content to not #{content_message}:\n#{@element.inner_content}"
+      "expected the following element's content to not #{content_message}:\n#{@element.inner_text}"
     end
     
     def content_message

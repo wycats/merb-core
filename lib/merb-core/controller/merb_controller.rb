@@ -1,7 +1,7 @@
 class Merb::Controller < Merb::AbstractController
 
   class_inheritable_accessor :_hidden_actions, :_shown_actions
-  cattr_accessor :_subclasses, :_session_id_key, :_session_secret_key, :_session_expiry
+  cattr_accessor :_subclasses, :_session_id_key, :_session_secret_key, :_session_expiry, :_session_cookie_domain
   self._subclasses = Set.new
 
   def self.subclasses_list() _subclasses end
@@ -9,6 +9,7 @@ class Merb::Controller < Merb::AbstractController
   self._session_secret_key = nil
   self._session_id_key = Merb::Config[:session_id_key] || '_session_id'
   self._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
+  self._session_cookie_domain = Merb::Config[:session_cookie_domain]
 
   include Merb::ResponderMixin
   include Merb::ControllerMixin
@@ -108,7 +109,8 @@ class Merb::Controller < Merb::AbstractController
           callables << (klass.public_instance_methods(false) + klass._shown_actions) - klass._hidden_actions
           klass = klass.superclass
         end until klass == Merb::AbstractController || klass == Object
-        @callable_actions = Merb::SimpleSet.new(callables.flatten)
+        actions = callables.flatten.reject{|action| action =~ /^_.*/}
+        @callable_actions = Merb::SimpleSet.new(actions)
       end
       @callable_actions
     end

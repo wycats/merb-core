@@ -25,7 +25,9 @@ module Merb
           Merb::SessionMixin::finalize_session_exception_callbacks.each {|x| x.call(err) }
         end
       end
-      set_cookie(_session_id_key, request.session.session_id, Time.now + _session_expiry) if (@_new_cookie || request.session.needs_new_cookie)
+      options = {:expires => (Time.now + _session_expiry)}
+      options[:domain] = _session_cookie_domain if _session_cookie_domain
+      set_cookie(_session_id_key, request.session.session_id, options) if (@_new_cookie || request.session.needs_new_cookie)
     end
 
     # ==== Returns
