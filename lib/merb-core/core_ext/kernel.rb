@@ -2,9 +2,8 @@ module Kernel
   # Loads the given string as a gem. Execution is deferred to
   # the Merb::BootLoader::Dependencies.run during bootup.
   #
-  # ==== Parameters
-  # name<String>:: The name of the gem to load.
-  # *ver<Gem::Requirement, Gem::Version, Array, ~to_str>::
+  # @param name<String> The name of the gem to load.
+  # @param *ver<Gem::Requirement, Gem::Version, Array, #to_str>
   #   Version requirements to be passed to Gem.activate.
   def dependency(name, *ver)
     Merb::BootLoader::Dependencies.dependencies << [name, ver]
@@ -12,18 +11,17 @@ module Kernel
 
   # Loads the given string as a gem.
   #
-  # ==== Parameters
-  # name<String>:: The name of the gem to load.
-  # *ver<Gem::Requirement, Gem::Version, Array, ~to_str>::
-  #   Version requirements to be passed to Gem.activate.
-  #
-  # ==== Notes
-  # If the gem cannot be found, the method will attempt to require the string
-  # as a library.
-  #
   # This new version tries to load the file via ROOT/gems first before moving
   # off to the system gems (so if you have a lower version of a gem in
   # ROOT/gems, it'll still get loaded).
+  #
+  # @param name<String> The name of the gem to load.
+  # @param *ver<Gem::Requirement, Gem::Version, Array, #to_str>
+  #   Version requirements to be passed to Gem.activate.
+  #
+  # @note
+  #   If the gem cannot be found, the method will attempt to require the string
+  #   as a library.
   def load_dependency(name, *ver)
     try_framework = Merb.frozen?
     begin
@@ -52,8 +50,7 @@ module Kernel
   # Loads both gem and library dependencies that are passed in as arguments.
   # Execution is deferred to the Merb::BootLoader::Dependencies.run during bootup.
   #
-  # ==== Parameters
-  # *args<String, Hash, Array>:: The dependencies to load.
+  # @param *args<String, Hash, Array> The dependencies to load.
   def dependencies(*args)
     args.each do |arg|
       case arg
@@ -66,20 +63,18 @@ module Kernel
 
   # Loads both gem and library dependencies that are passed in as arguments.
   #
-  # ==== Parameters
-  # *args<String, Hash, Array>:: The dependencies to load.
+  # @param *args<String, Hash, Array> The dependencies to load.
   #
-  # ==== Notes
-  # Each argument can be:
-  # String:: Single dependency.
-  # Hash::
-  #   Multiple dependencies where the keys are names and the values versions.
-  # Array:: Multiple string dependencies.
+  # @note
+  #   Each argument can be:
+  #   String:: Single dependency.
+  #   Hash::
+  #     Multiple dependencies where the keys are names and the values versions.
+  #   Array:: Multiple string dependencies.
   #
-  # ==== Examples
-  # dependencies "RedCloth"                 # Loads the the RedCloth gem
-  # dependencies "RedCloth", "merb_helpers" # Loads RedCloth and merb_helpers
-  # dependencies "RedCloth" => "3.0"        # Loads RedCloth 3.0
+  # @example dependencies "RedCloth"                 # Loads the the RedCloth gem
+  # @example dependencies "RedCloth", "merb_helpers" # Loads RedCloth and merb_helpers
+  # @example dependencies "RedCloth" => "3.0"        # Loads RedCloth 3.0
   def load_dependencies(*args)
     args.each do |arg|
       case arg
@@ -92,9 +87,8 @@ module Kernel
 
   # Does a basic require, and prints a message if an error occurs.
   #
-  # ==== Parameters
-  # library<~to_s>:: The library to attempt to include.
-  # message<String>:: The error to add to the log upon failure. Defaults to nil.
+  # @param library<to_s> The library to attempt to include.
+  # @param message<String> The error to add to the log upon failure. Defaults to nil.
   def rescue_require(library, message = nil)
     require library
   rescue LoadError, RuntimeError
@@ -105,18 +99,17 @@ module Kernel
   # Mapper) you wish to use. Currently Merb has plugins to support
   # ActiveRecord, DataMapper, and Sequel.
   #
-  # ==== Parameters
-  # orm<~to_s>:: The ORM to use.
+  # @param orm<#to_s> The ORM to use.
   #
-  # ==== Examples
+  # @example
   #   use_orm :datamapper
   #
   #   # This will use the DataMapper generator for your ORM
   #   $ merb-gen model ActivityEvent
   #
-  # ==== Notes
-  # If for some reason this is called more than once, latter
-  # call takes over other.
+  # @note
+  #   If for some reason this is called more than once, latter
+  #   call takes over other.
   def use_orm(orm)
     begin
       register_orm(orm)
@@ -131,11 +124,10 @@ module Kernel
 
   # Registers ORM at generator scope.
   #
-  # ==== Parameters
-  # orm<~to_sym>::
+  # @param orm<#to_sym>
   #   ORM alias, like :activerecord, :datamapper or :sequel.
-  #--
-  # @private
+  #
+  # @api private
   def register_orm(orm)
     Merb.orm_generator_scope = orm
   end
@@ -143,11 +135,10 @@ module Kernel
   # Used in Merb.root/config/init.rb to tell Merb which testing framework to
   # use. Currently Merb has plugins to support RSpec and Test::Unit.
   #
-  # ==== Parameters
-  # test_framework<Symbol>::
+  # @param test_framework<Symbol>
   #   The test framework to use. Currently only supports :rspec and :test_unit.
   #
-  # ==== Examples
+  # @example
   #   use_test :rspec
   #
   #   # This will now use the RSpec generator for tests
@@ -161,60 +152,55 @@ module Kernel
 
   # Check whether Merb supports test framework. Currently Merb has plugins to support RSpec and Test::Unit.
   #
-  # ==== Parameters
-  # test_framework<Symbol>::
+  # @param test_framework<Symbol>
   #   The test framework to check. Currently only supports :rspec and :test_unit.
-  #--
-  # @semi-public
+  #
+  # @api plugin
   def supported_test_framework?(test_framework)
     [:rspec, :test_unit].include?(test_framework.to_sym)
   end
 
   # Register test framework at generator scope. Currently Merb has plugins to support RSpec and Test::Unit.
   #
-  # ==== Parameters
-  # test_framework<Symbol>::
-  #   The test framework to check. Currently only supports :rspec and :test_unit but the check is performed before registration if you use API.
-  #--
-  # @private
+  # @param test_framework<Symbol>
+  #   The test framework to check. Currently only supports :rspec and :test_unit but the 
+  #   check is performed before registration if you use API.
+  #
+  # @api private
   def register_test_framework(test_framework)
     Merb.test_framework_generator_scope = test_framework
   end
 
-  # ==== Parameters
-  # i<Fixnum>:: The caller number. Defaults to 1.
+  # @param i<Fixnum> The caller number. Defaults to 1.
   #
-  # ==== Returns
-  # Array[Array]:: The file, line and method of the caller.
+  # @return <Array[Array]> The file, line and method of the caller.
   #
-  # ==== Examples
+  # @example
   #   __caller_info__(1)
   #     # => ['/usr/lib/ruby/1.8/irb/workspace.rb', '52', 'irb_binding']
   def __caller_info__(i = 1)
     file, line, meth = caller[i].scan(/(.*?):(\d+):in `(.*?)'/).first
   end
 
-  # ==== Parameters
-  # file<String>:: The file to read.
-  # line<Fixnum>:: The line number to look for.
-  # size<Fixnum>::
+  # @param file<String> The file to read.
+  # @pram line<Fixnum> The line number to look for.
+  # @param size<Fixnum>
   #   Number of lines to include above and below the the line to look for.
   #   Defaults to 4.
   #
-  # ==== Returns
-  # Array[Array]::
+  # @return <Array[Array]>
   #   Triplets containing the line number, the line and whether this was the
   #   searched line.
   #
-  # ==== Examples
-  #  __caller_lines__('/usr/lib/ruby/1.8/debug.rb', 122, 2) # =>
-  #   [
-  #     [ 120, "  def check_suspend",                               false ],
-  #     [ 121, "    return if Thread.critical",                     false ],
-  #     [ 122, "    while (Thread.critical = true; @suspend_next)", true  ],
-  #     [ 123, "      DEBUGGER__.waiting.push Thread.current",      false ],
-  #     [ 124, "      @suspend_next = false",                       false ]
-  #   ]
+  # @example
+  #   __caller_lines__('/usr/lib/ruby/1.8/debug.rb', 122, 2) # =>
+  #     [
+  #       [ 120, "  def check_suspend",                               false ],
+  #       [ 121, "    return if Thread.critical",                     false ],
+  #       [ 122, "    while (Thread.critical = true; @suspend_next)", true  ],
+  #       [ 123, "      DEBUGGER__.waiting.push Thread.current",      false ],
+  #       [ 124, "      @suspend_next = false",                       false ]
+  #     ]
   def __caller_lines__(file, line, size = 4)
     return [['Template Error!', "problem while rendering", false]] if file =~ /\(erubis\)/
     lines = File.readlines(file)
@@ -241,29 +227,28 @@ module Kernel
   # Takes a block, profiles the results of running the block
   # specified number of times and generates HTML report.
   #
-  # ==== Parameters
-  # name<~to_s>::
+  # @param name<#to_s>
   #   The file name. The result will be written out to
   #   Merb.root/"log/#{name}.html".
-  # min<Fixnum>::
+  # @param min<Fixnum>
   #   Minimum percentage of the total time a method must take for it to be
   #   included in the result. Defaults to 1.
   #
-  # ==== Returns
-  # String:: The result of the profiling.
+  # @return <String>
+  #   The result of the profiling.
   #
-  # ==== Notes
-  # Requires ruby-prof (<tt>sudo gem install ruby-prof</tt>)
+  # @note
+  #   Requires ruby-prof (<tt>sudo gem install ruby-prof</tt>)
   #
-  # ==== Examples
+  # @example
   #   __profile__("MyProfile", 5, 30) do
   #     rand(10)**rand(10)
   #     puts "Profile run"
   #   end
   #
-  # Assuming that the total time taken for #puts calls was less than 5% of the
-  # total time to run, #puts won't appear in the profile report.
-  # The code block will be run 30 times in the example above.
+  #   Assuming that the total time taken for #puts calls was less than 5% of the
+  #   total time to run, #puts won't appear in the profile report.
+  #   The code block will be run 30 times in the example above.
   def __profile__(name, min=1, iter=100)
     require 'ruby-prof' unless defined?(RubyProf)
     return_result = ''
@@ -282,10 +267,9 @@ module Kernel
   # Extracts an options hash if it is the last item in the args array. Used
   # internally in methods that take *args.
   #
-  # ==== Parameters
-  # args<Array>:: The arguments to extract the hash from.
+  # @param args<Array> The arguments to extract the hash from.
   #
-  # ==== Examples
+  # @example
   #   def render(*args,&blk)
   #     opts = extract_options_from_args!(args) || {}
   #     # [...]
@@ -296,13 +280,12 @@ module Kernel
 
   # Checks that the given objects quack like the given conditions.
   #
-  # ==== Parameters
-  # opts<Hash>::
+  # @param opts<Hash>
   #   Conditions to enforce. Each key will receive a quacks_like? call with the
   #   value (see Object#quacks_like? for details).
   #
-  # ==== Raises
-  # ArgumentError:: An object failed to quack like a condition.
+  # @raise <ArgumentError>
+  #   An object failed to quack like a condition.
   def enforce!(opts = {})
     opts.each do |k,v|
       raise ArgumentError, "#{k.inspect} doesn't quack like #{v.inspect}" unless k.quacks_like?(v)
