@@ -7,8 +7,7 @@
 class Class
   # Defines class-level and instance-level attribute reader.
   #
-  # ==== Parameters
-  # *syms<Array>:: Array of attributes to define reader for.
+  # @param *syms<Array> Array of attributes to define reader for.
   def cattr_reader(*syms)
     syms.flatten.each do |sym|
       next if sym.is_a?(Hash)
@@ -30,11 +29,9 @@ class Class
 
   # Defines class-level (and optionally instance-level) attribute writer.
   #
-  # ==== Parameters
-  # *syms<Array>:: Array of attributes to define writer for.
+  # @param *syms<Array> Array of attributes to define writer for.
   #
-  # ==== Options
-  # :instance_writer<Boolean>:: if true, instance-level attribute writer is defined.
+  # @option * :instance_writer<Boolean> if true, instance-level attribute writer is defined.
   def cattr_writer(*syms)
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.flatten.each do |sym|
@@ -59,11 +56,9 @@ class Class
 
   # Defines class-level (and optionally instance-level) attribute accessor.
   #
-  # ==== Parameters
-  # *syms<Array>:: Array of attributes to define accessor for.
+  # @param *syms<Array> Array of attributes to define accessor for.
   #
-  # ==== Options
-  # :instance_writer<Boolean>:: if true, instance-level attribute writer is defined.
+  # @option * :instance_writer<Boolean> if true, instance-level attribute writer is defined.
   def cattr_accessor(*syms)
     cattr_reader(*syms)
     cattr_writer(*syms)
@@ -72,8 +67,7 @@ class Class
   # Defines class-level inheritable attribute reader. Attributes are available to subclasses,
   # each subclass has a copy of parent's attribute.
   #
-  # ==== Parameters
-  # *syms<Array>:: Array of attributes to define inheritable reader for.
+  # @param *syms<Array> Array of attributes to define inheritable reader for.
   def class_inheritable_reader(*syms)
     syms.each do |sym|
       next if sym.is_a?(Hash)
@@ -93,11 +87,9 @@ class Class
   # Defines class-level inheritable attribute writer. Attributes are available to subclasses,
   # each subclass has a copy of parent's attribute.
   #
-  # ==== Parameters
-  # *syms<Array>:: Array of attributes to define inheritable writer for.
+  # @param *syms<Array> Array of attributes to define inheritable writer for.
   #
-  # ==== Options
-  # :instance_writer<Boolean>:: if true, instance-level inheritable attribute writer is defined.
+  # @option * :instance_writer<Boolean> if true, instance-level inheritable attribute writer is defined.
   def class_inheritable_writer(*syms)
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
@@ -121,11 +113,10 @@ class Class
   # each subclass has a copy of parent's array. Difference between other inheritable
   # attributes is that array is recreated every time it is written.
   #
-  # ==== Parameters
-  # *syms<Array>:: Array of array attribute names to define inheritable writer for.
+  # @param *syms<Array> Array of array attribute names to define inheritable writer for.
   #
-  # ==== Options
-  # :instance_writer<Boolean>:: if true, instance-level inheritable array attribute writer is defined.
+  # @option * :instance_writer<Boolean> if true, instance-level inheritable array 
+  #   attribute writer is defined.
   def class_inheritable_array_writer(*syms)
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
@@ -149,11 +140,10 @@ class Class
   # each subclass has a copy of parent's hash. Difference between other inheritable
   # attributes is that hash is recreated every time it is written.
   #
-  # ==== Parameters
-  # *syms<Array>:: Array of hash attribute names to define inheritable writer for.
+  # @param *syms<Array>:: Array of hash attribute names to define inheritable writer for.
   #
-  # ==== Options
-  # :instance_writer<Boolean>:: if true, instance-level inheritable hash attribute writer is defined.
+  # @option * :instance_writer<Boolean>:: if true, instance-level inheritable hash
+  #   attribute writer is defined.
   def class_inheritable_hash_writer(*syms)
     options = syms.last.is_a?(Hash) ? syms.pop : {}
     syms.each do |sym|
@@ -176,11 +166,9 @@ class Class
   # Defines class-level inheritable attribute accessor. Attributes are available to subclasses,
   # each subclass has a copy of parent's attribute.
   #
-  # ==== Parameters
-  # *syms<Array>:: Array of attributes to define inheritable accessor for.
+  # @param *syms<Array> Array of attributes to define inheritable accessor for.
   #
-  # ==== Options
-  # :instance_writer<Boolean>:: if true, instance-level inheritable attribute writer is defined.
+  # @option * :instance_writer<Boolean> if true, instance-level inheritable attribute writer is defined.
   def class_inheritable_accessor(*syms)
     class_inheritable_reader(*syms)
     class_inheritable_writer(*syms)
@@ -190,11 +178,10 @@ class Class
   # each subclass has a copy of parent's array. Difference between other inheritable
   # attributes is that array is recreated every time it is written.
   #
-  # ==== Parameters
-  # *syms<Array>:: Array of array attribute names to define inheritable accessor for.
+  # @param *syms<Array> Array of array attribute names to define inheritable accessor for.
   #
-  # ==== Options
-  # :instance_writer<Boolean>:: if true, instance-level inheritable array attribute writer is defined.
+  # @option * :instance_writer<Boolean> if true, instance-level inheritable array
+  #   attribute writer is defined.
   def class_inheritable_array(*syms)
     class_inheritable_reader(*syms)
     class_inheritable_array_writer(*syms)
@@ -204,31 +191,27 @@ class Class
   # each subclass has a copy of parent's hash. Difference between other inheritable
   # attributes is that hash is recreated every time it is written.
   #
-  # ==== Parameters
-  # *syms<Array>:: Array of hash attribute names to define inheritable accessor for.
+  # @param *syms<Array> Array of hash attribute names to define inheritable accessor for.
   #
-  # ==== Options
-  # :instance_writer<Boolean>:: if true, instance-level inheritable hash attribute writer is defined.
+  # @option * :instance_writer<Boolean> if true, instance-level inheritable hash attribute writer is defined.
   def class_inheritable_hash(*syms)
     class_inheritable_reader(*syms)
     class_inheritable_hash_writer(*syms)
   end
 
-  # ==== Returns
-  # <Hash>:: inheritable attributes hash or it's default value, new frozen Hash.
+  # @return <Hash> inheritable attributes hash or it's default value, new frozen Hash.
   def inheritable_attributes
     @inheritable_attributes ||= EMPTY_INHERITABLE_ATTRIBUTES
   end
 
   # Sets the attribute which copy is available to subclasses.
   #
-  # ==== Parameters
-  # key<~to_s, String, Symbol>:: inheritable attribute name
-  # value<Anything but Array or Hash>:: value of inheritable attribute
+  # @param key<#to_s, String, Symbol> inheritable attribute name
+  # @param value<not(Array, Hash)> value of inheritable attribute
   #
-  # ==== Notes
-  # If inheritable attributes storage has it's default value,
-  # a new frozen hash, it is set to new Hash that is not frozen.
+  # @note
+  #   If inheritable attributes storage has it's default value,
+  #   a new frozen hash, it is set to new Hash that is not frozen.
   def write_inheritable_attribute(key, value)
     if inheritable_attributes.equal?(EMPTY_INHERITABLE_ATTRIBUTES)
       @inheritable_attributes = {}
@@ -238,12 +221,11 @@ class Class
 
   # Sets the array attribute which copy is available to subclasses.
   #
-  # ==== Parameters
-  # key<~to_s, String, Symbol>:: inheritable attribute name
-  # value<Array>:: value of inheritable attribute
+  # @param key<#to_s, String, Symbol> inheritable attribute name
+  # value<Array> value of inheritable attribute
   #
-  # ==== Notes
-  # Inheritable array is re-created on each write.
+  # @note
+  #   Inheritable array is re-created on each write.
   def write_inheritable_array(key, elements)
     write_inheritable_attribute(key, []) if read_inheritable_attribute(key).nil?
     write_inheritable_attribute(key, read_inheritable_attribute(key) + elements)
@@ -251,12 +233,11 @@ class Class
 
   # Sets the hash attribute which copy is available to subclasses.
   #
-  # ==== Parameters
-  # key<~to_s, String, Symbol>:: inheritable attribute name
-  # value<Hash>:: value of inheritable attribute
+  # @param key<#to_s, String, Symbol> inheritable attribute name
+  # @param value<Hash> value of inheritable attribute
   #
-  # ==== Notes
-  # Inheritable hash is re-created on each write.
+  # @note
+  #   Inheritable hash is re-created on each write.
   def write_inheritable_hash(key, hash)
     write_inheritable_attribute(key, {}) if read_inheritable_attribute(key).nil?
     write_inheritable_attribute(key, read_inheritable_attribute(key).merge(hash))
@@ -264,8 +245,8 @@ class Class
 
   # Reads value of inheritable attributes.
   #
-  # ==== Returns
-  # Inheritable attribute value. Subclasses store copies of values.
+  # @return <Object> 
+  #   Inheritable attribute value. Subclasses store copies of values.
   def read_inheritable_attribute(key)
     inheritable_attributes[key]
   end
