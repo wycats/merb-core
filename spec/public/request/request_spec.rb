@@ -201,7 +201,7 @@ describe Merb::Request, " misc" do
    :http_keep_alive         => ["keep_alive", "300"],
    :http_accept_charset     => ["accept_charset", "UTF-8"],
    :http_version            => ["version", "1.1"],
-   :gateway_interface        => ["gateway", "CGI/1.2"],
+   :gateway_interface       => ["gateway", "CGI/1.2"],
    :http_connection         => ["connection", "keep-alive"],
    :path_info               => ["path_info", "foo/bar/baz"],
   }.each do |env, vars|
