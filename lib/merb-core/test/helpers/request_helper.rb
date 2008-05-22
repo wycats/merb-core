@@ -87,8 +87,8 @@ module Merb
       #   the action being dispatched.
       #
       # ==== Example
-      #   dispatch_to(MyController, :create, :name => 'Homer' ) do
-      #     self.stub!(:current_user).and_return(@user)
+      #   dispatch_to(MyController, :create, :name => 'Homer' ) do |controller|
+      #     controller.stub!(:current_user).and_return(@user)
       #   end
       #
       # ==== Notes
@@ -126,8 +126,8 @@ module Merb
       #   the action being dispatched.
       #
       # ==== Example
-      #   dispatch_with_basic_authentication_to(MyController, :create, 'Fred', 'secret', :name => 'Homer' ) do
-      #     self.stub!(:current_user).and_return(@user)
+      #   dispatch_with_basic_authentication_to(MyController, :create, 'Fred', 'secret', :name => 'Homer' ) do |controller|
+      #     controller.stub!(:current_user).and_return(@user)
       #   end
       #
       # ==== Notes
@@ -228,8 +228,8 @@ module Merb
       #   the action being dispatched.
       #
       # ==== Example
-      #   request(path, { :name => 'Homer' }, { :request_method => "PUT" }) do
-      #     self.stub!(:current_user).and_return(@user)
+      #   request(path, { :name => 'Homer' }, { :request_method => "PUT" }) do |controller|
+      #     controller.stub!(:current_user).and_return(@user)
       #   end
       #
       # ==== Notes
