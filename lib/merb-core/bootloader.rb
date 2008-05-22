@@ -306,33 +306,25 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
   class << self
 
-    # Load all classes inside the load paths.
+    # Load all classes from Merb's native load paths.
     def run
-      orphaned_classes = []
       # Add models, controllers, and lib to the load path
       $LOAD_PATH.unshift Merb.dir_for(:model)
       $LOAD_PATH.unshift Merb.dir_for(:controller)
       $LOAD_PATH.unshift Merb.dir_for(:lib)
 
+      # Load application file if it exists - for flat applications
       load_file Merb.dir_for(:application) if File.file?(Merb.dir_for(:application))
-
-      # Require all the files in the registered load paths
-      Merb.load_paths.each do |name, path|
-        next unless path.last && name != :application
-        Dir[path.first / path.last].each do |file|
-
-          begin
-            load_file file
-          rescue NameError => ne
-            orphaned_classes.unshift(file)
-          end
-        end
+      
+      # Load classes and their requirements
+      Merb.load_paths.each do |component, path|
+        next unless path.last && component != :application
+        load_classes(path.first / path.last)
       end
+
       Merb::Controller.send :include, Merb::GlobalHelpers
-
-      load_classes_with_requirements(orphaned_classes)
     end
-
+    
     # ==== Parameters
     # file<String>:: The file to load.
     def load_file(file)
@@ -341,6 +333,70 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       LOADED_CLASSES[file] = ObjectSpace.classes - klasses
       MTIMES[file] = File.mtime(file)
     end
+    
+    # Load classes from given paths - using path/glob pattern.
+    #
+    # *paths<Array>::
+    #   Array of paths to load classes from - may contain glob pattern
+    def load_classes(*paths)
+      orphaned_classes = []
+      paths.flatten.each do |path|
+        Dir[path].each do |file|
+          begin
+            load_file file
+          rescue NameError => ne
+            orphaned_classes.unshift(file)
+          end
+        end
+      end
+      load_classes_with_requirements(orphaned_classes)
+    end
+
+    # ==== Parameters
+    # file<String>:: The file to reload.
+    def reload(file)
+      Merb.klass_hashes.each {|x| x.protect_keys!}
+      if klasses = LOADED_CLASSES.delete(file)
+        klasses.each { |klass| remove_constant(klass) unless klass.to_s =~ /Router/ }
+      end
+      load_file file
+      Merb.klass_hashes.each {|x| x.unprotect_keys!}
+    end
+    
+    # Reload the router to regenerate all routes.
+    def reload_router!
+      if File.file?(router_file = Merb.dir_for(:router) / Merb.glob_for(:router))
+        reload router_file
+      end
+    end
+
+    # ==== Parameters
+    # const<Class>:: The class to remove.
+    def remove_constant(const)
+      # This is to support superclasses (like AbstractController) that track
+      # their subclasses in a class variable. Classes that wish to use this
+      # functionality are required to alias it to _subclasses_list. Plugins
+      # for ORMs and other libraries should keep this in mind.
+      superklass = const
+      until (superklass = superklass.superclass).nil?
+        if superklass.respond_to?(:_subclasses_list)
+          superklass.send(:_subclasses_list).delete(klass)
+          superklass.send(:_subclasses_list).delete(klass.to_s)
+        end
+      end
+
+      parts = const.to_s.split("::")
+      base = parts.size == 1 ? Object : Object.full_const_get(parts[0..-2].join("::"))
+      object = parts[-1].to_s
+      begin
+        base.send(:remove_const, object)
+        Merb.logger.debug("Removed constant #{object} from #{base}")
+      rescue NameError
+        Merb.logger.debug("Failed to remove constant #{object} from #{base}")
+      end
+    end
+    
+    private
 
     # "Better loading" of classes.  If a class fails to load due to a NameError
     # it will be added to the failed_classs stack.
@@ -381,43 +437,6 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
           raise LoadError, "Could not load #{failed_classes.inspect} (see log for details)."
         end
         break if(klasses.size == size_at_start || klasses.size == 0)
-      end
-    end
-
-    # ==== Parameters
-    # file<String>:: The file to reload.
-    def reload(file)
-      Merb.klass_hashes.each {|x| x.protect_keys!}
-      if klasses = LOADED_CLASSES.delete(file)
-        klasses.each { |klass| remove_constant(klass) unless klass.to_s =~ /Router/ }
-      end
-      load_file file
-      Merb.klass_hashes.each {|x| x.unprotect_keys!}
-    end
-
-    # ==== Parameters
-    # const<Class>:: The class to remove.
-    def remove_constant(const)
-      # This is to support superclasses (like AbstractController) that track
-      # their subclasses in a class variable. Classes that wish to use this
-      # functionality are required to alias it to _subclasses_list. Plugins
-      # for ORMs and other libraries should keep this in mind.
-      superklass = const
-      until (superklass = superklass.superclass).nil?
-        if superklass.respond_to?(:_subclasses_list)
-          superklass.send(:_subclasses_list).delete(klass)
-          superklass.send(:_subclasses_list).delete(klass.to_s)
-        end
-      end
-
-      parts = const.to_s.split("::")
-      base = parts.size == 1 ? Object : Object.full_const_get(parts[0..-2].join("::"))
-      object = parts[-1].to_s
-      begin
-        base.send(:remove_const, object)
-        Merb.logger.debug("Removed constant #{object} from #{base}")
-      rescue NameError
-        Merb.logger.debug("Failed to remove constant #{object} from #{base}")
       end
     end
 
