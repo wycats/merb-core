@@ -128,6 +128,13 @@ class Merb::BootLoader::Logger < Merb::BootLoader
   # Sets Merb.logger to a new logger created based on the config settings.
   def self.run
     Merb.logger = Merb::Logger.new(Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush])
+    print_warnings
+  end
+  
+  def self.print_warnings
+    if Gem::Version.new(Gem::RubyGemsVersion) < Gem::Version.new("1.1")
+      Merb.logger.warn! "Please upgrade your Rubygems to the latest version"      
+    end
   end
 end
 

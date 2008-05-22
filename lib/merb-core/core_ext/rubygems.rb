@@ -3,13 +3,25 @@ require 'rubygems'
 module Gem
   class SourceIndex
     
-    # Overwrite this so that a gem of the same name and version won't push one
-    # from the gems directory out entirely.
-    #
-    # @param gem_spec<Gem::Specification> The specification of the gem to add.
-    def add_spec(gem_spec)
-      @gems[gem_spec.full_name] = gem_spec unless @gems[gem_spec.full_name].is_a?(Gem::Specification) && @gems[gem_spec.full_name].installation_path == File.join(defined?(Merb) && Merb.respond_to?(:root) ? Merb.root : Dir.pwd,"gems")
+    # This is resolved in 1.1
+    if Version.new(RubyGemsVersion) < Version.new("1.1")
+      
+      # Overwrite this so that a gem of the same name and version won't push one
+      # from the gems directory out entirely.
+      #
+      # @param gem_spec<Gem::Specification> The specification of the gem to add.
+      def add_spec(gem_spec)
+        unless gem_spec.instance_variable_get("@loaded_from") &&
+          @gems[gem_spec.full_name].is_a?(Gem::Specification) && 
+          @gems[gem_spec.full_name].installation_path == 
+            File.join(defined?(Merb) && Merb.respond_to?(:root) ? Merb.root : Dir.pwd,"gems")
+            
+          @gems[gem_spec.full_name] = gem_spec
+        end
+      end
+      
     end
+    
   end
 
   class Specification
