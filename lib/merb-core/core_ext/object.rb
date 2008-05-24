@@ -106,7 +106,7 @@ class Object
   end
 
   # Defines module from a string name (e.g. Foo::Bar::Baz)
-  # If method already exists, no exception raised.
+  # If module already exists, no exception raised.
   #
   # @param name<String> The name of the full module name to make
   #

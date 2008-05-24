@@ -154,8 +154,8 @@ class Merb::AbstractController
     # klass<Merb::AbstractController>::
     #   The controller that is being inherited from Merb::AbstractController
     def inherited(klass)
-      _abstract_subclasses << klass.to_s  
-      Object.make_module "Merb::#{klass}Helper" unless klass.to_s =~ /^Merb::/
+      _abstract_subclasses << klass.to_s
+      Object.make_module "Merb::#{klass}Helper" unless klass.to_s =~ /^(#|Merb::)/
       klass.class_eval <<-HERE
         include Object.full_const_get("Merb::#{klass}Helper") rescue nil
       HERE
