@@ -268,7 +268,7 @@ class Class
         new_inheritable_attributes = EMPTY_INHERITABLE_ATTRIBUTES
       else
         new_inheritable_attributes = inheritable_attributes.inject({}) do |memo, (key, value)|
-          memo.update(key => (value.dup rescue value))
+          memo.update(key => ((value.is_a?(Module) ? value : value.dup) rescue value))
         end
       end
 
