@@ -44,16 +44,26 @@ module Merb::Template
       
       ret = 
       if Merb::Config[:reload_templates]
-        file = Dir["#{path}.{#{Merb::Template::EXTENSIONS.keys.join(',')}}"].first
+        file = Dir["#{path}.{#{template_extensions.join(',')}}"].first
         METHOD_LIST[path] = file ? inline_template(file) : nil
       else
         METHOD_LIST[path] ||= begin
-          file = Dir["#{path}.{#{Merb::Template::EXTENSIONS.keys.join(',')}}"].first          
+          file = Dir["#{path}.{#{template_extensions.join(',')}}"].first          
           file ? inline_template(file) : nil
         end
       end
       
       ret
+    end
+    
+    # Get all known template extensions
+    #
+    # ==== Returns
+    #   Array:: Extension strings.
+    #---
+    # @semipublic
+    def template_extensions
+      EXTENSIONS.keys
     end
     
     # Takes a template at a particular path and inlines it into a module and

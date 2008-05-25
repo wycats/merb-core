@@ -52,6 +52,7 @@ describe Merb::Template do
   it "should accept template-type registrations via #register_extensions" do
     Merb::Template.register_extensions(Merb::Test::Fixtures::MyTemplateEngine, %w[myt])
     Merb::Template.engine_for("foo.myt").should == Merb::Test::Fixtures::MyTemplateEngine
+    Merb::Template.template_extensions.should include("myt")
   end
   
   # @semipublic
