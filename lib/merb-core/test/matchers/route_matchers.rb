@@ -48,7 +48,7 @@ module Merb::Test::Rspec::RouteMatchers
     # If parameters is an object, then a new expected hash will be constructed
     # with the key :id set to parameters.to_param.
     def with(parameters)
-      @paramter_matcher = ParameterMatcher.new(parameters)
+      @parameter_matcher = ParameterMatcher.new(parameters)
 
       self
     end
@@ -56,17 +56,26 @@ module Merb::Test::Rspec::RouteMatchers
     # ==== Returns
     # String:: The failure message.
     def failure_message
-      "expected the request to route to #{@expected_controller.camel_case}##{@expected_action}, but was #{@target_controller.camel_case}##{@target_action}"
+      "expected the request to route to #{@expected_controller.camel_case}##{@expected_action}#{expected_parameters_message}, but was #{@target_controller.camel_case}##{@target_action}#{actual_parameters_message}"
     end
 
     # ==== Returns
     # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
-      "expected the request not to route to #{@expected_controller.camel_case}##{@expected_action}, but it did"
+      "expected the request not to route to #{@expected_controller.camel_case}##{@expected_action}#{expected_parameters_message}, but it did"
+    end
+
+    def expected_parameters_message
+      " with #{@parameter_matcher.expected.inspect}" if @parameter_matcher
+    end
+
+    def actual_parameters_message
+      " with #{(@parameter_matcher.actual || {}).inspect}" if @parameter_matcher
     end
   end
 
   class ParameterMatcher
+    attr_accessor :expected, :actual
 
     # ==== Parameters
     # hash_or_object<Hash, ~to_param>:: The parameters to match.
