@@ -196,13 +196,17 @@ module Merb::RenderMixin
     render(thing || action_name.to_sym, opts.merge(:template => template_opt))
 
   # If the render fails (i.e. a template was not found)
-  rescue TemplateNotFound
+  rescue TemplateNotFound => e
     # Merge with class level default render options
     opts = self.class.default_render_options.merge(opts)
 
     # Figure out what to transform and raise NotAcceptable unless there's a transform method assigned
     transform = Merb.mime_transform_method(content_type)
-    raise NotAcceptable unless transform && object.respond_to?(transform)
+    if !transform
+      raise NotAcceptable, "#{e.message} and there was no transform method registered for #{content_type.inspect}"
+    elsif !object.respond_to?(transform)
+      raise NotAcceptable, "#{e.message} and your object does not respond to ##{transform}"
+    end
 
     # Only use a layout if one was specified
     layout_opt = opts.delete(:layout)
