@@ -86,13 +86,27 @@ class Object
   # @return <Object> The constant corresponding to the name.
   def full_const_get(name)
     list = name.split("::")
+    list.shift if list.first.blank?
     obj = Object
     list.each {|x| obj = obj.const_get(x) }
     obj
   end
+  
+  # @param name<String> The name of the constant to get, e.g. "Merb::Router".
+  # @param value<Object> The value to assign to the constant.
+  #
+  # @return <Object> The constant corresponding to the name.
+  def full_const_set(name, value)    
+    list = name.split("::")
+    toplevel = list.first.blank?
+    list.shift if toplevel
+    last = list.pop
+    obj = list.empty? ? Object : Object.full_const_get(list.join("::"))
+    obj.const_set(last, value) if obj && !obj.const_defined?(last)
+  end
 
   # Defines module from a string name (e.g. Foo::Bar::Baz)
-  # If method already exists, no exception raised.
+  # If module already exists, no exception raised.
   #
   # @param name<String> The name of the full module name to make
   #

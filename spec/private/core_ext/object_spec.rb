@@ -67,6 +67,10 @@ describe Object, "#full_const_get" do
   it "handles nested modules" do
     self.full_const_get("Succubus::In::Rapture").should == Succubus::In::Rapture
   end
+  
+  it "handles top level constant naming" do
+    self.full_const_get("::Succubus::In::Rapture").should == Succubus::In::Rapture
+  end
 
   it "handles in-scoped constants in modules" do
     self.full_const_get("Succubus::In::Rapture::PERFORMER").should == "Dimmu Borgir"
@@ -85,7 +89,45 @@ describe Object, "#full_const_get" do
   end
 end
 
+describe Object, "#full_const_set" do
+  class April
+    class In
+      class Paris
+      end
+    end
+  end
+  
+  module Succubus
+    module In
+      module Rapture
+      end
+    end
+  end
 
+  it "should assign top level constants" do
+    self.full_const_set('May', 5).should == 5
+    self.full_const_get('May').should == 5
+  end
+  
+  it "handles top level constant naming" do
+    self.full_const_set('::June', 6).should == 6
+    self.full_const_get('::June').should == 6
+  end
+  
+  it "handles in-scoped constants in classes" do
+    self.full_const_set("April::In::Paris::COUNTRY", "USA").should == "USA"
+    self.full_const_get("April::In::Paris::COUNTRY").should == "USA"
+  end
+
+  it "handles in-scoped constants in modules" do
+    self.full_const_set("Succubus::In::Rapture::COUNTRY", "Norway").should == "Norway"
+    self.full_const_get("Succubus::In::Rapture::COUNTRY").should == "Norway"
+  end
+
+  it "raises an exception if constant is undefined" do
+    lambda { self.full_const_set("We::May::Never::Meet", "Again") }.should raise_error(NameError)
+  end
+end
 
 describe Object, "#make_module" do
   it "defines module from a string name" do
