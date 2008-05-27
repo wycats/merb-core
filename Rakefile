@@ -19,16 +19,12 @@ NAME = "merb-core"
 
 require "lib/merb-core/version"
 require "lib/merb-core/test/run_specs"
+require 'lib/merb-core/tasks/merb_rake_helper'
 
 ##############################################################################
 # Packaging & Installation
 ##############################################################################
 CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
-
-windows = (PLATFORM =~ /win32|cygwin/) rescue nil
-install_home = ENV['GEM_HOME'] ? "-i #{ENV['GEM_HOME']}" : ""
-
-SUDO = windows ? "" : "sudo"
 
 desc "Packages up Merb."
 task :default => :package
@@ -72,17 +68,17 @@ end
 
 desc "Run :package and install the resulting .gem"
 task :install => :package do
-  sh %{#{SUDO} gem install #{install_home} --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{sudo} gem install #{install_home} --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :package and install the resulting .gem with jruby"
 task :jinstall => :package do
-  sh %{#{SUDO} jruby -S gem install #{install_home} pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{sudo} jruby -S gem install #{install_home} pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :clean and uninstall the .gem"
 task :uninstall => :clean do
-  sh %{#{SUDO} gem uninstall #{NAME}}
+  sh %{#{sudo} gem uninstall #{NAME}}
 end
 
 namespace :github do
@@ -143,7 +139,7 @@ namespace :doc do
   desc "rdoc to rubyforge"
   task :rubyforge do
     # sh %{rake doc}
-    sh %{#{SUDO} chmod -R 755 doc} unless windows
+    sh %{#{sudo} chmod -R 755 doc} unless windows?
     sh %{/usr/bin/scp -r -p doc/rdoc/* ezmobius@rubyforge.org:/var/www/gforge-projects/merb}
   end
 
