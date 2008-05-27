@@ -9,6 +9,8 @@ $LOAD_PATH.unshift File.dirname(__FILE__) unless
   $LOAD_PATH.include?(File.dirname(__FILE__)) ||
   $LOAD_PATH.include?(File.expand_path(File.dirname(__FILE__)))
 
+require 'merb-core/vendor/facets'
+
 module Merb
   module GlobalHelpers; end
   class << self
@@ -112,7 +114,7 @@ module Merb
 
     alias :env :environment
 
-    Merb.load_paths = Hash.new { [Merb.root] } unless Merb.load_paths.is_a?(Hash)
+    Merb.load_paths = Dictionary.new { [Merb.root] } unless Merb.load_paths.is_a?(Dictionary)
 
     # This is the core mechanism for setting up your application layout.
     # There are three application layouts in Merb:
@@ -554,7 +556,6 @@ require 'merb-core/gem_ext/erubis'
 require 'merb-core/logger'
 require 'merb-core/version'
 require 'merb-core/controller/mime'
-require 'merb-core/vendor/facets'
 
 # Set the environment if it hasn't already been set.
 Merb.environment ||= ENV['MERB_ENV'] || Merb::Config[:environment] || (Merb.testing? ? 'test' : 'development')

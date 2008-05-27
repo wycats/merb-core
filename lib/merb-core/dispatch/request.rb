@@ -218,6 +218,12 @@ module Merb
     end
     
     # ==== Returns
+    # String:: The full URI, including protocol and host
+    def full_uri
+      protocol + host + uri
+    end
+    
+    # ==== Returns
     # String:: The request URI.
     def uri
       @env['REQUEST_PATH'] || @env['REQUEST_URI']

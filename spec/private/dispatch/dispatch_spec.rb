@@ -22,5 +22,14 @@ describe Merb::Dispatcher do
     env['REQUEST_URI'] = '/foo/raise_conflict'
     Merb::Dispatcher.handle(env).action_name.should == 'client_error'
   end
+  
+  it "should log the start time of the transaction" do
+    t = Time.now
+    env = Rack::MockRequest.env_for("/notreal")
+    Time.stub!(:now).and_return(t)
+    Merb.logger.should_receive(:info).with("Start: #{t}")
+    
+    Merb::Dispatcher.handle(env)
+  end
     
 end

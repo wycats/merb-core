@@ -102,17 +102,7 @@ class Merb::Controller < Merb::AbstractController
     # ==== Returns
     # SimpleSet[String]:: A set of actions that should be callable.
     def callable_actions
-      unless @callable_actions
-        callables = []
-        klass = self
-        begin
-          callables << (klass.public_instance_methods(false) + klass._shown_actions) - klass._hidden_actions
-          klass = klass.superclass
-        end until klass == Merb::AbstractController || klass == Object
-        actions = callables.flatten.reject{|action| action =~ /^_.*/}
-        @callable_actions = Merb::SimpleSet.new(actions)
-      end
-      @callable_actions
+      @callable_actions ||= Merb::SimpleSet.new(_callable_methods)
     end
 
     # This is a stub method so plugins can implement param filtering if they want.
@@ -126,6 +116,22 @@ class Merb::Controller < Merb::AbstractController
     # @semipublic
     def _filter_params(params)
       params
+    end
+
+    private
+    
+    # All methods that are callable as actions.
+    #
+    # ==== Returns
+    # Array:: A list of method names that are also actions
+    def _callable_methods
+      callables = []
+      klass = self
+      begin
+        callables << (klass.public_instance_methods(false) + klass._shown_actions) - klass._hidden_actions
+        klass = klass.superclass
+      end until klass == Merb::AbstractController || klass == Object
+      callables.flatten.reject{|action| action =~ /^_.*/}
     end
 
   end # class << self
@@ -229,7 +235,10 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
-
+  
+  # Hide any methods that may have been exposed as actions before.
+  hide_action(*_callable_methods)
+  
   private
 
   # Create a default cookie jar, and pre-set a fixation cookie
