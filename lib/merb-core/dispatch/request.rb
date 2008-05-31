@@ -1,3 +1,5 @@
+require 'tempfile'
+
 module Merb
   
   class Request
@@ -115,9 +117,9 @@ module Merb
     def multipart_params
       @multipart_params ||= 
         begin
-          # if the content-type is multipart and there's stuff in the body,
+          # if the content-type is multipart
           # parse the multipart. Otherwise return {}
-          if (Merb::Const::MULTIPART_REGEXP =~ content_type && @body.size > 0)
+          if (Merb::Const::MULTIPART_REGEXP =~ content_type)
             self.class.parse_multipart(@body, $1, content_length)
           else
             {}
