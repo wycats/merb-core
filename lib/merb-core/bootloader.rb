@@ -152,6 +152,14 @@ class Merb::BootLoader::DropPidFile <  Merb::BootLoader
   end
 end
 
+# Setup some useful defaults
+class Merb::BootLoader::Defaults < Merb::BootLoader
+  def self.run
+    Merb::Request.browser_method_workarounds << "_method"
+  end
+end
+
+
 # Build the framework paths.
 #
 # By default, the following paths will be used:
