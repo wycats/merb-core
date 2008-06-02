@@ -106,7 +106,9 @@ module Merb::RenderMixin
       template_method, template_location = _template_for(thing, content_type, controller_name, opts)
 
       # Raise an error if there's no template
-      raise TemplateNotFound, "No template found at #{template_location}.*"  \
+      template_files  = Merb::Template.template_extensions.map { |ext| "#{template_location}.#{ext}" }
+      
+      raise TemplateNotFound, "Oops! No template found. Merb was looking for #{template_files.join(', ')} for content type '#{content_type}'. You might mispell template/file name. Registred template extensions: #{Merb::Template.template_extensions.join(', ')}. If you use Haml or some other template plugin, make sure you required Merb plugin dependency in init file."  \
         unless template_method && self.respond_to?(template_method)
 
       # Call the method in question and throw the content for later consumption by the layout
