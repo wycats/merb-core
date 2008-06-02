@@ -3,6 +3,8 @@ require "rubygems"
 require "spec"
 require File.join(File.dirname(__FILE__), "..", "lib", "merb-core")
 
+Merb.start :environment => 'test', :adapter => 'runner'
+
 # -- Global custom matchers --
 
 # A better +be_kind_of+ with more informative error messages.
