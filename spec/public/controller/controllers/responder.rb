@@ -47,21 +47,4 @@ module Merb::Test::Fixtures::Controllers
       "nothing"
     end
   end
-    
-  class ClassDoesntProvides < Responder
-    provides :xml
-    does_not_provide :html
-    
-    def index
-      "nothing"
-    end
-  end
-  
-  class DoesntProvide < Responder
-    def index
-      provides :xml
-      does_not_provide :html
-      "nothing"
-    end
-  end
 end
