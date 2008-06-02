@@ -472,7 +472,7 @@ class Merb::BootLoader::Templates < Merb::BootLoader
     # ==== Returns
     # Array[String]:: Template files found.
     def template_paths
-      extension_glob = "{#{Merb::Template::EXTENSIONS.keys.join(',')}}"
+      extension_glob = "{#{Merb::Template.template_extensions.join(',')}}"
 
       # This gets all templates set in the controllers template roots
       # We separate the two maps because most of controllers will have
