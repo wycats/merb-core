@@ -14,6 +14,7 @@
 # ==== Examples
 #   before :some_filter
 #   before :authenticate, :exclude => [:login, :signup]
+#   before :has_role, :with => ["Admin"], :exclude => [:index,:show]
 #   before Proc.new {|c| c.some_method }, :only => :foo
 #   before :authorize, :unless => logged_in?  
 #
@@ -71,6 +72,8 @@ class Merb::AbstractController
   include Merb::InlineTemplates
   
   class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root
+  
+  FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
 
   # ==== Returns
   # String:: The controller name in path form, e.g. "admin/items".
@@ -89,7 +92,7 @@ class Merb::AbstractController
   # structure for your app.
   #
   # ==== Parameters
-  # action<~to_s>:: The controller action.
+  # context<~to_s>:: The controller context (the action or template name).
   # type<~to_s>:: The content type. Defaults to nil.
   # controller<~to_s>::
   #   The name of the controller. Defaults to controller_name.
@@ -98,9 +101,9 @@ class Merb::AbstractController
   # ==== Returns
   # String:: 
   #   Indicating where to look for the template for the current controller,
-  #   action, and content-type.
+  #   context, and content-type.
   #
-  # ==== Note
+  # ==== Notes
   # The type is irrelevant for controller-types that don't support
   # content-type negotiation, so we default to not include it in the
   # superclass.
@@ -114,8 +117,8 @@ class Merb::AbstractController
   # of controller/action.mime.type
   #---
   # @public
-  def _template_location(action, type = nil, controller = controller_name)
-    "#{controller}/#{action}"
+  def _template_location(context, type = nil, controller = controller_name)
+    controller ? "#{controller}/#{context}" : context
   end
 
   # ==== Returns
@@ -151,21 +154,13 @@ class Merb::AbstractController
     # klass<Merb::AbstractController>::
     #   The controller that is being inherited from Merb::AbstractController
     def inherited(klass)
-      _abstract_subclasses << klass.to_s  
-      Object.make_module "Merb::#{klass}Helper" unless klass.to_s =~ /^Merb::/
+      _abstract_subclasses << klass.to_s
+      helper_module_name = klass.to_s =~ /^(#|Merb::)/ ? "#{klass}Helper" : "Merb::#{klass}Helper"
+      Object.make_module helper_module_name
       klass.class_eval <<-HERE
-        include Object.full_const_get("Merb::#{klass}Helper") rescue nil
+        include Object.full_const_get("#{helper_module_name}") rescue nil
       HERE
       super
-    end
-    
-    # ==== Parameters
-    # layout<~to_s>:: The layout that should be used for this class
-    # 
-    # ==== Returns
-    # ~to_s:: The layout that was passed in
-    def layout(layout)
-      self._layout = layout
     end
   end
   
@@ -209,7 +204,7 @@ class Merb::AbstractController
     when :filter_chain_completed  then _call_action(action_name)
     when String                   then caught
     when nil                      then _filters_halted
-    when Symbol                   then send(caught)
+    when Symbol                   then __send__(caught)
     when Proc                     then caught.call(self)
     else
       raise MerbControllerError, "The before filter chain is broken dude. wtf?"
@@ -218,6 +213,7 @@ class Merb::AbstractController
     _call_filters(_after_filters) 
     @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
     finalize_session
+    @body
   end
   
   # This method exists to provide an overridable hook for ActionArgs
@@ -247,7 +243,13 @@ class Merb::AbstractController
     (filter_set || []).each do |filter, rule|
       if _call_filter_for_action?(rule, action_name) && _filter_condition_met?(rule)
         case filter
-        when Symbol, String then send(filter)
+        when Symbol, String
+          if rule.key?(:with)
+            args = rule[:with]
+            send(filter, *args)
+          else
+            send(filter)
+          end
         when Proc           then self.instance_eval(&filter)
         end
       end
@@ -323,7 +325,7 @@ class Merb::AbstractController
   #   Filter options (see class documentation under <tt>Filter Options</tt>).
   # &block:: Currently ignored.
   #
-  # ==== Note
+  # ==== Notes
   # If the filter already exists, its options will be replaced with opts.
   def self.after(filter = nil, opts = {}, &block)
     add_filter(self._after_filters, filter, opts)
@@ -335,7 +337,7 @@ class Merb::AbstractController
   #   Filter options (see class documentation under <tt>Filter Options</tt>).
   # &block:: A block to use as a filter if filter is nil.
   #
-  # ==== Note
+  # ==== Notes
   # If the filter already exists, its options will be replaced with opts.
   def self.before(filter = nil, opts = {}, &block)
     add_filter(self._before_filters, filter || block, opts)
@@ -418,7 +420,7 @@ class Merb::AbstractController
   # rparams<Hash>:: Parameters for the route generation.
   #
   # ==== Returns
-  # String:: The generated  *full* with protocol + hostname + URL.
+  # String:: The generated url with protocol + hostname + URL.
   #
   # ==== Alternatives
   # If a hash is used as the first argument, a default route will be
@@ -436,8 +438,8 @@ class Merb::AbstractController
   #
   # ==== Raises
   # ArgumentError::
-  #   Both :only and :exclude, or :if and :unless given, or filter is not a
-  #   Symbol, String or Proc.
+  #   Both :only and :exclude, or :if and :unless given, if filter is not a
+  #   Symbol, String or Proc, or if an unknown option is passed.
   def self.add_filter(filters, filter, opts={})
     raise(ArgumentError,
       "You can specify either :only or :exclude but 
@@ -446,6 +448,10 @@ class Merb::AbstractController
      raise(ArgumentError,
        "You can specify either :if or :unless but 
         not both at the same time for the same filter.") if opts.key?(:if) && opts.key?(:unless)
+        
+    opts.each_key do |key| raise(ArgumentError,
+      "You can only specify known filter options, #{key} is invalid.") unless FILTER_OPTIONS.include?(key)
+    end
 
     opts = normalize_filters!(opts)
 

@@ -92,6 +92,8 @@ module Merb
     # ==== Parameters
     # url<String>::
     #   URL to redirect to. It can be either a relative or fully-qualified URL.
+    # permanent<Boolean>::
+    #   When true, return status 301 Moved Permanently
     #
     # ==== Returns
     # String:: Explanation of redirect.
@@ -99,9 +101,10 @@ module Merb
     # ==== Examples
     #   redirect("/posts/34")
     #   redirect("http://www.merbivore.com/")
-    def redirect(url)
-      Merb.logger.info("Redirecting to: #{url}")
-      self.status = 302
+    #   redirect("http://www.merbivore.com/", true)
+    def redirect(url, permanent = false)
+      self.status = permanent ? 301 : 302
+      Merb.logger.info("Redirecting to: #{url} (#{self.status})")
       headers['Location'] = url
       "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
     end
@@ -186,15 +189,17 @@ module Merb
       opts.update(Merb::Const::DEFAULT_SEND_FILE_OPTIONS.merge(opts))
       disposition = opts[:disposition].dup || 'attachment'
       disposition << %(; filename="#{opts[:filename]}")
-      response.headers.update(
+      headers.update(
         'Content-Type'              => opts[:type].strip,  # fixes a problem with extra '\r' with some browsers
         'Content-Disposition'       => disposition,
         'Content-Transfer-Encoding' => 'binary',
         'CONTENT-LENGTH'            => opts[:content_length]
       )
-      response.send_status(opts[:content_length])
-      response.send_header
-      stream
+      Proc.new{|response|
+        response.send_status(opts[:content_length])
+        response.send_header
+        stream.call(response)
+      }
     end
 
     # Uses the nginx specific +X-Accel-Redirect+ header to send a file directly
@@ -208,22 +213,19 @@ module Merb
       return
     end  
   
-    # Sets a cookie to be included in the response. This method is used
-    # primarily internally in Merb.
+    # Sets a cookie to be included in the response.
     #
     # If you need to set a cookie, then use the +cookies+ hash.
     #
     # ==== Parameters
     # name<~to_s>:: A name for the cookie.
     # value<~to_s>:: A value for the cookie.
-    # expires<~gmtime:~strftime>:: An expiration time for the cookie.
+    # expires<~gmtime:~strftime, Hash>:: An expiration time for the cookie, or a hash of cookie options.
+    # ---
+    # @public
     def set_cookie(name, value, expires)
-      (headers['Set-Cookie'] ||=[]) << (Merb::Const::SET_COOKIE % [
-        name.to_s, 
-        ::Merb::Request.escape(value.to_s), 
-        # Cookie expiration time must be GMT. See RFC 2109
-        expires.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
-      ])
+      options = expires.is_a?(Hash) ? expires : {:expires => expires}
+      cookies.set_cookie(name, value, options)
     end
     
     # Marks a cookie as deleted and gives it an expires stamp in the past. This
@@ -256,7 +258,9 @@ module Merb
       # ==== Raises
       # NotImplemented:: The Rack adapter doens't support streaming.
       def must_support_streaming!
-        raise(NotImplemented, "Current Rack adapter does not support streaming") unless request.env['rack.streaming']
+        unless request.env['rack.streaming']
+          raise(Merb::ControllerExceptions::NotImplemented, "Current Rack adapter does not support streaming")
+        end
       end
   end
 end

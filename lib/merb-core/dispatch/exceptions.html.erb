@@ -169,7 +169,7 @@
 	<div class="internalError">
 		
 		<div class="header">
-			<h1><%= @exception_name %> <sup class="error_<%= @exception.class::STATUS %>"><%= @exception.class::STATUS %></sup></h1>
+			<h1><%= @exception_name %> <sup class="error_<%= @exception.class.status %>"><%= @exception.class.status %></sup></h1>
 			<% if show_details = ::Merb::Config[:exception_details] -%>
 				<h2><%= html_escape(@exception.message) %></h2>
 			<% else -%>
@@ -195,10 +195,16 @@
 			    <tr><th width="25%">Key</th><th width="75%">Value</th></tr>
 		    </thead>
 		    <tbody>			  			  
-    			<% params[:original_session].each_with_index do |param_value, i| %>
-            <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
-    			<% end %>
-    			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_session].empty? %>
+					<% if params[:original_session].respond_to?( :data )%>
+						<% params[:original_session].data.each_with_index do |param_value, i| %>
+				    <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
+						<% end %>
+					<% else %>
+	    			<% params[:original_session].each_with_index do |param_value, i| %>
+	            <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
+	    			<% end %>
+	    			<%= "<tr class='odd'><td colspan='2'>None</td></tr>" if params[:original_session].empty? %>
+					<% end %>
     		</tbody>
 		  </table>
 			

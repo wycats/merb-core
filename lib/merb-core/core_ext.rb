@@ -1,6 +1,7 @@
 corelib = File.join(File.dirname(__FILE__), "core_ext")
 
 require "#{corelib}/string"
+require corelib/:time
 require corelib/:class
 require corelib/:hash
 require corelib/:kernel

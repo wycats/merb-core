@@ -44,16 +44,26 @@ module Merb::Template
       
       ret = 
       if Merb::Config[:reload_templates]
-        file = Dir["#{path}.{#{Merb::Template::EXTENSIONS.keys.join(',')}}"].first
+        file = Dir["#{path}.{#{template_extensions.join(',')}}"].first
         METHOD_LIST[path] = file ? inline_template(file) : nil
       else
         METHOD_LIST[path] ||= begin
-          file = Dir["#{path}.{#{Merb::Template::EXTENSIONS.keys.join(',')}}"].first          
+          file = Dir["#{path}.{#{template_extensions.join(',')}}"].first          
           file ? inline_template(file) : nil
         end
       end
       
       ret
+    end
+    
+    # Get all known template extensions
+    #
+    # ==== Returns
+    #   Array:: Extension strings.
+    #---
+    # @semipublic
+    def template_extensions
+      EXTENSIONS.keys
     end
     
     # Takes a template at a particular path and inlines it into a module and
@@ -67,7 +77,7 @@ module Merb::Template
     #   The module to put the compiled method into. Defaults to
     #   Merb::InlineTemplates
     #
-    # ==== Note
+    # ==== Notes
     # Even though this method supports inlining into any module, the method
     # must be available to instances of AbstractController that will use it.
     #---
@@ -198,7 +208,7 @@ module Erubis
     def def_method(object, method_name, filename=nil)
       m = object.is_a?(Module) ? :module_eval : :instance_eval
       setup = "@_engine = 'erb'"
-      object.__send__(m, "def #{method_name}; #{setup}; #{@src}; end", filename || @filename || '(erubis)')
+      object.__send__(m, "def #{method_name}(locals={}); #{setup}; #{@src}; end", filename || @filename || '(erubis)')
     end
    
   end

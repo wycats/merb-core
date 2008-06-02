@@ -58,9 +58,21 @@ module Merb::Test::Fixtures
       self._template_root = File.dirname(__FILE__) / "alt_views"      
     end  
     
+    class RenderNoDefaultAppLayout < RenderString
+      self._template_root = File.dirname(__FILE__) / "alt_views"
+      self.layout false
+    end
+    
+    class RenderNoDefaultAppLayoutInherited < RenderNoDefaultAppLayout
+    end
+    
+    class RenderDefaultAppLayoutInheritedOverride < RenderNoDefaultAppLayout
+      self.default_layout
+    end
+    
     class RenderTemplateCustomLocation < RenderTemplate      
-      def _template_location(action, type = nil, controller = controller_name)  
-        "wonderful/#{action}"
+      def _template_location(context, type = nil, controller = controller_name)  
+        "wonderful/#{context}"
       end
     end
     
@@ -75,8 +87,8 @@ module Merb::Test::Fixtures
     class RenderTemplateMultipleRootsAndCustomLocation < RenderTemplate
       self._template_roots = [[File.dirname(__FILE__) / "alt_views", :_custom_template_location]]
       
-      def _custom_template_location(action, type = nil, controller = controller_name)
-        "#{self.class.name.split('::')[-1].to_const_path}/#{action}"
+      def _custom_template_location(context, type = nil, controller = controller_name)
+        "#{self.class.name.split('::')[-1].to_const_path}/#{context}"
       end
     end
     

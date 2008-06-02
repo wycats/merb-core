@@ -69,8 +69,7 @@ module Merb
       Merb.logger.info("Cookie deleted: #{name} => #{cookie.inspect}")
       cookie
     end
-
-    private
+    
     # ==== Parameters
     # name<~to_s>:: Name of the cookie.
     # value<~to_s>:: Value of the cookie.

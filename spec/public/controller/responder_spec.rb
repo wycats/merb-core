@@ -62,4 +62,74 @@ describe Merb::Controller, " responds" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::LocalProvides, :index, :format => "xml")
     controller.content_type.should == :xml    
   end
+  
+  it "should properly add formats when only_provides is called in action" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::OnlyProvides, :index, {}, :http_accept => "application/xml")
+    controller.content_type.should == :xml
+  end
+
+  it "should properly remove formats when only_provides is called in action" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::OnlyProvides, :index, {}, :http_accept => "application/html")
+    lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
+  end
+
+  it "should properly add formats when only_provides is called in controller" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "application/xml")
+    controller.content_type.should == :xml
+  end
+
+  it "should properly remove formats when only_provides is called in controller" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "application/html")
+    lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
+  end
+
+  it "should properly remove formats when does_not_provide is called in action" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::OnlyProvides, :index, {}, :http_accept => "application/html")
+    lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
+  end
+
+  it "should properly remove formats when does_not_provide is called in controller" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "application/html")
+    lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
+  end
+  
+  it "should return the correct default HTTP headers for a format" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassProvides, :index, :format => "xml")
+    controller.headers.keys.sort.should == ["Content-Type"]
+    controller.headers["Content-Type"].should == "application/xml; charset=utf-8"
+  end
+  
+  it "should append the correct charset which was set when the format was added" do
+    Merb.add_mime_type(:foo, nil, %w[application/foo], :charset => "iso-8859-1")
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::FooFormatProvides, :index, :format => "foo")
+    controller.headers["Content-Type"].should == "application/foo; charset=iso-8859-1"
+  end
+  
+  it "should return the correct HTTP headers which were set when the format was added" do
+    Merb.add_mime_type(:foo, nil, %w[application/foo], "Foo" => 'bar', "Content-Language" => "en", :charset => "utf-8")
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::FooFormatProvides, :index, :format => "foo")
+    controller.headers.keys.should_not include(:charset)
+    controller.headers["Content-Type"].should == "application/foo; charset=utf-8"
+    controller.headers["Content-Language"].should == "en"
+    controller.headers["Foo"] = "bar"
+  end
+  
+  it "should return the correct HTTP headers using the block given when the format was added" do
+    Merb.add_mime_type(:foo, nil, %w[application/foo], "Foo" => "bar") do |controller|
+      controller.headers["Action-Name"] = controller.action_name
+    end
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::FooFormatProvides, :index, :format => "foo")
+    controller.headers["Content-Type"].should == "application/foo"
+    controller.headers["Action-Name"].should == "index"
+    controller.headers["Foo"] = "bar"
+  end
+  
+  it "should not overwrite runtime-set headers with default format response headers" do
+    Merb.add_mime_type(:foo, nil, %w[application/foo], "Foo" => "bar", "Content-Language" => "en")
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::FooFormatProvides, :show, :format => "foo")
+    controller.headers["Content-Language"].should == "nl"
+    controller.headers["Biz"] = "buzz"
+    controller.headers["Foo"] = "bar"
+  end
+  
 end

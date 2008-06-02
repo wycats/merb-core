@@ -15,7 +15,9 @@ module Merb
       # :app<String>>:: The application name.
       def self.start(opts={})
         Merb.logger.warn!("Using EventedMongrel adapter")
+        Merb::Dispatcher.use_mutex = false
         server = ::Mongrel::HttpServer.new(opts[:host], opts[:port].to_i)
+        Merb::Server.change_privilege
         server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))
         server.run.join
       end

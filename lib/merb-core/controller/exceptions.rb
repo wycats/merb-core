@@ -58,7 +58,7 @@ module Merb
   #       "team@cowboys.com", 
   #       "Exception occured at #{Time.now}", 
   #       params[:exception])
-  #     render :inline => 'Something is wrong, but the team are on it!'
+  #     render 'Something is wrong, but the team are on it!'
   #   end
   #
   # Note: The special param[:exception] is available in all Exception actions 
@@ -90,7 +90,7 @@ module Merb
   #   <p>You tried to access <%= @tried_to_access %> but that URL is 
   #   restricted to administrators.</p>
   #
-  module ControllerExceptions #:nodoc: all
+  module ControllerExceptions
     
     # Mapping of status code names to their numeric value.
     STATUS_CODES = {}
@@ -101,135 +101,180 @@ module Merb
       # String:: The snake cased name of the error without the namespace.
       def name; self.class.name; end
 
-      # ==== Returns
-      # String:: The snake cased name of the class without the namespace.
-      def self.name
-        to_s.snake_case.split('::').last
-      end
-      
-      # Makes it possible to pass a status-code class to render :status.
-      #
-      # ==== Returns
-      # Fixnum:: The status code of this exception.
-      def self.to_i
-        STATUS
-      end
-      
-      # Registers any subclasses with status codes for easy lookup by
-      # set_status in Merb::Controller.
-      #
-      # Inheritance ensures this method gets inherited by any subclasses, so
-      # it goes all the way down the chain of inheritance.
-      #
-      # ==== Parameters
-      # 
-      # subclass<Merb::ControllerExceptions::Base>::
-      #   The Exception class that is inheriting from Merb::ControllerExceptions::Base
-      def self.inherited(subclass)
-        if subclass.const_defined?(:STATUS)
-          STATUS_CODES[subclass.name.snake_case.to_sym] = subclass.const_get(:STATUS)
+      # === Returns
+      # Integer:: The status-code of the error.
+      def status; self.class.status; end
+      alias :to_i :status
+
+      class << self
+
+        # ==== Returns
+        # String:: The snake cased name of the class without the namespace.
+        def name
+          self.to_s.split('::').last.snake_case
         end
+      
+        # Get the actual status-code for an Exception class.
+        #
+        # As usual, this can come from a constant upwards in
+        # the inheritance chain.
+        #
+        # ==== Returns
+        # Fixnum:: The status code of this exception.
+        def status
+          const_get(:STATUS) rescue 0
+        end
+        alias :to_i :status
+        
+        # Set the actual status-code for an Exception class.
+        #
+        # If possible, set the STATUS constant, and update
+        # any previously registered (inherited) status-code.
+        #
+        # ==== Parameters
+        # num<~to_i>:: The status code
+        def status=(num)
+          unless self.status?
+            register_status_code(self, num)
+            self.const_set(:STATUS, num.to_i)
+          end
+        end
+      
+        # See if a status-code has been defined (on self explicitly).
+        #
+        # ==== Returns
+        # Boolean:: Whether the a status code has been set
+        def status?
+          self.const_defined?(:STATUS)
+        end
+      
+        # Registers any subclasses with status codes for easy lookup by
+        # set_status in Merb::Controller.
+        #
+        # Inheritance ensures this method gets inherited by any subclasses, so
+        # it goes all the way down the chain of inheritance.
+        #
+        # ==== Parameters
+        # 
+        # subclass<Merb::ControllerExceptions::Base>::
+        #   The Exception class that is inheriting from Merb::ControllerExceptions::Base
+        def inherited(subclass)
+          # don't set the constant yet - any class methods will be called after self.inherited
+          # unless self.status = ... is set explicitly, the status code will be inherited
+          register_status_code(subclass, self.status) if self.status?
+        end
+        
+        private
+        
+        # Register the status-code for an Exception class.
+        #
+        # ==== Parameters
+        # num<~to_i>:: The status code
+        def register_status_code(klass, code)
+          STATUS_CODES[klass.name.to_sym] = code.to_i
+        end
+        
       end
     end
 
     class Informational                 < Merb::ControllerExceptions::Base; end
 
-      class Continue                    < Merb::ControllerExceptions::Informational; STATUS = 100; end
+      class Continue                    < Merb::ControllerExceptions::Informational; self.status = 100; end
 
-      class SwitchingProtocols          < Merb::ControllerExceptions::Informational; STATUS = 101; end
+      class SwitchingProtocols          < Merb::ControllerExceptions::Informational; self.status = 101; end
 
     class Successful                    < Merb::ControllerExceptions::Base; end
 
-      class OK                          < Merb::ControllerExceptions::Successful; STATUS = 200; end
+      class OK                          < Merb::ControllerExceptions::Successful; self.status = 200; end
 
-      class Created                     < Merb::ControllerExceptions::Successful; STATUS = 201; end
+      class Created                     < Merb::ControllerExceptions::Successful; self.status = 201; end
 
-      class Accepted                    < Merb::ControllerExceptions::Successful; STATUS = 202; end
+      class Accepted                    < Merb::ControllerExceptions::Successful; self.status = 202; end
 
-      class NonAuthoritativeInformation < Merb::ControllerExceptions::Successful; STATUS = 203; end
+      class NonAuthoritativeInformation < Merb::ControllerExceptions::Successful; self.status = 203; end
 
-      class NoContent                   < Merb::ControllerExceptions::Successful; STATUS = 204; end
+      class NoContent                   < Merb::ControllerExceptions::Successful; self.status = 204; end
 
-      class ResetContent                < Merb::ControllerExceptions::Successful; STATUS = 205; end
+      class ResetContent                < Merb::ControllerExceptions::Successful; self.status = 205; end
 
-      class PartialContent              < Merb::ControllerExceptions::Successful; STATUS = 206; end
+      class PartialContent              < Merb::ControllerExceptions::Successful; self.status = 206; end
 
     class Redirection                   < Merb::ControllerExceptions::Base; end
 
-      class MultipleChoices             < Merb::ControllerExceptions::Redirection; STATUS = 300; end
+      class MultipleChoices             < Merb::ControllerExceptions::Redirection; self.status = 300; end
 
-      class MovedPermanently            < Merb::ControllerExceptions::Redirection; STATUS = 301; end
+      class MovedPermanently            < Merb::ControllerExceptions::Redirection; self.status = 301; end
 
-      class MovedTemporarily            < Merb::ControllerExceptions::Redirection; STATUS = 302; end
+      class MovedTemporarily            < Merb::ControllerExceptions::Redirection; self.status = 302; end
 
-      class SeeOther                    < Merb::ControllerExceptions::Redirection; STATUS = 303; end
+      class SeeOther                    < Merb::ControllerExceptions::Redirection; self.status = 303; end
 
-      class NotModified                 < Merb::ControllerExceptions::Redirection; STATUS = 304; end
+      class NotModified                 < Merb::ControllerExceptions::Redirection; self.status = 304; end
 
-      class UseProxy                    < Merb::ControllerExceptions::Redirection; STATUS = 305; end
+      class UseProxy                    < Merb::ControllerExceptions::Redirection; self.status = 305; end
 
-      class TemporaryRedirect           < Merb::ControllerExceptions::Redirection; STATUS = 307; end
+      class TemporaryRedirect           < Merb::ControllerExceptions::Redirection; self.status = 307; end
 
     class ClientError                   < Merb::ControllerExceptions::Base; end
 
-      class BadRequest                  < Merb::ControllerExceptions::ClientError; STATUS = 400; end
+      class BadRequest                  < Merb::ControllerExceptions::ClientError; self.status = 400; end
 
-        class MultiPartParseError       < Merb::ControllerExceptions::BadRequest; end
+      class MultiPartParseError         < Merb::ControllerExceptions::BadRequest; end
 
-      class Unauthorized                < Merb::ControllerExceptions::ClientError; STATUS = 401; end
+      class Unauthorized                < Merb::ControllerExceptions::ClientError; self.status = 401; end
 
-      class PaymentRequired             < Merb::ControllerExceptions::ClientError; STATUS = 402; end
+      class PaymentRequired             < Merb::ControllerExceptions::ClientError; self.status = 402; end
 
-      class Forbidden                   < Merb::ControllerExceptions::ClientError; STATUS = 403; end
+      class Forbidden                   < Merb::ControllerExceptions::ClientError; self.status = 403; end
 
-      class NotFound                    < Merb::ControllerExceptions::ClientError; STATUS = 404; end
+      class NotFound                    < Merb::ControllerExceptions::ClientError; self.status = 404; end
 
-        class ActionNotFound            < Merb::ControllerExceptions::NotFound; end
+      class ActionNotFound              < Merb::ControllerExceptions::NotFound; end
 
-        class TemplateNotFound          < Merb::ControllerExceptions::NotFound; end
+      class TemplateNotFound            < Merb::ControllerExceptions::NotFound; end
 
-        class LayoutNotFound            < Merb::ControllerExceptions::NotFound; end
+      class LayoutNotFound              < Merb::ControllerExceptions::NotFound; end
 
-      class MethodNotAllowed            < Merb::ControllerExceptions::ClientError; STATUS = 405; end
+      class MethodNotAllowed            < Merb::ControllerExceptions::ClientError; self.status = 405; end
 
-      class NotAcceptable               < Merb::ControllerExceptions::ClientError; STATUS = 406; end
+      class NotAcceptable               < Merb::ControllerExceptions::ClientError; self.status = 406; end
 
-      class ProxyAuthenticationRequired < Merb::ControllerExceptions::ClientError; STATUS = 407; end
+      class ProxyAuthenticationRequired < Merb::ControllerExceptions::ClientError; self.status = 407; end
 
-      class RequestTimeout              < Merb::ControllerExceptions::ClientError; STATUS = 408; end
+      class RequestTimeout              < Merb::ControllerExceptions::ClientError; self.status = 408; end
 
-      class Conflict                    < Merb::ControllerExceptions::ClientError; STATUS = 409; end
+      class Conflict                    < Merb::ControllerExceptions::ClientError; self.status = 409; end
 
-      class Gone                        < Merb::ControllerExceptions::ClientError; STATUS = 410; end
+      class Gone                        < Merb::ControllerExceptions::ClientError; self.status = 410; end
 
-      class LengthRequired              < Merb::ControllerExceptions::ClientError; STATUS = 411; end
+      class LengthRequired              < Merb::ControllerExceptions::ClientError; self.status = 411; end
 
-      class PreconditionFailed          < Merb::ControllerExceptions::ClientError; STATUS = 412; end
+      class PreconditionFailed          < Merb::ControllerExceptions::ClientError; self.status = 412; end
 
-      class RequestEntityTooLarge       < Merb::ControllerExceptions::ClientError; STATUS = 413; end
+      class RequestEntityTooLarge       < Merb::ControllerExceptions::ClientError; self.status = 413; end
 
-      class RequestURITooLarge          < Merb::ControllerExceptions::ClientError; STATUS = 414; end
+      class RequestURITooLarge          < Merb::ControllerExceptions::ClientError; self.status = 414; end
 
-      class UnsupportedMediaType        < Merb::ControllerExceptions::ClientError; STATUS = 415; end
+      class UnsupportedMediaType        < Merb::ControllerExceptions::ClientError; self.status = 415; end
 
-      class RequestRangeNotSatisfiable  < Merb::ControllerExceptions::ClientError; STATUS = 416; end
+      class RequestRangeNotSatisfiable  < Merb::ControllerExceptions::ClientError; self.status = 416; end
 
-      class ExpectationFailed           < Merb::ControllerExceptions::ClientError; STATUS = 417; end
+      class ExpectationFailed           < Merb::ControllerExceptions::ClientError; self.status = 417; end
 
     class ServerError                   < Merb::ControllerExceptions::Base; end
 
-      class NotImplemented              < Merb::ControllerExceptions::ServerError; STATUS = 501; end
+      class NotImplemented              < Merb::ControllerExceptions::ServerError; self.status = 501; end
 
-      class BadGateway                  < Merb::ControllerExceptions::ServerError; STATUS = 502; end
+      class BadGateway                  < Merb::ControllerExceptions::ServerError; self.status = 502; end
 
-      class ServiceUnavailable          < Merb::ControllerExceptions::ServerError; STATUS = 503; end
+      class ServiceUnavailable          < Merb::ControllerExceptions::ServerError; self.status = 503; end
 
-      class GatewayTimeout              < Merb::ControllerExceptions::ServerError; STATUS = 504; end
+      class GatewayTimeout              < Merb::ControllerExceptions::ServerError; self.status = 504; end
 
-      class HTTPVersionNotSupported     < Merb::ControllerExceptions::ServerError; STATUS = 505; end
+      class HTTPVersionNotSupported     < Merb::ControllerExceptions::ServerError; self.status = 505; end
 
       class InternalServerError         < Merb::ControllerExceptions::ServerError #:doc: 
-        STATUS = 500
+        self.status = 500;
         # DEFAULT_TEMPLATE = ::Merb::Dispatcher::DEFAULT_ERROR_TEMPLATE
         def initialize(exception = nil)
           @exception = exception
@@ -249,7 +294,7 @@ module Merb
   # Required to show exceptions in the log file
   #
   # e<Exception>:: The exception that a message is being generated for
-  def self.exception(e) #:nodoc:
+  def self.exception(e)
     "#{ e.message } - (#{ e.class })\n" <<  
     "#{(e.backtrace or []).join("\n")}" 
   end

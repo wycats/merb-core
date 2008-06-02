@@ -15,10 +15,12 @@ module Merb
       # :app<String>>:: The application name.
       def self.start(opts={})
         Merb.logger.warn!("Using Thin adapter")
+        Merb::Dispatcher.use_mutex = false
         if opts[:host].include?('/')
           opts[:host] =  "#{opts[:host]}-#{opts[:port]}"
         end  
-        server = ::Thin::Server.new(opts[:host], opts[:port], opts[:app])
+        server = ::Thin::Server.start(opts[:host], opts[:port].to_i, opts[:app])
+        Merb::Server.change_privilege
         ::Thin::Logging.silent = true
         server.start!
       end

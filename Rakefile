@@ -19,15 +19,12 @@ NAME = "merb-core"
 
 require "lib/merb-core/version"
 require "lib/merb-core/test/run_specs"
+require 'lib/merb-core/tasks/merb_rake_helper'
 
 ##############################################################################
 # Packaging & Installation
 ##############################################################################
 CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
-
-windows = (PLATFORM =~ /win32|cygwin/) rescue nil
-
-SUDO = windows ? "" : "sudo"
 
 desc "Packages up Merb."
 task :default => :package
@@ -40,7 +37,7 @@ spec = Gem::Specification.new do |s|
   s.platform     = Gem::Platform::RUBY
   s.author       = "Ezra Zygmuntowicz"
   s.email        = "ez@engineyard.com"
-  s.homepage     = "http://merb.devjavu.com"
+  s.homepage     = "http://merbivore.com"
   s.summary      = "Merb. Pocket rocket web framework."
   s.bindir       = "bin"
   s.description  = s.summary
@@ -59,7 +56,6 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "json_pure"
   s.add_dependency "rspec"
   s.add_dependency "rack"
-  s.add_dependency "hpricot"
   s.add_dependency "mime-types"
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
@@ -72,17 +68,51 @@ end
 
 desc "Run :package and install the resulting .gem"
 task :install => :package do
-  sh %{#{SUDO} gem install --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{sudo} gem install #{install_home} --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :package and install the resulting .gem with jruby"
 task :jinstall => :package do
-  sh %{#{SUDO} jruby -S gem install pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{sudo} jruby -S gem install #{install_home} pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :clean and uninstall the .gem"
 task :uninstall => :clean do
-  sh %{#{SUDO} gem uninstall #{NAME}}
+  sh %{#{sudo} gem uninstall #{NAME}}
+end
+
+namespace :github do
+  desc "Update Github Gemspec"
+  task :update_gemspec do
+    skip_fields = %w(new_platform original_platform)
+    integer_fields = %w(specification_version)
+
+    result = "Gem::Specification.new do |s|\n"
+    spec.instance_variables.each do |ivar|
+      value = spec.instance_variable_get(ivar)
+      name  = ivar.split("@").last
+      next if skip_fields.include?(name) || value.nil? || value == "" || (value.respond_to?(:empty?) && value.empty?)
+      if name == "dependencies"
+        value.each do |d|
+          dep, *ver = d.to_s.split(" ")
+          result <<  "  s.add_dependency #{dep.inspect}, #{ver.join(" ").inspect.gsub(/[()]/, "")}\n"
+        end
+      else
+        case value
+        when Array
+          value =  name != "files" ? value.inspect : value.inspect.split(",").join(",\n")
+        when String
+          value = value.to_i if integer_fields.include?(name)
+          value = value.inspect
+        else
+          value = value.to_s.inspect
+        end
+        result << "  s.#{name} = #{value}\n"
+      end
+    end
+    result << "end"
+    File.open(File.join(File.dirname(__FILE__), "#{spec.name}.gemspec"), "w"){|f| f << result}
+  end
 end
 
 ##############################################################################
@@ -109,7 +139,7 @@ namespace :doc do
   desc "rdoc to rubyforge"
   task :rubyforge do
     # sh %{rake doc}
-    sh %{#{SUDO} chmod -R 755 doc} unless windows
+    sh %{#{sudo} chmod -R 755 doc} unless windows?
     sh %{/usr/bin/scp -r -p doc/rdoc/* ezmobius@rubyforge.org:/var/www/gforge-projects/merb}
   end
 
@@ -127,20 +157,36 @@ task :aok => [:specs, :rcov]
 #   t.spec_files = Dir["spec/**/*_spec.rb"].sort
 # end
 
-def setup_specs(name, spec_cmd='spec')
+def setup_specs(name, spec_cmd='spec', run_opts = "-c -f s")
   desc "Run all specs (#{name})"
   task "specs:#{name}" do
-    run_specs("spec/**/*_spec.rb", spec_cmd)
+    run_specs("spec/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
 
   desc "Run private specs (#{name})"
   task "specs:#{name}:private" do
-    run_specs("spec/private/**/*_spec.rb", spec_cmd)
+    run_specs("spec/private/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
 
   desc "Run public specs (#{name})"
   task "specs:#{name}:public" do
-    run_specs("spec/public/**/*_spec.rb", spec_cmd)
+    run_specs("spec/public/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
+  end
+
+  # With profiling formatter
+  desc "Run all specs (#{name}) with profiling formatter"
+  task "specs:#{name}_profiled" do
+    run_specs("spec/**/*_spec.rb", spec_cmd, "-c -f o")
+  end
+
+  desc "Run private specs (#{name}) with profiling formatter"
+  task "specs:#{name}_profiled:private" do
+    run_specs("spec/private/**/*_spec.rb", spec_cmd, "-c -f o")
+  end
+
+  desc "Run public specs (#{name}) with profiling formatter"
+  task "specs:#{name}_profiled:public" do
+    run_specs("spec/public/**/*_spec.rb", spec_cmd, "-c -f o")
   end
 end
 
@@ -244,7 +290,7 @@ namespace :repo do
       system "svn update"
     end
   end
-  
+
   desc "commit modified changes to the repository"
   task :commit do
     if File.directory?(".git")
@@ -253,24 +299,24 @@ namespace :repo do
       system "svn commit"
     end
   end
-  
+
 end
 
 # Run specific tests or test files. Searches nested spec directories as well.
-# 
+#
 # Based on a technique popularized by Geoffrey Grosenbach
 rule "" do |t|
   spec_cmd = (RUBY_PLATFORM =~ /java/) ? "jruby -S spec" : "spec"
   # spec:spec_file:spec_name
   if /spec:(.*)$/.match(t.name)
     arguments = t.name.split(':')
-    
+
     file_name = arguments[1]
     spec_name = arguments[2..-1]
 
     spec_filename = "#{file_name}_spec.rb"
     specs = Dir["spec/**/#{spec_filename}"]
-    
+
     if path = specs.detect { |f| spec_filename == File.basename(f) }
       run_file_name = path
     else
@@ -279,7 +325,7 @@ rule "" do |t|
     end
 
     example = " -e '#{spec_name}'" unless spec_name.empty?
-    
+
     sh "#{spec_cmd} #{run_file_name} --format specdoc --colour #{example}"
   end
 end

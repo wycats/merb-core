@@ -1,5 +1,6 @@
 require 'enumerator'
 require 'merb-core/controller/mime'
+require "merb-core/vendor/facets/dictionary"
 module Merb
   # The ResponderMixin adds methods that help you manage what
   # formats your controllers have available, determine what format(s)
@@ -96,13 +97,13 @@ module Merb
   # and none of the provides methods can be used.
   module ResponderMixin
     
-    TYPES = {}
+    TYPES = Dictionary.new
 
     class ContentTypeAlreadySet < StandardError; end
     
     # ==== Parameters
     # base<Module>:: The module that ResponderMixin was mixed into
-    def self.included(base) # :nodoc:
+    def self.included(base)
       base.extend(ClassMethods)
       base.class_eval do
         class_inheritable_accessor :class_provided_formats
@@ -256,7 +257,7 @@ module Merb
     #---
     # @public
     def only_provides(*formats)
-      self._provided_formats = *formats
+      _set_provided_formats(*formats)
     end
     
     # Removes formats from the list of provided formats for this particular 
@@ -284,7 +285,7 @@ module Merb
     # 3. If it's */*, use the first provided format
     # 4. Look for one that is provided, in order of request
     # 5. Raise 406 if none found
-    def _perform_content_negotiation # :nodoc:
+    def _perform_content_negotiation
       raise Merb::ControllerExceptions::NotAcceptable if _provided_formats.empty?
       if (fmt = params[:format]) && !fmt.empty?
         accepts = [fmt.to_sym]
@@ -294,7 +295,12 @@ module Merb
       specifics = accepts & _provided_formats
       return specifics.first unless specifics.length == 0
       return _provided_formats.first if accepts.include? :all
-      raise Merb::ControllerExceptions::NotAcceptable
+      message  = "A format (%s) that isn't provided (%s) has been requested. "
+      message += "Make sure the action provides the format, and be "
+      message += "careful of before filters which won't recognize "
+      message += "formats provided within actions."
+      raise Merb::ControllerExceptions::NotAcceptable,
+        (message % [accepts.join(', '), _provided_formats.join(', ')])
     end
 
     # Returns the output format for this request, based on the 
@@ -344,8 +350,26 @@ module Merb
     def content_type=(type)
       unless Merb.available_mime_types.has_key?(type)
         raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
-      end        
-      headers['Content-Type'] = Merb.available_mime_types[type][:request_headers].first
+      end
+      # set the Content-Type header - defaults to first accepted mime
+      if Merb.available_mime_types[type][:response_headers]['Content-Type']
+        headers['Content-Type'] = Merb.available_mime_types[type][:response_headers]['Content-Type']
+      else
+        headers['Content-Type'] = Merb.available_mime_types[type][:accepts].first
+        # explicitly append the character set to the Content-Type header
+        if Merb.available_mime_types[type][:response_headers][:charset]
+          headers['Content-Type'] += "; charset=#{Merb.available_mime_types[type][:response_headers][:charset]}" 
+        end
+      end
+      # merge any format specific response headers
+      Merb.available_mime_types[type][:response_headers].each do |key, value|
+        next if key == :charset || headers.key?(key)
+        headers[key] = value
+      end
+      # if given, use a block to finetune any runtime headers
+      if Merb.available_mime_types[type][:response_block].respond_to?(:call)
+        Merb.available_mime_types[type][:response_block].call(self)
+      end
       @_content_type = type
     end
     
@@ -434,7 +458,7 @@ module Merb
     #   All Accept header values, such as "text/html", that match this type.
     def synonyms
       @syns ||= Merb.available_mime_types.values.map do |e| 
-        e[:request_headers] if e[:request_headers].include?(@media_range)
+        e[:accepts] if e[:accepts].include?(@media_range)
       end.compact.flatten
     end
 
@@ -450,7 +474,7 @@ module Merb
     # Symbol: The type as a symbol, e.g. :html.
     def to_sym
       Merb.available_mime_types.select{|k,v| 
-        v[:request_headers] == synonyms || v[:request_headers][0] == synonyms[0]}.flatten.first
+        v[:accepts] == synonyms || v[:accepts][0] == synonyms[0]}.flatten.first
     end
 
     # ==== Returns

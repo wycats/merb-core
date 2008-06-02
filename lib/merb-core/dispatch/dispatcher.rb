@@ -27,7 +27,7 @@ class Merb::Dispatcher
     def handle(rack_env)
       start   = Time.now
       request = Merb::Request.new(rack_env)
-      Merb.logger.info("Params: #{request.params.inspect}")
+      Merb.logger.info "Start: #{start.to_s}"
       
       route_index, route_params = Merb::Router.match(request)
       
@@ -36,7 +36,7 @@ class Merb::Dispatcher
       end
       request.route_params = route_params
       request.params.merge! route_params
-      
+            
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
       unless controller_name
@@ -60,11 +60,20 @@ class Merb::Dispatcher
         raise Merb::ControllerExceptions::NotFound
       end
 
+      Merb.logger.info("Params: #{klass._filter_params(request.params).inspect}")
+
       action = route_params[:action]
+
+      if route_index && route = Merb::Router.routes[route_index]
+        #Fixate the session ID if it is enabled on the route
+        if route.allow_fixation? && request.params.key?(Merb::Controller._session_id_key)
+          request.cookies[Merb::Controller._session_id_key] = request.params[Merb::Controller._session_id_key]
+        end
+      end      
 
       controller = dispatch_action(klass, action, request)
       controller._benchmarks[:dispatch_time] = Time.now - start
-      controller.route = Merb::Router.routes[route_index]
+      controller.route = route
       Merb.logger.info controller._benchmarks.inspect
       Merb.logger.flush
 
@@ -155,9 +164,9 @@ Stacktrace:
         request.params[:original_cookies] = request.cookies.dup rescue {}
         request.params[:exception] = exception
         request.params[:action] = exception_klass.name
-      
-        dispatch_action(klass, exception_klass.name, request, exception.class::STATUS)
-      rescue => dispatch_issue
+        
+        dispatch_action(klass, exception_klass.name, request, exception.class.status)
+      rescue => dispatch_issue       
         dispatch_issue = controller_exception(dispatch_issue)  
         # when no action/template exist for an exception, or an
         # exception occurs on an InternalServerError the message is
@@ -173,7 +182,9 @@ Stacktrace:
             retry
           else
             dispatch_default_exception(klass, request, exception)
-          end
+          end       
+        elsif request.params[:exception].is_a?(dispatch_issue.class)
+          dispatch_default_exception(klass, request, dispatch_issue)
         elsif dispatch_issue.is_a?(Merb::ControllerExceptions::InternalServerError)
           dispatch_default_exception(klass, request, dispatch_issue)
         else
@@ -201,7 +212,7 @@ Stacktrace:
     #   An array containing the Merb::Controller that was dispatched to and the
     #   error's name. For instance, a NotFound error's name is "not_found".
     def dispatch_default_exception(klass, request, e)
-      controller = klass.new(request, e.class::STATUS)
+      controller = klass.new(request, e.class.status)
       if e.is_a? Merb::ControllerExceptions::Redirection
         controller.headers.merge!('Location' => e.message)
         controller.body = %{ } #fix

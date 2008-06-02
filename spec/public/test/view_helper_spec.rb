@@ -54,7 +54,7 @@ describe Merb::Test::ViewHelper do
   it "should raise an error if the ouput is not specified and cannot be found" do
     @output, @response_output, @controller = nil
     
-    lambda { tag("div") }.should raise_error("The response output was not in it's usual places, please provide the output")
+    lambda { tag("div") }.should raise_error("The response output was not in its usual places, please provide the output")
   end
   
   it "should use @output if no output parameter is supplied" do

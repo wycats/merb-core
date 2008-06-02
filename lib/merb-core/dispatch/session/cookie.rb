@@ -3,7 +3,7 @@ require 'openssl'       # to generate the HMAC message digest
 # Most of this code is taken from bitsweat's implementation in rails
 module Merb
 
-  module SessionMixin #:nodoc:
+  module SessionMixin
 
     # Adds a before and after dispatch hook for setting up the cookie session
     # store.
@@ -19,9 +19,10 @@ module Merb
     # has changed.
     def finalize_session
       new_session = request.session.read_cookie
-      
       if @original_session != new_session
-        set_cookie(_session_id_key, new_session, Time.now + _session_expiry) 
+        options = {:expires => (Time.now + _session_expiry)}
+        options[:domain] = _session_cookie_domain if _session_cookie_domain
+        cookies.set_cookie(_session_id_key, new_session, options)
       end
     end
 
@@ -82,7 +83,7 @@ module Merb
     # ==== Raises
     # CookieOverflow:: Session contains too much information.
     def read_cookie
-      unless @data.nil? or @data.empty? 
+      unless @data.nil?
         updated = marshal(@data)
         raise CookieOverflow if updated.size > MAX
         updated
@@ -154,9 +155,10 @@ module Merb
     # Hash:: The stored session data.
     def unmarshal(cookie)
       if cookie
-        data, digest = Merb::Request.unescape(cookie).split('--')
+        data, digest = cookie.split('--')
         return {} if data.blank?
         unless digest == generate_digest(data)
+          delete
           raise TamperedWithCookie, "Maybe the site's session_secret_key has changed?"
         end
         Marshal.load(Base64.decode64(data))

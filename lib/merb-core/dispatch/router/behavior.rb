@@ -108,8 +108,19 @@ module Merb
       #   within the regular expression syntax.
       #   +path+ is optional.
       # conditions<Hash>::
-      #   This optional hash helps refine the settings for the route.
-      #   When combined with a block it can help keep your routes DRY
+      #   Addational conditions that the request must meet in order to match.
+      #   the keys must be methods that the Merb::Request instance will respond
+      #   to.  The value is the string or regexp that matched the returned value.
+      #   Conditions are inherited by child routes.
+      #
+      #   The Following have special meaning:
+      #   * :method -- Limit this match based on the request method. (GET,
+      #     POST, PUT, DELETE)
+      #   * :path -- Used internally to maintain URL form information
+      #   * :controller and :action -- These can be used here instead of '#to', and
+      #     will be inherited in the block.
+      #   * :params -- Sets other key/value pairs that are placed in the params
+      #     hash. The value must be a hash.
       # &block::
       #   Passes a new instance of a Behavior object into the optional block so
       #   that sub-matching and routes nesting may occur.
@@ -124,20 +135,28 @@ module Merb
       # ==== Examples
       #
       #   # registers /foo/bar to controller => "foo", :action => "bar"
-      #   # and /foo/baz to controller => "foo", :action => "caz"
-      #   r.match "/foo", :controller => "foo" do |f|
+      #   # and /foo/baz to controller => "foo", :action => "baz"
+      #   r.match "/foo", :controller=>"foo" do |f|
       #     f.match("/bar").to(:action => "bar")
       #     f.match("/baz").to(:action => "caz")
       #   end
       #
-      #   r.match "/foo", :controller => "foo" do |f|
-      #     f.match("/bar", :action => "bar")
-      #     f.match("/baz", :action => "caz")
-      #   end # => doesn't register any routes at all
+      #   #match only of the browser string contains MSIE or Gecko
+      #   r.match ('/foo', :user_agent => /(MSIE|Gecko)/ )
+      #        .to({:controller=>'foo', :action=>'popular')
+      #
+      #   # Route GET and POST requests to different actions (see also #resources)
+      #   r.match('/foo', :method=>:get).to(:action=>'show')
+      #   r.mathc('/foo', :method=>:post).to(:action=>'create')
       #
       #   # match also takes regular expressions
+      #
       #   r.match(%r[/account/([a-z]{4,6})]).to(:controller => "account",
       #      :action => "show", :id => "[1]")
+      #
+      #   r.match(/\/?(en|es|fr|be|nl)?/).to(:language => "[1]") do |l|
+      #     l.match("/guides/:action/:id").to(:controller => "tour_guides")
+      #   end
       #---
       # @public
       def match(path = '', conditions = {}, &block)
@@ -161,8 +180,10 @@ module Merb
       # ==== Returns
       # Behavior:: The new behavior.
       def match_without_path(conditions = {})
-        new_behavior = self.class.new(conditions, {}, self)
-        conditions.delete :path if ['', '^$'].include?(conditions[:path])
+        params = conditions.delete(:params) || {} #parents params will be merged  in Route#new
+        params[:controller] = conditions.delete(:controller) if conditions[:controller]
+        params[:action] = conditions.delete(:action) if conditions[:action]
+        new_behavior = self.class.new(conditions, params, self)
         yield new_behavior if block_given?
         new_behavior
       end
@@ -176,6 +197,22 @@ module Merb
       def to_route(params = {}, &conditional_block)
         @params.merge! params
         Route.new compiled_conditions, compiled_params, self, &conditional_block
+      end
+
+      # Combines common case of match being used with
+      # to({}).
+      #
+      # ==== Returns
+      # <Route>:: route that uses params from named path segments.
+      #
+      # ==== Examples
+      # r.match!("/api/:token/:controller/:action/:id")
+      #
+      # is the same thing as
+      #
+      # r.match!("/api/:token/:controller/:action/:id").to({})
+      def match!(path = '', conditions = {}, &block)
+        self.match(path, conditions, &block).to({})
       end
 
       # Creates a Route from one or more Behavior objects, unless a +block+ is
@@ -286,11 +323,11 @@ module Merb
       #     admin.resources :accounts
       #     admin.resource :email
       #   end
-      # 
+      #
       #   # /super_admin/accounts
       #   r.namespace(:admin, :path=>"super_admin") do |admin|
       #     admin.resources :accounts
-      #   end 
+      #   end
       #---
       # @public
       def namespace(name_or_path, options={}, &block)
@@ -318,6 +355,8 @@ module Merb
       # :member<Hash>:
       #   Special settings and resources related to a specific member of this
       #   resource.
+      # :keys<Array>:
+      #   A list of the keys to be used instead of :id with the resource in the order of the url.
       #
       # ==== Block parameters
       # next_level<Behavior>:: The child behavior.
@@ -336,6 +375,7 @@ module Merb
       #    # GET     /posts/:id(\.:format)?    :action => "show"
       #    # GET     /posts/:id[;/]edit        :action => "edit"
       #    # PUT     /posts/:id(\.:format)?    :action => "update"
+      #    # GET     /posts/:id[;/]delete      :action => "delete"
       #    # DELETE  /posts/:id(\.:format)?    :action => "destroy"
       #
       #  # Nesting resources
@@ -350,15 +390,16 @@ module Merb
         next_level = match "/#{name}"
 
         name_prefix = options.delete :name_prefix
+        matched_keys =  options[:keys] ? options.delete(:keys).map{|k| ":#{k}"}.join("/")  : ":id"
 
         if name_prefix.nil? && !namespace.nil?
           name_prefix = namespace_to_name_prefix namespace
         end
-        
+
         unless @@parent_resource.empty?
           parent_resource = namespace_to_name_prefix @@parent_resource.join('_')
         end
-        
+
         options[:controller] ||= merged_params[:controller] || name.to_s
 
         singular = name.to_s.singularize
@@ -371,41 +412,45 @@ module Merb
         if member = options.delete(:member)
           member.each_pair do |action, methods|
             behaviors << Behavior.new(
-              { :path => %r{^/:id[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
-              { :action => action.to_s }, next_level
+            { :path => %r{^/#{matched_keys}[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
+            { :action => action.to_s }, next_level
             )
-            next_level.match("/:id/#{action}").to_route.name(:"#{action}_#{route_singular_name}")
+            next_level.match("/#{matched_keys}/#{action}").to_route.name(:"#{action}_#{route_singular_name}")
           end
         end
 
         if collection = options.delete(:collection)
           collection.each_pair do |action, methods|
             behaviors << Behavior.new(
-              { :path => %r{^[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
-              { :action => action.to_s }, next_level
+            { :path => %r{^[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
+            { :action => action.to_s }, next_level
             )
             next_level.match("/#{action}").to_route.name(:"#{action}_#{route_plural_name}")
           end
         end
 
-        routes = many_behaviors_to(behaviors + next_level.send(:resources_behaviors), options)
+        routes = many_behaviors_to(behaviors + next_level.send(:resources_behaviors, matched_keys), options)
+
+
 
         # Add names to some routes
         [['', :"#{route_plural_name}"],
-         ['/:id', :"#{route_singular_name}"],
-         ['/new', :"new_#{route_singular_name}"],
-         ['/:id/edit', :"edit_#{route_singular_name}"],
-         ['/:id/delete', :"delete_#{route_singular_name}"]
+        ["/#{matched_keys}", :"#{route_singular_name}"],
+        ['/new', :"new_#{route_singular_name}"],
+        ["/#{matched_keys}/edit", :"edit_#{route_singular_name}"],
+        ["/#{matched_keys}/delete", :"delete_#{route_singular_name}"]
         ].each do |path,name|
           next_level.match(path).to_route.name(name)
         end
-        
+
+
+        parent_keys = (matched_keys == ":id") ? ":#{singular}_id" : matched_keys
         if block_given?
           @@parent_resource.push(singular)
-          yield next_level.match("/:#{singular}_id")
+          yield next_level.match("/#{parent_keys}")
           @@parent_resource.pop
         end
-        
+
         routes
       end
 
@@ -438,6 +483,7 @@ module Merb
       #    # GET     /account/(\.:format)?       :action => "show"
       #    # GET     /account/[;/]edit           :action => "edit"
       #    # PUT     /account/(\.:format)?       :action => "update"
+      #    # GET     /account/[;/]delete         :action => "delete"
       #    # DELETE  /account/(\.:format)?       :action => "destroy"
       #
       # You can optionally pass :namespace and :controller to refine the routing
@@ -461,11 +507,11 @@ module Merb
         if name_prefix.nil? && !namespace.nil?
           name_prefix = namespace_to_name_prefix namespace
         end
-        
+
         unless @@parent_resource.empty?
           parent_resource = namespace_to_name_prefix @@parent_resource.join('_')
         end
-        
+
         routes = next_level.to_resource options
 
         route_name = "#{name_prefix}#{name}"
@@ -577,6 +623,19 @@ module Merb
         @conditions_have_regexp
       end
 
+      def redirect(url, permanent = true)
+        @redirects       = true
+        @redirect_url    = url
+        @redirect_status = permanent ? 301 : 302
+
+        # satisfy route compilation
+        self.to({})
+      end
+
+      def redirects?
+        @redirects
+      end
+
     protected
 
       # ==== Parameters
@@ -590,22 +649,22 @@ module Merb
       end
 
       # ==== Parameters
-      # parent<Merb::Router::Behavior>::
-      #   The parent behavior for the generated resource behaviors.
+      # matched_keys<String>::
+      #   The keys to match
       #
       # ==== Returns
       # Array:: Behaviors for a RESTful resource.
-      def resources_behaviors(parent = self)
+      def resources_behaviors(matched_keys = ":id")
         [
-          Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :get },    { :action => "index" },   parent),
-          Behavior.new({ :path => %r[^/index(\.:format)?$], :method => :get },    { :action => "index" },   parent),
-          Behavior.new({ :path => %r[^/new$],               :method => :get },    { :action => "new" },     parent),
-          Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :post },   { :action => "create" },  parent),
-          Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :get },    { :action => "show" },    parent),
-          Behavior.new({ :path => %r[^/:id[;/]edit$],       :method => :get },    { :action => "edit" },    parent),
-          Behavior.new({ :path => %r[^/:id[;/]delete$],     :method => :get },    { :action => "delete" },  parent),
-          Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :put },    { :action => "update" },  parent),
-          Behavior.new({ :path => %r[^/:id(\.:format)?$],   :method => :delete }, { :action => "destroy" }, parent)
+          Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :get },    { :action => "index" },   self),
+          Behavior.new({ :path => %r[^/index(\.:format)?$], :method => :get },    { :action => "index" },   self),
+          Behavior.new({ :path => %r[^/new$],               :method => :get },    { :action => "new" },     self),
+          Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :post },   { :action => "create" },  self),
+          Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :get },    { :action => "show" },    self),
+          Behavior.new({ :path => %r[^/#{matched_keys}[;/]edit$],       :method => :get },    { :action => "edit" },    self),
+          Behavior.new({ :path => %r[^/#{matched_keys}[;/]delete$],     :method => :get },    { :action => "delete" },  self),
+          Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :put },    { :action => "update" },  self),
+          Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :delete }, { :action => "destroy" }, self)
         ]
       end
 
@@ -740,7 +799,7 @@ module Merb
         compiled = {}
         params.each_pair do |key, value|
           unless value.is_a? String
-            raise ArgumentError, "param value must be string (#{value.inspect})"
+            raise ArgumentError, "param value for #{key.to_s} must be string (#{value.inspect})"
           end
           result = []
           value = value.dup

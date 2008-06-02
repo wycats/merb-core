@@ -567,7 +567,7 @@ Inflector.inflections do |inflect|
   inflect.uncountable(%w(equipment information rice money species series fish sheep))
 end
 
-module Inflections #:nodoc:
+module Inflections
 
   def pluralize
     Inflector.pluralize(self)

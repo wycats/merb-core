@@ -1,6 +1,6 @@
 require 'benchmark'
 
-TIMES = (ARGV[0] || 100_000).to_i
+TIMES = (ARGV[0] || 10_000).to_i
 
 Benchmark.bmbm do |x|
   x.report("instance_methods.include? == true") do

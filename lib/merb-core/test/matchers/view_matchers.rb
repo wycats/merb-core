@@ -115,15 +115,16 @@ module Merb::Test::Rspec::ViewMatchers
       @errors[0]
     end
   end
-
+  
   class HasTag
-
+    
     # ==== Parameters
     # tag<~to_s>:: The tag to look for.
     # attributes<Hash>:: Attributes for the tag (see below).
-    def initialize(tag, attributes = {})
+    def initialize(tag, attributes = {}, &blk)
       @tag, @attributes = tag, attributes
       @id, @class = @attributes.delete(:id), @attributes.delete(:class)
+      @blk = blk
     end
 
     # ==== Parameters
@@ -141,14 +142,13 @@ module Merb::Test::Rspec::ViewMatchers
       else
         Hpricot.parse(stringlike)
       end
+      
+      @blk = blk unless blk.nil?
 
-      if block_given?
+      unless @blk.nil?
         !@document.search(selector).select do |ele|
-          begin
-            blk.call(ele)
-          rescue Spec::Expectations::ExpectationNotMetError
-            false
-          end
+          @blk.call ele
+          true
         end.empty?
       else
         !@document.search(selector).empty?
@@ -232,6 +232,44 @@ module Merb::Test::Rspec::ViewMatchers
     end
   end
 
+  class HasContent
+    def initialize(content)
+      @content = content
+    end
+
+    def matches?(element)
+      @element = element
+      
+      case @content
+      when String
+        @element.contains?(@content)
+      when Regexp
+        @element.matches?(@content)
+      end
+    end
+    
+    # ==== Returns
+    # String:: The failure message.
+    def failure_message
+      "expected the following element's content to #{content_message}:\n#{@element.inner_text}"
+    end
+
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
+    def negative_failure_message
+      "expected the following element's content to not #{content_message}:\n#{@element.inner_text}"
+    end
+    
+    def content_message
+      case @content
+      when String
+        "include \"#{@content}\""
+      when Regexp
+        "match #{@content.inspect}"
+      end
+    end
+  end
+  
   # ==== Parameters
   # name<~to_s>:: The name of the tag to look for.
   # attrs<Hash>:: Attributes to look for in the tag (see below).
@@ -285,9 +323,13 @@ module Merb::Test::Rspec::ViewMatchers
   #
   #   # Check for <div attr="val">
   #   body.should have_tag(:div, :attr => :val)
-  def have_tag(tag, attributes = {})
-    HasTag.new(tag, attributes)
+  def have_tag(tag, attributes = {}, &blk)
+    HasTag.new(tag, attributes, &blk)
   end
 
   alias_method :with_tag, :have_tag
+  
+  def contain(content)
+    HasContent.new(content)
+  end
 end

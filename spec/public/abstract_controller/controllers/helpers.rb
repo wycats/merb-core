@@ -4,8 +4,8 @@ module Merb::Test::Fixtures
     class HelperTesting < Merb::AbstractController
       self._template_root = File.dirname(__FILE__) / "views"
       
-      def _template_location(action, type = nil, controller = controller_name)
-        "helpers/#{File.basename(controller)}/#{action}"
+      def _template_location(context, type = nil, controller = controller_name)
+        "helpers/#{File.basename(controller)}/#{context}"
       end
     end
     

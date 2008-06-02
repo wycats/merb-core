@@ -3,16 +3,33 @@ require 'merb-core/dispatch/router/behavior'
 require 'merb-core/dispatch/router/route'
 require 'merb-core/controller/mixins/responder'
 module Merb
+  # Router stores route definitions and finds first
+  # that matches incoming request URL.
+  #
+  # Then information from route is used by dispatcher to
+  # call action on the controller.
+  #
+  # ==== Routes compilation.
+  #
+  # Most interesting method of Router (and heart of
+  # route matching machinery) is match method generated
+  # on fly from routes definitions. It is called routes
+  # compilation. Generated match method body contains
+  # one if/elsif statement that picks first matching route
+  # definition and sets values to named parameters of the route.
+  #
+  # Compilation is synchronized by mutex.
   class Router
     SEGMENT_REGEXP = /(:([a-z_][a-z0-9_]*|:))/
     SEGMENT_REGEXP_WITH_BRACKETS = /(:[a-z_]+)(\[(\d+)\])?/
     JUST_BRACKETS = /\[(\d+)\]/
     PARENTHETICAL_SEGMENT_STRING = "([^\/.,;?]+)".freeze
-    
+
     @@named_routes = {}
     @@routes = []
+    @@compiler_mutex = Mutex.new
     cattr_accessor :routes, :named_routes
-    
+
     class << self
 
       # Appends the generated routes to the current routes.
@@ -52,27 +69,29 @@ module Merb
       # ==== Returns
       # String:: A routing lambda statement generated from the routes.
       def compiled_statement
-        @@compiled_statement = "def match(request)\n"
-        @@compiled_statement << "  params = request.params\n"
-        @@compiled_statement << "  cached_path = request.path\n  cached_method = request.method.to_s\n  "
-        @@routes.each_with_index { |route, i| @@compiled_statement << route.compile(i == 0) }
-        @@compiled_statement << "  else\n    [nil, {}]\n"
-        @@compiled_statement << "  end\n"
-        @@compiled_statement << "end"
+        @@compiler_mutex.synchronize do
+          @@compiled_statement = "def match(request)\n"
+          @@compiled_statement << "  params = request.params\n"
+          @@compiled_statement << "  cached_path = request.path\n  cached_method = request.method.to_s\n  "
+          @@routes.each_with_index { |route, i| @@compiled_statement << route.compile(i == 0) }
+          @@compiled_statement << "  else\n    [nil, {}]\n"
+          @@compiled_statement << "  end\n"
+          @@compiled_statement << "end"
+        end
       end
 
       # Defines the match function for this class based on the
       # compiled_statement.
       def compile
         puts "compiled route: #{compiled_statement}" if $DEBUG
-        eval(compiled_statement, binding, __FILE__, __LINE__)
+        eval(compiled_statement, binding, "Generated Code for Router#match(#{__FILE__}:#{__LINE__})", 1)
       end
 
       # Generates a URL based on passed options.
       #
       # ==== Parameters
       # name<~to_sym, Hash>:: The name of the route to generate.
-      # params<Hash>:: The params to use in the route generation.
+      # params<Hash, Fixnum, Object>:: The params to use in the route generation.
       # fallback<Hash>:: Parameters for generating a fallback URL.
       #
       # ==== Returns
@@ -82,7 +101,9 @@ module Merb
       # If name is a hash, it will be merged with params and passed on to
       # generate_for_default_route along with fallback.
       def generate(name, params = {}, fallback = {})
+        params.reject! { |k,v| v.nil? } if params.is_a? Hash
         if name.is_a? Hash
+          name.reject! { |k,v| v.nil? }
           return generate_for_default_route(name.merge(params), fallback)
         end
         name = name.to_sym
@@ -136,6 +157,6 @@ module Merb
         url
       end
     end # self
-    
+
   end
 end

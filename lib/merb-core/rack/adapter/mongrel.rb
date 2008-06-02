@@ -17,6 +17,7 @@ module Merb
       def self.start(opts={})
         Merb.logger.warn!("Using Mongrel adapter")
         server = ::Mongrel::HttpServer.new(opts[:host], opts[:port].to_i)
+        Merb::Server.change_privilege
         server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))
         server.run.join
       end

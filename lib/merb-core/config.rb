@@ -21,7 +21,9 @@ module Merb
           :session_id_key         => "_session_id",
           :log_delimiter          => " ~ ",
           :log_auto_flush         => false,
-          :disabled_components    => []
+          :disabled_components    => [],
+          :deferred_actions       => [],
+          :verbose                => false
         }
       end
 
@@ -90,7 +92,7 @@ module Merb
       # ==== Returns
       # String:: The config as YAML.
       def to_yaml
-        @configuration.to_yaml  
+        @configuration.to_yaml
       end
 
       # Sets up the configuration by storing the given settings.
@@ -120,7 +122,7 @@ module Merb
           opts.release = Merb::RELEASE
 
           opts.banner = "Usage: merb [uGdcIpPhmailLerkKX] [argument]"
-          opts.define_head "Merb Mongrel+ Erb. Lightweight replacement for ActionPack."
+          opts.define_head "Merb. Pocket rocket web framework"
           opts.separator '*'*80
           opts.separator 'If no flags are given, Merb starts in the foreground on port 4000.'
           opts.separator '*'*80
@@ -141,7 +143,7 @@ module Merb
             options[:cluster] = nodes
           end
 
-          opts.on("-I", "--init-file FILE", "Name of the file to load first") do |init_file|
+          opts.on("-I", "--init-file FILE", "File to use for initialization on load, defaults to config/init.rb") do |init_file|
             options[:init_file] = init_file
           end
 
@@ -161,14 +163,18 @@ module Merb
             options[:merb_root] = File.expand_path(root)
           end
 
-          opts.on("-a", "--adapter mongrel", "The rack adapter to use to run merb[mongrel, emongrel, thin, fastcgi, webrick, runner, irb]") do |adapter|
+          opts.on("-a", "--adapter mongrel", "The rack adapter to use to run merb[mongrel, emongrel, thin, ebb, fastcgi, webrick, runner, irb]") do |adapter|
             options[:adapter] = adapter
+          end
+
+          opts.on("-R", "--rackup FILE", "Load an alternate Rack config file (default is config/rack.rb)") do |rackup|
+            options[:rackup] = rackup
           end
 
           opts.on("-i", "--irb-console", "This flag will start merb in irb console mode. All your models and other classes will be available for you in an irb session.") do |console|
             options[:adapter] = 'irb'
           end
-          
+
           opts.on("-S", "--sandbox", "This flag will enable a sandboxed irb console. If your ORM supports transactions, all edits will be rolled back on exit.") do |sandbox|
             options[:sandbox] = true
           end
@@ -185,20 +191,20 @@ module Merb
             options[:environment] = env
           end
 
-          opts.on("-r", "--script-runner ['RUBY CODE'| FULL_SCRIPT_PATH]", 
+          opts.on("-r", "--script-runner ['RUBY CODE'| FULL_SCRIPT_PATH]",
           "Command-line option to run scripts and/or code in the merb app.") do |code_or_file|
             options[:runner_code] = code_or_file
             options[:adapter] = 'runner'
           end
 
           opts.on("-K", "--graceful PORT or all", "Gracefully kill one merb proceses by port number.  Use merb -K all to gracefully kill all merbs.") do |ports|
-            @configuration = defaults.merge(options)
-            Merb::Server.kill(ports, 1)
+            options[:action] = :kill
+            options[:port] = ports
           end
 
           opts.on("-k", "--kill PORT or all", "Kill one merb proceses by port number.  Use merb -k all to kill all merbs.") do |port|
-            @configuration = defaults.merge(options)
-            Merb::Server.kill(port, 9)
+            options[:action] = :kill_9
+            options[:port] = port
           end
 
           opts.on("-X", "--mutex on/off", "This flag is for turning the mutex lock on and off.") do |mutex|
@@ -206,7 +212,7 @@ module Merb
               options[:use_mutex] = false
             else
               options[:use_mutex] = true
-            end   
+            end
           end
 
           opts.on("-D", "--debugger", "Run merb using rDebug.") do
@@ -221,8 +227,12 @@ module Merb
             end
           end
 
+          opts.on("-V", "--verbose", "Print extra information") do
+            options[:verbose] = true
+          end
+
           opts.on("-?", "-H", "--help", "Show this help message") do
-            puts opts  
+            puts opts
             exit
           end
         end
@@ -232,7 +242,7 @@ module Merb
         Merb::Config.setup(options)
       end
 
-      attr_accessor :configuration #:nodoc:
+      attr_accessor :configuration
 
       # Set configuration parameters from a code block, where each method
       # evaluates to a config parameter.
@@ -249,14 +259,14 @@ module Merb
       def configure(&block)
         ConfigBlock.new(self, &block) if block_given?
       end
-      
+
       # Allows retrieval of single key config values via Merb.config.<key>
       # Allows single key assignment via Merb.config.<key> = ...
       #
       # ==== Parameters
       # method<~to_s>:: Method name as hash key value.
       # *args:: Value to set the configuration parameter to.
-      def method_missing(method, *args) #:nodoc:
+      def method_missing(method, *args)
         if method.to_s[-1,1] == '='
           @configuration[method.to_s.tr('=','').to_sym] = *args
         else
@@ -266,14 +276,14 @@ module Merb
 
     end # class << self
 
-    class ConfigBlock #:nodoc:
+    class ConfigBlock
 
-      def initialize(klass, &block) #:nodoc:
+      def initialize(klass, &block)
         @klass = klass
         instance_eval(&block)
       end
 
-      def method_missing(method, *args) #:nodoc:
+      def method_missing(method, *args)
         @klass[method] = *args
       end
 

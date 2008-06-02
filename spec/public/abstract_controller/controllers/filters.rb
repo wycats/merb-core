@@ -163,5 +163,31 @@ module Merb::Test::Fixtures
         "index action"
       end
     end
+    
+    class TestBeforeFilterWithArgument < Testing
+      before :foo, :with => "bar"
+      
+      def index
+        "index action"
+      end
+      
+      private
+      def foo(bar)
+        bar == "bar"
+      end
+    end
+    
+    class TestBeforeFilterWithArguments < Testing
+      before :foo, :with => ["bar", "baz"]
+      
+      def index
+        "index action"
+      end
+      
+      private
+      def foo(bar,baz)
+        bar == "bar" && baz == "baz"
+      end
+    end    
   end
 end

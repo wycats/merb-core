@@ -14,7 +14,24 @@ module English
     @plural_rules = []
 
     class << self
-      # Define a general exception.
+      # Defines a general inflection exception case.
+      #
+      # ==== Parameters
+      # singular<String>::
+      #   singular form of the word
+      # plural<String>::
+      #   plural form of the word
+      #
+      # ==== Examples
+      #
+      # Here we define erratum/errata exception case:
+      #
+      # Language::English::Inflector.word "erratum", "errata"
+      #
+      # In case singular and plural forms are the same omit
+      # second argument on call:
+      #
+      # Language::English::Inflector.word 'information'
       def word(singular, plural=nil)
         plural = singular unless plural
         singular_word(singular, plural)
@@ -22,27 +39,83 @@ module English
       end
 
       # Define a singularization exception.
+      #
+      # ==== Parameters
+      # singular<String>::
+      #   singular form of the word
+      # plural<String>::
+      #   plural form of the word
       def singular_word(singular, plural)
         @singular_of[plural] = singular
       end
 
       # Define a pluralization exception.
+      #
+      # ==== Parameters
+      # singular<String>::
+      #   singular form of the word
+      # plural<String>::
+      #   plural form of the word
       def plural_word(singular, plural)
         @plural_of[singular] = plural
       end
 
       # Define a general rule.
+      #
+      # ==== Parameters
+      # singular<String>::
+      #   ending of the word in singular form
+      # plural<String>::
+      #   ending of the word in plural form
+      #
+      # ==== Examples
+      # Once the following rule is defined:
+      # Language::English::Inflector.rule 'y', 'ies'
+      #
+      # You can see the following results:
+      # irb> "fly".plural
+      # => flies
+      # irb> "cry".plural
+      # => cries
       def rule(singular, plural)
         singular_rule(singular, plural)
         plural_rule(singular, plural)
       end
 
       # Define a singularization rule.
+      #
+      # ==== Parameters
+      # singular<String>::
+      #   ending of the word in singular form
+      # plural<String>::
+      #   ending of the word in plural form
+      #
+      # ==== Examples
+      # Once the following rule is defined:
+      # Language::English::Inflector.singular_rule 'o', 'oes'
+      #
+      # You can see the following results:
+      # irb> "heroes".singular
+      # => hero
       def singular_rule(singular, plural)
         @singular_rules << [singular, plural]
       end
 
       # Define a plurualization rule.
+      #
+      # ==== Parameters
+      # singular<String>::
+      #   ending of the word in singular form
+      # plural<String>::
+      #   ending of the word in plural form
+      #
+      # ==== Examples
+      # Once the following rule is defined:
+      # Language::English::Inflector.singular_rule 'fe', 'ves'
+      #
+      # You can see the following results:
+      # irb> "wife".plural
+      # => wives
       def plural_rule(singular, plural)
         @plural_rules << [singular, plural]
       end
@@ -80,11 +153,20 @@ module English
       #   "boys".singular      #=> boy
       #   "tomatoes".singular  #=> tomato
       #
+      # ==== Parameters
+      # word<String>:: word to singularize
+      #
+      # ==== Returns
+      # <String>:: singularized form of word
+      #
+      # ==== Notes
+      # Aliased as singularize (a Railism)
       def singular(word)
         if result = singular_of[word]
           return result.dup
         end
         result = word.dup
+        return result if singular_of.value? result
         singularization_rules.each do |(match, replacement)|
           break if result.gsub!(match, replacement)
         end
@@ -100,6 +182,14 @@ module English
       #   "boy".plural     #=> boys
       #   "tomato".plural  #=> tomatoes
       #
+      # ==== Parameters
+      # word<String>:: word to pluralize
+      #
+      # ==== Returns
+      # <String>:: pluralized form of word
+      #
+      # ==== Notes
+      # Aliased as pluralize (a Railism)
       def plural(word)
         if result = plural_of[word]
           return result.dup
@@ -127,6 +217,10 @@ module English
     word 'sheep'
     word 'moose'
     word 'hovercraft'
+    word 'grass'
+    word 'news'
+    word 'rain'
+    word 'milk'
 
     # Two arguments defines a singular and plural exception.
 
@@ -148,7 +242,7 @@ module English
     word 'torpedo'   , 'torpedoes'
     word 'quiz'      , 'quizes'
     word 'matrix'    , 'matrices'
-    word 'vertex'    , 'vetices'
+    word 'vertex'    , 'vertices'
     word 'index'     , 'indices'
     word 'ox'        , 'oxen'
     word 'mouse'     , 'mice'
@@ -156,10 +250,16 @@ module English
     word 'thesis'    , 'theses'
     word 'thief'     , 'thieves'
     word 'analysis'  , 'analyses'
+    word 'erratum'   , 'errata'
+    word 'phenomenon', 'phenomena'
+    word 'octopus'   , 'octopi'
+    word 'thesaurus' , 'thesauri'
+    word 'movie'     , 'movies'
+    word 'cactus'    , 'cacti'
 
     # One-way singularization exception (convert plural to singular).
 
-    singular_word 'cactus', 'cacti'
+    # singular_word 'cactus', 'cacti'
 
     # General rules.
 

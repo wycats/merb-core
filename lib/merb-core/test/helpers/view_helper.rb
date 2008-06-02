@@ -112,7 +112,7 @@ module Merb
           return @output unless @output.nil?
           return @output = DocumentOutput.new(@response_output) unless @response_output.nil?
           
-          raise "The response output was not in it's usual places, please provide the output" if @controller.nil? || @controller.body.empty?
+          raise "The response output was not in its usual places, please provide the output" if @controller.nil? || @controller.body.empty?
           @response_output = @controller.body
           @output = DocumentOutput.new(@controller.body)
         end
