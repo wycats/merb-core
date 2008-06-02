@@ -4,11 +4,20 @@ module Merb
     # def env def session def route_params
     attr_accessor :env, :session, :route_params
     
-    # by setting these to false, auto-parsing is disabled; this way you can do your own parsing instead
-    cattr_accessor :parse_multipart_params, :parse_json_params, :parse_xml_params
+    # by setting these to false, auto-parsing is disabled; this way you can
+    # do your own parsing instead
+    cattr_accessor :parse_multipart_params, :parse_json_params,
+      :parse_xml_params
     self.parse_multipart_params = true
     self.parse_json_params = true
     self.parse_xml_params = true
+    
+    # Most web browsers can't send PUT or DELETE requests
+    # Any Strings stored in this array will be used as paramaters
+    # to find the real method.  Common examples are _method and
+    # fb_sig_request_method 
+    cattr_accessor :browser_method_workarounds
+    self.browser_method_workarounds = []
     
     # Initial the request object.
     #
@@ -27,8 +36,9 @@ module Merb
     # Symbol:: The name of the request method, e.g. :get.
     #
     # ==== Notes
-    # If the method is post, then the +_method+ param will be checked for
-    # masquerading method.
+    # If the method is post, then the params specified in
+    # browser_method_workarounds will be checked for the masquerading method.
+    # The first matching workaround wins.
     def method
       @method ||= begin
         request_method = @env['REQUEST_METHOD'].downcase.to_sym
@@ -37,9 +47,16 @@ module Merb
           request_method
         when :post
           if self.class.parse_multipart_params
-            m = body_and_query_params.merge(multipart_params)['_method']
+            p = body_and_query_params.merge(multipart_params)
           else  
-            m = body_and_query_params['_method']
+            p = body_and_query_params
+          end
+          m = nil
+          self.class.browser_method_workarounds.each do |workaround|
+            if p.include?(workaround.to_s)
+              m = p[workaround.to_s]
+              break
+            end
           end
           m.downcase! if m
           METHODS.include?(m) ? m.to_sym : :post

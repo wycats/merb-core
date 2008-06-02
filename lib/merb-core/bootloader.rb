@@ -152,6 +152,14 @@ class Merb::BootLoader::DropPidFile <  Merb::BootLoader
   end
 end
 
+# Setup some useful defaults
+class Merb::BootLoader::Defaults < Merb::BootLoader
+  def self.run
+    Merb::Request.browser_method_workarounds << "_method"
+  end
+end
+
+
 # Build the framework paths.
 #
 # By default, the following paths will be used:
@@ -355,12 +363,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to reload.
     def reload(file)
-      Merb.klass_hashes.each {|x| x.protect_keys!}
-      if klasses = LOADED_CLASSES.delete(file)
-        klasses.each { |klass| remove_constant(klass) unless klass.to_s =~ /Router/ }
-      end
-      load_file file
-      Merb.klass_hashes.each {|x| x.unprotect_keys!}
+      remove_file(file) { |f| load_file(f) }
     end
     
     # Reload the router to regenerate all routes.
@@ -368,6 +371,18 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       if File.file?(router_file = Merb.dir_for(:router) / Merb.glob_for(:router))
         reload router_file
       end
+    end
+    
+    # ==== Parameters
+    # file<String>:: The file to remove classes for.
+    # &block:: A block to call with the file that has been removed.
+    def remove_file(file, &block)
+      Merb.klass_hashes.each {|x| x.protect_keys!}
+      if klasses = LOADED_CLASSES.delete(file)
+        klasses.each { |klass| remove_constant(klass) unless klass.to_s =~ /Router/ }
+      end
+      yield file if block_given?
+      Merb.klass_hashes.each {|x| x.unprotect_keys!}
     end
 
     # ==== Parameters
