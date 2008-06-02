@@ -256,7 +256,7 @@ module Merb
     #---
     # @public
     def only_provides(*formats)
-      _set_provided_formats(*formats)
+      self._provided_formats = *formats
     end
     
     # Removes formats from the list of provided formats for this particular 
