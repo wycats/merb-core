@@ -106,7 +106,9 @@ module Merb::RenderMixin
       template_method, template_location = _template_for(thing, content_type, controller_name, opts)
 
       # Raise an error if there's no template
-      raise TemplateNotFound, "No template found at #{template_location}.*"  \
+      template_files  = Merb::Template.template_extensions.map { |ext| "#{template_location}.#{ext}" }
+      
+      raise TemplateNotFound, "Oops! No template found. Merb was looking for #{template_files.join(', ')} for content type '#{content_type}'. You might mispell template/file name. Registred template extensions: #{Merb::Template.template_extensions.join(', ')}. If you use Haml or some other template plugin, make sure you required Merb plugin dependency in init file."  \
         unless template_method && self.respond_to?(template_method)
 
       # Call the method in question and throw the content for later consumption by the layout
@@ -243,6 +245,9 @@ module Merb::RenderMixin
   #   relative to the current controller.
   # opts<Hash>:: A hash of options (see below)
   #
+  # ==== Block parameters
+  # temp:: Current :with Object being handled inside of the partial.
+  # 
   # ==== Options (opts)
   # :with<Object, Array>::
   #   An object or an array of objects that will be passed into the partial.
@@ -251,7 +256,12 @@ module Merb::RenderMixin
   # others::
   #   A Hash object names and values that will be the local names and values
   #   inside the partial.
-  #
+  # 
+  # ==== Notes
+  # The following local variables are available inside of the partial when :with is specified:
+  #   partial_counter:: The current partial iteration (starting at 1).
+  #   partial_size:: The number of times the partial will be iterated.
+  # 
   # ==== Example
   #   partial :foo, :hello => @object
   #
@@ -270,10 +280,12 @@ module Merb::RenderMixin
     (@_old_partial_locals ||= []).push @_merb_partial_locals
 
     if opts.key?(:with)
-      with = opts.delete(:with)
+      with = [opts.delete(:with)].flatten
       as = opts.delete(:as) || template_location.match(%r[.*/_([^\.]*)])[1]
-      @_merb_partial_locals = opts
-      sent_template = [with].flatten.map do |temp|
+      @_merb_partial_locals = opts.merge(:partial_size => with.size, :partial_counter => 0)
+      sent_template = with.map do |temp|
+        yield temp if block_given?
+        @_merb_partial_locals[:partial_counter] += 1
         @_merb_partial_locals[as.to_sym] = temp
         if template_method && self.respond_to?(template_method)
           send(template_method)

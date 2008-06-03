@@ -99,9 +99,8 @@ module Merb
       def dispatch_to(controller_klass, action, params = {}, env = {}, &blk)
         action = action.to_s
         request_body = { :post_body => env[:post_body], :req => env[:req] }
-        request = fake_request(env.merge(
-          :query_string => Merb::Request.params_to_query_string(params)), request_body)
-
+        env = env.merge(:query_string => Merb::Request.params_to_query_string(params)) unless env.key?('QUERY_STRING')
+        request = fake_request(env, request_body)
         dispatch_request(request, controller_klass, action, &blk)
       end
 

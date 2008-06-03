@@ -1,3 +1,5 @@
+require 'tempfile'
+
 module Merb
   
   class Request
@@ -115,9 +117,9 @@ module Merb
     def multipart_params
       @multipart_params ||= 
         begin
-          # if the content-type is multipart and there's stuff in the body,
+          # if the content-type is multipart
           # parse the multipart. Otherwise return {}
-          if (Merb::Const::MULTIPART_REGEXP =~ content_type && @body.size > 0)
+          if (Merb::Const::MULTIPART_REGEXP =~ content_type)
             self.class.parse_multipart(@body, $1, content_length)
           else
             {}
@@ -396,7 +398,7 @@ module Merb
     class << self
       
       # ==== Parameters
-      # value<Array, Hash, ~to_s>:: The value for the query string.
+      # value<Array, Hash, Dictionary ~to_s>:: The value for the query string.
       # prefix<~to_s>:: The prefix to add to the query string keys.
       #
       # ==== Returns
@@ -420,7 +422,7 @@ module Merb
           value.map { |v|
             params_to_query_string(v, "#{prefix}[]")
           } * "&"
-        when Hash
+        when Hash, Dictionary
           value.map { |k, v|
             params_to_query_string(v, prefix ? "#{prefix}[#{Merb::Request.escape(k)}]" : Merb::Request.escape(k))
           } * "&"
@@ -454,18 +456,21 @@ module Merb
       # ==== Parameters
       # qs<String>:: The query string.
       # d<String>:: The query string divider. Defaults to "&".
+      # preserve_order<Boolean>:: Preserve order of args. Defaults to false.
       #
       # ==== Returns
-      # Mash:: The parsed query string.
+      # Mash:: The parsed query string (Dictionary if preserve_order is set).
       #
       # ==== Examples
       #   query_parse("bar=nik&post[body]=heya")
       #     # => { :bar => "nik", :post => { :body => "heya" } }
-      def query_parse(qs, d = '&;')
-        (qs||'').split(/[#{d}] */n).inject({}) { |h,p| 
+      def query_parse(qs, d = '&;', preserve_order = false)
+        qh = preserve_order ? Dictionary.new : {}
+        (qs||'').split(/[#{d}] */n).inject(qh) { |h,p| 
           key, value = unescape(p).split('=',2)
           normalize_params(h, key, value)
-        }.to_mash
+        }
+        preserve_order ? qh : qh.to_mash
       end
     
       NAME_REGEX = /Content-Disposition:.* name="?([^\";]*)"?/ni.freeze
