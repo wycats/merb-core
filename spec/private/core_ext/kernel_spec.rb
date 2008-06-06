@@ -48,18 +48,6 @@ describe "Kernel#debugger" do
 end
 
 
-describe "Kernel#dependency" do
-  it "adds dependency to the list" do
-    lambda { dependency("dm_merb", ">= 0.9") }.should change(Merb::BootLoader::Dependencies.dependencies, :size)
-  end
-
-  it "deferres load to boot loader run" do
-    Object.should_not_receive(:full_const_get)
-    dependency("dm_merb", ">= 0.9")
-  end
-end
-
-
 describe "Kernel#load_dependency" do
   before :each do
 
