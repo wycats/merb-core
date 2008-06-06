@@ -1,12 +1,26 @@
 module Kernel
-  # Loads the given string as a gem. Execution is deferred to
-  # the Merb::BootLoader::Dependencies.run during bootup.
+  # Loads the given string as a gem. Execution is deferred until
+  # after the logger has been instantiated and the framework directory
+  # structure is defined.
   #
+  # If that has already happened, the gem will be activated
+  # immediately.
+  # 
+  # ==== Parameters
   # @param name<String> The name of the gem to load.
   # @param *ver<Gem::Requirement, Gem::Version, Array, #to_str>
   #   Version requirements to be passed to Gem.activate.
+  #
+  # ==== Returns
+  # Array[String, Array[Gem::Requirement, Gem::Version, Array, #to_str]]::
+  #   The name and version information that was passed in.
   def dependency(name, *ver)
-    Merb::BootLoader::Dependencies.dependencies << [name, ver]
+    if Merb::BootLoader.finished?(Merb::BootLoader::Dependencies)
+      load_dependency(name, *ver)
+    else
+      Merb::BootLoader::Dependencies.dependencies << [name, ver]
+    end
+    [name, ver]
   end
 
   # Loads the given string as a gem.

@@ -5,10 +5,8 @@ module Merb
     # def self.subclasses
     #---
     # @semipublic
-    cattr_accessor :subclasses, :after_load_callbacks, :before_load_callbacks
-    self.subclasses = []
-    self.after_load_callbacks = []
-    self.before_load_callbacks = []
+    cattr_accessor :subclasses, :after_load_callbacks, :before_load_callbacks, :finished
+    self.subclasses, self.after_load_callbacks, self.before_load_callbacks, self.finished = [], [], [], []
 
     class << self
 
@@ -65,8 +63,20 @@ module Merb
           bootloader = subclasses.shift
           Merb.logger.debug!("Loading: #{bootloader}") if ENV['DEBUG']
           Object.full_const_get(bootloader).run
+          self.finished << bootloader
         end
         self.subclasses = subklasses
+      end
+      
+      # Determines whether or not a specific bootloader has finished yet.
+      #
+      # ==== Parameters
+      # bootloader<String, Class>:: The name of the bootloader to check.
+      #
+      # ==== Returns
+      # Boolean:: Whether or not the bootloader has finished.
+      def finished?(bootloader)
+        self.finished.include?(bootloader.to_s)
       end
 
       # Set up the default framework
