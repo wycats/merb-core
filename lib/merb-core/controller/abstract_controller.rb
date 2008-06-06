@@ -21,7 +21,7 @@
 # 
 # #after is identical, but the filters are run after the action is invoked.
 #
-# ==== Examples
+# ===== Examples
 #   before :some_filter
 #   before :authenticate, :exclude => [:login, :signup]
 #   before :has_role, :with => ["Admin"], :exclude => [:index,:show]
@@ -62,7 +62,7 @@
 #     throw :halt, proc {|c| c.access_denied }
 #     throw :halt, proc {|c| Tidy.new(c.index) }
 #
-# ==== Filter Options (.before, .after, .add_filter, .if, .unless)
+# ===== Filter Options (.before, .after, .add_filter, .if, .unless)
 # :only<Symbol, Array[Symbol]>::
 #   A list of actions that this filter should apply to
 #
@@ -75,7 +75,7 @@
 # :unless<Symbol, Proc>::
 #   Only apply the filter if the method named after the symbol or calling the proc evaluates to false
 #
-# ==== Types (shortcuts for use in this file)
+# ===== Types (shortcuts for use in this file)
 # Filter:: <Array[Symbol, (Symbol, String, Proc)]>
 class Merb::AbstractController
   include Merb::RenderMixin
