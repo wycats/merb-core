@@ -560,10 +560,8 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       if ["", "false", "none"].include?(session_store)
         Merb.logger.warn "Not Using Sessions"
       elsif reg = Merb.registered_session_types[session_store]
-        if session_store == "cookie"
-          Merb::BootLoader::MixinSessionContainer.check_for_secret_key
-          Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
-        end
+        Merb::BootLoader::MixinSessionContainer.check_for_secret_key if session_store == "cookie"
+        Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
         require reg[:file]
         include ::Merb::SessionMixin
         Merb.logger.warn reg[:description]

@@ -499,6 +499,7 @@ module Merb
         bufsize = 16384
         content_length -= boundary_size
         status = input.read(boundary_size)
+        return {} if status == nil || status.empty?
         raise ControllerExceptions::MultiPartParseError, "bad content body:\n'#{status}' should == '#{boundary + EOL}'"  unless status == boundary + EOL
         rx = /(?:#{EOL})?#{Regexp.quote(boundary,'n')}(#{EOL}|--)/
         loop {
