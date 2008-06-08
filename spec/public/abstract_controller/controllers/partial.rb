@@ -11,11 +11,19 @@ module Merb::Test::Fixtures
         "partial/#{File.basename(controller)}/#{context}"
       end
     end
-
+    
     class BasicPartial < RenderIt
 
       def index
         render
+      end
+    end
+
+    class WithAbsolutePartial < RenderIt
+      
+      def index
+        @absolute_partial_path = File.expand_path(File.dirname(__FILE__)) / 'views' / 'partial' / 'with_absolute_partial' / 'partial'
+        render 
       end
     end
 
