@@ -71,7 +71,8 @@ class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
   
-  class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root
+  class_inheritable_accessor :_layout, :_template_root
+  class_inheritable_array :_before_filters, :_after_filters
   
   FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
 
