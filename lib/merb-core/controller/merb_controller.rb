@@ -24,8 +24,8 @@ class Merb::Controller < Merb::AbstractController
     #   The Merb::Controller inheriting from the base class.
     def inherited(klass)
       _subclasses << klass.to_s
-      self._template_root = Merb.dir_for(:view) unless self._template_root
       super
+      klass._template_root = Merb.dir_for(:view) unless self._template_root
     end
 
     # Hide each of the given methods from being callable as actions.
