@@ -189,7 +189,7 @@ module Merb
       #   True if this route is a regexp, i.e. its behavior or one of the
       #   behavior's ancestors is a regexp.
       def regexp?
-        behavior.regexp? || behavior.send(:ancestors).any? { |a| a.regexp? }
+        @regexp ||= behavior.regexp? || behavior.ancestors.any? { |a| a.regexp? }
       end
 
       # Generates URL using route segments and given parameters.
