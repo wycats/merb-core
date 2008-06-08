@@ -24,8 +24,8 @@ class Merb::Controller < Merb::AbstractController
     #   The Merb::Controller inheriting from the base class.
     def inherited(klass)
       _subclasses << klass.to_s
-      self._template_root = Merb.dir_for(:view) unless self._template_root
       super
+      klass._template_root = Merb.dir_for(:view) unless self._template_root
     end
 
     # Hide each of the given methods from being callable as actions.
@@ -156,6 +156,23 @@ class Merb::Controller < Merb::AbstractController
   # @public
   def _template_location(context, type = nil, controller = controller_name)
     controller ? "#{controller}/#{context}.#{type}" : "#{context}.#{type}"
+  end
+  
+  # The location to look for a template and mime-type. This is overridden 
+  # from AbstractController, which defines a version of this that does not 
+  # involve mime-types.
+  #
+  # ==== Parameters
+  # template<String>:: 
+  #    The absolute path to a template - without mime and template extension.
+  #    The mime-type extension is optional - it will be appended from the 
+  #    current content type if it hasn't been added already.
+  # type<~to_s>::
+  #    The mime-type of the template that will be rendered. Defaults to nil.
+  #
+  # @public
+  def _absolute_template_location(template, type)
+    template.match(/\.#{type.to_s.escape_regexp}$/) ? template : "#{template}.#{type}"
   end
 
   # Build a new controller.

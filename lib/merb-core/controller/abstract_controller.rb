@@ -122,6 +122,18 @@ class Merb::AbstractController
     controller ? "#{controller}/#{context}" : context
   end
 
+  # The location to look for a template - stub method for particular behaviour.
+  #
+  # ==== Parameters
+  # template<String>:: The absolute path to a template - without template extension.
+  # type<~to_s>::
+  #    The mime-type of the template that will be rendered. Defaults to nil.
+  #
+  # @public
+  def _absolute_template_location(template, type)
+    template
+  end
+
   # ==== Returns
   # roots<Array[Array]>::
   #   Template roots as pairs of template root path and template location

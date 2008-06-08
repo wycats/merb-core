@@ -63,6 +63,10 @@ describe Merb::AbstractController, " rendering templates" do
     dispatch_should_make_body("RenderTemplateCustomLocation", "Wonderful")
   end
   
+  it "should support rendering templates from an absolute path location" do
+    dispatch_should_make_body("RenderTemplateAbsolutePath", "Wonderful")
+  end
+
   it "should support rendering templates with multiple roots" do
     dispatch_should_make_body("RenderTemplateMultipleRoots", "App: Multiple")
   end

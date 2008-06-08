@@ -104,7 +104,7 @@ module Merb::RenderMixin
     if thing.is_a?(Symbol) || opts[:template]
 
       template_method, template_location = _template_for(thing, content_type, controller_name, opts)
-
+      
       # Raise an error if there's no template
       template_files  = Merb::Template.template_extensions.map { |ext| "#{template_location}.#{ext}" }
       
@@ -240,9 +240,9 @@ module Merb::RenderMixin
   # ==== Parameters
   # template<~to_s>::
   #   The path to the template, relative to the current controller or the
-  #   template root. If the template contains a "/", Merb will search for it
-  #   relative to the template root; otherwise, Merb will search for it
-  #   relative to the current controller.
+  #   template root; absolute path will work too. If the template contains a "/", 
+  #   Merb will search for it relative to the template root; otherwise, 
+  #   Merb will search for it relative to the current controller.
   # opts<Hash>:: A hash of options (see below)
   #
   # ==== Block parameters
@@ -269,13 +269,18 @@ module Merb::RenderMixin
   # with a local variable of +hello+ inside of it, assigned to @object.
   def partial(template, opts={})
 
-    # partial :foo becomes "#{controller_name}/_foo"
-    # partial "foo/bar" becomes "foo/_bar"
-    template = template.to_s
-    kontroller = (m = template.match(/.*(?=\/)/)) ? m[0] : controller_name
-    template = "_#{File.basename(template)}"
+    if template.is_a?(String) && template[0,1] == '/' # absolute path to a partial
+      opts[:template] = File.dirname(template) / "_#{File.basename(template)}"
+      template_method, template_location = _template_for(template, opts.delete(:format) || content_type, nil, opts)
+    else
+      # partial :foo becomes "#{controller_name}/_foo"
+      # partial "foo/bar" becomes "foo/_bar"
+      template = template.to_s
+      kontroller = (m = template.match(/.*(?=\/)/)) ? m[0] : controller_name
+      template = "_#{File.basename(template)}"
 
-    template_method, template_location = _template_for(template, opts.delete(:format) || content_type, kontroller)
+      template_method, template_location = _template_for(template, opts.delete(:format) || content_type, kontroller)
+    end
 
     (@_old_partial_locals ||= []).push @_merb_partial_locals
 
@@ -388,7 +393,7 @@ module Merb::RenderMixin
   # and template location of the first match.
   #
   # ==== Parameters
-  # context<Object>:: The controller action or template basename.
+  # context<Object>:: The controller action or template (basename or absolute path).
   # content_type<~to_s>:: The content type (like html or json).
   # controller<~to_s>:: The name of the controller. Defaults to nil.
   #
@@ -404,16 +409,21 @@ module Merb::RenderMixin
     template_method = nil
     template_location = nil
 
-    self.class._template_roots.reverse_each do |root, template_location|
-      if opts[:template] # use the given template as the location context
-        template_location = root / self.send(template_location, opts[:template], content_type, nil)
+    if opts[:template].is_a?(String) && opts[:template][0,1] == '/'  # absolute path to a template
+      template_location = self._absolute_template_location(opts[:template], content_type)
+      template_method   = Merb::Template.template_for(template_location)
+    else
+      self.class._template_roots.reverse_each do |root, template_location|
+        if opts[:template] # use the given template as the location context
+          template_location = root / self.send(template_location, opts[:template], content_type, nil)
+          template_method = Merb::Template.template_for(template_location)
+          break if template_method && self.respond_to?(template_method)
+        end
+
+        template_location = root / (opts[:template] || self.send(template_location, context, content_type, controller))
         template_method = Merb::Template.template_for(template_location)
         break if template_method && self.respond_to?(template_method)
       end
-
-      template_location = root / (opts[:template] || self.send(template_location, context, content_type, controller))
-      template_method = Merb::Template.template_for(template_location)
-      break if template_method && self.respond_to?(template_method)
     end
 
     [template_method, template_location]

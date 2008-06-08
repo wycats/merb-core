@@ -58,4 +58,8 @@ describe Merb::AbstractController, " Partials" do
     dispatch_should_make_body("PartialWithCollectionsAndYield", "Partial yielding")
   end
   
+  it "should render a partial using an absolute path" do
+    dispatch_should_make_body("WithAbsolutePartial", "Index Absolute Partial")
+  end
+  
 end
