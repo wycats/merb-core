@@ -31,6 +31,11 @@ module Merb
     cattr_accessor :routes, :named_routes
 
     class << self
+      
+      # Clear all routes.
+      def reset!
+        self.routes, self.named_routes = [], {}
+      end
 
       # Appends the generated routes to the current routes.
       #
@@ -64,6 +69,18 @@ module Merb
         yield Behavior.new({}, { :action => 'index' }) # defaults
         @@routes = first + @@routes + last
         compile
+      end
+
+      # Capture any new routes that have been added within the block.
+      #
+      # This utility method lets you track routes that have been added;
+      # it doesn't affect how/which routes are added.
+      #
+      # &block:: A context in which routes are generated.
+      def capture(&block)
+        routes_before, named_route_keys_before = self.routes.dup, self.named_routes.keys
+        yield
+        [self.routes - routes_before, self.named_routes.except(*named_route_keys_before)]
       end
 
       # ==== Returns

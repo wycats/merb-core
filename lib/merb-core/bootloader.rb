@@ -379,6 +379,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # Reload the router to regenerate all routes.
     def reload_router!
       if File.file?(router_file = Merb.dir_for(:router) / Merb.glob_for(:router))
+        Merb::Router.reset!
         reload router_file
       end
     end
