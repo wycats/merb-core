@@ -78,11 +78,29 @@ describe Merb::AbstractController, " should support before and after filters" do
     running { dispatch_should_make_body("TestConditionalFilterWithNoProcOrSymbol", "") }.should raise_error(ArgumentError, /a Symbol or a Proc/)
   end
   
+  it "should throw an error if an unknown option is passed to a filter" do
+    running { Merb::Test::Fixtures::Abstract.class_eval do
+        
+      class TestErrorFilter < Merb::Test::Fixtures::Abstract::Testing
+        before :foo, :except => :index
+      end 
+    end }.should raise_error(ArgumentError, /known filter options/)
+  end
+  
   it "should support passing an argument to a before filter method" do
     dispatch_should_make_body("TestBeforeFilterWithArgument", "index action")
   end
   
   it "should support passing arguments to a before filter method" do
     dispatch_should_make_body("TestBeforeFilterWithArguments", "index action")
+  end
+  
+  it "should inherit before filters" do
+    dispatch_should_make_body("FilterChild2", "Before Limited", :limited)
+  end
+  
+  it "should not get contaminated by cousins" do
+    pending
+    dispatch_should_make_body("FilterChild2", "Before Index")
   end
 end

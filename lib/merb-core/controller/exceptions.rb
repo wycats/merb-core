@@ -90,7 +90,7 @@ module Merb
   #   <p>You tried to access <%= @tried_to_access %> but that URL is 
   #   restricted to administrators.</p>
   #
-  module ControllerExceptions #:nodoc: all
+  module ControllerExceptions
     
     # Mapping of status code names to their numeric value.
     STATUS_CODES = {}
@@ -294,7 +294,7 @@ module Merb
   # Required to show exceptions in the log file
   #
   # e<Exception>:: The exception that a message is being generated for
-  def self.exception(e) #:nodoc:
+  def self.exception(e)
     "#{ e.message } - (#{ e.class })\n" <<  
     "#{(e.backtrace or []).join("\n")}" 
   end

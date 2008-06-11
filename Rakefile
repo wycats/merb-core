@@ -19,15 +19,12 @@ NAME = "merb-core"
 
 require "lib/merb-core/version"
 require "lib/merb-core/test/run_specs"
+require 'lib/merb-core/tasks/merb_rake_helper'
 
 ##############################################################################
 # Packaging & Installation
 ##############################################################################
 CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
-
-windows = (PLATFORM =~ /win32|cygwin/) rescue nil
-
-SUDO = windows ? "" : "sudo"
 
 desc "Packages up Merb."
 task :default => :package
@@ -59,7 +56,6 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "json_pure"
   s.add_dependency "rspec"
   s.add_dependency "rack"
-  s.add_dependency "hpricot"
   s.add_dependency "mime-types"
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
@@ -72,17 +68,17 @@ end
 
 desc "Run :package and install the resulting .gem"
 task :install => :package do
-  sh %{#{SUDO} gem install --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{sudo} gem install #{install_home} --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :package and install the resulting .gem with jruby"
 task :jinstall => :package do
-  sh %{#{SUDO} jruby -S gem install pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{sudo} jruby -S gem install #{install_home} pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :clean and uninstall the .gem"
 task :uninstall => :clean do
-  sh %{#{SUDO} gem uninstall #{NAME}}
+  sh %{#{sudo} gem uninstall #{NAME}}
 end
 
 namespace :github do
@@ -90,14 +86,14 @@ namespace :github do
   task :update_gemspec do
     skip_fields = %w(new_platform original_platform)
     integer_fields = %w(specification_version)
-    
+
     result = "Gem::Specification.new do |s|\n"
-    spec.instance_variables.each do |ivar| 
+    spec.instance_variables.each do |ivar|
       value = spec.instance_variable_get(ivar)
       name  = ivar.split("@").last
       next if skip_fields.include?(name) || value.nil? || value == "" || (value.respond_to?(:empty?) && value.empty?)
       if name == "dependencies"
-        value.each do |d| 
+        value.each do |d|
           dep, *ver = d.to_s.split(" ")
           result <<  "  s.add_dependency #{dep.inspect}, #{ver.join(" ").inspect.gsub(/[()]/, "")}\n"
         end
@@ -143,7 +139,7 @@ namespace :doc do
   desc "rdoc to rubyforge"
   task :rubyforge do
     # sh %{rake doc}
-    sh %{#{SUDO} chmod -R 755 doc} unless windows
+    sh %{#{sudo} chmod -R 755 doc} unless windows?
     sh %{/usr/bin/scp -r -p doc/rdoc/* ezmobius@rubyforge.org:/var/www/gforge-projects/merb}
   end
 

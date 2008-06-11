@@ -1,14 +1,25 @@
+require 'tempfile'
+
 module Merb
   
   class Request
     # def env def session def route_params
     attr_accessor :env, :session, :route_params
     
-    # by setting these to false, auto-parsing is disabled; this way you can do your own parsing instead
-    cattr_accessor :parse_multipart_params, :parse_json_params, :parse_xml_params
+    # by setting these to false, auto-parsing is disabled; this way you can
+    # do your own parsing instead
+    cattr_accessor :parse_multipart_params, :parse_json_params,
+      :parse_xml_params
     self.parse_multipart_params = true
     self.parse_json_params = true
     self.parse_xml_params = true
+    
+    # Most web browsers can't send PUT or DELETE requests
+    # Any Strings stored in this array will be used as paramaters
+    # to find the real method.  Common examples are _method and
+    # fb_sig_request_method 
+    cattr_accessor :browser_method_workarounds
+    self.browser_method_workarounds = []
     
     # Initial the request object.
     #
@@ -27,8 +38,9 @@ module Merb
     # Symbol:: The name of the request method, e.g. :get.
     #
     # ==== Notes
-    # If the method is post, then the +_method+ param will be checked for
-    # masquerading method.
+    # If the method is post, then the params specified in
+    # browser_method_workarounds will be checked for the masquerading method.
+    # The first matching workaround wins.
     def method
       @method ||= begin
         request_method = @env['REQUEST_METHOD'].downcase.to_sym
@@ -37,9 +49,16 @@ module Merb
           request_method
         when :post
           if self.class.parse_multipart_params
-            m = body_and_query_params.merge(multipart_params)['_method']
+            p = body_and_query_params.merge(multipart_params)
           else  
-            m = body_and_query_params['_method']
+            p = body_and_query_params
+          end
+          m = nil
+          self.class.browser_method_workarounds.each do |workaround|
+            if p.include?(workaround.to_s)
+              m = p[workaround.to_s]
+              break
+            end
           end
           m.downcase! if m
           METHODS.include?(m) ? m.to_sym : :post
@@ -98,9 +117,9 @@ module Merb
     def multipart_params
       @multipart_params ||= 
         begin
-          # if the content-type is multipart and there's stuff in the body,
+          # if the content-type is multipart
           # parse the multipart. Otherwise return {}
-          if (Merb::Const::MULTIPART_REGEXP =~ content_type && @body.size > 0)
+          if (Merb::Const::MULTIPART_REGEXP =~ content_type)
             self.class.parse_multipart(@body, $1, content_length)
           else
             {}
@@ -113,10 +132,17 @@ module Merb
 
     # ==== Returns
     # Hash:: Parameters from body if this is a JSON request.
+    #
+    # ==== Notes
+    # If the JSON object parses as a Hash, it will be merged with the
+    # parameters hash.  If it parses to anything else (such as an Array, or
+    # if it inflates to an Object) it will be accessible via the inflated_object
+    # parameter.
     def json_params
       @json_params ||= begin
         if Merb::Const::JSON_MIME_TYPE_REGEXP.match(content_type)
-          JSON.parse(raw_post)
+          jobj = JSON.parse(raw_post)
+          jobj.kind_of?(Hash) ? jobj : { :inflated_object => jobj }
         end
       end
     end
@@ -211,9 +237,15 @@ module Merb
     end
     
     # ==== Returns
+    # String:: The full URI, including protocol and host
+    def full_uri
+      protocol + host + uri
+    end
+    
+    # ==== Returns
     # String:: The request URI.
     def uri
-      @env['REQUEST_URI'] || @env['REQUEST_PATH']
+      @env['REQUEST_PATH'] || @env['REQUEST_URI']
     end
 
     # ==== Returns
@@ -366,7 +398,7 @@ module Merb
     class << self
       
       # ==== Parameters
-      # value<Array, Hash, ~to_s>:: The value for the query string.
+      # value<Array, Hash, Dictionary ~to_s>:: The value for the query string.
       # prefix<~to_s>:: The prefix to add to the query string keys.
       #
       # ==== Returns
@@ -390,7 +422,7 @@ module Merb
           value.map { |v|
             params_to_query_string(v, "#{prefix}[]")
           } * "&"
-        when Hash
+        when Hash, Dictionary
           value.map { |k, v|
             params_to_query_string(v, prefix ? "#{prefix}[#{Merb::Request.escape(k)}]" : Merb::Request.escape(k))
           } * "&"
@@ -424,18 +456,21 @@ module Merb
       # ==== Parameters
       # qs<String>:: The query string.
       # d<String>:: The query string divider. Defaults to "&".
+      # preserve_order<Boolean>:: Preserve order of args. Defaults to false.
       #
       # ==== Returns
-      # Mash:: The parsed query string.
+      # Mash:: The parsed query string (Dictionary if preserve_order is set).
       #
       # ==== Examples
       #   query_parse("bar=nik&post[body]=heya")
       #     # => { :bar => "nik", :post => { :body => "heya" } }
-      def query_parse(qs, d = '&;')
-        (qs||'').split(/[#{d}] */n).inject({}) { |h,p| 
+      def query_parse(qs, d = '&;', preserve_order = false)
+        qh = preserve_order ? Dictionary.new : {}
+        (qs||'').split(/[#{d}] */n).inject(qh) { |h,p| 
           key, value = unescape(p).split('=',2)
           normalize_params(h, key, value)
-        }.to_mash
+        }
+        preserve_order ? qh : qh.to_mash
       end
     
       NAME_REGEX = /Content-Disposition:.* name="?([^\";]*)"?/ni.freeze
@@ -464,6 +499,7 @@ module Merb
         bufsize = 16384
         content_length -= boundary_size
         status = input.read(boundary_size)
+        return {} if status == nil || status.empty?
         raise ControllerExceptions::MultiPartParseError, "bad content body:\n'#{status}' should == '#{boundary + EOL}'"  unless status == boundary + EOL
         rx = /(?:#{EOL})?#{Regexp.quote(boundary,'n')}(#{EOL}|--)/
         loop {

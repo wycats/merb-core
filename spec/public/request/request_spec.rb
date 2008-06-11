@@ -68,7 +68,14 @@ describe Merb::Request, " query and body params" do
     request.stub!(:route_params).and_return({})
     request.params.should == {"foo" => "bar"}
   end
-
+  
+  it "should populated the inflated_object parameter if JSON params do not inflate to a hash" do
+    request = fake_request({:content_type => "application/json"}, :req => %{["foo", "bar"]})
+    request.stub!(:route_params).and_return({})
+    request.params.should have_key(:inflated_object)
+    request.params[:inflated_object].should eql(["foo", "bar"])
+  end
+  
   it "should support XML params" do
     request = fake_request({:content_type => "application/xml"}, :req => %{<foo bar="baz"><baz/></foo>})
     request.stub!(:route_params).and_return({})
@@ -194,7 +201,7 @@ describe Merb::Request, " misc" do
    :http_keep_alive         => ["keep_alive", "300"],
    :http_accept_charset     => ["accept_charset", "UTF-8"],
    :http_version            => ["version", "1.1"],
-   :gateway_inteface        => ["gateway", "CGI/1.2"],
+   :gateway_interface       => ["gateway", "CGI/1.2"],
    :http_connection         => ["connection", "keep-alive"],
    :path_info               => ["path_info", "foo/bar/baz"],
   }.each do |env, vars|

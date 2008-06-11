@@ -87,8 +87,8 @@ module Merb
       #   the action being dispatched.
       #
       # ==== Example
-      #   dispatch_to(MyController, :create, :name => 'Homer' ) do
-      #     self.stub!(:current_user).and_return(@user)
+      #   dispatch_to(MyController, :create, :name => 'Homer' ) do |controller|
+      #     controller.stub!(:current_user).and_return(@user)
       #   end
       #
       # ==== Notes
@@ -99,9 +99,9 @@ module Merb
       def dispatch_to(controller_klass, action, params = {}, env = {}, &blk)
         action = action.to_s
         request_body = { :post_body => env[:post_body], :req => env[:req] }
-        request = fake_request(env.merge(
-          :query_string => Merb::Request.params_to_query_string(params)), request_body)
-
+        params = Merb::Request.params_to_query_string(params)
+        env[:query_string] = env["QUERY_STRING"] ? "#{env["QUERY_STRING"]}&#{params}" : params
+        request = fake_request(env, request_body)
         dispatch_request(request, controller_klass, action, &blk)
       end
 
@@ -126,8 +126,8 @@ module Merb
       #   the action being dispatched.
       #
       # ==== Example
-      #   dispatch_with_basic_authentication_to(MyController, :create, 'Fred', 'secret', :name => 'Homer' ) do
-      #     self.stub!(:current_user).and_return(@user)
+      #   dispatch_with_basic_authentication_to(MyController, :create, 'Fred', 'secret', :name => 'Homer' ) do |controller|
+      #     controller.stub!(:current_user).and_return(@user)
       #   end
       #
       # ==== Notes
@@ -228,8 +228,8 @@ module Merb
       #   the action being dispatched.
       #
       # ==== Example
-      #   request(path, { :name => 'Homer' }, { :request_method => "PUT" }) do
-      #     self.stub!(:current_user).and_return(@user)
+      #   request(path, { :name => 'Homer' }, { :request_method => "PUT" }) do |controller|
+      #     controller.stub!(:current_user).and_return(@user)
       #   end
       #
       # ==== Notes
@@ -239,7 +239,8 @@ module Merb
       # @semi-public
       def request(path, params = {}, env= {}, &block)
         env[:request_method] ||= "GET"
-        env[:request_uri] = path
+        env[:request_uri], env[:query_string] = path.split('?')
+        
         multipart = env.delete(:test_with_multipart)
 
         request = fake_request(env)

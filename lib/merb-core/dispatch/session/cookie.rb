@@ -3,7 +3,7 @@ require 'openssl'       # to generate the HMAC message digest
 # Most of this code is taken from bitsweat's implementation in rails
 module Merb
 
-  module SessionMixin #:nodoc:
+  module SessionMixin
 
     # Adds a before and after dispatch hook for setting up the cookie session
     # store.
@@ -20,7 +20,9 @@ module Merb
     def finalize_session
       new_session = request.session.read_cookie
       if @original_session != new_session
-        cookies.set_cookie(_session_id_key, new_session, :expires => (Time.now + _session_expiry))
+        options = {:expires => (Time.now + _session_expiry)}
+        options[:domain] = _session_cookie_domain if _session_cookie_domain
+        cookies.set_cookie(_session_id_key, new_session, options)
       end
     end
 

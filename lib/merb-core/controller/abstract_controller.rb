@@ -1,5 +1,15 @@
-# Note that the over-use of "_" in Controller methods is to avoid collisions
-# with helpers, which will be pulled directly into controllers from now on.
+# ==== Why do we use Underscores?
+# In Merb, views are actually methods on controllers. This provides
+# not-insignificant speed benefits, as well as preventing us from
+# needing to copy over instance variables, which we think is proof
+# that everything belongs in one class to begin with.
+#
+# Unfortunately, this means that view helpers need to be included
+# into the <strong>Controller</strong> class. To avoid causing confusion
+# when your helpers potentially conflict with our instance methods,
+# we use an _ to disambiguate. As long as you don't begin your helper
+# methods with _, you only need to worry about conflicts with Merb
+# methods that are part of the public API.
 #
 # ==== Filters
 # #before is a class method that allows you to specify before filters in
@@ -71,7 +81,10 @@ class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
   
-  class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root
+  class_inheritable_accessor :_layout, :_template_root
+  class_inheritable_array :_before_filters, :_after_filters
+  
+  FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
 
   # ==== Returns
   # String:: The controller name in path form, e.g. "admin/items".
@@ -119,6 +132,18 @@ class Merb::AbstractController
     controller ? "#{controller}/#{context}" : context
   end
 
+  # The location to look for a template - stub method for particular behaviour.
+  #
+  # ==== Parameters
+  # template<String>:: The absolute path to a template - without template extension.
+  # type<~to_s>::
+  #    The mime-type of the template that will be rendered. Defaults to nil.
+  #
+  # @public
+  def _absolute_template_location(template, type)
+    template
+  end
+
   # ==== Returns
   # roots<Array[Array]>::
   #   Template roots as pairs of template root path and template location
@@ -152,10 +177,11 @@ class Merb::AbstractController
     # klass<Merb::AbstractController>::
     #   The controller that is being inherited from Merb::AbstractController
     def inherited(klass)
-      _abstract_subclasses << klass.to_s  
-      Object.make_module "Merb::#{klass}Helper" unless klass.to_s =~ /^Merb::/
+      _abstract_subclasses << klass.to_s
+      helper_module_name = klass.to_s =~ /^(#|Merb::)/ ? "#{klass}Helper" : "Merb::#{klass}Helper"
+      Object.make_module helper_module_name
       klass.class_eval <<-HERE
-        include Object.full_const_get("Merb::#{klass}Helper") rescue nil
+        include Object.full_const_get("#{helper_module_name}") rescue nil
       HERE
       super
     end
@@ -435,8 +461,8 @@ class Merb::AbstractController
   #
   # ==== Raises
   # ArgumentError::
-  #   Both :only and :exclude, or :if and :unless given, or filter is not a
-  #   Symbol, String or Proc.
+  #   Both :only and :exclude, or :if and :unless given, if filter is not a
+  #   Symbol, String or Proc, or if an unknown option is passed.
   def self.add_filter(filters, filter, opts={})
     raise(ArgumentError,
       "You can specify either :only or :exclude but 
@@ -445,6 +471,10 @@ class Merb::AbstractController
      raise(ArgumentError,
        "You can specify either :if or :unless but 
         not both at the same time for the same filter.") if opts.key?(:if) && opts.key?(:unless)
+        
+    opts.each_key do |key| raise(ArgumentError,
+      "You can only specify known filter options, #{key} is invalid.") unless FILTER_OPTIONS.include?(key)
+    end
 
     opts = normalize_filters!(opts)
 

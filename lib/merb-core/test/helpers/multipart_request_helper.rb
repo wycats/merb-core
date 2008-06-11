@@ -97,8 +97,8 @@ module Merb::Test::MultipartRequestHelper
   # &blk:: The block is executed in the context of the controller.
   #  
   # ==== Example
-  #   dispatch_multipart_to(MyController, :create, :my_file => @a_file ) do
-  #     self.stub!(:current_user).and_return(@user)
+  #   dispatch_multipart_to(MyController, :create, :my_file => @a_file ) do |controller|
+  #     controller.stub!(:current_user).and_return(@user)
   #   end
   #
   # ==== Notes

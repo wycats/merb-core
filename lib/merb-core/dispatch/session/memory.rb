@@ -1,6 +1,6 @@
 module Merb
 
-  module SessionMixin #:nodoc:
+  module SessionMixin
 
     # Adds a before and after dispatch hook for setting up the memory session
     # store.
@@ -16,7 +16,9 @@ module Merb
     # Finalizes the session by storing the session ID in a cookie, if the
     # session has changed.
     def finalize_session
-      set_cookie(_session_id_key, request.session.session_id, Time.now + _session_expiry) if (@_new_cookie || request.session.needs_new_cookie)
+      options = {:expires => (Time.now + _session_expiry)}
+      options[:domain] = _session_cookie_domain if _session_cookie_domain
+      set_cookie(_session_id_key, request.session.session_id, options) if (@_new_cookie || request.session.needs_new_cookie)
     end
 
     # ==== Returns

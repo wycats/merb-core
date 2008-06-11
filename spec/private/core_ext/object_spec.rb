@@ -57,35 +57,77 @@ describe Object, "#full_const_get" do
   end
 
   it "returns constant corresponding to the name" do
-    self.full_const_get("April").should == April
+    Object.full_const_get("April").should == April
   end
 
   it "handles nested classes" do
-    self.full_const_get("April::In::Paris").should == April::In::Paris
+    Object.full_const_get("April::In::Paris").should == April::In::Paris
   end
 
   it "handles nested modules" do
-    self.full_const_get("Succubus::In::Rapture").should == Succubus::In::Rapture
+    Object.full_const_get("Succubus::In::Rapture").should == Succubus::In::Rapture
+  end
+  
+  it "handles top level constant naming" do
+    Object.full_const_get("::Succubus::In::Rapture").should == Succubus::In::Rapture
   end
 
   it "handles in-scoped constants in modules" do
-    self.full_const_get("Succubus::In::Rapture::PERFORMER").should == "Dimmu Borgir"
+    Object.full_const_get("Succubus::In::Rapture::PERFORMER").should == "Dimmu Borgir"
   end
 
   it "handles in-scoped constants in classes" do
-    self.full_const_get("April::In::Paris::PERFORMER").should == "Ella Fitzgerald"
+    Object.full_const_get("April::In::Paris::PERFORMER").should == "Ella Fitzgerald"
   end
 
   it "acts as a global function" do
-    lambda { April::In::Paris.full_const_get("PERFORMER") }.should raise_error(NameError)
+    lambda { self.full_const_get("April::In::Paris::PERFORMER") }.should raise_error(NameError)
   end
 
   it "raises an exception if constant is undefined" do
-    lambda { self.full_const_get("We::May::Never::Meet::Again") }.should raise_error(NameError)
+    lambda { Object.full_const_get("We::May::Never::Meet::Again") }.should raise_error(NameError)
   end
 end
 
+describe Object, "#full_const_set" do
+  class April
+    class In
+      class Paris
+      end
+    end
+  end
+  
+  module Succubus
+    module In
+      module Rapture
+      end
+    end
+  end
 
+  it "should assign top level constants" do
+    Object.full_const_set('May', 5).should == 5
+    Object.full_const_get('May').should == 5
+  end
+  
+  it "handles top level constant naming" do
+    Object.full_const_set('::June', 6).should == 6
+    Object.full_const_get('::June').should == 6
+  end
+  
+  it "handles in-scoped constants in classes" do
+    Object.full_const_set("April::In::Paris::COUNTRY", "USA").should == "USA"
+    Object.full_const_get("April::In::Paris::COUNTRY").should == "USA"
+  end
+
+  it "handles in-scoped constants in modules" do
+    Object.full_const_set("Succubus::In::Rapture::COUNTRY", "Norway").should == "Norway"
+    Object.full_const_get("Succubus::In::Rapture::COUNTRY").should == "Norway"
+  end
+
+  it "raises an exception if constant is undefined" do
+    lambda { Object.full_const_set("We::May::Never::Meet", "Again") }.should raise_error(NameError)
+  end
+end
 
 describe Object, "#make_module" do
   it "defines module from a string name" do

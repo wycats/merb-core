@@ -92,6 +92,22 @@ describe Merb::Test::Rspec::RouteMatchers do
           matcher.matches?(:controller => "target_controller", :action => "target_action")
           matcher.failure_message.should include("TargetController#target_action")
         end
+
+        it "should include the expected parameters" do
+          expected_parameters = {:id => '123', :page => '2'}
+          matcher = RouteToMatcher.new(TestController, :any_action)
+          matcher.with(expected_parameters)
+          matcher.matches?(:controller => "target_controller", :action => "target_action")
+          matcher.failure_message.should include(expected_parameters.inspect)
+        end
+
+        it "should include the actual paramters" do
+          expected_parameters, actual_parameters = {:id => '123', :page => '2'}, {:id => '2', :page => '321'}
+          matcher = RouteToMatcher.new(TestController, :any_action)
+          matcher.with(expected_parameters)
+          matcher.matches?(actual_parameters.merge(:controller => "test_controller", :action => "any_action"))
+          matcher.failure_message.should include(actual_parameters.inspect)
+        end
       end
 
       describe "#negative_failure_message" do

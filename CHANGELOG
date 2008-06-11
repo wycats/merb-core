@@ -1,3 +1,78 @@
+== 0.9.3 "We Sold Our Soul for Rock 'n' Roll" 2008-05-03
+* Added render(template_path) feature to view specs.
+* add mutex around compiled statement generation in the router so reloading doesn't step
+* BootLoader::LoadClasses now logs the actual exceptions
+* Added String#unescape_regexp for usage in Router::Route#generate
+* Added Time#to_json to Core Extensions so JSON formatted output for Time is ISO 8601 compatible
+* redo stream_file to (hopefully) work
+* _dispatch returns @body
+* Refactored Merb::AbstractController.layout class method
+* Fixed lurking infinite loop with not so common formats and ExceptionController
+* HTTP Basic authentication based on Rack
+* added dispatch helper for http basic authentication
+* added support and specs for http basic authorization
+* modified specs to test a route restriction based on the request method
+* Added ability to specify :format in url() for named routes
+* Added thrown_content? predicate method for use in templates.
+* pass arguments to filters
+* Fix cookie sessions bug where you could not properly delete a cookie
+* Standardises the call to set_cookie to use the set_cookie method in cookies.rb by default
+* added HasContent matcher
+* Added \- to String.unescape_regexp
+* Changed the display method to handle options properly, so that passing :layout => :false works.
+* Added error message for when a content_type is requested but not provided
+* added delete action to docs
+* deferred?(env) now works with thin and ebb.
+* If deferred_actions are empty? we want a regex that will never match.
+* Fix example in Merb::Test::RequestHelper#request documentation.
+* Unify &block documentation across Merb::Test::RequestHelper
+* Add spec command run options to run_specs. Add tasks for profiled spec run.
+* Report total spec suite run time.
+* Use RSPEC_OPTS environment variable to override default spec run options.
+* Better formatting of spec suite run benchmark with good old sprintf.
+* Fix a nasty String#camel_case bug revealed but new shiny spec for String extensions.
+* Remove helper that duplicated String#camel_case functionality, update the rest of spec suite.
+* Split 'misc' examples group in Kernel extensions spec: each method should have a separate group
+* Split Kernel#use_orm guts into a bunch of smaller methods. Document those.
+* Kernel#already_registred_orm? is a sucky name. Make it Kernel#registred_orm?. Yay.
+* Split Kernel#use_test into smaller methos. Document them. Add specs for them beforehand.
+* Use a constant for sleep time in reloading specs
+* Use @ in publicity markers in RDoc.
+* Remove InvalidPathConversion exception: it is used nowhere in the core.
+* A bit clearer --init-file option description.
+* Be clear about what is the default init file Merb uses in RDoc.
+* hopefully the last fix for session fixation, woot woot
+* Provide hook for param filtering
+* Give useful information when no template is found for a partial
+* Adds a question method to determine environment.  eg Merb.env?(:production)
+* Make #display method pass all 'unknown' options to serialization method.
+* Add Object#in? for checking array inclusion
+* Update Kernel#__profile__ documentation.
+* Adding support for pidfile setting with cluster nodes setting.
+* Updating pidfile cluster fix to handle any extension.
+* Fix for kill so that cli options are read and handled before kill is actually called.
+* Refactored Exception status handling/inheritance (it actually works now!)
+* Replaced remaining ::STATUS constant references to .status method calls
+* Append the content_type to the given :template option for render()
+* Fix bug in --very-flat (allow direct inheritance from Merb::Controller)
+* Show merb usage if first argument is not a switch
+* Adding missing info about ebb adapter.
+* completed spec to Merb::Logger#new
+* Added Provide matcher class, so you can do "controller.should provide( :xml )" in your specs.
+* Added support for multiple keys to designate a resource. For use with Datamapper composite keys
+* Ensure that Merb::Logger doesn't try to close terminal streams.
+* Remove redundant unescape for cookie string
+* Added handling of INT signal for Merb server in foreground mode
+* params array serialization
+* Fixing pidfiles glob on cluster and pidfile argument
+* test request helpers support namespaced routes
+* Testing Merb::Test::RequestHelper#request method to properly handle namespaced routes
+* Provide opts for alternate rackup config path.
+* Add new -R/--rackup option to the full(-ish) list of options.
+* Make change_priveledge actually work
+* Allow http status to be a symbol - refactored String snake_case method
+* removing __app_file_trace__  since it doesn't work.
+
 == 0.9.2 "appropriate response to reality" 2008-03-24
 * removed Merb.logger calls due to the fact the bootloader did not ran by now and it is not initialized.
 * use __send__ rather than send

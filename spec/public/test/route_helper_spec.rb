@@ -28,6 +28,23 @@ describe Merb::Test::RouteHelper do
     it "should work with a parameters hash" do
       url(:with_id, :id => 123).should == "/123"
     end
+    
+    it "should turn extra hash items into query params" do
+      generated_url = url(:getter, :id => 123, :color => 'red', :size => 'large')
+      lambda {
+        generated_url.match(/\bid=123\b/) &&
+        generated_url.match(/\bsize=large\b/) &&
+        generated_url.match(/\bcolor=red\b/)
+      }.call.should_not be_nil
+    end
+    
+    it "should remove items with nil values from query params" do
+      url(:getter, :color => nil, :size => 'large').should == "/?size=large"
+    end
+    
+    it "should remove items with nil values from query params when named route isn't specified" do
+      url(:controller => 'cont', :action => 'act', :color => nil, :size => 'large').should == "/cont/act?size=large"
+    end
   end
   
   describe "#request_to" do

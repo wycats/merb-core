@@ -1,7 +1,7 @@
 class Merb::Controller < Merb::AbstractController
 
   class_inheritable_accessor :_hidden_actions, :_shown_actions
-  cattr_accessor :_subclasses, :_session_id_key, :_session_secret_key, :_session_expiry
+  cattr_accessor :_subclasses, :_session_id_key, :_session_secret_key, :_session_expiry, :_session_cookie_domain
   self._subclasses = Set.new
 
   def self.subclasses_list() _subclasses end
@@ -9,6 +9,7 @@ class Merb::Controller < Merb::AbstractController
   self._session_secret_key = nil
   self._session_id_key = Merb::Config[:session_id_key] || '_session_id'
   self._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
+  self._session_cookie_domain = Merb::Config[:session_cookie_domain]
 
   include Merb::ResponderMixin
   include Merb::ControllerMixin
@@ -23,8 +24,8 @@ class Merb::Controller < Merb::AbstractController
     #   The Merb::Controller inheriting from the base class.
     def inherited(klass)
       _subclasses << klass.to_s
-      self._template_root = Merb.dir_for(:view) unless self._template_root
       super
+      klass._template_root = Merb.dir_for(:view) unless self._template_root
     end
 
     # Hide each of the given methods from being callable as actions.
@@ -101,16 +102,7 @@ class Merb::Controller < Merb::AbstractController
     # ==== Returns
     # SimpleSet[String]:: A set of actions that should be callable.
     def callable_actions
-      unless @callable_actions
-        callables = []
-        klass = self
-        begin
-          callables << (klass.public_instance_methods(false) + klass._shown_actions) - klass._hidden_actions
-          klass = klass.superclass
-        end until klass == Merb::AbstractController || klass == Object
-        @callable_actions = Merb::SimpleSet.new(callables.flatten)
-      end
-      @callable_actions
+      @callable_actions ||= Merb::SimpleSet.new(_callable_methods)
     end
 
     # This is a stub method so plugins can implement param filtering if they want.
@@ -124,6 +116,22 @@ class Merb::Controller < Merb::AbstractController
     # @semipublic
     def _filter_params(params)
       params
+    end
+
+    private
+    
+    # All methods that are callable as actions.
+    #
+    # ==== Returns
+    # Array:: A list of method names that are also actions
+    def _callable_methods
+      callables = []
+      klass = self
+      begin
+        callables << (klass.public_instance_methods(false) + klass._shown_actions) - klass._hidden_actions
+        klass = klass.superclass
+      end until klass == Merb::AbstractController || klass == Object
+      callables.flatten.reject{|action| action =~ /^_.*/}
     end
 
   end # class << self
@@ -148,6 +156,23 @@ class Merb::Controller < Merb::AbstractController
   # @public
   def _template_location(context, type = nil, controller = controller_name)
     controller ? "#{controller}/#{context}.#{type}" : "#{context}.#{type}"
+  end
+  
+  # The location to look for a template and mime-type. This is overridden 
+  # from AbstractController, which defines a version of this that does not 
+  # involve mime-types.
+  #
+  # ==== Parameters
+  # template<String>:: 
+  #    The absolute path to a template - without mime and template extension.
+  #    The mime-type extension is optional - it will be appended from the 
+  #    current content type if it hasn't been added already.
+  # type<~to_s>::
+  #    The mime-type of the template that will be rendered. Defaults to nil.
+  #
+  # @public
+  def _absolute_template_location(template, type)
+    template.match(/\.#{type.to_s.escape_regexp}$/) ? template : "#{template}.#{type}"
   end
 
   # Build a new controller.
@@ -227,7 +252,10 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
-
+  
+  # Hide any methods that may have been exposed as actions before.
+  hide_action(*_callable_methods)
+  
   private
 
   # Create a default cookie jar, and pre-set a fixation cookie

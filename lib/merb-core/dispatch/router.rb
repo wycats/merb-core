@@ -3,18 +3,39 @@ require 'merb-core/dispatch/router/behavior'
 require 'merb-core/dispatch/router/route'
 require 'merb-core/controller/mixins/responder'
 module Merb
+  # Router stores route definitions and finds first
+  # that matches incoming request URL.
+  #
+  # Then information from route is used by dispatcher to
+  # call action on the controller.
+  #
+  # ==== Routes compilation.
+  #
+  # Most interesting method of Router (and heart of
+  # route matching machinery) is match method generated
+  # on fly from routes definitions. It is called routes
+  # compilation. Generated match method body contains
+  # one if/elsif statement that picks first matching route
+  # definition and sets values to named parameters of the route.
+  #
+  # Compilation is synchronized by mutex.
   class Router
     SEGMENT_REGEXP = /(:([a-z_][a-z0-9_]*|:))/
     SEGMENT_REGEXP_WITH_BRACKETS = /(:[a-z_]+)(\[(\d+)\])?/
     JUST_BRACKETS = /\[(\d+)\]/
     PARENTHETICAL_SEGMENT_STRING = "([^\/.,;?]+)".freeze
-    
+
     @@named_routes = {}
     @@routes = []
     @@compiler_mutex = Mutex.new
     cattr_accessor :routes, :named_routes
-    
+
     class << self
+      
+      # Clear all routes.
+      def reset!
+        self.routes, self.named_routes = [], {}
+      end
 
       # Appends the generated routes to the current routes.
       #
@@ -50,6 +71,18 @@ module Merb
         compile
       end
 
+      # Capture any new routes that have been added within the block.
+      #
+      # This utility method lets you track routes that have been added;
+      # it doesn't affect how/which routes are added.
+      #
+      # &block:: A context in which routes are generated.
+      def capture(&block)
+        routes_before, named_route_keys_before = self.routes.dup, self.named_routes.keys
+        yield
+        [self.routes - routes_before, self.named_routes.except(*named_route_keys_before)]
+      end
+
       # ==== Returns
       # String:: A routing lambda statement generated from the routes.
       def compiled_statement
@@ -68,14 +101,14 @@ module Merb
       # compiled_statement.
       def compile
         puts "compiled route: #{compiled_statement}" if $DEBUG
-        eval(compiled_statement, binding, __FILE__, __LINE__)
+        eval(compiled_statement, binding, "Generated Code for Router#match(#{__FILE__}:#{__LINE__})", 1)
       end
 
       # Generates a URL based on passed options.
       #
       # ==== Parameters
       # name<~to_sym, Hash>:: The name of the route to generate.
-      # params<Hash>:: The params to use in the route generation.
+      # params<Hash, Fixnum, Object>:: The params to use in the route generation.
       # fallback<Hash>:: Parameters for generating a fallback URL.
       #
       # ==== Returns
@@ -85,7 +118,9 @@ module Merb
       # If name is a hash, it will be merged with params and passed on to
       # generate_for_default_route along with fallback.
       def generate(name, params = {}, fallback = {})
+        params.reject! { |k,v| v.nil? } if params.is_a? Hash
         if name.is_a? Hash
+          name.reject! { |k,v| v.nil? }
           return generate_for_default_route(name.merge(params), fallback)
         end
         name = name.to_sym
@@ -139,6 +174,6 @@ module Merb
         url
       end
     end # self
-    
+
   end
 end

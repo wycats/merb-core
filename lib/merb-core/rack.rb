@@ -7,9 +7,12 @@ module Merb
     autoload :EventedMongrel, "merb-core/rack/adapter/evented_mongrel"    
     autoload :FastCGI,        "merb-core/rack/adapter/fcgi"
     autoload :Irb,            "merb-core/rack/adapter/irb"
+    autoload :Middleware,     "merb-core/rack/middleware"
     autoload :Mongrel,        "merb-core/rack/adapter/mongrel"
     autoload :Runner,         "merb-core/rack/adapter/runner"    
     autoload :Thin,           "merb-core/rack/adapter/thin"
     autoload :WEBrick,        "merb-core/rack/adapter/webrick"
+    autoload :PathPrefix,     "merb-core/rack/apps/path_prefix"
+    autoload :Static,         "merb-core/rack/apps/static"
   end # Rack
 end # Merb

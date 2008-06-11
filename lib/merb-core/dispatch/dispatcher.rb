@@ -27,6 +27,7 @@ class Merb::Dispatcher
     def handle(rack_env)
       start   = Time.now
       request = Merb::Request.new(rack_env)
+      Merb.logger.info "Start: #{start.to_s}"
       
       route_index, route_params = Merb::Router.match(request)
       
@@ -71,7 +72,8 @@ class Merb::Dispatcher
       end      
 
       controller = dispatch_action(klass, action, request)
-      controller._benchmarks[:dispatch_time] = Time.now - start  
+      controller._benchmarks[:dispatch_time] = Time.now - start
+      controller.route = route
       Merb.logger.info controller._benchmarks.inspect
       Merb.logger.flush
 

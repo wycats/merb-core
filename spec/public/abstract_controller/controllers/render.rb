@@ -76,11 +76,19 @@ module Merb::Test::Fixtures
       end
     end
     
+    class RenderTemplateAbsolutePath < RenderTemplate
+      
+      def index
+        render :template => File.expand_path(self._template_root) / 'wonderful' / 'index'
+      end
+      
+    end
+    
     class RenderTemplateMultipleRoots < RenderTemplate
       self._template_roots << [File.dirname(__FILE__) / "alt_views", :_template_location]
       
       def show
-        render :layout=>false
+        render :layout => false
       end
     end
 
