@@ -31,8 +31,13 @@ describe Merb::Controller, " displaying objects based on mime type" do
   it "should accept an absolute template path argument - without the mimetype extension" do
     dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplate, :absolute_without_mime).body.should == "Custom: HTML: Default"
   end
+
+  it "should accept a layout argument when calling to_*" do
+    dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithLayout, :index, {}, 
+      :http_accept => "application/json").body.should == "{custom_arg: { 'include': '', 'exclude': '' }}"
+  end
   
-  it "should accept a layout argument" do
+  it "should accept a layout argument with a template" do
     dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplateArgument, :index).body.should == "Custom Arg: Template"
   end
 

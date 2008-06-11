@@ -187,13 +187,13 @@ module Merb::RenderMixin
   # explicitly passed in the opts.
   #
   def display(object, thing = nil, opts = {})
-    # display @object, "path/to/foo" means display @object, nil, :template => "path/to/foo"
-    # display @object, :template => "path/to/foo" means display @object, nil, :template => "path/to/foo"
     template_opt = opts.delete(:template)
 
     case thing
+    # display @object, "path/to/foo" means display @object, nil, :template => "path/to/foo"
     when String
       template_opt, thing = thing, nil
+    # display @object, :template => "path/to/foo" means display @object, nil, :template => "path/to/foo"
     when Hash
       opts, thing = thing, nil
     end
@@ -204,6 +204,7 @@ module Merb::RenderMixin
   # If the render fails (i.e. a template was not found)
   rescue TemplateNotFound => e
     # Merge with class level default render options
+    # @todo can we find a way to refactor this out so we don't have to do it everywhere?
     opts = self.class.default_render_options.merge(opts)
 
     # Figure out what to transform and raise NotAcceptable unless there's a transform method assigned
@@ -214,29 +215,17 @@ module Merb::RenderMixin
       raise NotAcceptable, "#{e.message} and your object does not respond to ##{transform}"
     end
 
-    # Only use a layout if one was specified
-    layout_opt = opts.delete(:layout)
-
-    if layout_opt
-      # Look for the layout under the default layout directly. If it's not found, reraise
-      # the TemplateNotFound error
-      template = _template_location(layout_opt, layout.index(".") ? content_type : nil, "layout")
-      layout = _template_for(_template_root / template) ||
-        (raise TemplateNotFound, "No layout found at #{_template_root / template}.*")
-
-      # If the layout was found, call it
-      send(layout)
-
-    # Otherwise, just render the transformed object
+    unless opts.empty?
+      # there are options for serialization method
+      throw_content(:for_layout, object.send(transform, opts))
     else
-      unless opts.empty?
-        # there are options for serialization method
-        throw_content(:for_layout, object.send(transform, opts))
-      else
-        throw_content(:for_layout, object.send(transform))
-      end
-      catch_content(:for_layout)
+      throw_content(:for_layout, object.send(transform))
     end
+
+    # Only use a layout if one was specified
+    # @todo This needs to be specc'd a lot better
+    (layout_opt = opts.delete(:layout)) ? send(_get_layout(layout_opt)) : catch_content(:for_layout)
+
   end
 
   # Render a partial template.
@@ -357,7 +346,7 @@ module Merb::RenderMixin
     layout = layout.to_s if layout
 
     # If a layout was provided, throw an error if it's not found
-    if layout
+    if layout      
       template_method, template_location = 
         _template_for(layout, layout.index(".") ? nil : content_type, "layout")
         

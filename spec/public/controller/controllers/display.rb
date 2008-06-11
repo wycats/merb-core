@@ -21,7 +21,16 @@ module Merb::Test::Fixtures::Controllers
     def index
       @obj = SomeModel.new
       display @obj
-    end
+    end    
+  end
+
+  class DisplayWithLayout < Testing
+    provides :json
+    
+    def index
+      @obj = SomeModel.new
+      display @obj, :layout => :custom_arg
+    end    
   end
 
   class DisplayHtmlDefault < Display; end
