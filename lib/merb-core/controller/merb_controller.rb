@@ -193,7 +193,7 @@ class Merb::Controller < Merb::AbstractController
   # @semipublic
   def initialize(request, status=200, headers={'Content-Type' => 'text/html; charset=utf-8'})
     super()
-    @request, @status, @headers = request, status, headers
+    @request, @_status, @headers = request, status, headers
   end
 
   # Dispatch the action.
@@ -219,7 +219,10 @@ class Merb::Controller < Merb::AbstractController
   end
 
   attr_reader :request, :headers
-  attr_reader :status
+  
+  def status
+    @_status
+  end
 
   # Set the response status code.
   #
@@ -227,9 +230,9 @@ class Merb::Controller < Merb::AbstractController
   # s<Fixnum, Symbol>:: A status-code or named http-status
   def status=(s)
     if s.is_a?(Symbol) && STATUS_CODES.key?(s)
-      @status = STATUS_CODES[s]
+      @_status = STATUS_CODES[s]
     elsif s.is_a?(Fixnum)
-      @status = s
+      @_status = s
     else
       raise ArgumentError, "Status should be of type Fixnum or Symbol, was #{s.class}"
     end
