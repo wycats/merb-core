@@ -254,20 +254,17 @@ module Merb::RenderMixin
   # with a local variable of +hello+ inside of it, assigned to @object.
   def partial(template, opts={})
 
-    if template.is_a?(String) && template[0,1] == '/' # absolute path to a partial
-      opts[:template] = File.dirname(template) / "_#{File.basename(template)}"
-      template_method, template_location = 
-        _template_for(template, opts.delete(:format) || content_type, nil, opts[:template])
+    # partial :foo becomes "#{controller_name}/_foo"
+    # partial "foo/bar" becomes "foo/_bar"
+    template = template.to_s
+    if template =~ %r{^/}
+      template_path = File.dirname(template) / "_#{File.basename(template)}"
     else
-      # partial :foo becomes "#{controller_name}/_foo"
-      # partial "foo/bar" becomes "foo/_bar"
-      template = template.to_s
       kontroller = (m = template.match(/.*(?=\/)/)) ? m[0] : controller_name
       template = "_#{File.basename(template)}"
-
-      template_method, template_location =  
-        _template_for(template, opts.delete(:format) || content_type, kontroller)
     end
+    template_method, template_location = 
+      _template_for(template, opts.delete(:format) || content_type, kontroller, template_path)
 
     (@_old_partial_locals ||= []).push @_merb_partial_locals
 
