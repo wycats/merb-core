@@ -259,27 +259,22 @@ module Merb::RenderMixin
       _template_for(template, opts.delete(:format) || content_type, kontroller, template_path)
 
     (@_old_partial_locals ||= []).push @_merb_partial_locals
-
-    if opts.key?(:with)
-      with = opts.delete(:with)
-      as = opts.delete(:as) || template_location.match(%r[.*/_([^\.]*)])[1]
-      @_merb_partial_locals = opts
-      sent_template = [with].flatten.map do |temp|
-        @_merb_partial_locals[as.to_sym] = temp
-        if template_method && self.respond_to?(template_method)
-          send(template_method)
-        else
-          raise TemplateNotFound, "Could not find template at #{template_location}.*"
-        end
-      end.join
-    else
-      @_merb_partial_locals = opts
+    
+    # This handles no :with as well
+    with = [opts.delete(:with)].flatten
+    as = opts.delete(:as) || template_location.match(%r[.*/_([^\.]*)])[1]
+    
+    @_merb_partial_locals = opts
+    
+    sent_template = with.map do |temp|
+      @_merb_partial_locals[as.to_sym] = temp
       if template_method && self.respond_to?(template_method)
-        sent_template = send(template_method)
+        send(template_method)
       else
         raise TemplateNotFound, "Could not find template at #{template_location}.*"
       end
-    end
+    end.join
+    
     @_merb_partial_locals = @_old_partial_locals.pop
     sent_template
   end
