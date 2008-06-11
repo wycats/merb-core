@@ -1,5 +1,15 @@
-# Note that the over-use of "_" in Controller methods is to avoid collisions
-# with helpers, which will be pulled directly into controllers from now on.
+# ==== Why do we use Underscores?
+# In Merb, views are actually methods on controllers. This provides
+# not-insignificant speed benefits, as well as preventing us from
+# needing to copy over instance variables, which we think is proof
+# that everything belongs in one class to begin with.
+#
+# Unfortunately, this means that view helpers need to be included
+# into the <strong>Controller</strong> class. To avoid causing confusion
+# when your helpers potentially conflict with our instance methods,
+# we use an _ to disambiguate. As long as you don't begin your helper
+# methods with _, you only need to worry about conflicts with Merb
+# methods that are part of the public API.
 #
 # ==== Filters
 # #before is a class method that allows you to specify before filters in
