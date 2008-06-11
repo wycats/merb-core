@@ -215,17 +215,9 @@ module Merb::RenderMixin
       raise NotAcceptable, "#{e.message} and your object does not respond to ##{transform}"
     end
 
-    unless opts.empty?
-      # there are options for serialization method
-      throw_content(:for_layout, object.send(transform, opts))
-    else
-      throw_content(:for_layout, object.send(transform))
-    end
-
-    # Only use a layout if one was specified
-    # @todo This needs to be specc'd a lot better
-    (layout_opt = opts.delete(:layout)) ? send(_get_layout(layout_opt)) : catch_content(:for_layout)
-
+    layout_opt = opts.delete(:layout)
+    throw_content(:for_layout, opts.empty? ? object.send(transform) : object.send(transform, opts))
+    layout_opt ? send(_get_layout(layout_opt)) : catch_content(:for_layout)
   end
 
   # Render a partial template.
