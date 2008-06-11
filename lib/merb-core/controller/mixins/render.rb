@@ -107,10 +107,14 @@ module Merb::RenderMixin
         _template_for(thing, content_type, controller_name, opts[:template])
       
       # Raise an error if there's no template
-      template_files  = Merb::Template.template_extensions.map { |ext| "#{template_location}.#{ext}" }
-      
-      raise TemplateNotFound, "Oops! No template found. Merb was looking for #{template_files.join(', ')} for content type '#{content_type}'. You might mispell template/file name. Registred template extensions: #{Merb::Template.template_extensions.join(', ')}. If you use Haml or some other template plugin, make sure you required Merb plugin dependency in init file."  \
-        unless template_method && self.respond_to?(template_method)
+      unless template_method && self.respond_to?(template_method)
+        template_files = Merb::Template.template_extensions.map { |ext| "#{template_location}.#{ext}" }
+        raise TemplateNotFound, "Oops! No template found. Merb was looking for #{template_files.join(', ')}" + 
+          "for content type '#{content_type}'. You might have mispelled the template or file name. " + 
+          "Registered template extensions: #{Merb::Template.template_extensions.join(', ')}. " +
+          "If you use Haml or some other template plugin, make sure you required Merb plugin dependency " + 
+          "in your init file."
+      end
 
       # Call the method in question and throw the content for later consumption by the layout
       throw_content(:for_layout, self.send(template_method))
@@ -123,8 +127,7 @@ module Merb::RenderMixin
     end
 
     # If we find a layout, use it. Otherwise, just render the content thrown for layout.
-    layout = opts[:layout] != false && _get_layout(opts[:layout])
-    layout ? send(layout) : catch_content(:for_layout)
+    (layout = _get_layout(opts[:layout])) ? send(layout) : catch_content(:for_layout)
   end
 
   # Renders an object using to registered transform method based on the
@@ -175,7 +178,7 @@ module Merb::RenderMixin
   #
   # :template                a template to use for rendering
   # :layout                  a layout to use for rendering
-
+  #
   # all other options        options that will be pass to serialization method
   #                          like #to_json or #to_xml
   #
@@ -348,6 +351,8 @@ module Merb::RenderMixin
   #   one in to this method), and not found. No error will be raised if no
   #   layout was specified, and the default layouts were not found.
   def _get_layout(layout = nil)
+    return false if layout == false
+    
     layout = layout.instance_of?(Symbol) && self.respond_to?(layout, true) ? send(layout) : layout
     layout = layout.to_s if layout
 
