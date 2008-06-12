@@ -8,10 +8,13 @@ module Merb
     # ==== Parameters
     # base<Class>:: The class to which the SessionMixin is mixed into.
     def setup_session
-      before = cookies[_session_id_key]
-      request.session, cookies[_session_id_key] = Merb::MemCacheSession.persist(cookies[_session_id_key])
+      orig_key = cookies[_session_id_key]
+      session, key = Merb::MemCacheSession.persist(orig_key)
+      request.session = session
       @_fingerprint = Marshal.dump(request.session.data).hash
-      @_new_cookie = cookies[_session_id_key] != before
+      if key != orig_key 
+        set_session_id_cookie(key)
+      end
     end
 
     # Finalizes the session by storing the session ID in a cookie, if the
@@ -25,9 +28,9 @@ module Merb
           Merb::SessionMixin::finalize_session_exception_callbacks.each {|x| x.call(err) }
         end
       end
-      options = {:expires => (Time.now + _session_expiry)}
-      options[:domain] = _session_cookie_domain if _session_cookie_domain
-      set_cookie(_session_id_key, request.session.session_id, options) if (@_new_cookie || request.session.needs_new_cookie)
+      if request.session.needs_new_cookie or @_new_cookie
+        set_session_id_cookie(request.session.session_id)
+      end
     end
 
     # ==== Returns

@@ -127,7 +127,7 @@ class Hash
   #     #=> { :one => 1 }
   def only(*allowed)
     hash = {}
-    allowed.each {|k| hash[k] = self[k] }
+    allowed.each {|k| hash[k] = self[k] if self.has_key?(k) }
     hash
   end
 

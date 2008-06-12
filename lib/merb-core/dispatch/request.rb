@@ -14,12 +14,14 @@ module Merb
     self.parse_json_params = true
     self.parse_xml_params = true
     
-    # Most web browsers can't send PUT or DELETE requests
-    # Any Strings stored in this array will be used as paramaters
-    # to find the real method.  Common examples are _method and
-    # fb_sig_request_method 
-    cattr_accessor :browser_method_workarounds
-    self.browser_method_workarounds = []
+    # Flash, and some older browsers can't use arbitrary
+    # request methods -- i.e., are limited to GET/POST.
+    # These user-agents can make POST requests in combination
+    # with these overrides to participate fully in REST
+    # Common examples are _method or fb_sig_request_method
+    # in the params, or an X-HTTP-Method-Override header
+    cattr_accessor :http_method_overrides
+    self.http_method_overrides = []
     
     # Initial the request object.
     #
@@ -38,9 +40,10 @@ module Merb
     # Symbol:: The name of the request method, e.g. :get.
     #
     # ==== Notes
-    # If the method is post, then the params specified in
-    # browser_method_workarounds will be checked for the masquerading method.
-    # The first matching workaround wins.
+    # If the method is post, then the blocks specified in
+    # http_method_overrides will be checked for the masquerading method.
+    # The block will get the controller yielded to it.  The first matching workaround wins.
+    # To disable this behavior, set http_method_overrides = []
     def method
       @method ||= begin
         request_method = @env['REQUEST_METHOD'].downcase.to_sym
@@ -48,17 +51,9 @@ module Merb
         when :get, :head, :put, :delete
           request_method
         when :post
-          if self.class.parse_multipart_params
-            p = body_and_query_params.merge(multipart_params)
-          else  
-            p = body_and_query_params
-          end
           m = nil
-          self.class.browser_method_workarounds.each do |workaround|
-            if p.include?(workaround.to_s)
-              m = p[workaround.to_s]
-              break
-            end
+          self.class.http_method_overrides.each do |o|
+            m ||= o.call(self); break if m
           end
           m.downcase! if m
           METHODS.include?(m) ? m.to_sym : :post

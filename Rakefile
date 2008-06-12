@@ -26,8 +26,8 @@ require 'lib/merb-core/tasks/merb_rake_helper'
 ##############################################################################
 CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
 
-desc "Packages up Merb."
-task :default => :package
+desc "Run the specs."
+task :default => :specs
 
 task :merb => [:clean, :rdoc, :package]
 
