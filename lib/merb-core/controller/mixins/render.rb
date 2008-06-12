@@ -266,8 +266,12 @@ module Merb::RenderMixin
     
     @_merb_partial_locals = opts
     
+    # this handles an edge-case where the name of the partial is _foo.* and your opts
+    # have :foo as a key.
+    named_local = @_merb_partial_locals.key?(as.to_sym)
+    
     sent_template = with.map do |temp|
-      @_merb_partial_locals[as.to_sym] = temp
+      @_merb_partial_locals[as.to_sym] = temp unless named_local
       if template_method && self.respond_to?(template_method)
         send(template_method)
       else
