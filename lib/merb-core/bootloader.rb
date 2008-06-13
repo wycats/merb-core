@@ -167,7 +167,6 @@ class Merb::BootLoader::Defaults < Merb::BootLoader
   def self.run
     Merb::Request.http_method_overrides.concat([
       proc { |c| c.params[:_method] },
-      proc { |c| c.params[:fb_sig_request_method] },
       proc { |c| c.env['HTTP_X_HTTP_METHOD_OVERRIDE'] }
     ])
   end
