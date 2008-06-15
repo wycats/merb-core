@@ -87,7 +87,7 @@ module Merb
       #---
       # @public
       def default_framework
-        %w[view model controller helper mailer part].each do |component|
+        %w[view model helper controller mailer part].each do |component|
           Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
         end
         Merb.push_path(:application,  Merb.root_path("app/controllers/application.rb"))
