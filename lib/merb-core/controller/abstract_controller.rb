@@ -452,6 +452,27 @@ class Merb::AbstractController
     request.protocol + request.host + url(name, rparams)
   end
 
+  # Calls the capture method for the selected template engine.
+  #
+  # ==== Parameters
+  # *args:: Arguments to pass to the block.
+  # &block:: The template block to call.
+  #
+  # ==== Returns
+  # String:: The output of the block.
+  def capture(*args, &block)
+    send("capture_#{@_engine}", *args, &block)
+  end
+
+  # Calls the concatenate method for the selected template engine.
+  #
+  # ==== Parameters
+  # str<String>:: The string to concatenate to the buffer.
+  # binding<Binding>:: The binding to use for the buffer.
+  def concat(str, binding)
+    send("concat_#{@_engine}", str, binding)
+  end
+
   private
   # ==== Parameters
   # filters<Array[Filter]>:: The filter list that this should be added to.
@@ -524,27 +545,6 @@ class Merb::AbstractController
     opts[:only]     = Array(opts[:only]).map {|x| x.to_s} if opts[:only]
     opts[:exclude]  = Array(opts[:exclude]).map {|x| x.to_s} if opts[:exclude]
     return opts
-  end
-
-  # Calls the capture method for the selected template engine.
-  #
-  # ==== Parameters
-  # *args:: Arguments to pass to the block.
-  # &block:: The template block to call.
-  #
-  # ==== Returns
-  # String:: The output of the block.
-  def capture(*args, &block)
-    send("capture_#{@_engine}", *args, &block)
-  end
-
-  # Calls the concatenate method for the selected template engine.
-  #
-  # ==== Parameters
-  # str<String>:: The string to concatenate to the buffer.
-  # binding<Binding>:: The binding to use for the buffer.
-  def concat(str, binding)
-    send("concat_#{@_engine}", str, binding)
   end
 
   # Attempts to return the partial local variable corresponding to sym.
