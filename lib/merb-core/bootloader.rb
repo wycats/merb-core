@@ -198,11 +198,11 @@ end
 #
 # ==== Example
 #   Merb::Config[:framework] = {
-#     :view => "views",
-#     :model => "models",
-#     :lib => "lib",
-#     :public => ["public", nil]
-#     :router => ["config", "router.rb"]
+#     :view   => Merb.root / "views",
+#     :model  => Merb.root / "models",
+#     :lib    => Merb.root / "lib",
+#     :public => [Merb.root / "public", nil]
+#     :router => [Merb.root / "config", "router.rb"]
 #   }
 #
 # That will set up a flat directory structure with the config files and
@@ -228,8 +228,7 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
       end
       (Merb::Config[:framework] || {}).each do |name, path|
         path = Array(path)
-        path[1] = nil if name == :config || name == :public # be restrictive with these
-        Merb.push_path(name, Merb.root_path(path.first), path.length == 2 ? path[1] : "**/*.rb")
+        Merb.push_path(name, path.first, path.length == 2 ? path[1] : "**/*.rb")
       end
     end
   end
