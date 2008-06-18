@@ -23,11 +23,11 @@ module Merb::Test::Fixtures
   
   class MyTemplateEngine
     
-    def self.compile_template(path, name, mod)
-      text = File.read(path)
+    def self.compile_template(io, name, mod)
+      text = io.read
       table = { "\r"=>"\\r", "\n"=>"\\n", "\t"=>"\\t", '"'=>'\\"', "\\"=>"\\\\" }      
       text = (text.split("\n").map {|x| '"' + (x.gsub(/[\r\n\t"\\]/) { |m| table[m] }) + '"'}).join(" +\n")
-      mod.class_eval <<-EOS, path
+      mod.class_eval <<-EOS, File.expand_path(io.path)
         def #{name}
           #{text}
         end
@@ -58,7 +58,7 @@ describe Merb::Template do
   # @semipublic
   
   def rendering_template(template_path)
-    Merb::Template.inline_template(template_path, Merb::Test::Fixtures::MyHelpers)
+    Merb::Template.inline_template(File.open(template_path), Merb::Test::Fixtures::MyHelpers)
     Merb::Test::Fixtures::Environment.new.
       send(Merb::Template.template_name(template_path))  
   end
@@ -74,6 +74,17 @@ describe Merb::Template do
     rendering_template(template_path).should == "Hello world!"
   end
   
+  it "should compile and inline templates that comes through via VirtualFile" do
+    Merb::Template.inline_template(VirtualFile.new("Hello", 
+      File.dirname(__FILE__) / "templates" / "template.html.erb"), 
+      Merb::Test::Fixtures::MyHelpers)
+      
+    res = Merb::Test::Fixtures::Environment.new.
+      send(Merb::Template.template_name(File.dirname(__FILE__) / "templates" / "template.html.erb"))
+      
+    res.should == "Hello"
+  end
+  
   it "should know how to correctly report errors" do
     template_path = File.dirname(__FILE__) / "templates" / "error.html.erb"
     running { render_template(template_path) }.should raise_error(NameError, /`foo'/)
@@ -86,7 +97,7 @@ describe Merb::Template do
   
   it "should find the full template name for a path via #template_for" do
     template_path = File.dirname(__FILE__) / "templates" / "template.html.erb"
-    name = Merb::Template.inline_template(template_path, Merb::Test::Fixtures::MyHelpers)
+    name = Merb::Template.inline_template(File.open(template_path), Merb::Test::Fixtures::MyHelpers)
     Merb::Test::Fixtures::Environment.new.should respond_to(name)
   end
   

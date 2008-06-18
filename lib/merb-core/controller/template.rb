@@ -45,11 +45,11 @@ module Merb::Template
       ret = 
       if Merb::Config[:reload_templates]
         file = Dir["#{path}.{#{template_extensions.join(',')}}"].first
-        METHOD_LIST[path] = file ? inline_template(file) : nil
+        METHOD_LIST[path] = file ? inline_template(File.open(file)) : nil
       else
         METHOD_LIST[path] ||= begin
           file = Dir["#{path}.{#{template_extensions.join(',')}}"].first          
-          file ? inline_template(file) : nil
+          file ? inline_template(File.open(file)) : nil
         end
       end
       
@@ -70,9 +70,8 @@ module Merb::Template
     # adds it to the METHOD_LIST table to speed lookup later.
     # 
     # ==== Parameters
-    # path<String>::
-    #   The full path of the template (minus the templating specifier) to
-    #   inline.
+    # io<#path>::
+    #   An IO that responds to #path (File or VirtualFile)
     # mod<Module>::
     #   The module to put the compiled method into. Defaults to
     #   Merb::InlineTemplates
@@ -82,10 +81,10 @@ module Merb::Template
     # must be available to instances of AbstractController that will use it.
     #---
     # @public
-    def inline_template(path, mod = Merb::InlineTemplates)
-      path = File.expand_path(path)
+    def inline_template(io, mod = Merb::InlineTemplates)
+      path = File.expand_path(io.path)
       METHOD_LIST[path.gsub(/\.[^\.]*$/, "")] = 
-        engine_for(path).compile_template(path, template_name(path), mod)
+        engine_for(path).compile_template(io, template_name(path), mod)
     end
     
     # Finds the engine for a particular path.
@@ -132,12 +131,12 @@ module Merb::Template
 
   class Erubis    
     # ==== Parameters
-    # path<String>:: A full path to the template.
+    # io<#path>:: An IO containing the full path of the template.
     # name<String>:: The name of the method that will be created.
     # mod<Module>:: The module that the compiled method will be placed into.
-    def self.compile_template(path, name, mod)
-      template = ::Erubis::Eruby.new(File.read(path))
-      template.def_method(mod, name, path) 
+    def self.compile_template(io, name, mod)
+      template = ::Erubis::Eruby.new(io.read)
+      template.def_method(mod, name, File.expand_path(io.path))
       name
     end
 

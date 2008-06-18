@@ -481,7 +481,7 @@ class Merb::BootLoader::Templates < Merb::BootLoader
     # Loads the templates into the Merb::InlineTemplates module.
     def run
       template_paths.each do |path|
-        Merb::Template.inline_template(path)
+        Merb::Template.inline_template(File.open(path))
       end
     end
 
