@@ -98,6 +98,7 @@ module Merb
   module ResponderMixin
     
     TYPES = Dictionary.new
+    MIMES = {}
 
     class ContentTypeAlreadySet < StandardError; end
     
@@ -457,9 +458,12 @@ module Merb
     # Array[String]::
     #   All Accept header values, such as "text/html", that match this type.
     def synonyms
-      @syns ||= Merb.available_mime_types.values.map do |e| 
-        e[:accepts] if e[:accepts].include?(@media_range)
-      end.compact.flatten
+      return @syns if @syns
+      if mime = Merb.available_mime_types[Merb::ResponderMixin::MIMES[@media_range]]
+        @syns = mime[:accepts]
+      else
+        @syns = []
+      end
     end
 
     # ==== Returns

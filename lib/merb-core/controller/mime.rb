@@ -46,6 +46,10 @@ module Merb
          :response_headers  => new_response_headers,
          :response_block    => block })
 
+      mimes.each do |mime|
+        ResponderMixin::MIMES.update(mime => key)
+      end
+
       Merb::RenderMixin.class_eval <<-EOS, __FILE__, __LINE__
         def render_#{key}(thing = nil, opts = {})
           self.content_type = :#{key}
