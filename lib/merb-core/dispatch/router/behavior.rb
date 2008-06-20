@@ -477,7 +477,7 @@ module Merb
       #
       # ==== Examples
       #
-      #  r.resources :account # will result in the typical RESTful CRUD
+      #  r.resource :account # will result in the typical RESTful CRUD
       #    # GET     /account/new                :action => "new"
       #    # POST    /account/?(\.:format)?,     :action => "create"
       #    # GET     /account/(\.:format)?       :action => "show"
@@ -635,6 +635,10 @@ module Merb
       def redirects?
         @redirects
       end
+      
+      def ancestors
+        @ancestors ||= find_ancestors
+      end
 
     protected
 
@@ -743,12 +747,12 @@ module Merb
       #
       # ==== Returns
       # Array:: All the ancestor behaviors of this behavior.
-      def ancestors(list = [])
+      def find_ancestors(list = [])
         if parent.nil?
           list
         else
           list.push parent
-          parent.ancestors list
+          parent.find_ancestors list
           list
         end
       end

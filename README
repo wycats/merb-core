@@ -15,7 +15,7 @@ Goals of this release:
   
 To familiarize yourself with how a merb-core application might look,
 use merb-gen (from merb-more) to generate a few apps:
-$ merb-gen myapp                   # a "normal" merb app
-$ merb-gen myapp --flat            # a flattened app
-$ merb-gen myapp --very-flat       # a single-file app
+$ merb-gen app myapp                   # a "normal" merb app
+$ merb-gen app myapp --flat            # a flattened app
+$ merb-gen app myapp --very-flat       # a single-file app
 

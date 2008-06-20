@@ -99,9 +99,9 @@ module Merb
       def dispatch_to(controller_klass, action, params = {}, env = {}, &blk)
         action = action.to_s
         request_body = { :post_body => env[:post_body], :req => env[:req] }
-        request = fake_request(env.merge(
-          :query_string => Merb::Request.params_to_query_string(params)), request_body)
-
+        params = Merb::Request.params_to_query_string(params)
+        env[:query_string] = env["QUERY_STRING"] ? "#{env["QUERY_STRING"]}&#{params}" : params
+        request = fake_request(env, request_body)
         dispatch_request(request, controller_klass, action, &blk)
       end
 
@@ -239,7 +239,8 @@ module Merb
       # @semi-public
       def request(path, params = {}, env= {}, &block)
         env[:request_method] ||= "GET"
-        env[:request_uri] = path
+        env[:request_uri], env[:query_string] = path.split('?')
+        
         multipart = env.delete(:test_with_multipart)
 
         request = fake_request(env)

@@ -5,10 +5,8 @@ module Merb
     # def self.subclasses
     #---
     # @semipublic
-    cattr_accessor :subclasses, :after_load_callbacks, :before_load_callbacks
-    self.subclasses = []
-    self.after_load_callbacks = []
-    self.before_load_callbacks = []
+    cattr_accessor :subclasses, :after_load_callbacks, :before_load_callbacks, :finished
+    self.subclasses, self.after_load_callbacks, self.before_load_callbacks, self.finished = [], [], [], []
 
     class << self
 
@@ -65,8 +63,20 @@ module Merb
           bootloader = subclasses.shift
           Merb.logger.debug!("Loading: #{bootloader}") if ENV['DEBUG']
           Object.full_const_get(bootloader).run
+          self.finished << bootloader
         end
         self.subclasses = subklasses
+      end
+      
+      # Determines whether or not a specific bootloader has finished yet.
+      #
+      # ==== Parameters
+      # bootloader<String, Class>:: The name of the bootloader to check.
+      #
+      # ==== Returns
+      # Boolean:: Whether or not the bootloader has finished.
+      def finished?(bootloader)
+        self.finished.include?(bootloader.to_s)
       end
 
       # Set up the default framework
@@ -77,7 +87,7 @@ module Merb
       #---
       # @public
       def default_framework
-        %w[view model controller helper mailer part].each do |component|
+        %w[view model helper controller mailer part].each do |component|
           Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
         end
         Merb.push_path(:application,  Merb.root_path("app/controllers/application.rb"))
@@ -155,7 +165,10 @@ end
 # Setup some useful defaults
 class Merb::BootLoader::Defaults < Merb::BootLoader
   def self.run
-    Merb::Request.browser_method_workarounds << "_method"
+    Merb::Request.http_method_overrides.concat([
+      proc { |c| c.params[:_method] },
+      proc { |c| c.env['HTTP_X_HTTP_METHOD_OVERRIDE'] }
+    ])
   end
 end
 
@@ -185,9 +198,11 @@ end
 #
 # ==== Example
 #   Merb::Config[:framework] = {
-#     :view => Merb.root / "views"
-#     :model => Merb.root / "models"
-#     :lib => Merb.root / "lib"
+#     :view   => Merb.root / "views",
+#     :model  => Merb.root / "models",
+#     :lib    => Merb.root / "lib",
+#     :public => [Merb.root / "public", nil]
+#     :router => [Merb.root / "config", "router.rb"]
 #   }
 #
 # That will set up a flat directory structure with the config files and
@@ -212,8 +227,8 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         Merb::BootLoader.default_framework
       end
       (Merb::Config[:framework] || {}).each do |name, path|
-        path = [path].flatten
-        Merb.push_path(name, Merb.root_path(path.first), path[1])
+        path = Array(path)
+        Merb.push_path(name, path.first, path.length == 2 ? path[1] : "**/*.rb")
       end
     end
   end
@@ -369,6 +384,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # Reload the router to regenerate all routes.
     def reload_router!
       if File.file?(router_file = Merb.dir_for(:router) / Merb.glob_for(:router))
+        Merb::Router.reset!
         reload router_file
       end
     end
@@ -465,14 +481,14 @@ class Merb::BootLoader::Templates < Merb::BootLoader
     # Loads the templates into the Merb::InlineTemplates module.
     def run
       template_paths.each do |path|
-        Merb::Template.inline_template(path)
+        Merb::Template.inline_template(File.open(path))
       end
     end
 
     # ==== Returns
     # Array[String]:: Template files found.
     def template_paths
-      extension_glob = "{#{Merb::Template::EXTENSIONS.keys.join(',')}}"
+      extension_glob = "{#{Merb::Template.template_extensions.join(',')}}"
 
       # This gets all templates set in the controllers template roots
       # We separate the two maps because most of controllers will have
@@ -550,10 +566,8 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       if ["", "false", "none"].include?(session_store)
         Merb.logger.warn "Not Using Sessions"
       elsif reg = Merb.registered_session_types[session_store]
-        if session_store == "cookie"
-          Merb::BootLoader::MixinSessionContainer.check_for_secret_key
-          Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
-        end
+        Merb::BootLoader::MixinSessionContainer.check_for_secret_key if session_store == "cookie"
+        Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
         require reg[:file]
         include ::Merb::SessionMixin
         Merb.logger.warn reg[:description]

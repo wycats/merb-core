@@ -132,7 +132,7 @@ module Merb
       # ==== Returns
       # String:: The route as a string, e.g. "admin/:controller/:id".
       def to_s
-        segments.inject('') do |str,seg|
+        (segments || []).inject('') do |str,seg|
           str << (seg.is_a?(Symbol) ? ":#{seg}" : seg)
         end
       end
@@ -148,7 +148,7 @@ module Merb
       # ==== Returns
       # Array:: All the symbols in the segments array.
       def symbol_segments
-        segments.select{ |s| s.is_a?(Symbol) }
+        (segments || []).select{ |s| s.is_a?(Symbol) }
       end
 
       # Turn a path into string and symbol segments so it can be reconstructed,
@@ -189,7 +189,7 @@ module Merb
       #   True if this route is a regexp, i.e. its behavior or one of the
       #   behavior's ancestors is a regexp.
       def regexp?
-        behavior.regexp? || behavior.send(:ancestors).any? { |a| a.regexp? }
+        @regexp ||= behavior.regexp? || behavior.ancestors.any? { |a| a.regexp? }
       end
 
       # Generates URL using route segments and given parameters.

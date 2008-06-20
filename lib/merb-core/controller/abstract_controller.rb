@@ -1,5 +1,15 @@
-# Note that the over-use of "_" in Controller methods is to avoid collisions
-# with helpers, which will be pulled directly into controllers from now on.
+# ==== Why do we use Underscores?
+# In Merb, views are actually methods on controllers. This provides
+# not-insignificant speed benefits, as well as preventing us from
+# needing to copy over instance variables, which we think is proof
+# that everything belongs in one class to begin with.
+#
+# Unfortunately, this means that view helpers need to be included
+# into the <strong>Controller</strong> class. To avoid causing confusion
+# when your helpers potentially conflict with our instance methods,
+# we use an _ to disambiguate. As long as you don't begin your helper
+# methods with _, you only need to worry about conflicts with Merb
+# methods that are part of the public API.
 #
 # ==== Filters
 # #before is a class method that allows you to specify before filters in
@@ -71,7 +81,8 @@ class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
   
-  class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root
+  class_inheritable_accessor :_layout, :_template_root
+  class_inheritable_array :_before_filters, :_after_filters
   
   FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
 
@@ -119,6 +130,18 @@ class Merb::AbstractController
   # @public
   def _template_location(context, type = nil, controller = controller_name)
     controller ? "#{controller}/#{context}" : context
+  end
+
+  # The location to look for a template - stub method for particular behaviour.
+  #
+  # ==== Parameters
+  # template<String>:: The absolute path to a template - without template extension.
+  # type<~to_s>::
+  #    The mime-type of the template that will be rendered. Defaults to nil.
+  #
+  # @public
+  def _absolute_template_location(template, type)
+    template
   end
 
   # ==== Returns
@@ -429,6 +452,27 @@ class Merb::AbstractController
     request.protocol + request.host + url(name, rparams)
   end
 
+  # Calls the capture method for the selected template engine.
+  #
+  # ==== Parameters
+  # *args:: Arguments to pass to the block.
+  # &block:: The template block to call.
+  #
+  # ==== Returns
+  # String:: The output of the block.
+  def capture(*args, &block)
+    send("capture_#{@_engine}", *args, &block)
+  end
+
+  # Calls the concatenate method for the selected template engine.
+  #
+  # ==== Parameters
+  # str<String>:: The string to concatenate to the buffer.
+  # binding<Binding>:: The binding to use for the buffer.
+  def concat(str, binding)
+    send("concat_#{@_engine}", str, binding)
+  end
+
   private
   # ==== Parameters
   # filters<Array[Filter]>:: The filter list that this should be added to.
@@ -501,27 +545,6 @@ class Merb::AbstractController
     opts[:only]     = Array(opts[:only]).map {|x| x.to_s} if opts[:only]
     opts[:exclude]  = Array(opts[:exclude]).map {|x| x.to_s} if opts[:exclude]
     return opts
-  end
-
-  # Calls the capture method for the selected template engine.
-  #
-  # ==== Parameters
-  # *args:: Arguments to pass to the block.
-  # &block:: The template block to call.
-  #
-  # ==== Returns
-  # String:: The output of the block.
-  def capture(*args, &block)
-    send("capture_#{@_engine}", *args, &block)
-  end
-
-  # Calls the concatenate method for the selected template engine.
-  #
-  # ==== Parameters
-  # str<String>:: The string to concatenate to the buffer.
-  # binding<Binding>:: The binding to use for the buffer.
-  def concat(str, binding)
-    send("concat_#{@_engine}", str, binding)
   end
 
   # Attempts to return the partial local variable corresponding to sym.

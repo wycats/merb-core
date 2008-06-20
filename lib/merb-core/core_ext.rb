@@ -10,4 +10,4 @@ require corelib/:object
 require corelib/:object_space
 require corelib/:rubygems
 require corelib/:set
-
+require corelib/:virtual_file
