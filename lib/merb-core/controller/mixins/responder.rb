@@ -365,18 +365,14 @@ module Merb
 
       mime = Merb.available_mime_types[type]
       
-      headers["Content-Type"] = mime[:response_headers][:"Content-Type"]
+      headers["Content-Type"] = mime[:content_type]
       
       # merge any format specific response headers
-      mime[:response_headers].each do |key, value|
-        next if key == :"Content-Type"
-        headers[key] ||= value
-      end
+      mime[:response_headers].each { |k,v| headers[k] ||= v }
       
       # if given, use a block to finetune any runtime headers
-      if mime[:response_block].respond_to?(:call)
-        mime[:response_block].call(self)
-      end
+      mime[:response_block].call(self) if mime[:response_block]
+
       @_content_type = type
     end
     

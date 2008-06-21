@@ -50,8 +50,8 @@ module Merb
       ResponderMixin::TYPES.update(key => 
         {:accepts           => mimes, 
          :transform_method  => transform_method,
-                                                           # Use symbol to speed compares later
-         :response_headers  => new_response_headers.update(:"Content-Type" => content_type),
+         :content_type      => content_type,
+         :response_headers  => new_response_headers,
          :response_block    => block })
 
       mimes.each do |mime|
