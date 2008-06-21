@@ -255,8 +255,6 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
-<<<<<<< HEAD:lib/merb-core/controller/merb_controller.rb
-=======
   
   # Hide any methods that may have been exposed as actions before.
   hide_action(*_callable_methods)
@@ -268,5 +266,4 @@ class Merb::Controller < Merb::AbstractController
   def _setup_cookies
     ::Merb::Cookies.new(request.cookies, @headers)
   end
->>>>>>> master:lib/merb-core/controller/merb_controller.rb
 end
