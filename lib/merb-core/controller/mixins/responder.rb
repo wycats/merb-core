@@ -362,24 +362,20 @@ module Merb
       unless Merb.available_mime_types.has_key?(type)
         raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
       end
-      # set the Content-Type header - defaults to first accepted mime
-      if Merb.available_mime_types[type][:response_headers]['Content-Type']
-        headers['Content-Type'] = Merb.available_mime_types[type][:response_headers]['Content-Type']
-      else
-        headers['Content-Type'] = Merb.available_mime_types[type][:accepts].first
-        # explicitly append the character set to the Content-Type header
-        if Merb.available_mime_types[type][:response_headers][:charset]
-          headers['Content-Type'] += "; charset=#{Merb.available_mime_types[type][:response_headers][:charset]}" 
-        end
-      end
+
+      mime = Merb.available_mime_types[type]
+      
+      headers["Content-Type"] = mime[:response_headers][:"Content-Type"]
+      
       # merge any format specific response headers
-      Merb.available_mime_types[type][:response_headers].each do |key, value|
-        next if key == :charset || headers.key?(key)
-        headers[key] = value
+      mime[:response_headers].each do |key, value|
+        next if key == :"Content-Type"
+        headers[key] ||= value
       end
+      
       # if given, use a block to finetune any runtime headers
-      if Merb.available_mime_types[type][:response_block].respond_to?(:call)
-        Merb.available_mime_types[type][:response_block].call(self)
+      if mime[:response_block].respond_to?(:call)
+        mime[:response_block].call(self)
       end
       @_content_type = type
     end

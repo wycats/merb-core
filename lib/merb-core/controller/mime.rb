@@ -40,10 +40,18 @@ module Merb
     #   is set (in the controller's #content_type method)
     def add_mime_type(key, transform_method, mimes, new_response_headers = {}, &block) 
       enforce!(key => Symbol, mimes => Array)
+      
+      content_type = new_response_headers["Content-Type"] || mimes.first
+      
+      if charset = new_response_headers.delete(:charset)
+        content_type += "; charset=#{charset}"
+      end
+      
       ResponderMixin::TYPES.update(key => 
         {:accepts           => mimes, 
          :transform_method  => transform_method,
-         :response_headers  => new_response_headers,
+                                                           # Use symbol to speed compares later
+         :response_headers  => new_response_headers.update(:"Content-Type" => content_type),
          :response_block    => block })
 
       mimes.each do |mime|
