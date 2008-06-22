@@ -1,0 +1,6 @@
+6/18/2008:
+
+* Modified the public interface to Merb::Template.inline_template to accept a File or VirtualFile
+** For files, templates are now inlined the same way, except do File.open(path) instead of path
+** To inline Virtual Files, create a Virtual File via VirtualFile.new(string, path), which will use
+   the path for later attempts to find the template via Merb::Template.template_for
