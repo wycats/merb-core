@@ -233,7 +233,7 @@ class Merb::AbstractController
       raise MerbControllerError, "The before filter chain is broken dude. wtf?"
     end
     start = Time.now
-    _call_filters(_after_filters) 
+    _call_filters(_after_filters)
     @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
     finalize_session
     @body
@@ -351,7 +351,7 @@ class Merb::AbstractController
   # ==== Notes
   # If the filter already exists, its options will be replaced with opts.
   def self.after(filter = nil, opts = {}, &block)
-    add_filter(self._after_filters, filter, opts)
+    add_filter(self._after_filters, filter || block, opts)
   end
 
   # ==== Parameters
