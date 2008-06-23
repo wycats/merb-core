@@ -216,11 +216,22 @@ module Erubis
       src << ' @_erb_buf << ' << escaped_expr(code) << ';'
     end
 
-    def add_expr_literal(src, code)
-      unless code =~ /(do|\{)(\s*\|[^|]*\|)?\s*$/
-        src << ' @_erb_buf << (' << code << ').to_s;'
+    def add_stmt(src, code)
+      if code =~ /(end|\})\s*\Z/ && @_in_block_expr
+        @_in_block_expr = false
+        src << code << ').to_s;'
       else
-        src << ' @_erb_buf << ' << code << "; "
+        src << code
+        src << ';' unless code[-1] == ?\n  
+      end
+    end
+
+    def add_expr_literal(src, code)
+      if code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+        @_in_block_expr = true
+        src << ' @_erb_buf << (' << code << "; "
+      else
+        src << ' @_erb_buf << (' << code << ').to_s;'
       end
     end
   end
