@@ -5,11 +5,13 @@ module Merb
     # ==== Returns
     # Hash::
     #   The configuration loaded from Merb.root / "config/plugins.yml" or, if
-    #   the load fails, an empty hash.
+    #   the load fails, an empty hash whose default value is another Hash.
     def self.config
       @config ||= begin
+        # this is so you can do Merb.plugins.config[:helpers][:awesome] = "bar"
+        config_hash = Hash.new {|h,k| h[k] = {}}
         file = Merb.root / "config" / "plugins.yml"
-        (File.exists?(file) && YAML.load_file(file)) || {}
+        config_hash.merge((File.exists?(file) && YAML.load_file(file)) || {})
       end
     end
 
