@@ -217,7 +217,7 @@ module Erubis
     end
 
     def add_expr_literal(src, code)
-      unless code =~ /(do|\{)(\s*|[^|]*|)?\s*$/
+      unless code =~ /(do|\{)(\s*\|[^|]*\|)?\s*$/
         src << ' @_erb_buf << (' << code << ').to_s;'
       else
         src << ' @_erb_buf << ' << code << "; "
