@@ -125,8 +125,8 @@ describe Language::English::Inflect, "#singular" do
     "torpedo".plural.should == "torpedoes"
   end
 
-  it "pluralizes quiz => quizes" do
-    "quiz".plural.should == "quizes"
+  it "pluralizes quiz => quizzes" do
+    "quiz".plural.should == "quizzes"
   end
 
   # used to be a bug exposed by this specs suite,
@@ -301,8 +301,8 @@ describe Language::English::Inflect, "#singular" do
     "shelf".plural.should == "shelves"
   end
 
-  it "pluralizes plus => pluses" do
-    "plus".plural.should == "pluses"
+  it "pluralizes plus => plusses" do
+    "plus".plural.should == "plusses"
   end
 
   it "pluralizes cat => cats" do
@@ -479,5 +479,86 @@ describe Language::English::Inflect, "#singular" do
 
   it "pluralizes spam => spams" do
     "spam".plural.should == "spams"
+  end
+  
+  it "pluralizes bus => buses" do
+    "bus".plural.should == "buses"
+  end
+
+  it "pluralizes rice => rice" do
+    "rice".plural.should == "rice"
+  end
+  
+  # Some specs from Rails
+  SingularToPlural = {
+    "search"      => "searches",
+    "switch"      => "switches",
+    "fix"         => "fixes",
+    "box"         => "boxes",
+    "process"     => "processes",
+    "address"     => "addresses",
+    "case"        => "cases",
+    "stack"       => "stacks",
+    "wish"        => "wishes",
+
+    "category"    => "categories",
+    "query"       => "queries",
+    "ability"     => "abilities",
+    "agency"      => "agencies",
+
+    "archive"     => "archives",
+
+    "safe"        => "saves",
+    "half"        => "halves",
+
+    "move"        => "moves",
+
+    "salesperson" => "salespeople",
+
+    "spokesman"   => "spokesmen",
+
+    "basis"       => "bases",
+    "diagnosis"   => "diagnoses",
+    "diagnosis_a" => "diagnosis_as",
+
+    "datum"       => "data",
+    "medium"      => "media",
+
+    "node_child"  => "node_children",
+
+    "experience"  => "experiences",
+    "day"         => "days",
+
+    "comment"     => "comments",
+    "foobar"      => "foobars",
+    "newsletter"  => "newsletters",
+
+    "old_news"    => "old_news",
+
+    "perspective" => "perspectives",
+
+    "photo"       => "photos",
+    "status_code" => "status_codes",
+
+    "house"       => "houses",
+    "virus"       => "viruses",
+    "portfolio"   => "portfolios",
+
+    "matrix_fu"   => "matrix_fus",
+
+    "axis"        => "axes",
+
+    "shoe"        => "shoes",
+
+    "horse"       => "horses",
+    "edge"        => "edges",
+
+    "cow"         => "kine"
+  }
+  
+  SingularToPlural.each do |single_word, plural_word|
+    it "pluralizes #{single_word} => #{plural_word}" do
+      single_word.plural.should == plural_word
+    end
   end
 end

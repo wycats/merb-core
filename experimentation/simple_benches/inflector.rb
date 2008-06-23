@@ -142,6 +142,7 @@ module English
     word 'sheep'
     word 'moose'
     word 'hovercraft'
+    word 'bass'
 
     # Two arguments defines a singular and plural exception.
 
@@ -160,10 +161,6 @@ module English
     word 'testis'    , 'testes'
     word 'child'     , 'children'
     word 'person'    , 'people'
-    word 'potato'    , 'potatoes'
-    word 'tomato'    , 'tomatoes'
-    word 'buffalo'   , 'buffaloes'
-    word 'torpedo'   , 'torpedoes'
     word 'quiz'      , 'quizes'
     word 'matrix'    , 'matrices'
     word 'vertex'    , 'vetices'
@@ -172,7 +169,6 @@ module English
     word 'mouse'     , 'mice'
     word 'louse'     , 'lice'
     word 'thesis'    , 'theses'
-    word 'thief'     , 'thieves'
     word 'analysis'  , 'analyses'
 
     # One-way singularization exception (convert plural to singular).
