@@ -217,18 +217,17 @@ module Erubis
     end
 
     def add_stmt(src, code)
-      if code =~ /(end|\})\s*\Z/ && @_in_block_expr
-        @_in_block_expr = false
-        src << code << ').to_s;'
-      else
-        src << code
-        src << ';' unless code[-1] == ?\n  
+      if code =~ /(end|\})\s*\Z/
+        src << code << ');'
+        return
       end
+      
+      src << (code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/ ? '( ' : '') << code
+      src << ';' unless code[-1] == ?\n        
     end
 
     def add_expr_literal(src, code)
       if code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
-        @_in_block_expr = true
         src << ' @_erb_buf << (' << code << "; "
       else
         src << ' @_erb_buf << (' << code << ').to_s;'
