@@ -7,7 +7,10 @@ module Merb
     #   The configuration loaded from Merb.root / "config/plugins.yml" or, if
     #   the load fails, an empty hash.
     def self.config
-      @config ||= File.exists?(Merb.root / "config" / "plugins.yml") ? YAML.load(File.read(Merb.root / "config" / "plugins.yml")) || {} : {}
+      @config ||= begin
+        file = Merb.root / "config" / "plugins.yml"
+        (File.exists?(file) && YAML.load_file(file)) || {}
+      end
     end
 
     # ==== Returns
