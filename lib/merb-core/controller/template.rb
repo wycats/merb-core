@@ -203,7 +203,7 @@ end
 module Erubis
   module BlockAwareEnhancer
     def add_preamble(src)
-      src << "$VERBOSE = nil; _old_buf, @_erb_buf = @_erb_buf, ''; "
+      src << "_old_buf, @_erb_buf = @_erb_buf, ''; "
       src << "@_engine = 'erb'; "
     end
 
@@ -213,18 +213,24 @@ module Erubis
     end
 
     def add_text(src, text)
-      src << " @_erb_buf.concat '" << escape_text(text) << "'; "
+      src << " @_erb_buf.concat('" << escape_text(text) << "'); "
     end
 
     def add_expr_escaped(src, code)
-      src << ' @_erb_buf.concat ' << escaped_expr(code) << ';'
+      src << ' @_erb_buf.concat(' << escaped_expr(code) << ');'
     end
-
+    
+    def add_stmt2(src, code, tailch)
+      src << code
+      src << " ).to_s; " if tailch == "="
+      src << ';' unless code[-1] == ?\n
+    end
+    
     def add_expr_literal(src, code)
       if code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
-        src << ' @_erb_buf.concat ' << code << "; "
+        src << ' @_erb_buf.concat( ' << code << "; "
       else
-        src << ' @_erb_buf.concat (' << code << ').to_s;'
+        src << ' @_erb_buf.concat((' << code << ').to_s);'
       end
     end
   end
