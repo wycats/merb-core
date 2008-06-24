@@ -33,7 +33,6 @@ class Merb::Dispatcher
     def handle(rack_env)
       start   = Time.now
       request = Merb::Request.new(rack_env)
-      Merb.logger.info "Started request handling: #{start.to_s}"
       
       route_index, route_params = Merb::Router.match(request)
       
