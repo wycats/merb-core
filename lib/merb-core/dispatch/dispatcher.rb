@@ -38,7 +38,7 @@ class Merb::Dispatcher
       route_index, route_params = Merb::Router.match(request)
       
       if route_params.empty?
-        raise ::Merb::ControllerExceptions::NotFound, "No routes match the request: #{request.uri}"
+        raise ::Merb::ControllerExceptions::NotFound, "No routes match the request: #{request.uri}."
       end
       request.route_params = route_params
       request.params.merge! route_params
@@ -46,7 +46,7 @@ class Merb::Dispatcher
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
       unless controller_name
-        raise Merb::ControllerExceptions::NotFound, "Route matched, but route did not specify a controller. Here is what's specified: #{request.route_params.inspect}" 
+        raise Merb::ControllerExceptions::NotFound, "Route matched, but route did not specify a controller. Did you forgot to add :controller => \"people\" or :controller segment to route definition? Here is what's specified: #{request.route_params.inspect}" 
       end
       
       Merb.logger.debug("Routed to: #{request.route_params.inspect}")
@@ -54,7 +54,7 @@ class Merb::Dispatcher
       cnt = controller_name.snake_case.to_const_string
       
       if !Merb::Controller._subclasses.include?(cnt)
-        raise Merb::ControllerExceptions::NotFound, "Controller '#{cnt}' not found"
+        raise Merb::ControllerExceptions::NotFound, "Controller '#{cnt}' not found. If Merb tries to look for a controller for static files, you way need to check up your Rackup file: http://groups.google.com/group/merb/browse_thread/thread/88a6f2b063c49dec/84735b15fc279f3b?lnk=gst&q=Rack#84735b15fc279f3b"
       end
       if cnt == "Application"
         raise Merb::ControllerExceptions::NotFound, "The 'Application' controller has no public actions"
