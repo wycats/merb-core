@@ -63,7 +63,7 @@ class Merb::Dispatcher
       begin
         klass = Object.full_const_get(cnt)
       rescue NameError => e
-        Merb.logger.warn!("Controller class not found: #{e.message}")
+        Merb.logger.warn!("Controller class not found for controller #{controller_name}: #{e.message}")
         raise Merb::ControllerExceptions::NotFound
       end
 
