@@ -54,7 +54,7 @@ class Merb::Dispatcher
       cnt = controller_name.snake_case.to_const_string
       
       if !Merb::Controller._subclasses.include?(cnt)
-        raise Merb::ControllerExceptions::NotFound, "Controller '#{cnt}' not found. If Merb tries to look for a controller for static files, you way need to check up your Rackup file: http://groups.google.com/group/merb/browse_thread/thread/88a6f2b063c49dec/84735b15fc279f3b?lnk=gst&q=Rack#84735b15fc279f3b"
+        raise Merb::ControllerExceptions::NotFound, "Controller '#{cnt}' not found. If Merb tries to look for a controller for static files, you way need to check up your Rackup file, see Problems section at: http://wiki.merbivore.com/pages/rack-middleware"
       end
       if cnt == "Application"
         raise Merb::ControllerExceptions::NotFound, "The 'Application' controller has no public actions"
