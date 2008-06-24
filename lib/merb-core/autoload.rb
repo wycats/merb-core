@@ -18,6 +18,7 @@ module Merb
   autoload :Router,                   "merb-core/dispatch/router"
   autoload :SessionMixin,             "merb-core/dispatch/session"
   autoload :Test,                     "merb-core/test"
+  autoload :Worker,                   "merb-core/dispatch/worker"
 end
 
 # Require this rather than autoloading it so we can be sure the default template
