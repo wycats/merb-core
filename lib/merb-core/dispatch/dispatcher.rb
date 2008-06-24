@@ -6,6 +6,12 @@ class Merb::Dispatcher
     attr_accessor :use_mutex
     
     @@mutex = Mutex.new
+    @@work_queue = Queue.new
+    
+    def work_queue 
+      @@work_queue
+    end  
+    
     Merb::Dispatcher.use_mutex = ::Merb::Config[:use_mutex]
     
     # This is where we grab the incoming request REQUEST_URI and use that in

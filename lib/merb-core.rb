@@ -544,9 +544,6 @@ module Merb
       @rakefiles += rakefiles
     end
 
-
-
-
   end
 end
 
