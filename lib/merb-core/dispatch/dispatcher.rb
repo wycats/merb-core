@@ -46,7 +46,7 @@ class Merb::Dispatcher
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
       unless controller_name
-        raise Merb::ControllerExceptions::NotFound, "Route matched, but route did not specify a controller" 
+        raise Merb::ControllerExceptions::NotFound, "Route matched, but route did not specify a controller. Here is what's specified: #{request.route_params.inspect}" 
       end
       
       Merb.logger.debug("Routed to: #{request.route_params.inspect}")
