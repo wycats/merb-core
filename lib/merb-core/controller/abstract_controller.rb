@@ -11,6 +11,8 @@
 # methods with _, you only need to worry about conflicts with Merb
 # methods that are part of the public API.
 #
+#
+#
 # ==== Filters
 # #before is a class method that allows you to specify before filters in
 # your controllers. Filters can either be a symbol or string that
@@ -77,6 +79,11 @@
 #
 # ===== Types (shortcuts for use in this file)
 # Filter:: <Array[Symbol, (Symbol, String, Proc)]>
+#
+# ==== params[:action] and params[:controller] deprecated
+# params[:action] and params[:controller] have been deprecated as of
+# the 0.9.0 release. They are no longer set during dispatch, and
+# have been replaced by action_name and controller_name respectively.
 class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
