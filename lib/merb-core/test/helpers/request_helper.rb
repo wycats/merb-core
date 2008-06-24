@@ -301,7 +301,7 @@ module Merb
       # Hash:: The parameters built based on the matching route.
       def check_request_for_route(request)
         match =  ::Merb::Router.match(request)
-        if match[0].nil?
+        if match[0].nil? && match[1].empty?
           raise ::Merb::ControllerExceptions::BadRequest, "No routes match the request"
         else
           match[1]
