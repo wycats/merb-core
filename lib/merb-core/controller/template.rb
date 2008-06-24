@@ -156,24 +156,17 @@ module Merb::Template
     # name<String>:: The name of the method that will be created.
     # mod<Module>:: The module that the compiled method will be placed into.
     def self.compile_template(io, name, mod)
-      template = ::Erubis::Eruby.new(io.read)
+      template = ::Erubis::BlockAwareEruby.new(io.read)
+
+      _old_verbose, $VERBOSE = $VERBOSE, nil
       template.def_method(mod, name, File.expand_path(io.path))
+      $VERBOSE = _old_verbose
+      
       name
     end
 
     module Mixin
       
-      # Provides direct acccess to the buffer for this view context
-      #
-      # ==== Parameters
-      # the_binding<Binding>:: The binding to pass to the buffer.
-      #
-      # ==== Returns
-      # DOC
-      def _erb_buffer( the_binding )
-        @_buffer = eval( "_buf", the_binding, __FILE__, __LINE__)
-      end
-
       # ==== Parameters
       # *args:: Arguments to pass to the block.
       # &block:: The template block to call.
@@ -188,30 +181,16 @@ module Merb::Template
       #     <p>Some Foo content!</p> 
       #   <% end %>
       def capture_erb(*args, &block)
-        # get the buffer from the block's binding
-        buffer = _erb_buffer( block.binding ) rescue nil
-
-        # If there is no buffer, just call the block and get the contents
-        if buffer.nil?
-          block.call(*args)
-        # If there is a buffer, execute the block, then extract its contents
-        else
-          pos = buffer.length
-          block.call(*args)
-
-          # extract the block
-          data = buffer[pos..-1]
-
-          # replace it in the original with empty string
-          buffer[pos..-1] = ''
-
-          data
-        end
+        _old_buf, @_erb_buf = @_erb_buf, ""
+        block.call
+        ret = @_erb_buf
+        @_erb_buf = _old_buf
+        ret
       end
 
       # DOC
       def concat_erb(string, binding)
-        _erb_buffer(binding) << string
+        @_erb_buf << string
       end
             
     end
@@ -222,14 +201,52 @@ module Merb::Template
 end
 
 module Erubis
-  module RubyEvaluator
-
-    # DOC
-    def def_method(object, method_name, filename=nil)
-      m = object.is_a?(Module) ? :module_eval : :instance_eval
-      setup = "@_engine = 'erb'"
-      object.__send__(m, "def #{method_name}(locals={}); #{setup}; #{@src}; end", filename || @filename || '(erubis)')
+  module BlockAwareEnhancer
+    def add_preamble(src)
+      src << "_old_buf, @_erb_buf = @_erb_buf, ''; "
+      src << "@_engine = 'erb'; "
     end
-   
+
+    def add_postamble(src)
+      src << "\n" unless src[-1] == ?\n      
+      src << "_ret = @_erb_buf; @_erb_buf = _old_buf; _ret.to_s;\n"
+    end
+
+    def add_text(src, text)
+      src << " @_erb_buf.concat('" << escape_text(text) << "'); "
+    end
+
+    def add_expr_escaped(src, code)
+      src << ' @_erb_buf.concat(' << escaped_expr(code) << ');'
+    end
+    
+    def add_stmt2(src, code, tailch)
+      src << code
+      src << " ).to_s; " if tailch == "="
+      src << ';' unless code[-1] == ?\n
+    end
+    
+    def add_expr_literal(src, code)
+      if code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+        src << ' @_erb_buf.concat( ' << code << "; "
+      else
+        src << ' @_erb_buf.concat((' << code << ').to_s);'
+      end
+    end
   end
+
+  class BlockAwareEruby < Eruby
+    include BlockAwareEnhancer
+  end
+  
+  # module RubyEvaluator
+  # 
+  #   # DOC
+  #   def def_method(object, method_name, filename=nil)
+  #     m = object.is_a?(Module) ? :module_eval : :instance_eval
+  #     setup = "@_engine = 'erb'"
+  #     object.__send__(m, "def #{method_name}(locals={}); #{setup}; #{@src}; end", filename || @filename || '(erubis)')
+  #   end
+  #  
+  # end
 end

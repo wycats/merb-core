@@ -1,6 +1,6 @@
 module Merb
   # Simple set implementation
-  # on top of Hash with mergins support.
+  # on top of Hash with merging support.
   #
   # In particular this is used to store
   # a set of callable actions of controller.

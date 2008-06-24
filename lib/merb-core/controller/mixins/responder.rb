@@ -1,6 +1,7 @@
 require 'enumerator'
 require 'merb-core/controller/mime'
 require "merb-core/vendor/facets/dictionary"
+
 module Merb
   # The ResponderMixin adds methods that help you manage what
   # formats your controllers have available, determine what format(s)
@@ -98,6 +99,7 @@ module Merb
   module ResponderMixin
     
     TYPES = Dictionary.new
+    MIMES = {}
 
     class ContentTypeAlreadySet < StandardError; end
     
@@ -286,21 +288,30 @@ module Merb
     # 4. Look for one that is provided, in order of request
     # 5. Raise 406 if none found
     def _perform_content_negotiation
-      raise Merb::ControllerExceptions::NotAcceptable if _provided_formats.empty?
+      # Handle the common case of text/html and :html provided first
+      if request.accept =~ %r{^(text/html|\*/\*)} && _provided_formats.first == :html
+        return :html
+      end
+
       if (fmt = params[:format]) && !fmt.empty?
         accepts = [fmt.to_sym]
       else
         accepts = Responder.parse(request.accept).map {|t| t.to_sym}.compact
       end
-      specifics = accepts & _provided_formats
+      
+      # no need to make a bunch of method calls to _provided_formats
+      provided_formats = _provided_formats
+      
+      specifics = accepts & provided_formats
       return specifics.first unless specifics.length == 0
-      return _provided_formats.first if accepts.include? :all
+      return provided_formats.first if accepts.include?(:all) && !provided_formats.empty?
+      
       message  = "A format (%s) that isn't provided (%s) has been requested. "
       message += "Make sure the action provides the format, and be "
       message += "careful of before filters which won't recognize "
       message += "formats provided within actions."
       raise Merb::ControllerExceptions::NotAcceptable,
-        (message % [accepts.join(', '), _provided_formats.join(', ')])
+        (message % [accepts.join(', '), provided_formats.join(', ')])
     end
 
     # Returns the output format for this request, based on the 
@@ -351,25 +362,17 @@ module Merb
       unless Merb.available_mime_types.has_key?(type)
         raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
       end
-      # set the Content-Type header - defaults to first accepted mime
-      if Merb.available_mime_types[type][:response_headers]['Content-Type']
-        headers['Content-Type'] = Merb.available_mime_types[type][:response_headers]['Content-Type']
-      else
-        headers['Content-Type'] = Merb.available_mime_types[type][:accepts].first
-        # explicitly append the character set to the Content-Type header
-        if Merb.available_mime_types[type][:response_headers][:charset]
-          headers['Content-Type'] += "; charset=#{Merb.available_mime_types[type][:response_headers][:charset]}" 
-        end
-      end
+
+      mime = Merb.available_mime_types[type]
+      
+      headers["Content-Type"] = mime[:content_type]
+      
       # merge any format specific response headers
-      Merb.available_mime_types[type][:response_headers].each do |key, value|
-        next if key == :charset || headers.key?(key)
-        headers[key] = value
-      end
+      mime[:response_headers].each { |k,v| headers[k] ||= v }
+      
       # if given, use a block to finetune any runtime headers
-      if Merb.available_mime_types[type][:response_block].respond_to?(:call)
-        Merb.available_mime_types[type][:response_block].call(self)
-      end
+      mime[:response_block].call(self) if mime[:response_block]
+
       @_content_type = type
     end
     
@@ -387,19 +390,19 @@ module Merb
     # ==== Returns
     # Array[AcceptType]:: The accepted types.
     def self.parse(accept_header)
-      list = accept_header.to_s.split(/,/).enum_for(:each_with_index).map do |entry,index|
-        AcceptType.new(entry,index += 1)
-      end.sort.uniq
-      # firefox (and possibly other browsers) send broken default accept headers.
-      # fix them up by sorting alternate xml forms (namely application/xhtml+xml)
-      # ahead of pure xml types (application/xml,text/xml).
-      if app_xml = list.detect{|e| e.super_range == 'application/xml'}
-        list.select{|e| e.to_s =~ /\+xml/}.each { |acc_type|
-          list[list.index(acc_type)],list[list.index(app_xml)] = 
-            list[list.index(app_xml)],list[list.index(acc_type)] }
+      # FF2 is broken. If we get FF2 headers, use FF3 headers instead.
+      if accept_header == "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
+        accept_header = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
       end
-      list
-    end   
+      
+      headers = accept_header.split(/,/)
+      idx, list = 0, []
+      while idx < headers.size
+        list << AcceptType.new(headers[idx], idx)
+        idx += 1
+      end
+      list.sort
+    end
       
   end
 
@@ -414,12 +417,15 @@ module Merb
     #   priority.
     def initialize(entry,index)
       @index = index
-      @media_range, quality = entry.split(/;\s*q=/).map{|a| a.strip }
-      @type, @sub_type = @media_range.split(/\//)
-      quality ||= 0.0 if @media_range == '*/*'
-      @quality = ((quality || 1.0).to_f * 100).to_i
+      
+      entry =~ /\s*([^;\s]*)\s*(;\s*q=\s*(.*))?/
+      @media_range, quality = $1, $3
+      
+      @type, @sub_type = @media_range.split(%r{/})
+      (quality ||= 0.0) if @media_range == "*/*"
+      @quality = quality ? (quality.to_f * 100).to_i : 100
     end
-
+    
     # Compares two accept types for sorting purposes.
     #
     # ==== Parameters
@@ -430,10 +436,13 @@ module Merb
     #   -1, 0 or 1, depending on whether entry has a lower, equal or higher
     #   priority than the accept type being compared.
     def <=>(entry)
-      c = entry.quality <=> quality
-      c = index <=> entry.index if c == 0
-      c
+      if entry.quality == quality
+        @index <=> entry.index
+      else
+        entry.quality <=> @quality
+      end
     end
+
 
     # ==== Parameters
     # entry<AcceptType>:: The accept type to compare.
@@ -457,9 +466,12 @@ module Merb
     # Array[String]::
     #   All Accept header values, such as "text/html", that match this type.
     def synonyms
-      @syns ||= Merb.available_mime_types.values.map do |e| 
-        e[:accepts] if e[:accepts].include?(@media_range)
-      end.compact.flatten
+      return @syns if @syns
+      if mime = Merb.available_mime_types[Merb::ResponderMixin::MIMES[@media_range]]
+        @syns = mime[:accepts]
+      else
+        @syns = []
+      end
     end
 
     # ==== Returns

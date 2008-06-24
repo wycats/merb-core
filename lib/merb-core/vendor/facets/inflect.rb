@@ -38,6 +38,20 @@ module English
         plural_word(singular, plural)
       end
 
+      def clear(type = :all)
+        if type == :singular || type == :all
+          @singular_of = {}
+          @singular_rules = []
+          @singularization_rules, @singularization_regex = nil, nil
+        end
+        if type == :plural || type == :all
+          @singular_of = {}
+          @singular_rules = []
+          @singularization_rules, @singularization_regex = nil, nil
+        end
+      end
+
+
       # Define a singularization exception.
       #
       # ==== Parameters
@@ -47,6 +61,7 @@ module English
       #   plural form of the word
       def singular_word(singular, plural)
         @singular_of[plural] = singular
+        @singular_of[plural.capitalize] = singular.capitalize
       end
 
       # Define a pluralization exception.
@@ -58,6 +73,7 @@ module English
       #   plural form of the word
       def plural_word(singular, plural)
         @plural_of[singular] = plural
+        @plural_of[singular.capitalize] = plural.capitalize
       end
 
       # Define a general rule.
@@ -67,7 +83,9 @@ module English
       #   ending of the word in singular form
       # plural<String>::
       #   ending of the word in plural form
-      #
+      # whole_word<Boolean>::
+      #   for capitalization, since words can be
+      #   capitalized (Man => Men)      #
       # ==== Examples
       # Once the following rule is defined:
       # Language::English::Inflector.rule 'y', 'ies'
@@ -77,9 +95,12 @@ module English
       # => flies
       # irb> "cry".plural
       # => cries
-      def rule(singular, plural)
+      # Define a general rule.
+
+      def rule(singular, plural, whole_word = false)
         singular_rule(singular, plural)
         plural_rule(singular, plural)
+        word(singular, plural) if whole_word
       end
 
       # Define a singularization rule.
@@ -122,31 +143,26 @@ module English
 
       # Read prepared singularization rules.
       def singularization_rules
-        return @singularization_rules if @singularization_rules
-        sorted = @singular_rules.sort_by{ |s, p| "#{p}".size }.reverse
-        @singularization_rules = sorted.collect do |s, p|
-          [ /#{p}$/, "#{s}" ]
+        if defined?(@singularization_regex) && @singularization_regex
+          return [@singularization_regex, @singularization_hash]
         end
+        # No sorting needed: Regexen match on longest string
+        @singularization_regex = Regexp.new("(" + @singular_rules.map {|s,p| p}.join("|") + ")$", "i")
+        @singularization_hash  = Hash[*@singular_rules.flatten].invert
+        [@singularization_regex, @singularization_hash]
       end
 
       # Read prepared pluralization rules.
       def pluralization_rules
-        return @pluralization_rules if @pluralization_rules
-        sorted = @plural_rules.sort_by{ |s, p| "#{s}".size }.reverse
-        @pluralization_rules = sorted.collect do |s, p|
-          [ /#{s}$/, "#{p}" ]
+        if defined?(@pluralization_regex) && @pluralization_regex
+          return [@pluralization_regex, @pluralization_hash]
         end
+        @pluralization_regex = Regexp.new("(" + @plural_rules.map {|s,p| s}.join("|") + ")$", "i")
+        @pluralization_hash  = Hash[*@plural_rules.flatten]
+        [@pluralization_regex, @pluralization_hash]
       end
 
-      #
-      def plural_of
-        @plural_of
-      end
-
-      #
-      def singular_of
-        @singular_of
-      end
+      attr_reader :singular_of, :plural_of
 
       # Convert an English word from plurel to singular.
       #
@@ -166,10 +182,9 @@ module English
           return result.dup
         end
         result = word.dup
-        return result if singular_of.value? result
-        singularization_rules.each do |(match, replacement)|
-          break if result.gsub!(match, replacement)
-        end
+        regex, hash = singularization_rules
+        result.sub!(regex) {|m| hash[m]}
+        singular_of[word] = result
         return result
       end
 
@@ -191,14 +206,15 @@ module English
       # ==== Notes
       # Aliased as pluralize (a Railism)
       def plural(word)
+        # special exceptions
+        return "" if word == ""
         if result = plural_of[word]
           return result.dup
         end
-        #return self.dup if /s$/ =~ self # ???
         result = word.dup
-        pluralization_rules.each do |(match, replacement)|
-          break if result.gsub!(match, replacement)
-        end
+        regex, hash = pluralization_rules
+        result.sub!(regex) {|m| hash[m]}
+        plural_of[word] = result
         return result
       end
 
@@ -218,9 +234,10 @@ module English
     word 'moose'
     word 'hovercraft'
     word 'grass'
-    word 'news'
     word 'rain'
     word 'milk'
+    word 'rice'
+    word 'plurals'
 
     # Two arguments defines a singular and plural exception.
 
@@ -234,13 +251,11 @@ module English
     word 'axis'      , 'axes'
     word 'crisis'    , 'crises'
     word 'testis'    , 'testes'
-    word 'child'     , 'children'
-    word 'person'    , 'people'
     word 'potato'    , 'potatoes'
     word 'tomato'    , 'tomatoes'
     word 'buffalo'   , 'buffaloes'
     word 'torpedo'   , 'torpedoes'
-    word 'quiz'      , 'quizes'
+    word 'quiz'      , 'quizzes'
     word 'matrix'    , 'matrices'
     word 'vertex'    , 'vertices'
     word 'index'     , 'indices'
@@ -256,14 +271,23 @@ module English
     word 'thesaurus' , 'thesauri'
     word 'movie'     , 'movies'
     word 'cactus'    , 'cacti'
-
+    word 'plus'      , 'plusses'
+    word 'cross'     , 'crosses'
+    word 'medium'    , 'media'
+    word 'cow'       , 'kine'
+    word 'datum'     , 'data'
+    word 'basis'     , 'bases'
+    word 'diagnosis' , 'diagnoses'    
+    
     # One-way singularization exception (convert plural to singular).
 
-    # singular_word 'cactus', 'cacti'
-
     # General rules.
-
-    rule 'hive' , 'hives'
+    rule 'person' , 'people', true
+    rule 'shoe'   , 'shoes', true
+    rule 'hive'   , 'hives', true
+    rule 'man'    , 'men', true
+    rule 'child'  , 'children', true
+    rule 'news'   , 'news', true
     rule 'rf'   , 'rves'
     rule 'af'   , 'aves'
     rule 'ero'  , 'eroes'
@@ -281,6 +305,13 @@ module English
     rule 'y'    , 'ies'
     rule 'x'    , 'xes'
     rule 'lf'   , 'lves'
+    rule 'ffe'  , 'ffes'
+    rule 'afe'  , 'aves'
+    rule 'ouse' , 'ouses'
+    # more cases of words ending in -oses not being singularized properly
+    # than cases of words ending in -osis
+#    rule 'osis' , 'oses'
+    rule 'ox'   , 'oxes'
     rule 'us'   , 'uses'
     rule ''     , 's'
 
@@ -292,8 +323,11 @@ module English
 
     # One-way plural rules.
 
-    plural_rule 'fe' , 'ves' # safe, wife
-    plural_rule 's'  , 'ses'
+    #plural_rule 'fe' , 'ves' # safe, wife
+    plural_rule 's'   , 'ses'
+    plural_rule 'ive' , 'ives' # don't want to snag wife
+    plural_rule 'fe'  , 'ves'  # don't want to snag perspectives  
+    
 
   end
 end
