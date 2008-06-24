@@ -74,6 +74,7 @@ class Merb::Dispatcher
       if route_index && route = Merb::Router.routes[route_index]
         #Fixate the session ID if it is enabled on the route
         if route.allow_fixation? && request.params.key?(Merb::Controller._session_id_key)
+          Merb.logger.info("Fixated session id: #{Merb::Controller._session_id_key}")
           request.cookies[Merb::Controller._session_id_key] = request.params[Merb::Controller._session_id_key]
         end
       end      
