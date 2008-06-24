@@ -288,13 +288,11 @@ module Merb
     # 4. Look for one that is provided, in order of request
     # 5. Raise 406 if none found
     def _perform_content_negotiation
-      # Handle the common case of text/html and :html provided first
-      if request.accept =~ %r{^(text/html|\*/\*)} && _provided_formats.first == :html
-        return :html
-      end
-
       if (fmt = params[:format]) && !fmt.empty?
         accepts = [fmt.to_sym]
+      elsif request.accept =~ %r{^(text/html|\*/\*)} && _provided_formats.first == :html
+        # Handle the common case of text/html and :html provided after checking :format
+        return :html
       else
         accepts = Responder.parse(request.accept).map {|t| t.to_sym}.compact
       end
