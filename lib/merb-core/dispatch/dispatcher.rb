@@ -36,6 +36,9 @@ class Merb::Dispatcher
       Merb.logger.info "Started request handling: #{start.to_s}"
       
       route_index, route_params = Merb::Router.match(request)
+      route = Merb::Router.routes[route_index] if route_index
+ 
+      return dispatch_redirection(request,route) if route && route.behavior.redirects?      
       
       if route_params.empty?
         raise ::Merb::ControllerExceptions::NotFound, "No routes match the request: #{request.uri}."
@@ -71,14 +74,11 @@ class Merb::Dispatcher
 
       action = route_params[:action]
 
-      if route_index && route = Merb::Router.routes[route_index]
-        #Fixate the session ID if it is enabled on the route
-        if route.allow_fixation? && request.params.key?(Merb::Controller._session_id_key)
-          Merb.logger.info("Fixated session id: #{Merb::Controller._session_id_key}")
-          request.cookies[Merb::Controller._session_id_key] = request.params[Merb::Controller._session_id_key]
-        end
-      end      
-
+      if route.allow_fixation? && request.params.key?(Merb::Controller._session_id_key)
+        Merb.logger.info("Fixated session id: #{Merb::Controller._session_id_key}")
+        request.cookies[Merb::Controller._session_id_key] = request.params[Merb::Controller._session_id_key]
+      end  
+      
       controller = dispatch_action(klass, action, request)
       controller._benchmarks[:dispatch_time] = Time.now - start
       controller.route = route
@@ -231,6 +231,33 @@ Stacktrace:
       end
       controller
     end
+
+    # Set up a faux controller to do redirection from the router 
+    #
+    # ==== Parameters
+    # request<Merb::Request>::
+    #   The Merb::Request object that was created in #handle
+    # route<Merb::Router::Route>:: Matched route object
+    #
+    # ==== Example
+    # r.match("/my/old/crusty/url").redirect("http://example.com/index.html")
+    #
+    # ==== Returns
+    # Merb::Controller::
+    #   Merb::Controller set with redirect headers and a 301/302 status
+    def dispatch_redirection(request, route)
+      status  = route.behavior.redirect_status
+      url     = route.behavior.redirect_url
+
+      controller = Merb::Controller.new(request,status)
+      
+      Merb.logger.info("Dispatcher redirecting to: #{url} (#{status})")
+      
+      controller.headers['Location'] = url
+      controller.body = "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
+      controller
+    end
+    
     
     # Wraps any non-ControllerException errors in an InternalServerError ready
     # for displaying over HTTP.
