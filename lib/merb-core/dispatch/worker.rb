@@ -19,7 +19,7 @@ module Merb
           blk.call
         end
       rescue Exception => e
-        Merb.logger.warn! %Q!Worker Thread Crashed with Exception: #{e.name}\n#{e.backtrace.join("\n")}!
+        Merb.logger.warn! %Q!Worker Thread Crashed with Exception:\n#{Merb.exception(e)}\nRestarting Worker Thread!
         retry
       end    
     end
