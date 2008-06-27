@@ -110,7 +110,7 @@ module Merb
       start_environment(Merb::Config.to_hash.merge(argv))
     end
 
-    attr_accessor :environment, :load_paths, :adapter, :environment_info
+    attr_accessor :environment, :load_paths, :adapter, :environment_info, :started
 
     alias :env :environment
 
