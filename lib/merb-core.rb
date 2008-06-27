@@ -113,6 +113,7 @@ module Merb
     attr_accessor :environment, :load_paths, :adapter, :environment_info, :started
 
     alias :env :environment
+    alias :started? :started
 
     Merb.load_paths = Dictionary.new { [Merb.root] } unless Merb.load_paths.is_a?(Dictionary)
 
