@@ -23,7 +23,7 @@ class Autotest::MerbsourceRspec < Autotest
   
   Autotest.add_hook :initialize do |at|
     at.clear_mappings
-    at.add_exception(/\.git/)
+    at.add_exception(/\.git|log|coverage|doc/)
 
     # See above for human-readable descriptions of these rules
     # 1 above

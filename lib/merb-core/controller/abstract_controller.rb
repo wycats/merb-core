@@ -88,8 +88,8 @@ class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
   
-  class_inheritable_accessor :_layout, :_template_root
-  class_inheritable_array :_before_filters, :_after_filters
+  class_inheritable_accessor :_layout, :_template_root, :template_roots
+  class_inheritable_accessor :_before_filters, :_after_filters
   
   FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
 
@@ -151,13 +151,21 @@ class Merb::AbstractController
     template
   end
 
+  def self._template_root=(root)
+    @_template_root = root
+    _reset_template_roots
+  end
+
+  def self._reset_template_roots
+    self.template_roots = [[self._template_root, :_template_location]]
+  end
+
   # ==== Returns
   # roots<Array[Array]>::
   #   Template roots as pairs of template root path and template location
   #   method.
   def self._template_roots
-    read_inheritable_attribute(:template_roots) || 
-    write_inheritable_attribute(:template_roots, [[self._template_root, :_template_location]])
+    self.template_roots || _reset_template_roots
   end
 
   # ==== Parameters
@@ -165,7 +173,7 @@ class Merb::AbstractController
   #   Template roots as pairs of template root path and template location
   #   method.
   def self._template_roots=(roots)
-    write_inheritable_attribute(:template_roots, roots)
+    self.template_roots = roots
   end
   
   cattr_accessor :_abstract_subclasses, :_template_path_cache

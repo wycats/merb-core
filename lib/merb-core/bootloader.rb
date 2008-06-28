@@ -331,10 +331,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
     # Load all classes from Merb's native load paths.
     def run
-      # Add models, controllers, and lib to the load path
+      # Add models, controllers, helpers and lib to the load path
       $LOAD_PATH.unshift Merb.dir_for(:model)
       $LOAD_PATH.unshift Merb.dir_for(:controller)
       $LOAD_PATH.unshift Merb.dir_for(:lib)
+      $LOAD_PATH.unshift Merb.dir_for(:helper)
 
       # Load application file if it exists - for flat applications
       load_file Merb.dir_for(:application) if File.file?(Merb.dir_for(:application))

@@ -269,8 +269,7 @@ module Merb
       #---
       # @public
       def defer_to(params = {}, &conditional_block)
-        Router.routes << (route = to_route(params, &conditional_block))
-        route
+        to_route(params, &conditional_block).register
       end
 
       # Creates the most common routes /:controller/:action/:id.format when

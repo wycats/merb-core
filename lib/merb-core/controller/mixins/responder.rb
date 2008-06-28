@@ -134,9 +134,7 @@ module Merb
       #---
       # @public
       def provides(*formats)
-        formats.each do |fmt|
-          self.class_provided_formats << fmt unless class_provided_formats.include?(fmt)
-        end
+        self.class_provided_formats |= formats
       end
       
       # This class should only provide the formats listed here, despite any
@@ -214,7 +212,6 @@ module Merb
       if @_content_type
         raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
       end
-      @_provided_formats = []
       provides(*formats)
     end
     alias :_provided_formats= :_set_provided_formats   
@@ -240,9 +237,8 @@ module Merb
       if @_content_type
         raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
       end
-      formats.each do |fmt|
-        _provided_formats << fmt unless _provided_formats.include?(fmt)
-      end
+      @_provided_formats ||= [] 
+      @_provided_formats |= formats
     end
 
     # Sets list of provided formats for this particular request. Usually used

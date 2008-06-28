@@ -1,6 +1,9 @@
 class Merb::Controller < Merb::AbstractController
 
   class_inheritable_accessor :_hidden_actions, :_shown_actions
+  self._hidden_actions ||= []
+  self._shown_actions ||= []
+  
   cattr_accessor :_subclasses, :_session_id_key, :_session_secret_key, :_session_expiry, :_session_cookie_domain
   self._subclasses = Set.new
 
@@ -73,26 +76,6 @@ class Merb::Controller < Merb::AbstractController
     # @public
     def show_action(*names)
       self._shown_actions = self._shown_actions | names.map {|n| n.to_s}
-    end
-
-    # This list of actions that should not be callable.
-    #
-    # ==== Returns
-    # Array[String]:: An array of actions that should not be dispatchable.
-    def _hidden_actions
-      actions = read_inheritable_attribute(:_hidden_actions)
-      actions ? actions : write_inheritable_attribute(:_hidden_actions, [])
-    end
-
-    # This list of actions that should be callable.
-    #
-    # ==== Returns
-    # Array[String]::
-    #   An array of actions that should be dispatched to even if they would not
-    #   otherwise be.
-    def _shown_actions
-      actions = read_inheritable_attribute(:_shown_actions)
-      actions ? actions : write_inheritable_attribute(:_shown_actions, [])
     end
 
     # The list of actions that are callable, after taking defaults,
