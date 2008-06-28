@@ -105,7 +105,7 @@ module Merb::RenderMixin
 
       template_method, template_location = 
         _template_for(thing, content_type, controller_name, opts[:template])
-      
+
       # Raise an error if there's no template
       unless template_method && self.respond_to?(template_method)
         template_files = Merb::Template.template_extensions.map { |ext| "#{template_location}.#{ext}" }
