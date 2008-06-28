@@ -7,7 +7,7 @@ module Merb
     #---
     # @public
     class Behavior
-      attr_reader :placeholders, :conditions, :params
+      attr_reader :placeholders, :conditions, :params, :redirect_url, :redirect_status
       attr_accessor :parent
       @@parent_resource = []
       class << self
