@@ -225,8 +225,8 @@ module Merb
     # ==== Parameters
     # file<String>:: Path to file to send to the client.
     def nginx_send_file(file)
-      headers['X-Accel-Redirect'] = File.expand_path(file)
-      return
+      headers['X-Accel-Redirect'] = file
+      return ' '
     end  
   
     # Sets a cookie to be included in the response.
