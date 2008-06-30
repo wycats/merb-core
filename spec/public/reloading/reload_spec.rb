@@ -52,7 +52,7 @@ describe "The reloader" do
     f = File.open(@reload_file, "w") do |f|
       f.puts contents
     end
-    FileUtils.touch(@reload_file, :mtime => mtime + 30)
+    File.utime(mtime+30, mtime+30, @reload_file)
   end
 
   it "should reload files that were changed" do

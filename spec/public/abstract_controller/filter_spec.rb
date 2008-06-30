@@ -94,4 +94,13 @@ describe Merb::AbstractController, " should support before and after filters" do
   it "should support passing arguments to a before filter method" do
     dispatch_should_make_body("TestBeforeFilterWithArguments", "index action")
   end
+  
+  it "should inherit before filters" do
+    dispatch_should_make_body("FilterChild2", "Before Limited", :limited)
+  end
+  
+  it "should not get contaminated by cousins" do
+    pending
+    dispatch_should_make_body("FilterChild2", "Before Index")
+  end
 end

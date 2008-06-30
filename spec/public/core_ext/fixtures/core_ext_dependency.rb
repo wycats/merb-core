@@ -1,0 +1,2 @@
+class CoreExtDependency
+end

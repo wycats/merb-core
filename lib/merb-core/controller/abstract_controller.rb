@@ -1,5 +1,17 @@
-# Note that the over-use of "_" in Controller methods is to avoid collisions
-# with helpers, which will be pulled directly into controllers from now on.
+# ==== Why do we use Underscores?
+# In Merb, views are actually methods on controllers. This provides
+# not-insignificant speed benefits, as well as preventing us from
+# needing to copy over instance variables, which we think is proof
+# that everything belongs in one class to begin with.
+#
+# Unfortunately, this means that view helpers need to be included
+# into the <strong>Controller</strong> class. To avoid causing confusion
+# when your helpers potentially conflict with our instance methods,
+# we use an _ to disambiguate. As long as you don't begin your helper
+# methods with _, you only need to worry about conflicts with Merb
+# methods that are part of the public API.
+#
+#
 #
 # ==== Filters
 # #before is a class method that allows you to specify before filters in
@@ -11,7 +23,7 @@
 # 
 # #after is identical, but the filters are run after the action is invoked.
 #
-# ==== Examples
+# ===== Examples
 #   before :some_filter
 #   before :authenticate, :exclude => [:login, :signup]
 #   before :has_role, :with => ["Admin"], :exclude => [:index,:show]
@@ -52,7 +64,7 @@
 #     throw :halt, proc {|c| c.access_denied }
 #     throw :halt, proc {|c| Tidy.new(c.index) }
 #
-# ==== Filter Options (.before, .after, .add_filter, .if, .unless)
+# ===== Filter Options (.before, .after, .add_filter, .if, .unless)
 # :only<Symbol, Array[Symbol]>::
 #   A list of actions that this filter should apply to
 #
@@ -65,13 +77,19 @@
 # :unless<Symbol, Proc>::
 #   Only apply the filter if the method named after the symbol or calling the proc evaluates to false
 #
-# ==== Types (shortcuts for use in this file)
+# ===== Types (shortcuts for use in this file)
 # Filter:: <Array[Symbol, (Symbol, String, Proc)]>
+#
+# ==== params[:action] and params[:controller] deprecated
+# params[:action] and params[:controller] have been deprecated as of
+# the 0.9.0 release. They are no longer set during dispatch, and
+# have been replaced by action_name and controller_name respectively.
 class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
   
-  class_inheritable_accessor :_before_filters, :_after_filters, :_layout, :_template_root
+  class_inheritable_accessor :_layout, :_template_root, :template_roots
+  class_inheritable_accessor :_before_filters, :_after_filters
   
   FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
 
@@ -121,13 +139,33 @@ class Merb::AbstractController
     controller ? "#{controller}/#{context}" : context
   end
 
+  # The location to look for a template - stub method for particular behaviour.
+  #
+  # ==== Parameters
+  # template<String>:: The absolute path to a template - without template extension.
+  # type<~to_s>::
+  #    The mime-type of the template that will be rendered. Defaults to nil.
+  #
+  # @public
+  def _absolute_template_location(template, type)
+    template
+  end
+
+  def self._template_root=(root)
+    @_template_root = root
+    _reset_template_roots
+  end
+
+  def self._reset_template_roots
+    self.template_roots = [[self._template_root, :_template_location]]
+  end
+
   # ==== Returns
   # roots<Array[Array]>::
   #   Template roots as pairs of template root path and template location
   #   method.
   def self._template_roots
-    read_inheritable_attribute(:template_roots) || 
-    write_inheritable_attribute(:template_roots, [[self._template_root, :_template_location]])
+    self.template_roots || _reset_template_roots
   end
 
   # ==== Parameters
@@ -135,7 +173,7 @@ class Merb::AbstractController
   #   Template roots as pairs of template root path and template location
   #   method.
   def self._template_roots=(roots)
-    write_inheritable_attribute(:template_roots, roots)
+    self.template_roots = roots
   end
   
   cattr_accessor :_abstract_subclasses, :_template_path_cache
@@ -155,9 +193,10 @@ class Merb::AbstractController
     #   The controller that is being inherited from Merb::AbstractController
     def inherited(klass)
       _abstract_subclasses << klass.to_s
-      Object.make_module "Merb::#{klass}Helper" unless klass.to_s =~ /^(#|Merb::)/
+      helper_module_name = klass.to_s =~ /^(#|Merb::)/ ? "#{klass}Helper" : "Merb::#{klass}Helper"
+      Object.make_module helper_module_name
       klass.class_eval <<-HERE
-        include Object.full_const_get("Merb::#{klass}Helper") rescue nil
+        include Object.full_const_get("#{helper_module_name}") rescue nil
       HERE
       super
     end
@@ -209,7 +248,7 @@ class Merb::AbstractController
       raise MerbControllerError, "The before filter chain is broken dude. wtf?"
     end
     start = Time.now
-    _call_filters(_after_filters) 
+    _call_filters(_after_filters)
     @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
     finalize_session
     @body
@@ -327,7 +366,7 @@ class Merb::AbstractController
   # ==== Notes
   # If the filter already exists, its options will be replaced with opts.
   def self.after(filter = nil, opts = {}, &block)
-    add_filter(self._after_filters, filter, opts)
+    add_filter(self._after_filters, filter || block, opts)
   end
 
   # ==== Parameters
@@ -428,6 +467,27 @@ class Merb::AbstractController
     request.protocol + request.host + url(name, rparams)
   end
 
+  # Calls the capture method for the selected template engine.
+  #
+  # ==== Parameters
+  # *args:: Arguments to pass to the block.
+  # &block:: The template block to call.
+  #
+  # ==== Returns
+  # String:: The output of the block.
+  def capture(*args, &block)
+    send("capture_#{@_engine}", *args, &block)
+  end
+
+  # Calls the concatenate method for the selected template engine.
+  #
+  # ==== Parameters
+  # str<String>:: The string to concatenate to the buffer.
+  # binding<Binding>:: The binding to use for the buffer.
+  def concat(str, binding)
+    send("concat_#{@_engine}", str, binding)
+  end
+
   private
   # ==== Parameters
   # filters<Array[Filter]>:: The filter list that this should be added to.
@@ -500,27 +560,6 @@ class Merb::AbstractController
     opts[:only]     = Array(opts[:only]).map {|x| x.to_s} if opts[:only]
     opts[:exclude]  = Array(opts[:exclude]).map {|x| x.to_s} if opts[:exclude]
     return opts
-  end
-
-  # Calls the capture method for the selected template engine.
-  #
-  # ==== Parameters
-  # *args:: Arguments to pass to the block.
-  # &block:: The template block to call.
-  #
-  # ==== Returns
-  # String:: The output of the block.
-  def capture(*args, &block)
-    send("capture_#{@_engine}", *args, &block)
-  end
-
-  # Calls the concatenate method for the selected template engine.
-  #
-  # ==== Parameters
-  # str<String>:: The string to concatenate to the buffer.
-  # binding<Binding>:: The binding to use for the buffer.
-  def concat(str, binding)
-    send("concat_#{@_engine}", str, binding)
   end
 
   # Attempts to return the partial local variable corresponding to sym.

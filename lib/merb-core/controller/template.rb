@@ -29,6 +29,27 @@ module Merb::Template
       path.gsub(/[^\.a-zA-Z0-9]/, "__").gsub(/\./, "_")
     end
 
+    # For a given path, get an IO object that responds to #path.
+    #
+    # This is so that plugins can override this if they provide
+    # mechanisms for specifying templates that are not just simple
+    # files. The plugin is responsible for ensuring that the fake
+    # path provided will work with #template_for, and thus the
+    # RenderMixin in general.
+    #
+    # ==== Parameters
+    # path<String>:: A full path to find a template for. This is the
+    #   path that the RenderMixin assumes it should find the template
+    #   in.
+    # 
+    # ==== Returns
+    # IO#path:: An IO object that responds to path (File or VirtualFile).
+    #---
+    # @semipublic
+    def load_template_io(path)
+      File.open(path)
+    end
+
     # Get the name of the template method for a particular path.
     #
     # ==== Parameters
@@ -45,11 +66,11 @@ module Merb::Template
       ret = 
       if Merb::Config[:reload_templates]
         file = Dir["#{path}.{#{template_extensions.join(',')}}"].first
-        METHOD_LIST[path] = file ? inline_template(file) : nil
+        METHOD_LIST[path] = file ? inline_template(load_template_io(file)) : nil
       else
         METHOD_LIST[path] ||= begin
           file = Dir["#{path}.{#{template_extensions.join(',')}}"].first          
-          file ? inline_template(file) : nil
+          file ? inline_template(load_template_io(file)) : nil
         end
       end
       
@@ -70,9 +91,8 @@ module Merb::Template
     # adds it to the METHOD_LIST table to speed lookup later.
     # 
     # ==== Parameters
-    # path<String>::
-    #   The full path of the template (minus the templating specifier) to
-    #   inline.
+    # io<#path>::
+    #   An IO that responds to #path (File or VirtualFile)
     # mod<Module>::
     #   The module to put the compiled method into. Defaults to
     #   Merb::InlineTemplates
@@ -82,10 +102,10 @@ module Merb::Template
     # must be available to instances of AbstractController that will use it.
     #---
     # @public
-    def inline_template(path, mod = Merb::InlineTemplates)
-      path = File.expand_path(path)
+    def inline_template(io, mod = Merb::InlineTemplates)
+      path = File.expand_path(io.path)
       METHOD_LIST[path.gsub(/\.[^\.]*$/, "")] = 
-        engine_for(path).compile_template(path, template_name(path), mod)
+        engine_for(path).compile_template(io, template_name(path), mod)
     end
     
     # Finds the engine for a particular path.
@@ -132,28 +152,21 @@ module Merb::Template
 
   class Erubis    
     # ==== Parameters
-    # path<String>:: A full path to the template.
+    # io<#path>:: An IO containing the full path of the template.
     # name<String>:: The name of the method that will be created.
     # mod<Module>:: The module that the compiled method will be placed into.
-    def self.compile_template(path, name, mod)
-      template = ::Erubis::Eruby.new(File.read(path))
-      template.def_method(mod, name, path) 
+    def self.compile_template(io, name, mod)
+      template = ::Erubis::BlockAwareEruby.new(io.read)
+
+      _old_verbose, $VERBOSE = $VERBOSE, nil
+      template.def_method(mod, name, File.expand_path(io.path))
+      $VERBOSE = _old_verbose
+      
       name
     end
 
     module Mixin
       
-      # Provides direct acccess to the buffer for this view context
-      #
-      # ==== Parameters
-      # the_binding<Binding>:: The binding to pass to the buffer.
-      #
-      # ==== Returns
-      # DOC
-      def _erb_buffer( the_binding )
-        @_buffer = eval( "_buf", the_binding, __FILE__, __LINE__)
-      end
-
       # ==== Parameters
       # *args:: Arguments to pass to the block.
       # &block:: The template block to call.
@@ -168,30 +181,16 @@ module Merb::Template
       #     <p>Some Foo content!</p> 
       #   <% end %>
       def capture_erb(*args, &block)
-        # get the buffer from the block's binding
-        buffer = _erb_buffer( block.binding ) rescue nil
-
-        # If there is no buffer, just call the block and get the contents
-        if buffer.nil?
-          block.call(*args)
-        # If there is a buffer, execute the block, then extract its contents
-        else
-          pos = buffer.length
-          block.call(*args)
-
-          # extract the block
-          data = buffer[pos..-1]
-
-          # replace it in the original with empty string
-          buffer[pos..-1] = ''
-
-          data
-        end
+        _old_buf, @_erb_buf = @_erb_buf, ""
+        block.call
+        ret = @_erb_buf
+        @_erb_buf = _old_buf
+        ret
       end
 
       # DOC
       def concat_erb(string, binding)
-        _erb_buffer(binding) << string
+        @_erb_buf << string
       end
             
     end
@@ -202,14 +201,52 @@ module Merb::Template
 end
 
 module Erubis
-  module RubyEvaluator
-
-    # DOC
-    def def_method(object, method_name, filename=nil)
-      m = object.is_a?(Module) ? :module_eval : :instance_eval
-      setup = "@_engine = 'erb'"
-      object.__send__(m, "def #{method_name}(locals={}); #{setup}; #{@src}; end", filename || @filename || '(erubis)')
+  module BlockAwareEnhancer
+    def add_preamble(src)
+      src << "_old_buf, @_erb_buf = @_erb_buf, ''; "
+      src << "@_engine = 'erb'; "
     end
-   
+
+    def add_postamble(src)
+      src << "\n" unless src[-1] == ?\n      
+      src << "_ret = @_erb_buf; @_erb_buf = _old_buf; _ret.to_s;\n"
+    end
+
+    def add_text(src, text)
+      src << " @_erb_buf.concat('" << escape_text(text) << "'); "
+    end
+
+    def add_expr_escaped(src, code)
+      src << ' @_erb_buf.concat(' << escaped_expr(code) << ');'
+    end
+    
+    def add_stmt2(src, code, tailch)
+      src << code
+      src << " ).to_s; " if tailch == "="
+      src << ';' unless code[-1] == ?\n
+    end
+    
+    def add_expr_literal(src, code)
+      if code =~ /(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+        src << ' @_erb_buf.concat( ' << code << "; "
+      else
+        src << ' @_erb_buf.concat((' << code << ').to_s);'
+      end
+    end
   end
+
+  class BlockAwareEruby < Eruby
+    include BlockAwareEnhancer
+  end
+  
+  # module RubyEvaluator
+  # 
+  #   # DOC
+  #   def def_method(object, method_name, filename=nil)
+  #     m = object.is_a?(Module) ? :module_eval : :instance_eval
+  #     setup = "@_engine = 'erb'"
+  #     object.__send__(m, "def #{method_name}(locals={}); #{setup}; #{@src}; end", filename || @filename || '(erubis)')
+  #   end
+  #  
+  # end
 end

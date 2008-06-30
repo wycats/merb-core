@@ -4,7 +4,7 @@ Merb.start :environment => 'test', :log_level => :fatal
 
 class TestController < Merb::Controller
   def get(id = nil); end
-  def post; end
+  def post(version = nil); end
 end
 
 class IDish
@@ -21,6 +21,7 @@ describe Merb::Test::Rspec::RouteMatchers do
 
   before(:each) do
     Merb::Router.prepare do |r|
+      r.match(%r"/v(\d+\.\d+)", :method => :post).to(:controller => "test_controller", :action => "post", :version => "[1]")
       r.match("/", :method => :get).to(:controller => "test_controller", :action => "get").name(:getter)
       r.match("/", :method => :post).to(:controller => "test_controller", :action => "post")
       r.match("/:id").to(:controller => "test_controller", :action => "get").name(:with_id)
@@ -35,7 +36,17 @@ describe Merb::Test::Rspec::RouteMatchers do
 
     it "should work with the url helper and ParamMatcher" do
       idish = IDish.new(rand(1000).to_s)
+      
       request_to(url(:with_id, idish)).should route_to(TestController, :get).with(idish)
+    end
+
+    it "should work with a negative ParamMatcher" do
+      request_to(url(:with_id, :id => 100)).should_not route_to(TestController, :get).with(:id => 1)
+    end
+
+    it "should work with a route containing a regexp" do
+      request_to("/v1.2", :post).should route_to(TestController, :post).with(:version => "1.2")
+      request_to("/v1.0", :post).should_not route_to(TestController, :post).with(:version => "3.14")
     end
   end
 

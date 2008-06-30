@@ -126,7 +126,9 @@ class Hash
   #   { :one => 1, :two => 2, :three => 3 }.only(:one)
   #     #=> { :one => 1 }
   def only(*allowed)
-    reject { |k,v| !allowed.include?(k) }
+    hash = {}
+    allowed.each {|k| hash[k] = self[k] if self.has_key?(k) }
+    hash
   end
 
   # @param *rejected<Array[(String, Symbol)] The hash keys to exclude.
@@ -137,7 +139,9 @@ class Hash
   #   { :one => 1, :two => 2, :three => 3 }.except(:one)
   #     #=> { :two => 2, :three => 3 }
   def except(*rejected)
-    reject { |k,v| rejected.include?(k) }
+    hash = self.dup
+    rejected.each {|k| hash.delete(k) }
+    hash
   end
 
   # @return <String> The hash as attributes for an XML tag.

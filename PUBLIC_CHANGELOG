@@ -1,0 +1,14 @@
+6/22/2008:
+
+Erubis modified:
+* <%= %> now can take a block, so <%= helper do %>Hello<% end %> now works
+* Erubis buffer is now an ivar (@_erb_buf), which eliminates the need for
+  eval in capture helpers.
+  
+CONSEQUENCE:
+Helpers that take a block should simply return a string, and should not
+use concat. Example:
+  
+  def my_helper(&blk)
+    "My helper says #{capture(&blk)}."
+  end

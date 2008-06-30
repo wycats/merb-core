@@ -28,14 +28,15 @@ module Merb
     end # Adapter
     
     # Register some Rack adapters
-    Adapter.register %w{ebb},          :Ebb
-    Adapter.register %w{emongrel},     :EventedMongrel
-    Adapter.register %w{fastcgi fcgi}, :FastCGI
-    Adapter.register %w{irb},          :Irb
-    Adapter.register %w{mongrel},      :Mongrel  
-    Adapter.register %w{runner},       :Runner
-    Adapter.register %w{thin},         :Thin
-    Adapter.register %w{webrick},      :WEBrick
+    Adapter.register %w{ebb},            :Ebb
+    Adapter.register %w{emongrel},       :EventedMongrel
+    Adapter.register %w{fastcgi fcgi},   :FastCGI
+    Adapter.register %w{irb},            :Irb
+    Adapter.register %w{mongrel},        :Mongrel  
+    Adapter.register %w{runner},         :Runner
+    Adapter.register %w{smongrel swift}, :SwiftipliedMongrel
+    Adapter.register %w{thin},           :Thin
+    Adapter.register %w{webrick},        :WEBrick
     
   end # Rack
 end # Merb

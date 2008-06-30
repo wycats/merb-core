@@ -26,6 +26,15 @@ describe Merb::Test::RequestHelper do
       controller.params[:name].should == "Fred"
     end
 
+    it "should dispatch to the given controller and action with the query string merged into the params" do
+      Merb::Test::ControllerAssertionMock.should_receive(:called).with(:show)
+      controller = dispatch_to(@controller_klass, :show, {:name => "Fred"}, {'QUERY_STRING' => "last_name=Jones&age=42"} )
+      
+      controller.params[:name].should == "Fred"
+      controller.params[:last_name].should == "Jones"
+      controller.params[:age].should == "42"   
+    end
+
     it "should not hit the router to match its route" do
       Merb::Router.should_not_receive(:match)
       dispatch_to(@controller_klass, :index)
@@ -84,6 +93,14 @@ describe Merb::Test::RequestHelper do
       Merb::Test::ControllerAssertionMock.should_receive(:called).with(:index)
       controller = get("/spec_helper_controller", :name => "Harry")
       controller.params[:name].should == "Harry"    
+    end
+    
+    it "should perform the index action and have params available from the query string" do
+      Merb::Test::ControllerAssertionMock.should_receive(:called).with(:index)
+      controller = get("/spec_helper_controller?last_name=Oswald&age=25", :name => "Harry")
+      controller.params[:name].should == "Harry"
+      controller.params[:last_name].should == "Oswald"
+      controller.params[:age].should == "25"
     end
 
     it "should evaluate in the context of the controller in the block" do

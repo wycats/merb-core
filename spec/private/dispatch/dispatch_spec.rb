@@ -27,7 +27,7 @@ describe Merb::Dispatcher do
     t = Time.now
     env = Rack::MockRequest.env_for("/notreal")
     Time.stub!(:now).and_return(t)
-    Merb.logger.should_receive(:info).with("Start: #{t}")
+    Merb.logger.should_receive(:info).with("Started request handling: #{t}")
     
     Merb::Dispatcher.handle(env)
   end

@@ -14,6 +14,10 @@ describe Merb::Router::Route, "initially" do
     @r5 = Merb::Router.routes[4]
   end
 
+  after :each do
+    Merb::Router.reset!
+  end
+
   it "has reader for conditions" do
     @r1.conditions
   end
@@ -47,7 +51,6 @@ describe Merb::Router::Route, "initially" do
   end
 end
 
-
 describe Merb::Router::Route, "#fixatable" do
   predicate_matchers[:allow_fixation] = :allow_fixation?
 
@@ -59,6 +62,10 @@ describe Merb::Router::Route, "#fixatable" do
     end
 
     @route = Merb::Router.routes[4]
+  end
+  
+  after :each do
+    Merb::Router.reset!
   end
 
   it "allows fixation when called with true" do
@@ -94,6 +101,10 @@ describe Merb::Router::Route, "#to_s" do
 
     @route = Merb::Router.routes[4]
   end
+  
+  after :each do
+    Merb::Router.reset!
+  end
 
   it "concatenates route segments" do
     @route.stub!(:segments).and_return(["continents/", "new"])
@@ -117,6 +128,10 @@ describe Merb::Router::Route, "#register" do
     end
 
     @route = Merb::Router.routes[4]
+  end
+  
+  after :each do
+    Merb::Router.reset!
   end
 
   it "adds route to Merb routes set" do
@@ -153,7 +168,7 @@ describe Merb::Router::Route, "#symbol_segments" do
   end
 
   after :each do
-    Merb::Router.routes = []
+    Merb::Router.reset!
   end
 
   it "cherrypicks segments that are Symbols" do
@@ -176,7 +191,7 @@ describe Merb::Router::Route, "#segments_from_path" do
   end
 
   after :each do
-    Merb::Router.routes = []
+    Merb::Router.reset!
   end
 
   it "turns path into string and symbol segments" do
@@ -200,7 +215,7 @@ describe Merb::Router::Route, "#name" do
   end
 
   after :each do
-    Merb::Router.routes = []
+    Merb::Router.reset!
   end
 
   it "places the route into named routes collection" do
@@ -212,8 +227,8 @@ describe Merb::Router::Route, "#name" do
   it "only accepts Symbols" do
     lambda { @route.name("home") }.should raise_error(ArgumentError)
   end
+  
 end
-
 
 
 describe Merb::Router::Route, "#regexp?" do
@@ -251,7 +266,7 @@ describe Merb::Router::Route, "#regexp?" do
   end
 
   after :each do
-    Merb::Router.routes = []
+    Merb::Router.reset!
   end
 end
 
@@ -266,6 +281,10 @@ describe Merb::Router::Route, "#generate" do
 
     @regexp_route   = Merb::Router.named_routes[:regexpy]
     @non_regexp_route = Merb::Router.named_routes[:non_regexpy]
+  end
+  
+  after :each do
+    Merb::Router.reset!
   end
 
   it "does not work for regexp routes" do
@@ -304,6 +323,10 @@ describe Merb::Router::Route, "#if_conditions" do
     @non_regexp_route = Merb::Router.named_routes[:non_regexpy]
     @two_symbol_route = Merb::Router.named_routes[:two_symbol_segments]
   end
+  
+  after :each do
+    Merb::Router.reset!
+  end
 
   it "returns array with =~ statements" do
     # just to show you what it looks like
@@ -328,8 +351,6 @@ describe Merb::Router::Route, "#if_conditions" do
   end
 end
 
-
-
 describe Merb::Router::Route, "#if_conditions" do
   before :each do
     Merb::Router.prepare do |r|
@@ -341,6 +362,10 @@ describe Merb::Router::Route, "#if_conditions" do
     @regexp_route   = Merb::Router.named_routes[:regexpy]
     @non_regexp_route = Merb::Router.named_routes[:non_regexpy]
     @two_symbol_route = Merb::Router.named_routes[:two_symbol_segments]
+  end
+  
+  after :each do
+    Merb::Router.reset!
   end
 
   it "uses if in compiled statement when argument is false" do
@@ -354,4 +379,36 @@ describe Merb::Router::Route, "#if_conditions" do
   it "uses if in compiled statement by default" do
     @regexp_route.compile.should =~ /\s*elsif/
   end
+end
+
+describe "Merb::Router::Route.capture" do
+  
+  after :each do
+    Merb::Router.reset!
+  end  
+  
+  it "should capture routes that have been added in the block context" do
+    routes, named, route = [], {}, nil
+    Merb::Router.prepare do |r|
+      routes, named = Merb::Router.capture do
+        route = r.match("/overview").to(:controller => "home", :action => 'overview')
+      end
+      r.match("/").to(:controller => "home").name(:home)
+    end
+    routes.should include(route)
+    named.should_not include(route)
+  end
+  
+  it "should capture named routes that have been added in the block context" do
+    routes, named, route = [], {}, nil
+    Merb::Router.prepare do |r|
+      r.match("/overview").to(:controller => "home", :action => 'overview')
+      routes, named = Merb::Router.capture do
+        route = r.match("/").to(:controller => "home").name(:home)
+      end
+    end
+    routes.should include(route)
+    named[:home].should == route
+  end
+  
 end
