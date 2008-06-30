@@ -150,7 +150,7 @@ module Merb
         'Content-Disposition'       => disposition,
         'Content-Transfer-Encoding' => 'binary'
       )
-      File.open(file)
+      File.open(file, 'rb')
     end
     
     # Send binary data over HTTP to the user as a file download. May set content type,
