@@ -16,6 +16,9 @@ module Merb::Test::Fixtures
     class Capture < HelperTesting
     end
     
+    class CaptureWithArgs < HelperTesting
+    end
+    
     class CaptureEq < HelperTesting
       def helper_using_capture(&blk)
         "Beginning... #{capture(&blk)}... Done"

@@ -182,7 +182,7 @@ module Merb::Template
       #   <% end %>
       def capture_erb(*args, &block)
         _old_buf, @_erb_buf = @_erb_buf, ""
-        block.call
+        block.call(*args)
         ret = @_erb_buf
         @_erb_buf = _old_buf
         ret
