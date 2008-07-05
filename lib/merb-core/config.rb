@@ -151,6 +151,14 @@ module Merb
             options[:port] = port
           end
 
+          opts.on("-o", "--socket-file FILE", "Socket file to run merb on, defaults to [Merb.root]/log/merb.sock") do |port|
+            options[:socket_file] = port
+          end
+
+          opts.on("-s", "--socket SOCKNUM", "Socket number to run merb on, defaults to 0.") do |port|
+            options[:socket] = port
+          end
+
           opts.on("-P", "--pid PIDFILE", "PID file, defaults to [Merb.root]/log/merb.[port_number].pid") do |pid_file|
             options[:pid_file] = pid_file
           end

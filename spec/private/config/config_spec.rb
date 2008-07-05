@@ -64,6 +64,26 @@ describe Merb::Config do
     Merb::Config[:port].should == "6000"
   end
 
+  it "should support -o to set the socket filename" do
+    Merb::Config.parse_args(["-o", "merb.2.sock"])
+    Merb::Config[:socket_file].should == "merb.2.sock"
+  end
+
+  it "should support --socket-file to set the socket filename" do
+    Merb::Config.parse_args(["--socket-file", "app.thin.0.sock"])
+    Merb::Config[:socket_file].should == "app.thin.0.sock" # 0 is default socket #
+  end
+
+  it "should support -s to set the socket number" do
+    Merb::Config.parse_args(["-s", "0"])
+    Merb::Config[:socket].should == "0"
+  end
+
+  it "should support --socket to set the socket number" do
+    Merb::Config.parse_args(["--socket", "3"])
+    Merb::Config[:socket].should == "3"
+  end
+
   it "should support -P to set the PIDfile" do
     Merb::Config.parse_args(["-P", "pidfile"])
     Merb::Config[:pid_file].should == "pidfile"
