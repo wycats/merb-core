@@ -18,19 +18,18 @@ module Merb
       # :app<String>>:: The application name.
       def self.start(opts={})
         Merb::Dispatcher.use_mutex = false
-
-        Merb.logger.warn!("Using Thin adapter with ports.")
         if opts[:socket] || opts[:socket_file]
           socket = opts[:socket] || "0"
           socket_file = opts[:socket_file] || "#{Merb.root}/log/merb.#{socket}.sock"
+          Merb.logger.warn!("Using Thin adapter with socket file #{socket_file}.")
           server = ::Thin::Server.start(socket_file, opts[:app])
         else
+          Merb.logger.warn!("Using Thin adapter on host #{opts[:host]} and port #{opts[:port]}.")
           if opts[:host].include?('/')
             opts[:host] = "#{opts[:host]}-#{opts[:port]}"
           end
           server = ::Thin::Server.start(opts[:host], opts[:port].to_i, opts[:app])
         end
-        
         Merb::Server.change_privilege
         ::Thin::Logging.silent = true
         server.start!
