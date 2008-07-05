@@ -349,7 +349,7 @@ module Merb
     attr_accessor :frozen
 
     # ==== Returns
-    # Boolean:: True if Merb is running via script/frozen-merb or other freezer.
+    # Boolean:: True if Merb is running via merb-freezer or other freezer.
     #
     # ==== Notes
     # Freezing means bundling framework libraries with your application
@@ -361,7 +361,7 @@ module Merb
       @frozen
     end
 
-    # Used by script/frozen-merb and other freezers to mark Merb as frozen.
+    # Used by merb-freezer and other freezers to mark Merb as frozen.
     # See Merb::GlobalHelpers.frozen? for more details on framework freezing.
     def frozen!
       @frozen = true
