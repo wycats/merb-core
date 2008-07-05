@@ -434,6 +434,10 @@ module Merb
     end
 
     # Load all basic dependencies (selected BootLoaders only).
+    # This sets up Merb framework component paths
+    # (directories for models, controllers, etc) using
+    # framework.rb or default layout, loads init file
+    # and dependencies specified in it and runs before_app_loads hooks.
     #
     # ==== Parameters
     # options<Hash>:: Options to pass on to the Merb config.
