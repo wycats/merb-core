@@ -1,4 +1,5 @@
-require 'thin'
+require "thin"
+
 module Merb
   
   module Rack
@@ -12,14 +13,24 @@ module Merb
       # ==== Options (opts)
       # :host<String>:: The hostname that Thin should serve.
       # :port<Fixnum>:: The port Thin should bind to.
+      # :socket<Fixnum>>:: The socket number that thin should bind to.
+      # :socket_file<String>>:: The socket file that thin should attach to.
       # :app<String>>:: The application name.
       def self.start(opts={})
-        Merb.logger.warn!("Using Thin adapter")
         Merb::Dispatcher.use_mutex = false
-        if opts[:host].include?('/')
-          opts[:host] =  "#{opts[:host]}-#{opts[:port]}"
-        end  
-        server = ::Thin::Server.start(opts[:host], opts[:port].to_i, opts[:app])
+
+        Merb.logger.warn!("Using Thin adapter with ports.")
+        if opts[:socket] || opts[:socket_file]
+          socket = opts[:socket] || "0"
+          socket_file = opts[:socket_file] || "#{Merb.root}/log/merb.#{socket}.sock"
+          server = ::Thin::Server.start(socket_file, opts[:app])
+        else
+          if opts[:host].include?('/')
+            opts[:host] = "#{opts[:host]}-#{opts[:port]}"
+          end
+          server = ::Thin::Server.start(opts[:host], opts[:port].to_i, opts[:app])
+        end
+        
         Merb::Server.change_privilege
         ::Thin::Logging.silent = true
         server.start!
