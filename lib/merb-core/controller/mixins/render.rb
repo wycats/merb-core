@@ -298,7 +298,7 @@ module Merb::RenderMixin
   # ==== Returns
   # Hash:: The options hash that was passed in.
   def _handle_options!(opts)
-    self.status = opts[:status].to_i if opts[:status]
+    self.status = opts.delete(:status).to_i if opts[:status]
     headers["Location"] = opts.delete(:location) if opts[:location]
     opts
   end
