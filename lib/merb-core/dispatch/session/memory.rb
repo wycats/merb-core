@@ -34,10 +34,12 @@ module Merb
   ##
   # Sessions stored in memory.
   #
-  # And a setting in +merb.yml+:
+  # Set it up by adding the following to your init file:
   #
-  #   :session_store: memory
-  #   :memory_session_ttl: 3600 (in seconds, one hour)
+  #  Merb::Config.use do |c|
+  #    c[:session_store]      = :memory
+  #    c[:memory_session_ttl] = 3600 # in seconds, one hour
+  #  end
   #
   # Sessions will remain in memory until the server is stopped or the time
   # as set in :memory_session_ttl expires.

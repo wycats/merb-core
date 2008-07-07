@@ -349,7 +349,7 @@ module Merb
     attr_accessor :frozen
 
     # ==== Returns
-    # Boolean:: True if Merb is running via script/frozen-merb or other freezer.
+    # Boolean:: True if Merb is running via merb-freezer or other freezer.
     #
     # ==== Notes
     # Freezing means bundling framework libraries with your application
@@ -361,7 +361,7 @@ module Merb
       @frozen
     end
 
-    # Used by script/frozen-merb and other freezers to mark Merb as frozen.
+    # Used by merb-freezer and other freezers to mark Merb as frozen.
     # See Merb::GlobalHelpers.frozen? for more details on framework freezing.
     def frozen!
       @frozen = true
@@ -434,6 +434,10 @@ module Merb
     end
 
     # Load all basic dependencies (selected BootLoaders only).
+    # This sets up Merb framework component paths
+    # (directories for models, controllers, etc) using
+    # framework.rb or default layout, loads init file
+    # and dependencies specified in it and runs before_app_loads hooks.
     #
     # ==== Parameters
     # options<Hash>:: Options to pass on to the Merb config.

@@ -33,7 +33,18 @@ module Merb
     def needs_new_cookie!
       @_new_cookie = true
     end
-    
+
+    # Adds a callback to the list of callbacks run when
+    # exception is raised on session finalization, so
+    # you can recover.
+    #
+    # See session mixins documentation for details on
+    # session finalization.
+    #
+    # ==== Params
+    # &block::
+    #   A block to be added to the callbacks that will be executed
+    #   if there's exception on session finalization.
     def finalize_session_exception_callbacks(&block)
       if block_given?
         @_finalize_session_exception_callbacks << block
@@ -41,7 +52,18 @@ module Merb
         @_finalize_session_exception_callbacks
       end
     end
-    
+
+    # Adds a callback to the list of callbacks run when
+    # exception is raised on session persisting, so
+    # you can recover.
+    #
+    # See session mixins documentation for details on
+    # session persisting.
+    #
+    # ==== Params
+    # &block::
+    #   A block to be added to the callbacks that will be executed
+    #   if there's exception on session persisting.
     def persist_exception_callbacks(&block)
       if block_given?
         @_persist_exception_callbacks << block
