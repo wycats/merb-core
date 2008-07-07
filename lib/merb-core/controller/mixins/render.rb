@@ -178,6 +178,8 @@ module Merb::RenderMixin
   #
   # :template                a template to use for rendering
   # :layout                  a layout to use for rendering
+  # :status                  the status code to return (defaults to 200)
+  # :location                the value of the Location header
   #
   # all other options        options that will be pass to serialization method
   #                          like #to_json or #to_xml
@@ -216,6 +218,7 @@ module Merb::RenderMixin
     end
 
     layout_opt = opts.delete(:layout)
+    _handle_options!(opts)
     throw_content(:for_layout, opts.empty? ? object.send(transform) : object.send(transform, opts))
     layout_opt ? send(_get_layout(layout_opt)) : catch_content(:for_layout)
   end
