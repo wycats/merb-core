@@ -11,6 +11,8 @@
 # methods with _, you only need to worry about conflicts with Merb
 # methods that are part of the public API.
 #
+#
+#
 # ==== Filters
 # #before is a class method that allows you to specify before filters in
 # your controllers. Filters can either be a symbol or string that
@@ -21,7 +23,7 @@
 # 
 # #after is identical, but the filters are run after the action is invoked.
 #
-# ==== Examples
+# ===== Examples
 #   before :some_filter
 #   before :authenticate, :exclude => [:login, :signup]
 #   before :has_role, :with => ["Admin"], :exclude => [:index,:show]
@@ -62,7 +64,7 @@
 #     throw :halt, proc {|c| c.access_denied }
 #     throw :halt, proc {|c| Tidy.new(c.index) }
 #
-# ==== Filter Options (.before, .after, .add_filter, .if, .unless)
+# ===== Filter Options (.before, .after, .add_filter, .if, .unless)
 # :only<Symbol, Array[Symbol]>::
 #   A list of actions that this filter should apply to
 #
@@ -75,14 +77,19 @@
 # :unless<Symbol, Proc>::
 #   Only apply the filter if the method named after the symbol or calling the proc evaluates to false
 #
-# ==== Types (shortcuts for use in this file)
+# ===== Types (shortcuts for use in this file)
 # Filter:: <Array[Symbol, (Symbol, String, Proc)]>
+#
+# ==== params[:action] and params[:controller] deprecated
+# params[:action] and params[:controller] have been deprecated as of
+# the 0.9.0 release. They are no longer set during dispatch, and
+# have been replaced by action_name and controller_name respectively.
 class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
   
-  class_inheritable_accessor :_layout, :_template_root
-  class_inheritable_array :_before_filters, :_after_filters
+  class_inheritable_accessor :_layout, :_template_root, :template_roots
+  class_inheritable_accessor :_before_filters, :_after_filters
   
   FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
 
@@ -144,13 +151,21 @@ class Merb::AbstractController
     template
   end
 
+  def self._template_root=(root)
+    @_template_root = root
+    _reset_template_roots
+  end
+
+  def self._reset_template_roots
+    self.template_roots = [[self._template_root, :_template_location]]
+  end
+
   # ==== Returns
   # roots<Array[Array]>::
   #   Template roots as pairs of template root path and template location
   #   method.
   def self._template_roots
-    read_inheritable_attribute(:template_roots) || 
-    write_inheritable_attribute(:template_roots, [[self._template_root, :_template_location]])
+    self.template_roots || _reset_template_roots
   end
 
   # ==== Parameters
@@ -158,7 +173,7 @@ class Merb::AbstractController
   #   Template roots as pairs of template root path and template location
   #   method.
   def self._template_roots=(roots)
-    write_inheritable_attribute(:template_roots, roots)
+    self.template_roots = roots
   end
   
   cattr_accessor :_abstract_subclasses, :_template_path_cache
@@ -233,7 +248,7 @@ class Merb::AbstractController
       raise MerbControllerError, "The before filter chain is broken dude. wtf?"
     end
     start = Time.now
-    _call_filters(_after_filters) 
+    _call_filters(_after_filters)
     @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
     finalize_session
     @body
@@ -351,7 +366,7 @@ class Merb::AbstractController
   # ==== Notes
   # If the filter already exists, its options will be replaced with opts.
   def self.after(filter = nil, opts = {}, &block)
-    add_filter(self._after_filters, filter, opts)
+    add_filter(self._after_filters, filter || block, opts)
   end
 
   # ==== Parameters

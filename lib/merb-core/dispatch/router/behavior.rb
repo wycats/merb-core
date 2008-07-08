@@ -7,7 +7,7 @@ module Merb
     #---
     # @public
     class Behavior
-      attr_reader :placeholders, :conditions, :params
+      attr_reader :placeholders, :conditions, :params, :redirect_url, :redirect_status
       attr_accessor :parent
       @@parent_resource = []
       class << self
@@ -269,8 +269,7 @@ module Merb
       #---
       # @public
       def defer_to(params = {}, &conditional_block)
-        Router.routes << (route = to_route(params, &conditional_block))
-        route
+        to_route(params, &conditional_block).register
       end
 
       # Creates the most common routes /:controller/:action/:id.format when

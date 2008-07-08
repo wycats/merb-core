@@ -127,8 +127,8 @@ describe Language::English::Inflect, "#singular" do
     "torpedoes".singular.should == "torpedo"
   end
 
-  it "singularizes quizes => quiz" do
-    "quizes".singular.should == "quiz"
+  it "singularizes quizzes => quiz" do
+    "quizzes".singular.should == "quiz"
   end
 
   # used to be a bug exposed by this specs suite,
@@ -481,5 +481,9 @@ describe Language::English::Inflect, "#singular" do
 
   it "singularizes spams => spam" do
     "spams".singular.should == "spam"
+  end
+
+  it "singularizes rice => rice" do
+    "rice".singular.should == "rice"
   end
 end

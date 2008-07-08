@@ -331,10 +331,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
     # Load all classes from Merb's native load paths.
     def run
-      # Add models, controllers, and lib to the load path
+      # Add models, controllers, helpers and lib to the load path
       $LOAD_PATH.unshift Merb.dir_for(:model)
       $LOAD_PATH.unshift Merb.dir_for(:controller)
       $LOAD_PATH.unshift Merb.dir_for(:lib)
+      $LOAD_PATH.unshift Merb.dir_for(:helper)
 
       # Load application file if it exists - for flat applications
       load_file Merb.dir_for(:application) if File.file?(Merb.dir_for(:application))
@@ -608,6 +609,14 @@ class Merb::BootLoader::ChooseAdapter < Merb::BootLoader
   # Choose the Rack adapter/server to use and set Merb.adapter.
   def self.run
     Merb.adapter = Merb::Rack::Adapter.get(Merb::Config[:adapter])
+  end
+end
+
+class Merb::BootLoader::StartWorkerThread < Merb::BootLoader
+
+  # Choose the Rack adapter/server to use and set Merb.adapter.
+  def self.run
+    Merb::Worker.new
   end
 end
 

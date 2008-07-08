@@ -41,3 +41,20 @@ describe Merb::Router::Behavior, "#redirect" do
     @behavior.should redirect
   end
 end
+
+
+
+describe Merb::Router::Behavior, "#defer_to" do
+  before :each do
+    Merb::Router.prepare do |r|      
+      r.match("/deferred/:zoo").defer_to do |request, params|
+        params.merge(:controller => "w00t") if params[:zoo]
+      end
+      r.default_routes
+    end    
+  end
+
+  it "registers route properly so it has index" do
+    matched_route_for("/deferred/abc").index.should_not be(nil)
+  end
+end

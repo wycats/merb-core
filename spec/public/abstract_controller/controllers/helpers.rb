@@ -7,11 +7,18 @@ module Merb::Test::Fixtures
       def _template_location(context, type = nil, controller = controller_name)
         "helpers/#{File.basename(controller)}/#{context}"
       end
+      
+      def index
+        render
+      end
     end
     
     class Capture < HelperTesting
-      def index
-        render
+    end
+    
+    class CaptureEq < HelperTesting
+      def helper_using_capture(&blk)
+        "Beginning... #{capture(&blk)}... Done"
       end
     end
 

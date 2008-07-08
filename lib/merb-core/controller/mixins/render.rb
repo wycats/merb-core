@@ -105,7 +105,7 @@ module Merb::RenderMixin
 
       template_method, template_location = 
         _template_for(thing, content_type, controller_name, opts[:template])
-      
+
       # Raise an error if there's no template
       unless template_method && self.respond_to?(template_method)
         template_files = Merb::Template.template_extensions.map { |ext| "#{template_location}.#{ext}" }
@@ -178,6 +178,8 @@ module Merb::RenderMixin
   #
   # :template                a template to use for rendering
   # :layout                  a layout to use for rendering
+  # :status                  the status code to return (defaults to 200)
+  # :location                the value of the Location header
   #
   # all other options        options that will be pass to serialization method
   #                          like #to_json or #to_xml
@@ -216,6 +218,7 @@ module Merb::RenderMixin
     end
 
     layout_opt = opts.delete(:layout)
+    _handle_options!(opts)
     throw_content(:for_layout, opts.empty? ? object.send(transform) : object.send(transform, opts))
     layout_opt ? send(_get_layout(layout_opt)) : catch_content(:for_layout)
   end
@@ -295,7 +298,7 @@ module Merb::RenderMixin
   # ==== Returns
   # Hash:: The options hash that was passed in.
   def _handle_options!(opts)
-    self.status = opts[:status].to_i if opts[:status]
+    self.status = opts.delete(:status).to_i if opts[:status]
     headers["Location"] = opts.delete(:location) if opts[:location]
     opts
   end

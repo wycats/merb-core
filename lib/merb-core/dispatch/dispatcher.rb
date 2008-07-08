@@ -6,6 +6,12 @@ class Merb::Dispatcher
     attr_accessor :use_mutex
     
     @@mutex = Mutex.new
+    @@work_queue = Queue.new
+    
+    def work_queue 
+      @@work_queue
+    end  
+    
     Merb::Dispatcher.use_mutex = ::Merb::Config[:use_mutex]
     
     # This is where we grab the incoming request REQUEST_URI and use that in
@@ -27,12 +33,15 @@ class Merb::Dispatcher
     def handle(rack_env)
       start   = Time.now
       request = Merb::Request.new(rack_env)
-      Merb.logger.info "Start: #{start.to_s}"
+      Merb.logger.info "Started request handling: #{start.to_s}"
       
       route_index, route_params = Merb::Router.match(request)
+      route = Merb::Router.routes[route_index] if route_index
+ 
+      return dispatch_redirection(request,route) if route && route.behavior.redirects?      
       
       if route_params.empty?
-        raise ::Merb::ControllerExceptions::NotFound, "No routes match the request, #{request.uri}"
+        raise ::Merb::ControllerExceptions::NotFound, "No routes match the request: #{request.uri}."
       end
       request.route_params = route_params
       request.params.merge! route_params
@@ -40,7 +49,7 @@ class Merb::Dispatcher
       controller_name = (route_params[:namespace] ? route_params[:namespace] + '/' : '') + route_params[:controller]
       
       unless controller_name
-        raise Merb::ControllerExceptions::NotFound, "Route matched, but route did not specify a controller" 
+        raise Merb::ControllerExceptions::NotFound, "Route matched, but route did not specify a controller. Did you forgot to add :controller => \"people\" or :controller segment to route definition? Here is what's specified: #{request.route_params.inspect}" 
       end
       
       Merb.logger.debug("Routed to: #{request.route_params.inspect}")
@@ -48,7 +57,7 @@ class Merb::Dispatcher
       cnt = controller_name.snake_case.to_const_string
       
       if !Merb::Controller._subclasses.include?(cnt)
-        raise Merb::ControllerExceptions::NotFound, "Controller '#{cnt}' not found"
+        raise Merb::ControllerExceptions::NotFound, "Controller '#{cnt}' not found. If Merb tries to look for a controller for static files, you way need to check up your Rackup file, see Problems section at: http://wiki.merbivore.com/pages/rack-middleware"
       end
       if cnt == "Application"
         raise Merb::ControllerExceptions::NotFound, "The 'Application' controller has no public actions"
@@ -56,7 +65,8 @@ class Merb::Dispatcher
 
       begin
         klass = Object.full_const_get(cnt)
-      rescue NameError
+      rescue NameError => e
+        Merb.logger.warn!("Controller class not found for controller #{controller_name}: #{e.message}")
         raise Merb::ControllerExceptions::NotFound
       end
 
@@ -64,13 +74,11 @@ class Merb::Dispatcher
 
       action = route_params[:action]
 
-      if route_index && route = Merb::Router.routes[route_index]
-        #Fixate the session ID if it is enabled on the route
-        if route.allow_fixation? && request.params.key?(Merb::Controller._session_id_key)
-          request.cookies[Merb::Controller._session_id_key] = request.params[Merb::Controller._session_id_key]
-        end
-      end      
-
+      if route.allow_fixation? && request.params.key?(Merb::Controller._session_id_key)
+        Merb.logger.info("Fixated session id: #{Merb::Controller._session_id_key}")
+        request.cookies[Merb::Controller._session_id_key] = request.params[Merb::Controller._session_id_key]
+      end  
+      
       controller = dispatch_action(klass, action, request)
       controller._benchmarks[:dispatch_time] = Time.now - start
       controller.route = route
@@ -223,6 +231,33 @@ Stacktrace:
       end
       controller
     end
+
+    # Set up a faux controller to do redirection from the router 
+    #
+    # ==== Parameters
+    # request<Merb::Request>::
+    #   The Merb::Request object that was created in #handle
+    # route<Merb::Router::Route>:: Matched route object
+    #
+    # ==== Example
+    # r.match("/my/old/crusty/url").redirect("http://example.com/index.html")
+    #
+    # ==== Returns
+    # Merb::Controller::
+    #   Merb::Controller set with redirect headers and a 301/302 status
+    def dispatch_redirection(request, route)
+      status  = route.behavior.redirect_status
+      url     = route.behavior.redirect_url
+
+      controller = Merb::Controller.new(request,status)
+      
+      Merb.logger.info("Dispatcher redirecting to: #{url} (#{status})")
+      
+      controller.headers['Location'] = url
+      controller.body = "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
+      controller
+    end
+    
     
     # Wraps any non-ControllerException errors in an InternalServerError ready
     # for displaying over HTTP.

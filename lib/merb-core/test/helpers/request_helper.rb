@@ -97,12 +97,7 @@ module Merb
       #---
       # @public
       def dispatch_to(controller_klass, action, params = {}, env = {}, &blk)
-        action = action.to_s
-        request_body = { :post_body => env[:post_body], :req => env[:req] }
-        params = Merb::Request.params_to_query_string(params)
-        env[:query_string] = env["QUERY_STRING"] ? "#{env["QUERY_STRING"]}&#{params}" : params
-        request = fake_request(env, request_body)
-        dispatch_request(request, controller_klass, action, &blk)
+        dispatch_request(build_request(params, env), controller_klass, action.to_s, &blk)
       end
 
 
@@ -136,13 +131,39 @@ module Merb
       #---
       # @public
       def dispatch_with_basic_authentication_to(controller_klass, action, username, password, params = {}, env = {}, &blk)
-        action = action.to_s
-        request_body = { :post_body => env[:post_body], :req => env[:req] }
         env["X_HTTP_AUTHORIZATION"] = "Basic #{Base64.encode64("#{username}:#{password}")}"
-        request = fake_request(env.merge(
-          :query_string => Merb::Request.params_to_query_string(params)), request_body)
+        
+        dispatch_request(build_request(params, env), controller_klass, action.to_s, &blk)
+      end
 
-        dispatch_request(request, controller_klass, action, &blk)
+      # Prepares and returns a request suitable for dispatching with
+      # dispatch_request. If you don't need to modify the request
+      # object before dispatching (e.g. to add cookies), you probably
+      # want to use dispatch_to instead.
+      #
+      # ==== Parameters
+      # params<Hash>::
+      #   An optional hash that will end up as params in the controller instance.
+      # env<Hash>::
+      #   An optional hash that is passed to the fake request. Any request options
+      #   should go here (see +fake_request+), including :req or :post_body
+      #   for setting the request body itself.
+      #
+      # ==== Example
+      #   req = build_request(:id => 1)
+      #   req.cookies['app_cookie'] = "testing"
+      #   dispatch_request(req, MyController, :edit)
+      #
+      # ==== Notes
+      # Does not use routes.
+      #
+      #---
+      # @public      
+      def build_request(params = {}, env = {})
+        params             = Merb::Request.params_to_query_string(params)
+        env[:query_string] = env["QUERY_STRING"] ? "#{env["QUERY_STRING"]}&#{params}" : params
+        
+        fake_request(env, { :post_body => env[:post_body], :req => env[:req] })
       end
 
       # An HTTP GET request that operates through the router.
@@ -157,6 +178,8 @@ module Merb
       # &blk::
       #   The controller is yielded to the block provided for actions *prior* to
       #   the action being dispatched.
+      #---
+      # @public      
       def get(path, params = {}, env = {}, &block)
         env[:request_method] = "GET"
         request(path, params, env, &block)
@@ -174,6 +197,8 @@ module Merb
       # &blk::
       #   The controller is yielded to the block provided for actions *prior* to
       #   the action being dispatched.
+      #---
+      # @public      
       def post(path, params = {}, env = {}, &block)
         env[:request_method] = "POST"
         request(path, params, env, &block)
@@ -191,6 +216,8 @@ module Merb
       # &blk::
       #   The controller is yielded to the block provided for actions *prior* to
       #   the action being dispatched.
+      #---
+      # @public      
       def put(path, params = {}, env = {}, &block)
         env[:request_method] = "PUT"
         request(path, params, env, &block)
@@ -208,6 +235,8 @@ module Merb
       # &blk::
       #   The controller is yielded to the block provided for actions *prior* to
       #   the action being dispatched.
+      #---
+      # @public
       def delete(path, params = {}, env = {}, &block)
         env[:request_method] = "DELETE"
         request(path, params, env, &block)
@@ -275,7 +304,7 @@ module Merb
       # Does not use routes.
       #
       #---
-      # @private
+      # @public
       def dispatch_request(request, controller_klass, action, &blk)
         controller = controller_klass.new(request)
         yield controller if block_given?
@@ -299,14 +328,17 @@ module Merb
       #
       # ==== Returns
       # Hash:: The parameters built based on the matching route.
+      #
+      #---
+      # @semi-public
       def check_request_for_route(request)
         match =  ::Merb::Router.match(request)
-        if match[0].nil?
+        if match[0].nil? && match[1].empty?
           raise ::Merb::ControllerExceptions::BadRequest, "No routes match the request"
         else
           match[1]
         end
-      end
-    end
-  end
-end
+      end # check_request_for_route
+    end # RequestHelper
+  end # Test
+end # Merb
