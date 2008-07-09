@@ -210,8 +210,11 @@ module Merb
           value =
             if segment.is_a? Symbol
               if params.is_a? Hash
-                params[segment] || fallback[segment]
+                if segment.to_s =~ /_id/ && params[:id].respond_to?(segment)
+                  params[segment] = params[:id].send(segment)
+                end
                 query_params.delete segment
+                params[segment] || fallback[segment]
               else
                 if segment == :id && params.respond_to?(:to_param)
                   params.to_param

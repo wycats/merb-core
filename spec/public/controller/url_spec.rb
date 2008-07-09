@@ -167,4 +167,14 @@ describe Merb::Controller, " url" do
     @controller.url(:monkey_blue_pink, @pink).should == "/monkeys/45/blues/13/pinks/22"
   end
 
+  it "should match resource with additional params" do
+    @monkey = Monkey.new
+    @controller.url(:monkey, @monkey, :foo => "bar").should == "/monkeys/45?foo=bar"
+  end
+
+  it "should match a nested resource with additional params" do
+    @blue = Blue.new
+    @controller.url(:monkey_blue, @blue, :foo => "bar").should == "/monkeys/45/blues/13?foo=bar"
+  end
+
 end
