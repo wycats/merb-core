@@ -168,6 +168,15 @@ module Merb
         h
       end
     end
+    
+    def message
+      return {} unless params[:_message]
+      begin
+        Marshal.load(Merb::Request.unescape(params[:_message]).unpack("m").first)
+      rescue ArgumentError
+        {}
+      end
+    end
 
     # Resets the params to a nil value.
     def reset_params!
