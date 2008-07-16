@@ -31,15 +31,7 @@ describe "resources routes" do
     route_to('/foo/edit', :method => :get).should have_route(:controller => 'foo', :action => 'edit', :id => nil)
   end
   
-  it "should match a get to /foo;edit to the blogposts controller and edit action" do
-    route_to('/foo;edit', :method => :get).should have_route(:controller => 'foo', :action => 'edit', :id => nil)
-  end
-  
   it "should match a get to /foo/delete to the blogposts controller and delete action" do
     route_to('/foo/delete', :method => :get).should have_route(:controller => 'foo', :action => 'delete', :id => nil)
-  end
-  
-  it "should match a get to /foo;delete to the blogposts controller and delete action" do
-    route_to('/foo;delete', :method => :get).should have_route(:controller => 'foo', :action => 'delete', :id => nil)
   end
 end

@@ -372,9 +372,9 @@ module Merb
       #    # GET     /posts/new                :action => "new"
       #    # POST    /posts/?(\.:format)?,     :action => "create"
       #    # GET     /posts/:id(\.:format)?    :action => "show"
-      #    # GET     /posts/:id[;/]edit        :action => "edit"
+      #    # GET     /posts/:id[/]edit        :action => "edit"
       #    # PUT     /posts/:id(\.:format)?    :action => "update"
-      #    # GET     /posts/:id[;/]delete      :action => "delete"
+      #    # GET     /posts/:id[/]delete      :action => "delete"
       #    # DELETE  /posts/:id(\.:format)?    :action => "destroy"
       #
       #  # Nesting resources
@@ -411,7 +411,7 @@ module Merb
         if member = options.delete(:member)
           member.each_pair do |action, methods|
             behaviors << Behavior.new(
-            { :path => %r{^/#{matched_keys}[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
+            { :path => %r{^/#{matched_keys}[/]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
             { :action => action.to_s }, next_level
             )
             next_level.match("/#{matched_keys}/#{action}").to_route.name(:"#{action}_#{route_singular_name}")
@@ -421,7 +421,7 @@ module Merb
         if collection = options.delete(:collection)
           collection.each_pair do |action, methods|
             behaviors << Behavior.new(
-            { :path => %r{^[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
+            { :path => %r{^[/]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
             { :action => action.to_s }, next_level
             )
             next_level.match("/#{action}").to_route.name(:"#{action}_#{route_plural_name}")
@@ -480,9 +480,9 @@ module Merb
       #    # GET     /account/new                :action => "new"
       #    # POST    /account/?(\.:format)?,     :action => "create"
       #    # GET     /account/(\.:format)?       :action => "show"
-      #    # GET     /account/[;/]edit           :action => "edit"
+      #    # GET     /account/[/]edit           :action => "edit"
       #    # PUT     /account/(\.:format)?       :action => "update"
-      #    # GET     /account/[;/]delete         :action => "delete"
+      #    # GET     /account/[/]delete         :action => "delete"
       #    # DELETE  /account/(\.:format)?       :action => "destroy"
       #
       # You can optionally pass :namespace and :controller to refine the routing
@@ -664,8 +664,8 @@ module Merb
           Behavior.new({ :path => %r[^/new$],               :method => :get },    { :action => "new" },     self),
           Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :post },   { :action => "create" },  self),
           Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :get },    { :action => "show" },    self),
-          Behavior.new({ :path => %r[^/#{matched_keys}[;/]edit$],       :method => :get },    { :action => "edit" },    self),
-          Behavior.new({ :path => %r[^/#{matched_keys}[;/]delete$],     :method => :get },    { :action => "delete" },  self),
+          Behavior.new({ :path => %r[^/#{matched_keys}[/]edit$],       :method => :get },    { :action => "edit" },    self),
+          Behavior.new({ :path => %r[^/#{matched_keys}[/]delete$],     :method => :get },    { :action => "delete" },  self),
           Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :put },    { :action => "update" },  self),
           Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :delete }, { :action => "destroy" }, self)
         ]
@@ -679,11 +679,11 @@ module Merb
       # Array:: Behaviors for a singular RESTful resource.
       def resource_behaviors(parent = self)
         [
-          Behavior.new({ :path => %r{^[;/]new$},        :method => :get },    { :action => "new" },     parent),
+          Behavior.new({ :path => %r{^[/]new$},        :method => :get },    { :action => "new" },     parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :post },   { :action => "create" },  parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :get },    { :action => "show" },    parent),
-          Behavior.new({ :path => %r{^[;/]edit$},       :method => :get },    { :action => "edit" },    parent),
-          Behavior.new({ :path => %r{^[;/]delete$},     :method => :get },    { :action => "delete" },    parent),
+          Behavior.new({ :path => %r{^[/]edit$},       :method => :get },    { :action => "edit" },    parent),
+          Behavior.new({ :path => %r{^[/]delete$},     :method => :get },    { :action => "delete" },    parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :put },    { :action => "update" },  parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :delete }, { :action => "destroy" }, parent)
         ]
