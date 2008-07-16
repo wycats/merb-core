@@ -9,7 +9,7 @@ module Merb
     class Behavior
       attr_reader :placeholders, :conditions, :params, :redirect_url, :redirect_status
       attr_accessor :parent
-      @@parent_resource = []
+      @@parent_resources = []
       class << self
 
         # ==== Parameters
@@ -395,8 +395,8 @@ module Merb
           name_prefix = namespace_to_name_prefix namespace
         end
 
-        unless @@parent_resource.empty?
-          parent_resource = namespace_to_name_prefix @@parent_resource.join('_')
+        unless @@parent_resources.empty?
+          parent_resource = namespace_to_name_prefix @@parent_resources.join('_')
         end
 
         options[:controller] ||= merged_params[:controller] || name.to_s
@@ -445,9 +445,9 @@ module Merb
 
         parent_keys = (matched_keys == ":id") ? ":#{singular}_id" : matched_keys
         if block_given?
-          @@parent_resource.push(singular)
+          @@parent_resources.push(singular)
           yield next_level.match("/#{parent_keys}")
-          @@parent_resource.pop
+          @@parent_resources.pop
         end
 
         routes
@@ -507,8 +507,8 @@ module Merb
           name_prefix = namespace_to_name_prefix namespace
         end
 
-        unless @@parent_resource.empty?
-          parent_resource = namespace_to_name_prefix @@parent_resource.join('_')
+        unless @@parent_resources.empty?
+          parent_resource = namespace_to_name_prefix @@parent_resources.join('_')
         end
 
         routes = next_level.to_resource options
@@ -521,9 +521,9 @@ module Merb
         next_level.match('/delete').to_route.name(:"delete_#{route_name}")
 
         if block_given?
-          @@parent_resource.push(route_name)
+          @@parent_resources.push(route_name)
           yield next_level
-          @@parent_resource.pop
+          @@parent_resources.pop
         end
 
         routes
