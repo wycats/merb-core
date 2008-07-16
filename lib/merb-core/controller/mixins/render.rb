@@ -410,7 +410,7 @@ module Merb::RenderMixin
   #---
   # @public
   def catch_content(obj = :for_layout)
-    @_caught_content[obj]
+    @_caught_content[obj] * '' unless @_caught_content[obj].nil?
   end
 
   # Called in templates to test for the existence of previously thrown content.
@@ -445,7 +445,8 @@ module Merb::RenderMixin
     unless string || block_given?
       raise ArgumentError, "You must pass a block or a string into throw_content"
     end
-    @_caught_content[obj] = string.to_s << (block_given? ? capture(&block) : "")
+    @_caught_content[obj] = [] if @_caught_content[obj].nil?
+    @_caught_content[obj] << string.to_s << (block_given? ? capture(&block) : "")
   end
 
 end
