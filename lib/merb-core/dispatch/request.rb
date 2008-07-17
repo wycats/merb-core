@@ -34,7 +34,7 @@ module Merb
       @route_params = {}
     end
     
-    METHODS = %w{get post put delete head}
+    METHODS = %w{get post put delete head options}
 
     # ==== Returns
     # Symbol:: The name of the request method, e.g. :get.
@@ -48,7 +48,7 @@ module Merb
       @method ||= begin
         request_method = @env['REQUEST_METHOD'].downcase.to_sym
         case request_method
-        when :get, :head, :put, :delete
+        when :get, :head, :put, :delete, :options
           request_method
         when :post
           m = nil
