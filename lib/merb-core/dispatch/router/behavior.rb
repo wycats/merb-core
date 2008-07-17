@@ -367,14 +367,29 @@ module Merb
       # ==== Examples
       #
       #  r.resources :posts # will result in the typical RESTful CRUD
+      #    # lists resources
       #    # GET     /posts/?(\.:format)?      :action => "index"
       #    # GET     /posts/index(\.:format)?  :action => "index"
+      #
+      #    # shows new resource form
       #    # GET     /posts/new                :action => "new"
+      #
+      #    # creates resource
       #    # POST    /posts/?(\.:format)?,     :action => "create"
+      #
+      #    # shows resource
       #    # GET     /posts/:id(\.:format)?    :action => "show"
+      #
+      #    # shows edit form
       #    # GET     /posts/:id/edit        :action => "edit"
+      #
+      #    # updates resource
       #    # PUT     /posts/:id(\.:format)?    :action => "update"
+      #
+      #    # shows deletion confirmation page
       #    # GET     /posts/:id/delete      :action => "delete"
+      #
+      #    # destroys resources
       #    # DELETE  /posts/:id(\.:format)?    :action => "destroy"
       #
       #  # Nesting resources
@@ -477,12 +492,25 @@ module Merb
       # ==== Examples
       #
       #  r.resource :account # will result in the typical RESTful CRUD
+      #    # shows new resource form      
       #    # GET     /account/new                :action => "new"
+      #
+      #    # creates resource      
       #    # POST    /account/?(\.:format)?,     :action => "create"
+      #
+      #    # shows resource      
       #    # GET     /account/(\.:format)?       :action => "show"
+      #
+      #    # shows edit form      
       #    # GET     /account//edit           :action => "edit"
+      #
+      #    # updates resource      
       #    # PUT     /account/(\.:format)?       :action => "update"
+      #
+      #    # shows deletion confirmation page      
       #    # GET     /account//delete         :action => "delete"
+      #
+      #    # destroys resources      
       #    # DELETE  /account/(\.:format)?       :action => "destroy"
       #
       # You can optionally pass :namespace and :controller to refine the routing
