@@ -220,7 +220,9 @@ module Merb::RenderMixin
     layout_opt = opts.delete(:layout)
     _handle_options!(opts)
     throw_content(:for_layout, opts.empty? ? object.send(transform) : object.send(transform, opts))
-    layout_opt ? send(_get_layout(layout_opt)) : catch_content(:for_layout)
+    
+    meth, _ = _template_for(layout_opt, layout_opt.to_s.index(".") ? nil : content_type, "layout") if layout_opt
+    meth ? send(meth) : catch_content(:for_layout)
   end
 
   # Render a partial template.
