@@ -61,7 +61,7 @@ module Merb
         subklasses = subclasses.dup
         until subclasses.empty?
           bootloader = subclasses.shift
-          Merb.logger.debug!("Loading: #{bootloader}") if ENV['DEBUG']
+          Merb.logger.debug!("Loading: #{bootloader}") if Merb::Config[:verbose] || ENV['DEBUG'] || $DEBUG
           Object.full_const_get(bootloader).run
           self.finished << bootloader
         end
