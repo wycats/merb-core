@@ -143,7 +143,7 @@ class Merb::BootLoader::Logger < Merb::BootLoader
   
   def self.print_warnings
     if Gem::Version.new(Gem::RubyGemsVersion) < Gem::Version.new("1.1")
-      Merb.logger.warn! "Please upgrade your Rubygems to the latest version"      
+      Merb.logger.warn! "Merb requires Rubygems 1.1 and later. Please upgrade RubyGems with gem update --system."
     end
   end
 end
