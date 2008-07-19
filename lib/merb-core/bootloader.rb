@@ -431,7 +431,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     private
 
     # "Better loading" of classes.  If a class fails to load due to a NameError
-    # it will be added to the failed_classs stack.
+    # it will be added to the failed_classes and load cycle will be repeated unless
+    # no classes load.
     #
     # ==== Parameters
     # klasses<Array[Class]>:: Classes to load.
