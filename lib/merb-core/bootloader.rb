@@ -379,7 +379,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to reload.
     def reload(file)
-      remove_file(file) { |f| load_file(f) }
+      remove_classes_in_file(file) { |f| load_file(f) }
     end
     
     # Reload the router to regenerate all routes.
@@ -393,7 +393,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to remove classes for.
     # &block:: A block to call with the file that has been removed.
-    def remove_file(file, &block)
+    def remove_classes_in_file(file, &block)
       Merb.klass_hashes.each {|x| x.protect_keys!}
       if klasses = LOADED_CLASSES.delete(file)
         klasses.each { |klass| remove_constant(klass) unless klass.to_s =~ /Router/ }
