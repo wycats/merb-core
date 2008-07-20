@@ -10,10 +10,6 @@ describe Merb::AbstractController, " with capture and concat" do
     dispatch_should_make_body("CaptureWithArgs", "Capture: one, two")
   end
 
-  it "should support capture with arguments" do
-    dispatch_should_make_body("CaptureWithArgs", "Capture: one, two")
-  end  
-
   it "should support basic helpers that use capture with <%=" do
     dispatch_should_make_body("CaptureEq", "Pre. Beginning... Capturing... Done. Post.")
   end

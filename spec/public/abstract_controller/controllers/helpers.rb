@@ -15,9 +15,6 @@ module Merb::Test::Fixtures
     
     class Capture < HelperTesting
     end
-
-    class CaptureWithArgs < HelperTesting
-    end
     
     class CaptureWithArgs < HelperTesting
     end
