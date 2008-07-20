@@ -62,11 +62,11 @@ module Merb
         until subclasses.empty?
           time = Time.now.to_i
           bootloader = subclasses.shift
-          if ENV['DEBUG'] && Merb.logger
+          if (ENV['DEBUG'] || $DEBUG || Merb::Config[:verbose]) && Merb.logger
             Merb.logger.debug!("Loading: #{bootloader}")
           end
           Object.full_const_get(bootloader).run
-          if ENV['DEBUG'] && Merb.logger
+          if (ENV['DEBUG'] || $DEBUG || Merb::Config[:verbose]) && Merb.logger
             Merb.logger.debug!("It took: #{Time.now.to_i - time}")
           end
           self.finished << bootloader
@@ -149,7 +149,7 @@ class Merb::BootLoader::Logger < Merb::BootLoader
   
   def self.print_warnings
     if Gem::Version.new(Gem::RubyGemsVersion) < Gem::Version.new("1.1")
-      Merb.logger.warn! "Please upgrade your Rubygems to the latest version"      
+      Merb.logger.warn! "Merb requires Rubygems 1.1 and later. Please upgrade RubyGems with gem update --system."
     end
   end
 end
@@ -385,7 +385,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to reload.
     def reload(file)
-      remove_file(file) { |f| load_file(f) }
+      remove_classes_in_file(file) { |f| load_file(f) }
     end
     
     # Reload the router to regenerate all routes.
@@ -399,7 +399,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to remove classes for.
     # &block:: A block to call with the file that has been removed.
-    def remove_file(file, &block)
+    def remove_classes_in_file(file, &block)
       Merb.klass_hashes.each {|x| x.protect_keys!}
       if klasses = LOADED_CLASSES.delete(file)
         klasses.each { |klass| remove_constant(klass) unless klass.to_s =~ /Router/ }
@@ -437,7 +437,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     private
 
     # "Better loading" of classes.  If a class fails to load due to a NameError
-    # it will be added to the failed_classs stack.
+    # it will be added to the failed_classes and load cycle will be repeated unless
+    # no classes load.
     #
     # ==== Parameters
     # klasses<Array[Class]>:: Classes to load.
