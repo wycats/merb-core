@@ -604,7 +604,7 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
   # does not exist or is shorter than 16 charaters.
   def self.check_for_secret_key
     unless Merb::Config[:session_secret_key] && (Merb::Config[:session_secret_key].length >= 16)
-      Merb.logger.warn("You must specify a session_secret_key in your merb.yml, and it must be at least 16 characters\nbailing out...")
+      Merb.logger.warn("You must specify a session_secret_key in your init file, and it must be at least 16 characters\nbailing out...")
       exit!
     end
     Merb::Controller._session_secret_key = Merb::Config[:session_secret_key]
