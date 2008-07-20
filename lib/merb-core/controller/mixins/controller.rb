@@ -118,11 +118,19 @@ module Merb
     #   redirect("/posts/34")
     #   redirect("http://www.merbivore.com/")
     #   redirect("http://www.merbivore.com/", true)
-    def redirect(url, permanent = false)
-      self.status = permanent ? 301 : 302
+    def redirect(url, message = nil)
+      if message
+        notice = Merb::Request.escape([Marshal.dump(message)].pack("m"))
+        url = url =~ /\?/ ? "#{url}&_message=#{notice}" : "#{url}?_message=#{notice}"
+      end
+      self.status = 302
       Merb.logger.info("Redirecting to: #{url} (#{self.status})")
       headers['Location'] = url
       "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
+    end
+    
+    def message
+      @_message = defined?(@_message) ? @_message : request.message
     end
     
     # Sends a file over HTTP.  When given a path to a file, it will set the
@@ -150,7 +158,7 @@ module Merb
         'Content-Disposition'       => disposition,
         'Content-Transfer-Encoding' => 'binary'
       )
-      File.open(file)
+      File.open(file, 'rb')
     end
     
     # Send binary data over HTTP to the user as a file download. May set content type,

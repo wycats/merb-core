@@ -85,6 +85,13 @@ module Merb::Test::Fixtures::Controllers
     end
   end
 
+  class DisplayWithStatus < Display
+    provides :json
+    def index
+      @obj = SomeModel.new
+      display @obj, :status => 500
+    end
+  end
 
   class DisplayWithSerializationOptions < Display
     provides :json

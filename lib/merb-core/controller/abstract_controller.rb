@@ -361,7 +361,7 @@ class Merb::AbstractController
   # filter<Symbol, Proc>:: The filter to add. Defaults to nil.
   # opts<Hash>::
   #   Filter options (see class documentation under <tt>Filter Options</tt>).
-  # &block:: Currently ignored.
+  # &block:: A block to use as a filter if filter is nil.
   #
   # ==== Notes
   # If the filter already exists, its options will be replaced with opts.

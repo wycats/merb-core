@@ -21,6 +21,7 @@ module Merb
           :session_id_key         => "_session_id",
           :log_delimiter          => " ~ ",
           :log_auto_flush         => false,
+          :log_level              => :info,
           :disabled_components    => [],
           :deferred_actions       => [],
           :verbose                => false
@@ -149,6 +150,14 @@ module Merb
 
           opts.on("-p", "--port PORTNUM", "Port to run merb on, defaults to 4000.") do |port|
             options[:port] = port
+          end
+
+          opts.on("-o", "--socket-file FILE", "Socket file to run merb on, defaults to [Merb.root]/log/merb.sock") do |port|
+            options[:socket_file] = port
+          end
+
+          opts.on("-s", "--socket SOCKNUM", "Socket number to run merb on, defaults to 0.") do |port|
+            options[:socket] = port
           end
 
           opts.on("-P", "--pid PIDFILE", "PID file, defaults to [Merb.root]/log/merb.[port_number].pid") do |pid_file|

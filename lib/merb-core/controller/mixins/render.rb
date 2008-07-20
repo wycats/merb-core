@@ -178,6 +178,8 @@ module Merb::RenderMixin
   #
   # :template                a template to use for rendering
   # :layout                  a layout to use for rendering
+  # :status                  the status code to return (defaults to 200)
+  # :location                the value of the Location header
   #
   # all other options        options that will be pass to serialization method
   #                          like #to_json or #to_xml
@@ -216,8 +218,11 @@ module Merb::RenderMixin
     end
 
     layout_opt = opts.delete(:layout)
+    _handle_options!(opts)
     throw_content(:for_layout, opts.empty? ? object.send(transform) : object.send(transform, opts))
-    layout_opt ? send(_get_layout(layout_opt)) : catch_content(:for_layout)
+    
+    meth, _ = _template_for(layout_opt, layout_opt.to_s.index(".") ? nil : content_type, "layout") if layout_opt
+    meth ? send(meth) : catch_content(:for_layout)
   end
 
   # Render a partial template.
@@ -295,7 +300,7 @@ module Merb::RenderMixin
   # ==== Returns
   # Hash:: The options hash that was passed in.
   def _handle_options!(opts)
-    self.status = opts[:status].to_i if opts[:status]
+    self.status = opts.delete(:status).to_i if opts[:status]
     headers["Location"] = opts.delete(:location) if opts[:location]
     opts
   end
@@ -407,7 +412,7 @@ module Merb::RenderMixin
   #---
   # @public
   def catch_content(obj = :for_layout)
-    @_caught_content[obj]
+    @_caught_content[obj] * '' unless @_caught_content[obj].nil?
   end
 
   # Called in templates to test for the existence of previously thrown content.
@@ -442,7 +447,8 @@ module Merb::RenderMixin
     unless string || block_given?
       raise ArgumentError, "You must pass a block or a string into throw_content"
     end
-    @_caught_content[obj] = string.to_s << (block_given? ? capture(&block) : "")
+    @_caught_content[obj] = [] if @_caught_content[obj].nil?
+    @_caught_content[obj] << string.to_s << (block_given? ? capture(&block) : "")
   end
 
 end

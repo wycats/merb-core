@@ -13,3 +13,5 @@ coverage
 *.gem
 TAGS
 *.rbc
+*.tmproj
+.#*
