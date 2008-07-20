@@ -60,9 +60,15 @@ module Merb
       def run
         subklasses = subclasses.dup
         until subclasses.empty?
+          time = Time.now.to_i
           bootloader = subclasses.shift
-          Merb.logger.debug!("Loading: #{bootloader}") if ENV['DEBUG']
+          if ENV['DEBUG'] && Merb.logger
+            Merb.logger.debug!("Loading: #{bootloader}")
+          end
           Object.full_const_get(bootloader).run
+          if ENV['DEBUG'] && Merb.logger
+            Merb.logger.debug!("It took: #{Time.now.to_i - time}")
+          end
           self.finished << bootloader
         end
         self.subclasses = subklasses

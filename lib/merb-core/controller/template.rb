@@ -159,6 +159,7 @@ module Merb::Template
       template = ::Erubis::BlockAwareEruby.new(io.read)
 
       _old_verbose, $VERBOSE = $VERBOSE, nil
+      Merb.logger.fatal template.src
       template.def_method(mod, name, File.expand_path(io.path))
       $VERBOSE = _old_verbose
       
@@ -182,7 +183,7 @@ module Merb::Template
       #   <% end %>
       def capture_erb(*args, &block)
         _old_buf, @_erb_buf = @_erb_buf, ""
-        block.call
+        block.call(*args)
         ret = @_erb_buf
         @_erb_buf = _old_buf
         ret
