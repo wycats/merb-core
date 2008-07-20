@@ -335,7 +335,7 @@ namespace :tools do
   namespace :tags do
     desc "Generates Emacs tags using Exuberant Ctags."
     task :emacs do
-      sh "ctags -e --Ruby-kinds=-f -o TAGS -R ."
+      sh "ctags -e --Ruby-kinds=-f -o TAGS -R lib"
     end
   end
 end
