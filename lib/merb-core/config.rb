@@ -21,7 +21,7 @@ module Merb
           :session_id_key         => "_session_id",
           :log_delimiter          => " ~ ",
           :log_auto_flush         => false,
-          :log_level              => :error,
+          :log_level              => :info,
           :disabled_components    => [],
           :deferred_actions       => [],
           :verbose                => false
