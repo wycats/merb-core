@@ -7,10 +7,10 @@ module Merb
       # start an Ebb server on given host and port.
       
       # ==== Parameters
-      # opts<Hash>:: Options for Thin (see below).
+      # opts<Hash>:: Options for Ebb (see below).
       #
       # ==== Options (opts)
-      # :host<String>:: The hostname that Thin should serve.
+      # :host<String>:: The hostname that Ebb should serve.
       # :port<Fixnum>:: The port Ebb should bind to.
       # :app:: The application
       def self.start(opts={})
