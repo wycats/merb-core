@@ -12,6 +12,7 @@ module Merb
     autoload :Runner,              "merb-core/rack/adapter/runner"    
     autoload :SwiftipliedMongrel,  "merb-core/rack/adapter/swiftiplied_mongrel"
     autoload :Thin,                "merb-core/rack/adapter/thin"
+    autoload :ThinTurbo,           "merb-core/rack/adapter/thin_turbo"
     autoload :WEBrick,             "merb-core/rack/adapter/webrick"
     autoload :PathPrefix,          "merb-core/rack/middleware/path_prefix"
     autoload :Static,              "merb-core/rack/middleware/static"
