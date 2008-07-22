@@ -96,7 +96,7 @@ module Merb
         %w[view model helper controller mailer part].each do |component|
           Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
         end
-        Merb.push_path(:application,  Merb.root_path("app/controllers/application.rb"))
+        Merb.push_path(:application,  Merb.root_path("app" / "controllers" / "application.rb"))
         Merb.push_path(:config,       Merb.root_path("config"), nil)
         Merb.push_path(:router,       Merb.dir_for(:config), (Merb::Config[:router_file] || "router.rb"))
         Merb.push_path(:lib,          Merb.root_path("lib"), nil)
