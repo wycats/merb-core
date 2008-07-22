@@ -4,12 +4,16 @@ require 'rubygems'
 require 'set'
 require 'fileutils'
 require 'socket'
+require 'pathname'
+require "merb-extlib"
 
-$LOAD_PATH.unshift File.dirname(__FILE__) unless
-  $LOAD_PATH.include?(File.dirname(__FILE__)) ||
-  $LOAD_PATH.include?(File.expand_path(File.dirname(__FILE__)))
+__DIR__ = File.dirname(__FILE__)
 
-require 'merb-core/vendor/facets'
+$LOAD_PATH.unshift __DIR__ unless
+  $LOAD_PATH.include?(__DIR__) ||
+  $LOAD_PATH.include?(File.expand_path(__DIR__))
+
+require 'merb-core' / 'vendor' / 'facets'
 
 module Merb
   module GlobalHelpers; end
@@ -168,7 +172,7 @@ module Merb
     #   "**/*.rb".
     def push_path(type, path, file_glob = "**/*.rb")
       enforce!(type => Symbol)
-      load_paths[type] = [path, file_glob]
+      load_paths[type] = [Pathname.new(path), file_glob]
     end
 
     # Removes given types of application components
@@ -197,22 +201,32 @@ module Merb
     #
     # ==== Returns
     # String:: The directory for the requested type.
-    def dir_for(type)  Merb.load_paths[type].first end
+    def dir_for(type)
+      Merb.load_paths[type].first
+    end
 
     # ==== Parameters
     # type<Symbol>:: The type of path to retrieve glob for, e.g. :view.
     #
     # ===== Returns
     # String:: The pattern with which to match files within the type directory.
-    def glob_for(type) Merb.load_paths[type][1]    end
+    def glob_for(type)
+      Merb.load_paths[type][1]
+    end
 
     # ==== Returns
     # String:: The Merb root path.
-    def root()          @root || Merb::Config[:merb_root] || Dir.pwd  end
+    def root
+      app_root = @root || Merb::Config[:merb_root] || Dir.pwd
+
+      Pathname.new(app_root)
+    end
 
     # ==== Parameters
     # value<String>:: Path to the root directory.
-    def root=(value)    @root = value                                 end
+    def root=(value)
+      @root = Pathname.new(value)
+    end
 
     # ==== Parameters
     # *path::
@@ -228,7 +242,9 @@ module Merb
     #   Merb.path("views", "admin") # => "/home/merb/app/views/admin"
     #---
     # @public
-    def root_path(*path) File.join(root, *path)                       end
+    def root_path(*path)
+      Pathname.new(File.join(root, *path))
+    end
 
     # Logger settings
     attr_accessor :logger
@@ -252,15 +268,19 @@ module Merb
     # ==== Returns
     # String:: Path to directory that contains the log file.
     def log_path
-      case Merb::Config[:log_file]
+      path = case Merb::Config[:log_file]
       when String then File.dirname(Merb::Config[:log_file])
       else Merb.root_path("log")
       end
+
+      Pathname.new(path)
     end
 
     # ==== Returns
     # String:: The path of root directory of the Merb framework.
-    def framework_root()  @framework_root ||= File.dirname(__FILE__)  end
+    def framework_root
+      @framework_root ||= Pathname(File.dirname(__FILE__))
+    end
 
     # ==== Returns
     # RegExp::
@@ -536,7 +556,7 @@ module Merb
     # Recommended way to find out what paths Rakefiles
     # are loaded from.
     def rakefiles
-      @rakefiles ||= ['merb-core/test/tasks/spectasks']
+      @rakefiles ||= ['merb-core' / 'test' / 'tasks' / 'spectasks']
     end
     
     # === Returns
@@ -555,7 +575,7 @@ module Merb
     # ==== Notes
     # Recommended way to add Rakefiles load path for plugins authors.
     def add_rakefiles(*rakefiles)
-      @rakefiles ||= ['merb-core/test/tasks/spectasks']
+      @rakefiles ||= ['merb-core' / 'test' / 'tasks' / 'spectasks']
       @rakefiles += rakefiles
     end
     
@@ -572,12 +592,12 @@ module Merb
   end
 end
 
-require 'merb-core/autoload'
-require 'merb-core/server'
-require 'merb-core/gem_ext/erubis'
-require 'merb-core/logger'
-require 'merb-core/version'
-require 'merb-core/controller/mime'
+require 'merb-core' / 'autoload'
+require 'merb-core' / 'server'
+require 'merb-core' / 'gem_ext/erubis'
+require 'merb-core' / 'logger'
+require 'merb-core' / 'version'
+require 'merb-core' / 'controller/mime'
 
 # Set the environment if it hasn't already been set.
 Merb.environment ||= ENV['MERB_ENV'] || Merb::Config[:environment] || (Merb.testing? ? 'test' : 'development')

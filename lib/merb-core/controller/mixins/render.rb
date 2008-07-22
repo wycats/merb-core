@@ -383,10 +383,11 @@ module Merb::RenderMixin
         template_location = root / self.send(template_meth, context, content_type, controller)
       end
       
-      break if template_method = _template_method_for(template_location)
+      break if template_method = _template_method_for(template_location.to_s)
     end
 
-    [template_method, template_location]
+    # template_location is a Pathname
+    [template_method, template_location.to_s]
   end
   
   # Return the template method for a location, and check to make sure the current controller

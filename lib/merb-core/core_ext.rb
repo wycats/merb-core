@@ -5,6 +5,4 @@ rescue LoadError => e
   exit
 end
 
-corelib = File.join(File.dirname(__FILE__), "core_ext")
-
-require corelib/:kernel
+require File.dirname(__FILE__) / "core_ext" / "kernel"
