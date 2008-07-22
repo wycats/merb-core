@@ -5,7 +5,7 @@ require 'set'
 require 'fileutils'
 require 'socket'
 require 'pathname'
-require "merb-extlib"
+require "extlib"
 
 __DIR__ = File.dirname(__FILE__)
 
