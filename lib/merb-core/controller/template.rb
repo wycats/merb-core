@@ -47,7 +47,7 @@ module Merb::Template
     #---
     # @semipublic
     def load_template_io(path)
-      File.open(path)
+      File.open(path, "r")
     end
 
     # Get the name of the template method for a particular path.
