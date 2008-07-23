@@ -1,13 +1,10 @@
+begin
+  require "merb-extlib"
+rescue LoadError => e
+  puts "Merb-core 0.9.4 and later uses merb-extlib for Ruby core class extensions. Install it from github.com/wycats/merb-extlib."
+  exit
+end
+
 corelib = File.join(File.dirname(__FILE__), "core_ext")
 
-require "#{corelib}/string"
-require corelib/:time
-require corelib/:class
-require corelib/:hash
 require corelib/:kernel
-require corelib/:mash
-require corelib/:object
-require corelib/:object_space
-require corelib/:rubygems
-require corelib/:set
-require corelib/:virtual_file

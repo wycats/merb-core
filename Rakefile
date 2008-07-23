@@ -51,6 +51,7 @@ spec = Gem::Specification.new do |s|
   #s.rdoc_options     += RDOC_OPTS + ["--exclude", "^(app|uploads)"]
 
   # Dependencies
+  s.add_dependency "merb-extlib", ">= #{Merb::VERSION}"
   s.add_dependency "erubis"
   s.add_dependency "rake"
   s.add_dependency "json_pure"

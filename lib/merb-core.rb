@@ -538,6 +538,16 @@ module Merb
     def rakefiles
       @rakefiles ||= ['merb-core/test/tasks/spectasks']
     end
+    
+    # === Returns
+    # Array(String):: Paths generators are loaded from
+    #
+    # === Notes
+    # Recommended way to find out what paths generators
+    # are loaded from.
+    def generators
+      @generators ||= []
+    end
 
     # ==== Parameters
     # *rakefiles:: Rakefile pathss to add to the list of Rakefiles.
@@ -547,6 +557,16 @@ module Merb
     def add_rakefiles(*rakefiles)
       @rakefiles ||= ['merb-core/test/tasks/spectasks']
       @rakefiles += rakefiles
+    end
+    
+    # ==== Parameters
+    # *generators:: Generator paths to add to the list of generators.
+    #
+    # ==== Notes
+    # Recommended way to add Generator load paths for plugin authors.
+    def add_generators(*generators)
+      @generators ||= []
+      @generators += generators
     end
 
   end
