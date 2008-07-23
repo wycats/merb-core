@@ -104,8 +104,10 @@ module Merb::Template
     # @public
     def inline_template(io, mod = Merb::InlineTemplates)
       path = File.expand_path(io.path)
-      METHOD_LIST[path.gsub(/\.[^\.]*$/, "")] = 
+      ret = METHOD_LIST[path.gsub(/\.[^\.]*$/, "")] = 
         engine_for(path).compile_template(io, template_name(path), mod)
+      io.close
+      ret
     end
     
     # Finds the engine for a particular path.
