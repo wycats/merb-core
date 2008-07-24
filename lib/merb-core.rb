@@ -168,6 +168,7 @@ module Merb
     #   "**/*.rb".
     def push_path(type, path, file_glob = "**/*.rb")
       enforce!(type => Symbol)
+      $:.unshift File.expand_path(path)
       load_paths[type] = [path, file_glob]
     end
 
