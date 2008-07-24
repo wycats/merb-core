@@ -60,7 +60,7 @@ module Merb
       :warn  => 4,
       :info  => 3,
       :debug => 0
-    }
+    } unless const_defined?(:Levels)
 
     private
 
