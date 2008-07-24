@@ -6,6 +6,8 @@ require "rake/testtask"
 require "spec/rake/spectask"
 require "fileutils"
 
+require "extlib"
+
 def __DIR__
   File.dirname(__FILE__)
 end
@@ -81,6 +83,27 @@ desc "Run :clean and uninstall the .gem"
 task :uninstall => :clean do
   sh %{#{sudo} gem uninstall #{NAME}}
 end
+
+
+
+
+##############################################################################
+# Release
+##############################################################################
+RUBY_FORGE_PROJECT = "merb-core"
+
+PKG_NAME      = 'merb-core'
+PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_VERSION   = Merb::VERSION + PKG_BUILD
+PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
+
+RELEASE_NAME  = "REL #{PKG_VERSION}"
+
+# FIXME: hey, someone take care of me
+RUBY_FORGE_USER    = ""
+
+require "extlib/tasks/release"
+
 
 namespace :github do
   desc "Update Github Gemspec"
