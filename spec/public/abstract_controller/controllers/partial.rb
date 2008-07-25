@@ -65,6 +65,13 @@ module Merb::Test::Fixtures
         render
       end
     end
+    
+   class PartialWithCollectionsAndCounter < RenderIt
+      def index
+        @foo = %w(1 2 3 4 5)
+        render
+      end
+    end
 
     class PartialWithLocals < RenderIt
 

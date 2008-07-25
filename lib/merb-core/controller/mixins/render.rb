@@ -269,7 +269,7 @@ module Merb::RenderMixin
     with = [opts.delete(:with)].flatten
     as = opts.delete(:as) || template_location.match(%r[.*/_([^\.]*)])[1]
     
-    @_merb_partial_locals = opts
+    @_merb_partial_locals = opts.merge(:collection_index => 0, :collection_size => with.size)
     
     # this handles an edge-case where the name of the partial is _foo.* and your opts
     # have :foo as a key.
@@ -278,7 +278,9 @@ module Merb::RenderMixin
     sent_template = with.map do |temp|
       @_merb_partial_locals[as.to_sym] = temp unless named_local
       if template_method && self.respond_to?(template_method)
-        send(template_method)
+        sent = send(template_method)
+        @_merb_partial_locals[:collection_index] += 1
+        sent
       else
         raise TemplateNotFound, "Could not find template at #{template_location}.*"
       end
