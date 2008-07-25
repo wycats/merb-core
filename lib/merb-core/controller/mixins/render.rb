@@ -372,13 +372,8 @@ module Merb::RenderMixin
 
     self.class._template_roots.reverse_each do |root, template_meth|
       # :template => "foo/bar.html" where root / "foo/bar.html.*" exists
-      if template && template.is_a?(String) && template.index("/")
-        template_location = root / template
-        
-      # :template => :tmpl where root / "tmpl.html.*" exists
-      elsif template
+      if template
         template_location = root / self.send(template_meth, template, content_type, nil)
-        
       # :layout => "foo" where root / "layouts" / "#{controller}.html.*" exists        
       else
         template_location = root / self.send(template_meth, context, content_type, controller)
