@@ -244,15 +244,21 @@ module Merb::RenderMixin
   #   A Hash object names and values that will be the local names and values
   #   inside the partial.
   #
-  # ==== Example
+  # ==== Examples
   #   partial :foo, :hello => @object
   #
   # The "_foo" partial will be called, relative to the current controller,
-  # with a local variable of +hello+ inside of it, assigned to @object. Two
-  # local variables will be available in the partial: "collection_index" and
-  # "collection_size". "collection_index" is the current index of the object
-  # in the collection specified by the ":with" option. "collection_size" is
-  # the total size of the collection.
+  # with a local variable of +hello+ inside of it, assigned to @object.
+  #
+  #   partial :bar, :with => ['one', 'two', 'three']
+  #
+  # The "_bar" partial will be called once for each element of the array
+  # specified by :with for a total of three iterations. Each element
+  # of the array will be available in the partial via a local variable named
+  # +bar+. Additionally, there will be two extra local variables:
+  # +collection_index+ and +collection_size+. +collection_index+ is the index
+  # of the object currently referenced by +bar+ in the collection passed to
+  # the partial. +collection_size+ is the total size of the collection.
   def partial(template, opts={})
 
     # partial :foo becomes "#{controller_name}/_foo"
