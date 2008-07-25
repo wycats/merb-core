@@ -248,7 +248,11 @@ module Merb::RenderMixin
   #   partial :foo, :hello => @object
   #
   # The "_foo" partial will be called, relative to the current controller,
-  # with a local variable of +hello+ inside of it, assigned to @object.
+  # with a local variable of +hello+ inside of it, assigned to @object. Two
+  # local variables will be available in the partial: "collection_index" and
+  # "collection_size". "collection_index" is the current index of the object
+  # in the collection specified by the ":with" option. "collection_size" is
+  # the total size of the collection.
   def partial(template, opts={})
 
     # partial :foo becomes "#{controller_name}/_foo"
