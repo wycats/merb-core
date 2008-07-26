@@ -6,8 +6,6 @@ require "rake/testtask"
 require "spec/rake/spectask"
 require "fileutils"
 
-require "extlib"
-
 def __DIR__
   File.dirname(__FILE__)
 end
