@@ -35,6 +35,14 @@ describe Merb::Controller, " displaying objects based on mime type" do
   it "should accept an absolute template path argument - without the mimetype extension" do
     dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplate, :absolute_without_mime).body.should == "Custom: HTML: Default"
   end
+  
+  it "should accept a relative template path argument - with the mimetype extension" do
+    dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplate, :relative_with_mime).body.should == "Custom: HTML: Default"
+  end
+  
+  it "should accept a relative template path argument - without the mimetype extension" do
+    dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithTemplate, :relative_without_mime).body.should == "Custom: HTML: Default"
+  end
 
   it "should accept a layout argument when calling to_*" do
     dispatch_to(Merb::Test::Fixtures::Controllers::DisplayWithLayout, :index, {}, 
