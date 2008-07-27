@@ -269,7 +269,7 @@ module Merb::RenderMixin
     with = [opts.delete(:with)].flatten
     as = opts.delete(:as) || template_location.match(%r[.*/_([^\.]*)])[1]
     
-    @_merb_partial_locals = opts
+    @_merb_partial_locals = opts.merge(:collection_index => -1, :collection_size => with.size)
     
     # this handles an edge-case where the name of the partial is _foo.* and your opts
     # have :foo as a key.
@@ -278,6 +278,7 @@ module Merb::RenderMixin
     sent_template = with.map do |temp|
       @_merb_partial_locals[as.to_sym] = temp unless named_local
       if template_method && self.respond_to?(template_method)
+        @_merb_partial_locals[:collection_index] += 1
         send(template_method)
       else
         raise TemplateNotFound, "Could not find template at #{template_location}.*"
@@ -371,13 +372,8 @@ module Merb::RenderMixin
 
     self.class._template_roots.reverse_each do |root, template_meth|
       # :template => "foo/bar.html" where root / "foo/bar.html.*" exists
-      if template && template.is_a?(String) && template.index("/")
-        template_location = root / template
-        
-      # :template => :tmpl where root / "tmpl.html.*" exists
-      elsif template
+      if template
         template_location = root / self.send(template_meth, template, content_type, nil)
-        
       # :layout => "foo" where root / "layouts" / "#{controller}.html.*" exists        
       else
         template_location = root / self.send(template_meth, context, content_type, controller)

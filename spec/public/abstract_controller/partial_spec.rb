@@ -50,6 +50,10 @@ describe Merb::AbstractController, " Partials" do
     dispatch_should_make_body("BasicPartialWithMultipleRoots", "Base Index: Alt Partial")
   end
   
+  it "should be able to count collections" do
+    dispatch_should_make_body("PartialWithCollectionsAndCounter", "Partial counting: 0/5 1/5 2/5 3/5 4/5 ")
+  end
+  
   it "should render a partial using an absolute path" do
     dispatch_should_make_body("WithAbsolutePartial", "Index Absolute Partial")
   end

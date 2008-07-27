@@ -195,27 +195,6 @@ module Merb
       @_provided_formats ||= class_provided_formats.dup
     end
     
-    # Sets the provided formats for this action.  Usually, you would use a
-    # combination of provides, only_provides and does_not_provide to manage
-    # this, but you can set it directly.
-    # 
-    # ==== Parameters
-    # *formats<Symbol>:: A list of formats to be passed to provides.
-    #
-    # ==== Raises
-    # Merb::ResponderMixin::ContentTypeAlreadySet::
-    #   Content negotiation already occured, and the content_type is set.
-    #
-    # ==== Returns
-    # Array[Symbol]:: List of formats passed in.
-    def _set_provided_formats(*formats)
-      if @_content_type
-        raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
-      end
-      provides(*formats)
-    end
-    alias :_provided_formats= :_set_provided_formats   
-    
     # Adds formats to the list of provided formats for this particular request.
     # Usually used to add formats to a single action. See also the
     # controller-level provides that affects all actions in a controller.
@@ -237,8 +216,7 @@ module Merb
       if @_content_type
         raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
       end
-      @_provided_formats ||= [] 
-      @_provided_formats |= formats
+      @_provided_formats = self._provided_formats | formats # merges with class_provided_formats if not already
     end
 
     # Sets list of provided formats for this particular request. Usually used
@@ -255,7 +233,8 @@ module Merb
     #---
     # @public
     def only_provides(*formats)
-      _set_provided_formats(*formats)
+      @_provided_formats = []
+      provides(*formats)
     end
     
     # Removes formats from the list of provided formats for this particular 
@@ -273,8 +252,7 @@ module Merb
     #---
     # @public
     def does_not_provide(*formats)
-      formats.flatten!
-      self._provided_formats -= formats
+      @_provided_formats -= formats.flatten
     end
     
     # Do the content negotiation:
