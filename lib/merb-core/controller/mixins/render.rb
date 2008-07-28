@@ -259,6 +259,26 @@ module Merb::RenderMixin
   # +collection_index+ and +collection_size+. +collection_index+ is the index
   # of the object currently referenced by +bar+ in the collection passed to
   # the partial. +collection_size+ is the total size of the collection.
+  #
+  # By default, the object specified by :with will be available through a
+  # local variable with the same name as the partial template. However,
+  # this can be changed using the :as option.
+  #
+  #   partial :bar, :with => "one", :as => :number
+  #
+  # In this case, "one" will be available in the partial through the local
+  # variable named +number+.
+  #
+  # ==== Notes
+  # It is important to note that the object being passed to the partial
+  # as well as any extra local variables cannot use names of helper methods
+  # since any helper method of the same name will take precedence over the
+  # passed variable. Example:
+  #
+  #   partial :bar, :with => "one", :as => :partial
+  #
+  # In this case, "one" will not be available in the partial because "partial"
+  # is already a helper method.
   def partial(template, opts={})
 
     # partial :foo becomes "#{controller_name}/_foo"
