@@ -27,6 +27,11 @@ describe Merb::Request, "#method" do
     end
   end
 
+  it "should not try to parse the request body as JSON on GET" do
+    request = fake_request({:request_method => "GET", :content_type => "application/json"}, :req => "")
+    lambda { request.params }.should_not raise_error(JSON::ParserError)
+  end
+  
   it "should default to POST if the _method is not defined" do
     request = fake_request({:request_method => "POST"}, :post_body => "_method=zed")
     request.method.should == :post
