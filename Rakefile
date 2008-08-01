@@ -5,6 +5,7 @@ require "rake/rdoctask"
 require "rake/testtask"
 require "spec/rake/spectask"
 require "fileutils"
+require "extlib"
 
 def __DIR__
   File.dirname(__FILE__)
@@ -32,24 +33,17 @@ PROJECT_DESCRIPTION = PROJECT_SUMMARY
 AUTHOR = "Ezra Zygmuntowicz"
 EMAIL  = "ez@engineyard.com"
 
-GEM_NAME    = "extlib"
+GEM_NAME    = "merb-core"
 PKG_BUILD   = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-GEM_VERSION = Extlib::VERSION + PKG_BUILD
+GEM_VERSION = Merb::VERSION + PKG_BUILD
 
 RELEASE_NAME    = "REL #{GEM_VERSION}"
 
 require "lib/extlib/tasks/release"
 
-CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
-
-desc "Run the specs."
-task :default => :specs
-
-task :merb => [:clean, :rdoc, :package]
-
 spec = Gem::Specification.new do |s|
-  s.name         = NAME
-  s.version      = Merb::VERSION
+  s.name         = GEM_NAME
+  s.version      = GEM_VERSION
   s.platform     = Gem::Platform::RUBY
   s.author       = AUTHOR
   s.email        = EMAIL
@@ -79,10 +73,6 @@ spec = Gem::Specification.new do |s|
   s.required_ruby_version = ">= 1.8.4"
 end
 
-Rake::GemPackageTask.new(spec) do |package|
-  package.gem_spec = spec
-end
-
 desc "Run :package and install the resulting .gem"
 task :install => :package do
   sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri}
@@ -98,6 +88,12 @@ task :uninstall => :clean do
   sh %{#{sudo} gem uninstall #{NAME}}
 end
 
+CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
+
+desc "Run the specs."
+task :default => :specs
+
+task :merb => [:clean, :rdoc, :package]
 
 ##############################################################################
 # Github
@@ -270,14 +266,6 @@ task :stats do
   # require "extra/stats"
   verbose = true
   CodeStatistics.new(*STATS_DIRECTORIES).to_s
-end
-
-task :release => :package do
-  if ENV["RELEASE"]
-    sh %{rubyforge add_release merb merb "#{ENV["RELEASE"]}" pkg/#{NAME}-#{Merb::VERSION}.gem}
-  else
-    puts "Usage: rake release RELEASE='Clever tag line goes here'"
-  end
 end
 
 ##############################################################################
