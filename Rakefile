@@ -51,7 +51,7 @@ spec = Gem::Specification.new do |s|
   #s.rdoc_options     += RDOC_OPTS + ["--exclude", "^(app|uploads)"]
 
   # Dependencies
-  s.add_dependency "merb-extlib", ">= #{Merb::VERSION}"
+  s.add_dependency "extlib", ">=0.9.3"
   s.add_dependency "erubis"
   s.add_dependency "rake"
   s.add_dependency "json_pure"
@@ -81,6 +81,27 @@ desc "Run :clean and uninstall the .gem"
 task :uninstall => :clean do
   sh %{#{sudo} gem uninstall #{NAME}}
 end
+
+
+
+
+##############################################################################
+# Release
+##############################################################################
+RUBY_FORGE_PROJECT = "merb-core"
+
+PKG_NAME      = 'merb-core'
+PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_VERSION   = Merb::VERSION + PKG_BUILD
+PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
+
+RELEASE_NAME  = "REL #{PKG_VERSION}"
+
+# FIXME: hey, someone take care of me
+RUBY_FORGE_USER    = ""
+
+require "extlib/tasks/release"
+
 
 namespace :github do
   desc "Update Github Gemspec"
