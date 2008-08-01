@@ -85,7 +85,7 @@ class Merb::Controller < Merb::AbstractController
     # ==== Returns
     # SimpleSet[String]:: A set of actions that should be callable.
     def callable_actions
-      @callable_actions ||= Merb::SimpleSet.new(_callable_methods)
+      @callable_actions ||= Extlib::SimpleSet.new(_callable_methods)
     end
 
     # This is a stub method so plugins can implement param filtering if they want.
