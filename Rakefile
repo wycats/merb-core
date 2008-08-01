@@ -22,8 +22,24 @@ require "lib/merb-core/test/run_specs"
 require 'lib/merb-core/tasks/merb_rake_helper'
 
 ##############################################################################
-# Packaging & Installation
+# Package && release
 ##############################################################################
+RUBY_FORGE_PROJECT  = "merb"
+PROJECT_URL         = "http://merbivore.com"
+PROJECT_SUMMARY     = "Merb. Pocket rocket web framework."
+PROJECT_DESCRIPTION = PROJECT_SUMMARY
+
+AUTHOR = "Ezra Zygmuntowicz"
+EMAIL  = "ez@engineyard.com"
+
+GEM_NAME    = "extlib"
+PKG_BUILD   = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+GEM_VERSION = Extlib::VERSION + PKG_BUILD
+
+RELEASE_NAME    = "REL #{GEM_VERSION}"
+
+require "lib/extlib/tasks/release"
+
 CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
 
 desc "Run the specs."
@@ -35,12 +51,12 @@ spec = Gem::Specification.new do |s|
   s.name         = NAME
   s.version      = Merb::VERSION
   s.platform     = Gem::Platform::RUBY
-  s.author       = "Ezra Zygmuntowicz"
-  s.email        = "ez@engineyard.com"
-  s.homepage     = "http://merbivore.com"
-  s.summary      = "Merb. Pocket rocket web framework."
+  s.author       = AUTHOR
+  s.email        = EMAIL
+  s.homepage     = PROJECT_URL
+  s.summary      = PROJECT_SUMMARY
   s.bindir       = "bin"
-  s.description  = s.summary
+  s.description  = PROJECT_DESCRIPTION
   s.executables  = %w( merb )
   s.require_path = "lib"
   s.files        = %w( LICENSE README Rakefile TODO ) + Dir["{docs,bin,spec,lib,examples,app_generators,merb_generators,merb_default_generators,rspec_generators,test_unit_generators,script}/**/*"]
@@ -69,7 +85,7 @@ end
 
 desc "Run :package and install the resulting .gem"
 task :install => :package do
-  sh %{#{sudo} gem install #{install_home} --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :package and install the resulting .gem with jruby"
@@ -83,26 +99,9 @@ task :uninstall => :clean do
 end
 
 
-
-
 ##############################################################################
-# Release
+# Github
 ##############################################################################
-RUBY_FORGE_PROJECT = "merb-core"
-
-PKG_NAME      = 'merb-core'
-PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_VERSION   = Merb::VERSION + PKG_BUILD
-PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
-
-RELEASE_NAME  = "REL #{PKG_VERSION}"
-
-# FIXME: hey, someone take care of me
-RUBY_FORGE_USER    = ""
-
-require "extlib/tasks/release"
-
-
 namespace :github do
   desc "Update Github Gemspec"
   task :update_gemspec do
