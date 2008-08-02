@@ -16,8 +16,6 @@ require __DIR__ + "/tools/annotation_extract"
 
 include FileUtils
 
-NAME = "merb-core"
-
 require "lib/merb-core/version"
 require "lib/merb-core/test/run_specs"
 require 'lib/merb-core/tasks/merb_rake_helper'
@@ -39,7 +37,7 @@ GEM_VERSION = Merb::VERSION + PKG_BUILD
 
 RELEASE_NAME    = "REL #{GEM_VERSION}"
 
-require "lib/extlib/tasks/release"
+require "extlib/tasks/release"
 
 spec = Gem::Specification.new do |s|
   s.name         = GEM_NAME
@@ -71,6 +69,10 @@ spec = Gem::Specification.new do |s|
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
   s.required_ruby_version = ">= 1.8.4"
+end
+
+Rake::GemPackageTask.new(spec) do |package|
+  package.gem_spec = spec
 end
 
 desc "Run :package and install the resulting .gem"
