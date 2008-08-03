@@ -261,6 +261,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     enable_json_gem unless Merb::disabled?(:json)
     load_dependencies
     update_logger
+    update_session_cookie_attributes
   end
 
   def self.load_dependencies
@@ -276,6 +277,13 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   def self.update_logger
     updated_logger_options = [ Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush] ]
     Merb::BootLoader::Logger.run if updated_logger_options != Merb.logger.init_args
+  end
+
+  def self.update_session_cookie_attributes
+    # Merb::Controller._session_secret_key is generated later in the process
+    Merb::Controller._session_id_key = Merb::Config[:session_id_key] || '_session_id'
+    Merb::Controller._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
+    Merb::Controller._session_cookie_domain = Merb::Config[:session_cookie_domain]
   end
 
   private
