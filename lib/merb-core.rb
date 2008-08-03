@@ -528,7 +528,7 @@ module Merb
     # ==== Parameters
     # *args:: One or more symbols of Merb internal components.
     def disable(*components)
-      disabled_components.push *components
+      disabled_components.push(*components)
     end
 
     # ==== Parameters
