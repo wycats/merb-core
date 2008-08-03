@@ -10,7 +10,9 @@ class Child < Parent
 end
 
 class Grandparent
-  class_inheritable_accessor :last_name
+  class_inheritable_accessor :last_name, :_attribute
+
+  self._attribute = "1900"  
 end
 
 describe Class, "#inheritable_accessor" do
@@ -19,6 +21,15 @@ describe Class, "#inheritable_accessor" do
     Grandparent.send(:remove_instance_variable, "@last_name") rescue nil
     Parent.send(:remove_instance_variable, "@last_name") rescue nil
     Child.send(:remove_instance_variable, "@last_name") rescue nil
+  end
+
+  it 'inherits from parent unless overriden' do
+    Parent._attribute.should == "1900"
+    Child._attribute.should == "1900"
+  end
+
+  it 'inherits from grandparent unless overriden' do
+    Child._attribute.should == "1900"
   end
   
   it "inherits even if the accessor is made after the inheritance" do
