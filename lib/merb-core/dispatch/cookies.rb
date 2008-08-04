@@ -32,6 +32,8 @@ module Merb
     # :value<~to_s>:: Value of the cookie
     # :path<String>:: The path for which this cookie applies. Defaults to "/".
     # :expires<Time>:: Cookie expiry date.
+    # :domain<String>:: The domain for which this cookie applies.
+    # :secure<Boolean>:: Security flag.
     #
     # ==== Alternatives
     # If options is not a hash, it will be used as the cookie value directly.
@@ -78,14 +80,25 @@ module Merb
     # ==== Options (options)
     # :path<String>:: The path for which this cookie applies. Defaults to "/".
     # :expires<Time>:: Cookie expiry date.
+    # :domain<String>:: The domain for which this cookie applies.
+    # :secure<Boolean>:: Security flag.
     def set_cookie(name, value, options)
       options[:path] = '/' unless options[:path]
       if expiry = options[:expires]
         options[:expires] = expiry.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
       end
-      # options are sorted for testing purposes
-      (@_headers['Set-Cookie'] ||=[]) << "#{name}=#{value}; " +
-        options.map{|k, v| "#{k}=#{v};"}.sort.join(' ')
+
+      secure = options.delete(:secure)
+      
+      @_headers['Set-Cookie'] ||=[]
+      
+      kookie = "#{name}=#{value}; "
+      # options are sorted for testing purposes:
+      # Hash is unsorted so string is spec is random every run
+      kookie <<  options.map{|k, v| "#{k}=#{v};"}.join(' ')
+      kookie << ' secure' if secure
+      
+      @_headers['Set-Cookie'] << kookie
     end
   end
 end
