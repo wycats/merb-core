@@ -192,6 +192,7 @@ class Merb::Controller < Merb::AbstractController
   #---
   # @semipublic
   def _dispatch(action=:index)
+    Merb.logger.info("Params: #{self.class._filter_params(request.params).inspect}")
     start = Time.now
     if self.class.callable_actions.include?(action.to_s)
       super(action)

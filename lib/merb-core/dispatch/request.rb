@@ -4,7 +4,8 @@ module Merb
   
   class Request
     # def env def session def route_params
-    attr_accessor :env, :session, :route_params
+    attr_accessor :env, :session
+    attr_reader :route_params
     
     # by setting these to false, auto-parsing is disabled; this way you can
     # do your own parsing instead
@@ -32,6 +33,25 @@ module Merb
       @env  = rack_env
       @body = rack_env['rack.input']
       @route_params = {}
+    end
+    
+    def controller
+      unless params[:controller]
+        raise ControllerExceptions::NotFound, 
+          "Route matched, but route did not specify a controller.\n" +
+          "Did you forgot to add :controller => \"people\" or :controller " +
+          "segment to route definition?\nHere is what's specified:\n" + 
+          request.route_params.inspect
+      end
+      path = [params[:namespace], params[:controller]].compact.join("/")
+      controller = path.snake_case.to_const_string
+      
+      begin
+        Object.full_const_get(controller)
+      rescue NameError => e
+        Merb.logger.warn!("Controller class not found for controller #{path}")
+        raise ControllerExceptions::NotFound
+      end
     end
     
     METHODS = %w{get post put delete head options}
@@ -67,6 +87,11 @@ module Merb
     # get? post? head? put? etc
     METHODS.each do |m|
       class_eval "def #{m}?() method == :#{m} end"
+    end
+    
+    def route_params=(params)
+      @route_params = params
+      @params.merge! params
     end
     
     private
@@ -249,7 +274,7 @@ module Merb
     # ==== Returns
     # String:: The request URI.
     def uri
-      @env['REQUEST_PATH'] || @env['REQUEST_URI']
+      @env['REQUEST_PATH'] || @env['REQUEST_URI'] || path_info
     end
 
     # ==== Returns
