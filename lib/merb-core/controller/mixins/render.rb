@@ -244,11 +244,41 @@ module Merb::RenderMixin
   #   A Hash object names and values that will be the local names and values
   #   inside the partial.
   #
-  # ==== Example
+  # ==== Examples
   #   partial :foo, :hello => @object
   #
   # The "_foo" partial will be called, relative to the current controller,
   # with a local variable of +hello+ inside of it, assigned to @object.
+  #
+  #   partial :bar, :with => ['one', 'two', 'three']
+  #
+  # The "_bar" partial will be called once for each element of the array
+  # specified by :with for a total of three iterations. Each element
+  # of the array will be available in the partial via a local variable named
+  # +bar+. Additionally, there will be two extra local variables:
+  # +collection_index+ and +collection_size+. +collection_index+ is the index
+  # of the object currently referenced by +bar+ in the collection passed to
+  # the partial. +collection_size+ is the total size of the collection.
+  #
+  # By default, the object specified by :with will be available through a
+  # local variable with the same name as the partial template. However,
+  # this can be changed using the :as option.
+  #
+  #   partial :bar, :with => "one", :as => :number
+  #
+  # In this case, "one" will be available in the partial through the local
+  # variable named +number+.
+  #
+  # ==== Notes
+  # It is important to note that the object being passed to the partial
+  # as well as any extra local variables cannot use names of helper methods
+  # since any helper method of the same name will take precedence over the
+  # passed variable. Example:
+  #
+  #   partial :bar, :with => "one", :as => :partial
+  #
+  # In this case, "one" will not be available in the partial because "partial"
+  # is already a helper method.
   def partial(template, opts={})
 
     # partial :foo becomes "#{controller_name}/_foo"
@@ -372,22 +402,18 @@ module Merb::RenderMixin
 
     self.class._template_roots.reverse_each do |root, template_meth|
       # :template => "foo/bar.html" where root / "foo/bar.html.*" exists
-      if template && template.is_a?(String) && template.index("/")
-        template_location = root / template
-        
-      # :template => :tmpl where root / "tmpl.html.*" exists
-      elsif template
+      if template
         template_location = root / self.send(template_meth, template, content_type, nil)
-        
       # :layout => "foo" where root / "layouts" / "#{controller}.html.*" exists        
       else
         template_location = root / self.send(template_meth, context, content_type, controller)
       end
       
-      break if template_method = _template_method_for(template_location)
+      break if template_method = _template_method_for(template_location.to_s)
     end
 
-    [template_method, template_location]
+    # template_location is a Pathname
+    [template_method, template_location.to_s]
   end
   
   # Return the template method for a location, and check to make sure the current controller

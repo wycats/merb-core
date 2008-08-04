@@ -161,7 +161,7 @@ module Merb
     def json_params
       @json_params ||= begin
         if Merb::Const::JSON_MIME_TYPE_REGEXP.match(content_type)
-          jobj = JSON.parse(raw_post)
+          jobj = JSON.parse(raw_post) rescue Mash.new
           jobj.kind_of?(Hash) ? jobj : { :inflated_object => jobj }
         end
       end

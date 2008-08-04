@@ -441,7 +441,10 @@ class Merb::AbstractController
   # ==== Alternatives
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
-  def url(name, rparams={})
+  def url(name, rparams = {}, qparams = {})
+    unless rparams.is_a?(Hash) || qparams.empty?
+      rparams = qparams.merge(:id => rparams)
+    end
     uri = Merb::Router.generate(name, rparams,
       { :controller => controller_name,
         :action => action_name,
