@@ -113,6 +113,10 @@ module Merb
         end
       end
 
+      def redirects?
+        behavior.redirects?
+      end
+
       # ==== Returns
       # Boolean:: True if fixation is allowed.
       def allow_fixation?
