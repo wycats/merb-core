@@ -4,7 +4,7 @@ module Merb
   
   class Request
     # def env def session def route_params
-    attr_accessor :env, :session
+    attr_accessor :env, :session, :exception_details
     attr_reader :route_params
     
     # by setting these to false, auto-parsing is disabled; this way you can
@@ -49,8 +49,9 @@ module Merb
       begin
         Object.full_const_get(controller)
       rescue NameError => e
-        Merb.logger.warn!("Controller class not found for controller #{path}")
-        raise ControllerExceptions::NotFound
+        msg = "Controller class not found for controller `#{path}'"
+        Merb.logger.warn!(msg)
+        raise ControllerExceptions::NotFound, msg
       end
     end
     

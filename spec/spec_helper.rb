@@ -20,6 +20,32 @@ Merb.start :environment => 'test', :adapter => 'runner'
 module Merb
   module Test
     module RspecMatchers
+      class IncludeLog
+        def initialize(expected)
+          @expected = expected
+        end
+        
+        def matches?(target)
+          target.log.rewind
+          @text = target.log.read
+          @text =~ (String === @expected ? /#{@expected}/ : @expected)
+        end
+        
+        def failure_message
+          "expected to find `#{@expected}' in the log but got:\n" <<
+          @text.map {|s| "  #{s}" }.join
+        end
+        
+        def negative_failure_message
+          "exected not to find `#{@expected}' in the log but got:\n" <<
+          @text.map {|s| "  #{s}" }.join
+        end
+        
+        def description
+          "include #{@text} in the log"
+        end
+      end
+      
       class BeKindOf
         def initialize(expected) # + args
           @expected = expected
@@ -46,6 +72,10 @@ module Merb
       def be_kind_of(expected) # + args
         BeKindOf.new(expected)
       end
+      
+      def include_log(expected)
+        IncludeLog.new(expected)
+      end
     end
 
     module Helper
@@ -65,4 +95,19 @@ Spec::Runner.configure do |config|
   config.include Merb::Test::Helper
   config.include Merb::Test::RspecMatchers
   config.include Merb::Test::RequestHelper
+
+  def capture(stream)
+    begin
+      stream = stream.to_s
+      eval "$#{stream} = StringIO.new"
+      yield
+      result = eval("$#{stream}").string
+    ensure
+      eval("$#{stream} = #{stream.upcase}")
+    end
+
+    result
+  end
+
+  alias silence capture
 end
