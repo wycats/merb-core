@@ -1,3 +1,21 @@
+class Exception
+  def action_name() self.class.action_name end
+  
+  def same?(other)
+    self.class == other.class &&
+    self.message == other.message &&
+    self.backtrace == other.backtrace
+  end
+  
+  def self.action_name
+    @action_name ||= self.to_s.split('::').last.snake_case
+  end
+  
+  def self.status
+    500
+  end
+end
+
 module Merb
   # ControllerExceptions are a way of simplifying controller code by placing
   # exceptional logic back into the MVC pattern.
@@ -97,10 +115,6 @@ module Merb
 
     class Base < StandardError #:doc:
 
-      # ==== Returns
-      # String:: The snake cased name of the error without the namespace.
-      def name; self.class.name; end
-
       # === Returns
       # Integer:: The status-code of the error.
       def status; self.class.status; end
@@ -108,12 +122,6 @@ module Merb
 
       class << self
 
-        # ==== Returns
-        # String:: The snake cased name of the class without the namespace.
-        def name
-          self.to_s.split('::').last.snake_case
-        end
-      
         # Get the actual status-code for an Exception class.
         #
         # As usual, this can come from a constant upwards in

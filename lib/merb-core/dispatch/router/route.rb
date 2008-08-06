@@ -116,7 +116,11 @@ module Merb
       def redirects?
         behavior.redirects?
       end
-
+      
+      def redirect_details
+        [behavior.redirect_status, behavior.redirect_url]
+      end
+      
       # ==== Returns
       # Boolean:: True if fixation is allowed.
       def allow_fixation?
