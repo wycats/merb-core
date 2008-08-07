@@ -8,4 +8,5 @@ require File.join(__DIR__, "controllers", "display")
 require File.join(__DIR__, "controllers", "authentication")
 require File.join(__DIR__, "controllers", "redirect")
 
+Merb::Config[:session_cookie_domain] = "specs.merbivore.com"
 Merb.start :environment => 'test'
