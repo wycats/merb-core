@@ -174,7 +174,7 @@ module Merb
         if use_mutex
           @@mutex.synchronize { controller._dispatch(request.params[:action]) }
         else
-          controller._dispatch(action)
+          controller._dispatch(request.params[:action])
         end
         controller
       end
