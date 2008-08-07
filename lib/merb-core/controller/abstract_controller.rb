@@ -77,6 +77,11 @@
 # :unless<Symbol, Proc>::
 #   Only apply the filter if the method named after the symbol or calling the proc evaluates to false
 #
+# :with<Array[Object]>::
+#   Arguments to be passed to the filter. Since we are talking method/proc calls,
+#   filter method or Proc should to have the same arity
+#   as number of elements in Array you pass to this option.
+#
 # ===== Types (shortcuts for use in this file)
 # Filter:: <Array[Symbol, (Symbol, String, Proc)]>
 #
