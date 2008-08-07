@@ -4,11 +4,17 @@ require File.join(File.dirname(__FILE__), "controllers", "dispatcher")
 include Merb::Test::Fixtures::Controllers
 
 describe Merb::Dispatcher do
-
+  include Merb::Test::Rspec::ControllerMatchers
+  include Merb::Test::Rspec::ViewMatchers
+  
   def with_level(level)
     Merb.logger = Merb::Logger.new(StringIO.new, level)
     yield
     Merb.logger
+  end
+
+  before(:each) do
+    Merb::Config[:exception_details] = true
   end
 
   describe "with a regular route, " do
@@ -105,13 +111,8 @@ describe Merb::Dispatcher do
     end
     
     describe "with exception details showing" do
-      before(:each) do
-        Merb::Config[:exception_details] = true
-      end
-    
       it "raises a NotFound" do
-        @controller.request.exception_details[:exception].
-          should be_kind_of(Merb::ControllerExceptions::NotFound)
+        @controller.should be_error(Merb::ControllerExceptions::NotFound)
       end
     
       it "returns a 404 status" do
@@ -125,9 +126,9 @@ describe Merb::Dispatcher do
     end
     
     describe "when the action raises an Exception" do
-      before(:all) do
+      before(:each) do
         Object.class_eval <<-RUBY
-          class Exceptions < Merb::Controller
+          class Exceptions < Application
             def gone
               "Gone"
             end
@@ -135,7 +136,7 @@ describe Merb::Dispatcher do
         RUBY
       end
       
-      after(:all) do
+      after(:each) do
         Object.send(:remove_const, :Exceptions)
       end
       
@@ -148,8 +149,7 @@ describe Merb::Dispatcher do
       end
       
       it "remembers that the Exception is Gone" do
-        @controller.request.exception_details[:exception].
-          should be_kind_of(Merb::ControllerExceptions::Gone)
+        @controller.should be_error(Merb::ControllerExceptions::Gone)
       end
       
       it "renders the action Exception#gone" do
@@ -162,9 +162,9 @@ describe Merb::Dispatcher do
     end
     
     describe "when the action raises an Exception that has a superclass Exception available" do
-      before(:all) do
+      before(:each) do
         Object.class_eval <<-RUBY
-          class Exceptions < Merb::Controller
+          class Exceptions < Application
             def client_error
               "ClientError"
             end
@@ -172,7 +172,7 @@ describe Merb::Dispatcher do
         RUBY
       end
       
-      after(:all) do
+      after(:each) do
         Object.send(:remove_const, :Exceptions)
       end
       
@@ -185,8 +185,7 @@ describe Merb::Dispatcher do
       end
       
       it "renders the Exception from the Exceptions controller" do
-        @controller.request.exception_details[:exception].
-          should be_kind_of(Merb::ControllerExceptions::Gone)
+        @controller.should be_error(Merb::ControllerExceptions::Gone)
       end
       
       it "renders the action Exceptions#client_error since #gone is not defined" do
@@ -200,9 +199,9 @@ describe Merb::Dispatcher do
   end
   
   describe "when the action raises an Error that is not a ControllerError" do
-    before(:all) do
+    before(:each) do
       Object.class_eval <<-RUBY
-        class Exceptions < Merb::Controller
+        class Exceptions < Application
           def load_error
             "LoadError"
           end
@@ -210,7 +209,7 @@ describe Merb::Dispatcher do
       RUBY
     end
     
-    after(:all) do
+    after(:each) do
       Object.send(:remove_const, :Exceptions)
     end
     
@@ -223,8 +222,7 @@ describe Merb::Dispatcher do
     end
     
     it "knows that the error is a LoadError" do
-      @controller.request.exception_details[:exception].
-        should be_kind_of(LoadError)
+      @controller.should be_error(LoadError)
     end
     
     it "renders Exceptions#load_error" do
@@ -237,9 +235,9 @@ describe Merb::Dispatcher do
   end
 
   describe "when the Exception action raises" do
-    before(:all) do
+    before(:each) do
       Object.class_eval <<-RUBY
-        class Exceptions < Merb::Controller
+        class Exceptions < Application
           def load_error
             raise StandardError, "Big error"
           end
@@ -247,7 +245,7 @@ describe Merb::Dispatcher do
       RUBY
     end
     
-    after(:all) do
+    after(:each) do
       Object.send(:remove_const, :Exceptions)
     end
     
@@ -260,13 +258,15 @@ describe Merb::Dispatcher do
     end
     
     it "knows that the error is a StandardError" do
-      @controller.request.exception_details[:exception].
-        should be_kind_of(StandardError)
+      @controller.should be_error(StandardError)
     end
     
     it "renders the default exception template" do
-      @controller.body.should =~ /<h1>Standard Error/
-      @controller.body.should =~ /<h2>Big error/
+      @controller.body.should have_selector("h1:contains(Standard Error)")
+      @controller.body.should have_selector("h2:contains(Big Error)")
+      
+      @controller.body.should have_selector("h1:contains(Load Error)")
+      @controller.body.should have_selector("h2:contains(Big Error)")
     end
     
     it "returns a 500 status code" do
@@ -276,9 +276,9 @@ describe Merb::Dispatcher do
 
 
   describe "when the Exception action raises a NotFound" do
-    before(:all) do
+    before(:each) do
       Object.class_eval <<-RUBY
-        class Exceptions < Merb::Controller
+        class Exceptions < Application
           def not_found
             raise NotFound, "Somehow, the thing you were looking for was not found."
           end
@@ -286,7 +286,7 @@ describe Merb::Dispatcher do
       RUBY
     end
     
-    after(:all) do
+    after(:each) do
       Object.send(:remove_const, :Exceptions)
     end
     
@@ -299,13 +299,12 @@ describe Merb::Dispatcher do
     end
     
     it "knows that the error is a NotFound" do
-      @controller.request.exception_details[:exception].
-        should be_kind_of(Merb::ControllerExceptions::NotFound)
+      @controller.should be_error(Merb::ControllerExceptions::NotFound)
     end
     
     it "renders the default exception template" do
-      @controller.body.should =~ /<h1>Not Found/
-      @controller.body.should =~ /<h2>Somehow, the thing/
+      @controller.body.should have_selector("h1:contains(Not Found)")
+      @controller.body.should have_selector("h2:contains(Somehow, the thing)")
     end
     
     it "returns a 404 status code" do
@@ -314,9 +313,9 @@ describe Merb::Dispatcher do
   end
 
   describe "when the Exception action raises the same thing as the original failure" do
-    before(:all) do
+    before(:each) do
       Object.class_eval <<-RUBY
-        class Exceptions < Merb::Controller
+        class Exceptions < Application
           def load_error
             raise LoadError, "Something failed here"
           end          
@@ -324,7 +323,7 @@ describe Merb::Dispatcher do
       RUBY
     end
     
-    after(:all) do
+    after(:each) do
       Object.send(:remove_const, :Exceptions)
     end
     
@@ -337,12 +336,11 @@ describe Merb::Dispatcher do
     end
     
     it "knows that the error is a NotFound" do
-      @controller.request.exception_details[:exception].
-        should be_kind_of(LoadError)
+      @controller.should be_error(LoadError)
     end
     
     it "renders the default exception template" do
-      @controller.body.should =~ /Something failed here/
+      @controller.body.should have_selector("h1:contains(Something failed here)")
     end
     
     it "returns a 500 status code" do
@@ -350,5 +348,56 @@ describe Merb::Dispatcher do
     end
   end
 
+  describe "when more than one Exceptions methods raises an Error" do
+    before(:each) do
+      Object.class_eval <<-RUBY
+        class Exceptions < Application
+          def load_error
+            raise StandardError, "StandardError"
+          end
+          
+          def standard_error
+            raise Exception, "Exception"
+          end
+        end
+      RUBY
+    end
+    
+    after(:each) do
+      Object.send(:remove_const, :Exceptions)
+    end
+    
+    before(:each) do
+      Merb::Router.prepare do |r|
+        r.default_routes
+      end
+      @env = Rack::MockRequest.env_for("/raise_load_error/index")
+      @controller = Merb::Dispatcher.handle(@env)
+      @body = @controller.body
+    end
+    
+    it "knows that the error is a NotFound" do
+      @controller.should be_error(Exception)
+    end
+    
+    it "renders a list of links to the traces" do
+      @body.should have_selector("li a[@href=#exception_0]")
+      @body.should have_selector("li a[@href=#exception_1]")
+      @body.should have_selector("li a[@href=#exception_2]")
+    end
+    
+    it "renders the default exception template" do
+      @body.should have_selector("h1:contains(Load Error)")
+      @body.should have_selector("h2:contains(In the controller)")
+      @body.should have_selector("h1:contains(Standard Error)")
+      @body.should have_selector("h2:contains(StandardError)")
+      @body.should have_selector("h1:contains(Exception)")
+      @body.should have_selector("h2:contains(Exception)")
+    end
+    
+    it "returns a 500 status code" do
+      @controller.status.should == 500
+    end
+  end
   
 end

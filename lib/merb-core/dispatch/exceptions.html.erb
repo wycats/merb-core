@@ -1,8 +1,9 @@
 <% details = request.exception_details %>
+<% show_details = ::Merb::Config[:exception_details] %>
 <html>
 <head>
   <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-  <title><%= @exception_name %></title>
+  <title><%= humanize_exception(@exceptions.first) %></title>
   <style type="text/css" media="screen">
     body {
       font-family:arial;
@@ -55,6 +56,16 @@
       background-image: url("data:image/gif;base64,R0lGODlhAwADAIAAAP///8zMzCH5BAAAAAAALAAAAAADAAMAAAIEBHIJBQA7");
       padding:20px;
     }
+      .header ul {
+        padding: 5px;
+        background-color: white;
+      }
+        .header ul li {
+          list-style-type: none;
+          font-size: 16px;
+          margin-bottom: 6px;
+        }
+    
     table.listing {
       border-collapse: collapse;
       font-size: 12px;
@@ -167,12 +178,94 @@
   </style>
 </head>
 <body>
+  <% if show_details %>
+  <% if @exceptions.size > 1 %>
   <div class="internalError">
-    
     <div class="header">
-      <h1><%= @exception_name %> <sup class="error_<%= @exception.class.status %>"><%= @exception.class.status %></sup></h1>
-      <% if show_details = ::Merb::Config[:exception_details] -%>
-        <% message, message_details = @exception.message.split("\n", 2) %>
+      <h1>Error Stack</h1>
+      <ul>
+        <% @exceptions.each_with_index do |exception,i| %>
+          <li>
+            <a href="#exception_<%= i %>"><%= humanize_exception(exception) %></a>
+            <%= html_escape(exception.message.split("\n",2).first) %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+  <% end %>
+  
+  <div class="internalError">
+    <div class="header">
+      <h1>Request Details</h1>
+        <h3>Parameters</h3>
+        <table class="listing" style="display: none">
+          <thead>
+            <tr><th width="25%">Parameter</th><th width="75%">Value</th></tr>
+          </thead>
+          <tbody>               
+            <% details[:params].each_with_index do |param_value, i| %>
+              <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
+            <% end %>
+            <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if details[:params].empty? %>      
+          </tbody>
+        </table>
+
+        <h3>Session</h3>
+        <table class="listing" style="display: none">
+          <thead>
+            <tr><th width="25%">Key</th><th width="75%">Value</th></tr>
+          </thead>
+          <tbody>               
+            <% if details[:session].respond_to?( :data )%>
+              <% details[:session].data.each_with_index do |param_value, i| %>
+              <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
+              <% end %>
+            <% else %>
+              <% details[:session].each_with_index do |param_value, i| %>
+                <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
+              <% end %>
+              <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if details[:session].empty? %>
+            <% end %>
+          </tbody>
+        </table>
+
+        <h3>Cookies</h3>
+        <table class="listing" style="display: none">
+          <thead>
+            <tr><th width="25%">Cookie</th><th width="75%">Value</th></tr>
+          </thead>
+          <tbody>       
+            <% details[:cookies].each_with_index do |param_value, i| %>
+              <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
+            <% end %>
+            <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if details[:cookies].empty? %>
+          </tbody>
+        </table>
+
+        <h3>Named Routes</h3>
+        <table class="listing" style="display: none">
+          <thead>
+            <tr><th width="25%">Name</th><th width="75%">Route</th></tr>
+          </thead>
+          <tbody>
+          <% Merb::Router.named_routes.each_with_index do |name_route, i| %>
+            <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= name_route.first %></td><td><%= name_route.last %></td></tr>
+          <% end %>
+          <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if Merb::Router.named_routes.empty? %>
+          </tbody>
+        </table>      
+      </div>      
+    </div>
+  </div>
+  <% end %>
+
+  <% @exceptions.each_with_index do |exception,i| %>
+  <div class="internalError" id="exception_<%= i %>">
+    <div class="header">
+      <h1><%= humanize_exception(exception) %> <sup class="error_<%= exception.class.status %>"><%= exception.class.status %></sup></h1>
+      <% if show_details -%>
+        <% message, message_details = exception.message.split("\n", 2) %>
         <h2><%= html_escape(message) %></h2>
         <p><%= html_escape(message_details) %></p>
       <% else -%>
@@ -180,67 +273,8 @@
       <% end -%>
 
     <% if show_details %>
-      <h3>Parameters</h3>
-      <table class="listing" style="display: none">
-        <thead>
-          <tr><th width="25%">Parameter</th><th width="75%">Value</th></tr>
-        </thead>
-        <tbody>               
-          <% details[:params].each_with_index do |param_value, i| %>
-            <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
-          <% end %>
-          <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if details[:params].empty? %>      
-        </tbody>
-      </table>
-      
-      <h3>Session</h3>
-      <table class="listing" style="display: none">
-        <thead>
-          <tr><th width="25%">Key</th><th width="75%">Value</th></tr>
-        </thead>
-        <tbody>               
-          <% if details[:session].respond_to?( :data )%>
-            <% details[:session].data.each_with_index do |param_value, i| %>
-            <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
-            <% end %>
-          <% else %>
-            <% details[:session].each_with_index do |param_value, i| %>
-              <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
-            <% end %>
-            <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if details[:session].empty? %>
-          <% end %>
-        </tbody>
-      </table>
-      
-      <h3>Cookies</h3>
-      <table class="listing" style="display: none">
-        <thead>
-          <tr><th width="25%">Cookie</th><th width="75%">Value</th></tr>
-        </thead>
-        <tbody>       
-          <% details[:cookies].each_with_index do |param_value, i| %>
-            <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
-          <% end %>
-          <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if details[:cookies].empty? %>
-        </tbody>
-      </table>
-      
-      <h3>Named Routes</h3>
-      <table class="listing" style="display: none">
-        <thead>
-          <tr><th width="25%">Name</th><th width="75%">Route</th></tr>
-        </thead>
-        <tbody>
-        <% Merb::Router.named_routes.each_with_index do |name_route, i| %>
-          <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= name_route.first %></td><td><%= name_route.last %></td></tr>
-        <% end %>
-        <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if Merb::Router.named_routes.empty? %>
-        </tbody>
-      </table>      
-    </div>
-    
     <table class="trace">
-      <% @exception.backtrace.each_with_index do |line, index| %>
+      <% exception.backtrace.each_with_index do |line, index| %>
         <tbody class="close">
           <tr class="file">
             <td class="expand"><div>&nbsp;</div></td>
@@ -299,5 +333,6 @@
     lots of love, from <a href="#">merb</a>
   </div>
   </div>
+  <% end %>
 </body>
 </html>

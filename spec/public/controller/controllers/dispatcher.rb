@@ -1,3 +1,6 @@
+class Application < Merb::Controller
+end
+
 module Merb::Test::Fixtures
   module Controllers
     class Testing < Merb::Controller
