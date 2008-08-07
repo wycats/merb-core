@@ -220,7 +220,7 @@ class Merb::Controller < Merb::AbstractController
     elsif s.is_a?(Fixnum)
       @_status = s
     else
-      raise ArgumentError, "Status should be of type Fixnum or Symbol, was #{s.class}"
+      raise ArgumentError, "Status should be of type Fixnum or known Symbol, was #{s.class} with value #{s}"
     end
   end
 
