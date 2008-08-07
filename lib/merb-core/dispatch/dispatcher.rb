@@ -295,21 +295,6 @@ module Merb
         controller
       end
     
-    
-      # Wraps any non-ControllerException errors in an InternalServerError ready
-      # for displaying over HTTP.
-      #
-      # ==== Parameters
-      # e<Exception>::
-      #   The exception that caused #dispatch_exception to be called.
-      #
-      # ==== Returns
-      # Merb::InternalServerError::
-      #   An internal server error wrapper for the exception.
-      def controller_exception(e)
-        e.kind_of?(Base) ? e : InternalServerError.new(e)
-      end
-    
     end
   end
 end
