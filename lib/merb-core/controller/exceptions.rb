@@ -8,7 +8,13 @@ class Exception
   end
   
   def self.action_name
-    @action_name ||= self.to_s.split('::').last.snake_case
+    if self == Exception
+      return nil unless Object.const_defined?(:Exceptions) && 
+        Exceptions.method_defined?(:exception)
+    end
+    name = self.to_s.split('::').last.snake_case
+    Object.const_defined?(:Exceptions) && 
+      Exceptions.method_defined?(name) ? name : superclass.action_name
   end
   
   def self.status

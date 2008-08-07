@@ -205,33 +205,33 @@ module Merb
       def dispatch_exception(request, exception, route)
         Merb.logger.error(Merb.exception(exception))
         exception_klass = exception.class
+        exceptions = [exception]
+        request.exception_details = {
+          :params => request.params ? request.params.dup : {},
+          :session => request.session || {},
+          :cookies => request.cookies || {},
+        }
+
         begin
+          e = exceptions.first
           klass = Object.const_defined?("Exceptions") ? Exceptions : Controller
-          request.exception_details = {
-            :params => request.params ? request.params.dup : {},
-            :session => request.session ? request.session.dup : {},
-            :cookies => request.cookies ? request.cookies.dup : {},
-            :exception => exception
-          }
-          request.params[:action] = exception_klass.action_name
+          klass.send(:include, Merb::ExceptionsHelper)
+          request.exception_details[:exceptions] = exceptions
           
-          dispatch_action(klass, request, route, exception.class.status)
-        rescue Object => dispatch_issue
-          # NotFound means the Exception action wasn't found so
-          # keep trying exception superclasses until we reach the base
-          not_found = dispatch_issue.is_a?(ActionNotFound)
-          if not_found && exception_klass != Exception
-            exception_klass = exception_klass.superclass
-            retry
-          # We got to the top-level, so dispatch the original exception
-          elsif not_found
-            dispatch_default_exception(klass, request, exception)
-          # Getting the same exception twice means dispatch it
-          elsif exception.same?(dispatch_issue)
-            dispatch_default_exception(klass, request, dispatch_issue)
-          # Otherwise, try to let the user catch it via Exceptions
+          if action_name = e.action_name
+            request.params[:action] = action_name
+            dispatch_action(klass, request, route, e.class.status)
           else
-            exception = dispatch_issue
+            dispatch_default_exception(klass, request, exceptions)
+          end          
+        rescue Object => dispatch_issue
+          if e.same?(dispatch_issue)
+            dispatch_default_exception(klass, request, exceptions)
+          else
+            Merb.logger.error("Dispatching #{e.class} raised another error.")
+            Merb.logger.error(Merb.exception(dispatch_issue))
+            
+            exceptions.unshift dispatch_issue
             retry
           end
         end
@@ -254,15 +254,17 @@ module Merb
       # Array[Merb::Controller, String]::
       #   An array containing the Merb::Controller that was dispatched to and the
       #   error's name. For instance, a NotFound error's name is "not_found".
-      def dispatch_default_exception(klass, request, e)
+      def dispatch_default_exception(klass, request, exceptions)
+        e = exceptions.first
         controller = klass.new(request, e.class.status)
         if e.is_a? Redirection
           controller.headers.merge!('Location' => e.message)
-          controller.body = %{ } #fix
+          controller.body =
+            "<html><body>You are being <a href=\"#{e.message}\">redirected</a>.</body></html>"
         else
-          controller.instance_variable_set("@exception", e) # for ERB
-          controller.instance_variable_set("@exception_name", e.action_name.split("_").map {|x| x.capitalize}.join(" "))
-          controller.body = controller.send(Merb::Template.template_for(DEFAULT_ERROR_TEMPLATE))
+          controller.instance_variable_set("@exceptions", exceptions)
+          controller.body = controller.send(
+            Merb::Template.template_for(DEFAULT_ERROR_TEMPLATE))
         end
         controller
       end
