@@ -185,7 +185,8 @@ module Merb
         # ==== Parameters
         # num<~to_i>:: The status code
         def register_status_code(klass, code)
-          STATUS_CODES[klass.name.to_sym] = code.to_i
+          name = self.to_s.split('::').last.snake_case
+          STATUS_CODES[name.to_sym] = code.to_i
         end
         
       end
