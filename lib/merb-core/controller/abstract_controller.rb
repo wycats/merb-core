@@ -95,8 +95,27 @@ class Merb::AbstractController
   
   class_inheritable_accessor :_layout, :_template_root, :template_roots
   class_inheritable_accessor :_before_filters, :_after_filters
-  
+
+  cattr_accessor :_abstract_subclasses, :_template_path_cache
+
+  #---
+  # @semipublic
+  attr_accessor :body
+  attr_accessor :action_name
+  attr_accessor :_benchmarks, :_thrown_content  
+
+  # Stub so content-type support in RenderMixin doesn't throw errors
+  attr_accessor :content_type
+
   FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
+
+  self._before_filters, self._after_filters = [], []
+
+  #---
+  # We're using abstract_subclasses so that Merb::Controller can have its
+  # own subclasses. We're using a Set so we don't have to worry about
+  # uniqueness.
+  self._abstract_subclasses = Set.new
 
   # ==== Returns
   # String:: The controller name in path form, e.g. "admin/items".
@@ -107,8 +126,6 @@ class Merb::AbstractController
   # ==== Returns
   # String:: The controller name in path form, e.g. "admin/items".
   def controller_name()      self.class.controller_name                   end
-
-  self._before_filters, self._after_filters = [], []
   
   # This is called after the controller is instantiated to figure out where to
   # look for templates under the _template_root. Override this to define a new
@@ -181,13 +198,6 @@ class Merb::AbstractController
     self.template_roots = roots
   end
   
-  cattr_accessor :_abstract_subclasses, :_template_path_cache
-  #---
-  # We're using abstract_subclasses so that Merb::Controller can have its
-  # own subclasses. We're using a Set so we don't have to worry about
-  # uniqueness.
-  self._abstract_subclasses = Set.new
-
   # ==== Returns
   # Set:: The subclasses.
   def self.subclasses_list() _abstract_subclasses end
@@ -206,14 +216,6 @@ class Merb::AbstractController
       super
     end
   end
-  
-  attr_accessor :_benchmarks, :_thrown_content
-
-  #---
-  # @semipublic
-  attr_accessor :body
-  
-  attr_accessor :action_name
   
   # ==== Parameters
   # *args:: The args are ignored.
@@ -416,9 +418,6 @@ class Merb::AbstractController
   # session modules.
   def finalize_session() end  
 
-  # Stub so content-type support in RenderMixin doesn't throw errors
-  attr_accessor :content_type
-  
   # Handles the template cache (which is used by BootLoader to cache the list
   # of all templates).
   #
