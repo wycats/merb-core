@@ -520,7 +520,7 @@ class Merb::AbstractController
     case filter
     when Symbol, Proc, String
       if existing_filter = filters.find {|f| f.first.to_s[filter.to_s]}
-        existing_filter.last.replace(opts)
+        filters[ filters.index(existing_filter) ] = [filter, opts]
       else
         filters << [filter, opts]
       end
