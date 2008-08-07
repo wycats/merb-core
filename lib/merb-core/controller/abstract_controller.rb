@@ -106,7 +106,7 @@ class Merb::AbstractController
   self._before_filters, self._after_filters = [], []
   
   # This is called after the controller is instantiated to figure out where to
-  # for templates under the _template_root. Override this to define a new
+  # look for templates under the _template_root. Override this to define a new
   # structure for your app.
   #
   # ==== Parameters
