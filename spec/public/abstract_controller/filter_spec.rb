@@ -101,5 +101,7 @@ describe Merb::AbstractController, " should support before and after filters" do
   
   it "should not get contaminated by cousins" do
     dispatch_should_make_body("FilterChild2", "Before Index")
+    dispatch_should_make_body("FilterChild1", "Before Limited", :limited)
+    dispatch_should_make_body("FilterChild1", " Index")
   end
 end
