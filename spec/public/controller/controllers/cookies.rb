@@ -5,22 +5,12 @@ module Merb::Test::Fixtures::Controllers
   end
 
   class CookiesController < Testing
+  end
+  
+  class OverridingSessionCookieDomain < CookiesController
+    self._session_cookie_domain = "overridden.merbivore.com"
+  end
 
-    def sets_cookie
-      "sets_cookie"
-    end
-
-    def sets_cookie_explicitly
-      "sets_cookie_explicitly"
-    end
-
-    def deletes_cookie
-      "deletes_cookie"
-    end
-
-    def deletes_cookie_explicitly
-      "deletes_cookie_explicitly"
-    end
-    
+  class NotOverridingSessionCookieDomain < CookiesController
   end
 end

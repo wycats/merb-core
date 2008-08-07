@@ -84,6 +84,15 @@ describe Merb::Cookies do
 
     
     it "uses / as default path" do
+      Merb::Controller.should_receive(:_session_cookie_domain).and_return("session.cookie.domain")
+      @cookies.set_cookie(:dozen, 'twelve', :expires => @expires)
+
+      hdr = @_headers['Set-Cookie'].first
+      hdr.should =~ / domain=session.cookie.domain;/
+    end    
+
+    
+    it "uses / as default path" do
       @cookies[:dozen] = {
         :value   => 'twelve',
         :expires => @expires
@@ -199,6 +208,12 @@ describe Merb::Cookies do
       @cookies[:foo].should == nil
     end
 
-    it 'sets cookie expiration time in the past'
+    it 'sets cookie expiration time in the past' do
+      @_cookies[:foo] = 'bar'
+      @cookies[:foo].should == 'bar'
+
+      @cookies.delete(:foo)
+      @_headers['Set-Cookie'].first.should =~ /#{cookie_time(Time.at(0))}/
+    end
   end
 end

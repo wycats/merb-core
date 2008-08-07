@@ -280,8 +280,6 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
 
   def self.update_session_cookie_attributes
-    # Merb::Controller._session_secret_key is generated later in the process
-    Merb::Controller._session_id_key = Merb::Config[:session_id_key] || '_session_id'
     Merb::Controller._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
     Merb::Controller._session_cookie_domain = Merb::Config[:session_cookie_domain]
   end
