@@ -4,7 +4,7 @@ module Merb
       
       def call(env) 
         begin
-          controller = ::Merb::Dispatcher.handle(env)
+          controller = ::Merb::Dispatcher.handle(Merb::Request.new(env))
         rescue Object => e
           return [500, {"Content-Type"=>"text/html"}, e.message + "<br/>" + e.backtrace.join("<br/>")]
         end

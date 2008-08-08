@@ -4,7 +4,7 @@ module Merb
   
   class Request
     # def env def session def route_params
-    attr_accessor :env, :session, :exceptions
+    attr_accessor :env, :session, :exceptions, :route
     attr_reader :route_params
     
     # by setting these to false, auto-parsing is disabled; this way you can
@@ -33,6 +33,7 @@ module Merb
       @env  = rack_env
       @body = rack_env['rack.input']
       @route_params = {}
+      find_route
     end
     
     def controller
@@ -90,9 +91,21 @@ module Merb
       class_eval "def #{m}?() method == :#{m} end"
     end
     
-    def route_params=(params)
-      @route_params = params
-      @params.merge! params
+    def find_route
+      @route, @route_params = Merb::Router.route_for(self)
+      @params.merge! @route_params
+    end
+    
+    def redirect_status
+      route.redirect_status
+    end
+    
+    def redirect_url
+      route.redirect_url
+    end
+    
+    def redirects?
+      route.redirects?
     end
     
     private

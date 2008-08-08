@@ -13,6 +13,10 @@ describe Merb::Dispatcher do
     Merb.logger
   end
 
+  def request_for(url)
+    Merb::Request.new(Rack::MockRequest.env_for(url))
+  end
+
   before(:each) do
     Merb::Config[:exception_details] = true
   end
@@ -22,7 +26,7 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/dispatch_to/index")
+      @env = request_for("/dispatch_to/index")
     end
   
     it "dispatches to the right controller and action" do
@@ -74,7 +78,7 @@ describe Merb::Dispatcher do
         r.match("/redirect/to/foo").redirect("/foo")
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/redirect/to/foo")
+      @env = request_for("/redirect/to/foo")
       @controller = Merb::Dispatcher.handle(@env)
     end
     
@@ -106,7 +110,7 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/not_a_controller/index")
+      @env = request_for("/not_a_controller/index")
       @controller = Merb::Dispatcher.handle(@env)
     end
     
@@ -144,7 +148,7 @@ describe Merb::Dispatcher do
         Merb::Router.prepare do |r|
           r.default_routes
         end
-        @env = Rack::MockRequest.env_for("/raise_gone/index")
+        @env = request_for("/raise_gone/index")
         @controller = Merb::Dispatcher.handle(@env)
       end
       
@@ -180,7 +184,7 @@ describe Merb::Dispatcher do
         Merb::Router.prepare do |r|
           r.default_routes
         end
-        @env = Rack::MockRequest.env_for("/raise_gone/index")
+        @env = request_for("/raise_gone/index")
         @controller = Merb::Dispatcher.handle(@env)
       end
       
@@ -217,7 +221,7 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/raise_load_error/index")
+      @env = request_for("/raise_load_error/index")
       @controller = Merb::Dispatcher.handle(@env)
     end
     
@@ -253,7 +257,7 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/raise_load_error/index")
+      @env = request_for("/raise_load_error/index")
       @controller = Merb::Dispatcher.handle(@env)
     end
     
@@ -294,7 +298,7 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/page/not/found")
+      @env = request_for("/page/not/found")
       @controller = Merb::Dispatcher.handle(@env)
     end
     
@@ -331,7 +335,7 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/raise_load_error/index")
+      @env = request_for("/raise_load_error/index")
       @controller = Merb::Dispatcher.handle(@env)
     end
     
@@ -371,7 +375,7 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/raise_load_error/index")
+      @env = request_for("/raise_load_error/index")
       @controller = Merb::Dispatcher.handle(@env)
       @body = @controller.body
     end

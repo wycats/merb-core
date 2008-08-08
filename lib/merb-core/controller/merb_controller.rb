@@ -241,6 +241,11 @@ class Merb::Controller < Merb::AbstractController
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
   
+  # The results of the controller's render, to be returned to Rack.
+  #
+  # ==== Returns
+  # Array[Integer, Hash, String]::
+  #   The controller's status code, headers, and body
   def rack_response
     [status, headers, body]
   end
