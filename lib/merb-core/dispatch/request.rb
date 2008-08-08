@@ -33,7 +33,6 @@ module Merb
       @env  = rack_env
       @body = rack_env['rack.input']
       @route_params = {}
-      find_route
     end
     
     def controller

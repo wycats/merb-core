@@ -29,6 +29,7 @@ module Merb
         start = Time.now
         Merb.logger.info "Started request handling: #{start.to_s}"
     
+        request.find_route
         return redirect(request) if request.redirects?
         
         klass = request.controller
