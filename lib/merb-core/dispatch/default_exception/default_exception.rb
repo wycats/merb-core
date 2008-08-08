@@ -84,8 +84,7 @@ module Merb
       end    
       
       def index
-        @details = request.exception_details
-        @exceptions = @details[:exceptions]
+        @exceptions = request.exceptions
         @show_details = Merb::Config[:exception_details]
         render :format => :html
       end

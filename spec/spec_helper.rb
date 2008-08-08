@@ -3,7 +3,9 @@ require "rubygems"
 require "spec"
 require File.join(File.dirname(__FILE__), "..", "lib", "merb-core")
 
-Merb.start :environment => 'test', :adapter => 'runner'
+default_options = {:environment => 'test', :adapter => 'runner'}
+options = default_options.merge($START_OPTIONS || {})
+Merb.start options
 
 # -- Global custom matchers --
 

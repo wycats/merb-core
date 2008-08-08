@@ -20,8 +20,6 @@ class Merb::Controller < Merb::AbstractController
   include Merb::ControllerMixin
   include Merb::AuthenticationMixin
 
-  attr_accessor :route
-
   class << self
 
     # ==== Parameters
@@ -241,6 +239,10 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
+  
+  def rack_response
+    [status, headers, body]
+  end
   
   # Hide any methods that may have been exposed as actions before.
   hide_action(*_callable_methods)

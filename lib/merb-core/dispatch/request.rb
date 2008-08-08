@@ -4,7 +4,7 @@ module Merb
   
   class Request
     # def env def session def route_params
-    attr_accessor :env, :session, :exception_details
+    attr_accessor :env, :session, :exceptions
     attr_reader :route_params
     
     # by setting these to false, auto-parsing is disabled; this way you can

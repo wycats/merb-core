@@ -1,8 +1,6 @@
 require Merb.framework_root / "merb-core" / "dispatch" / "default_exception" / "default_exception"
 module Merb
   class Dispatcher
-    DEFAULT_ERROR_TEMPLATE = File.expand_path(File.dirname(__FILE__) / 'exceptions.html')
-  
     class << self
       include Merb::ControllerExceptions
     
@@ -60,13 +58,13 @@ module Merb
         end
       
         # TODO: move fixation logic to session loading
-        controller = dispatch_action(klass, request, route)
+        controller = dispatch_action(klass, request.params[:action], request)
         controller._benchmarks[:dispatch_time] = Time.now - start
         Merb.logger.info controller._benchmarks.inspect
         Merb.logger.flush
         controller
       rescue Object => exception
-        dispatch_exception(request, exception, route)
+        dispatch_exception(request, exception)
       end
         
   #     def handle(rack_env)
@@ -168,12 +166,11 @@ module Merb
       # Array[Merb::Controller, Symbol]::
       #   An array containing the Merb::Controller and the action that was
       #   dispatched to.
-      def dispatch_action(klass, request, route, status=200)
+      def dispatch_action(klass, action, request, status=200)
         # build controller
         controller = klass.new(request, status)
-        controller.route = route
         if use_mutex
-          @@mutex.synchronize { controller._dispatch(request.params[:action]) }
+          @@mutex.synchronize { controller._dispatch(action) }
         else
           controller._dispatch(action)
         end
@@ -203,24 +200,15 @@ module Merb
       #   An array containing the Merb::Controller and the name of the exception
       #   that triggrered #dispatch_exception. For instance, a NotFound exception
       #   will be "not_found".
-      def dispatch_exception(request, exception, route)
+      def dispatch_exception(request, exception)
         Merb.logger.error(Merb.exception(exception))
-        exception_klass = exception.class
-        exceptions = [exception]
-        request.exception_details = {
-          :params => request.params ? request.params.dup : {},
-          :session => request.session || {},
-          :cookies => request.cookies || {},
-        }
-
+        request.exceptions = [exception]
+        
         begin
-          e = exceptions.first
-          klass = Object.const_defined?("Exceptions") ? Exceptions : Controller
-          request.exception_details[:exceptions] = exceptions
+          e = request.exceptions.first
           
           if action_name = e.action_name
-            request.params[:action] = action_name
-            dispatch_action(klass, request, route, e.class.status)
+            dispatch_action(Exceptions, action_name, request, e.class.status)
           else
             dispatch_default_exception(request)
           end          
@@ -231,7 +219,7 @@ module Merb
             Merb.logger.error("Dispatching #{e.class} raised another error.")
             Merb.logger.error(Merb.exception(dispatch_issue))
             
-            exceptions.unshift dispatch_issue
+            request.exceptions.unshift dispatch_issue
             retry
           end
         end
@@ -255,7 +243,7 @@ module Merb
       #   An array containing the Merb::Controller that was dispatched to and the
       #   error's name. For instance, a NotFound error's name is "not_found".
       def dispatch_default_exception(request)
-        e = request.exception_details[:exceptions].first
+        e = request.exceptions.first
         controller = Merb::Dispatcher::DefaultException.new(request, e.class.status)
         if e.is_a? Redirection
           controller.headers.merge!('Location' => e.message)

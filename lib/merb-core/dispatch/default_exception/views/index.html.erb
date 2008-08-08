@@ -26,13 +26,13 @@
     <div class="header">
       <h1>Request Details</h1>
       <h3>Parameters</h3>
-      <%= listing("Parameter", "Value", @details[:params]) %>
+      <%= listing("Parameter", "Value", request.params) %>
 
       <h3>Session</h3>
-      <%= listing("Key", "Value", @details[:session]) %>
+      <%= listing("Key", "Value", request.session) %>
 
       <h3>Cookies</h3>
-      <%= listing("Cookie", "Value", @details[:cookie]) %>
+      <%= listing("Cookie", "Value", request.cookies) %>
 
       <h3>Named Routes</h3>
       <%= listing("Name", "Route", Merb::Router.named_routes) %>

@@ -10,7 +10,7 @@ module Merb
         end
         Merb.logger.info "\n\n"
         Merb.logger.flush
-        [controller.status, controller.headers, controller.body]
+        controller.rack_response
       end
       
     end
