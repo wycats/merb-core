@@ -216,26 +216,40 @@ module Kernel
   #       [ 124, "      @suspend_next = false",                       false ]
   #     ]
   def __caller_lines__(file, line, size = 4)
-    return [['Template Error!', "problem while rendering", false]] if file =~ /\(erubis\)/
-    lines = File.readlines(file)
-    current = line.to_i - 1
-
-    first = current - size
-    first = first < 0 ? 0 : first
-
-    last = current + size
-    last = last > lines.size ? lines.size : last
-
-    log = lines[first..last]
-
-    area = []
-
-    log.each_with_index do |line, index|
-      index = index + first + 1
-      area << [index, line.chomp, index == current + 1]
+    line = line.to_i
+    if file =~ /\(erubis\)/
+      yield :error, "Template Error! Problem while rendering", false
+    elsif !File.file?(file) || !File.readable?(file)
+      yield :error, "File `#{file}' not available", false
+    else
+      lines = File.read(file).split("\n")
+      first_line = (f = line - size - 1) < 0 ? 0 : f
+      lines = lines[first_line, size * 2 + 1]
+      
+      lines.each_with_index do |str, index|
+        yield index + line - size, str.chomp
+      end
     end
-
-    area
+    # 
+    # lines = File.readlines(file)
+    # current = line.to_i - 1
+    # 
+    # first = current - size
+    # first = first < 0 ? 0 : first
+    # 
+    # last = current + size
+    # last = last > lines.size ? lines.size : last
+    # 
+    # log = lines[first..last]
+    # 
+    # area = []
+    # 
+    # log.each_with_index do |line, index|
+    #   index = index + first + 1
+    #   area << [index, line.chomp, index == current + 1]
+    # end
+    # 
+    # area
   end
 
   # Takes a block, profiles the results of running the block

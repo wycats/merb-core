@@ -1,5 +1,6 @@
+<%# Helpers used in this file are found in Merb::ExceptionHelper %>
 <% details = request.exception_details %>
-<% show_details = ::Merb::Config[:exception_details] %>
+<% @show_details = ::Merb::Config[:exception_details] %>
 <html>
 <head>
   <meta http-equiv="Content-type" content="text/html; charset=utf-8">
@@ -9,6 +10,20 @@
       font-family:arial;
       font-size:11px;
     }
+    p.options {
+      text-align: right;
+    }
+      p.options label {
+        margin-left: 10px;
+      }
+      p.options span.all {
+        padding: 5px;
+        border: 1px solid #000;
+        background-color: #fff;
+      }
+      p.options input {
+        position: relative;
+      }
     h1 {
       font-size:48px;
       letter-spacing:-4px;
@@ -129,16 +144,16 @@
         width:23px;
       }
       table.trace .open tr.file td.expand {
-        width:19px;
+        width:23px;
         background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAB1CAIAAAAqdO2mAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAXZJREFUeNrslK1ywkAUhcMOBomEOiSdqLxEBJX0NaijOsjyHGGmCGyQQYaiiiw4gktkcOmZbpsuuzQ/M5XnqJ2d3S/n3nM3rTzPLUP7/Tt0+pLcGQwG3W53OLyHzPMtjYL7q9UqSRLrD4E1Gj1orCvKYuFHUWTVkOM44/HjDcp8/lL4r6NerzeZPMm1KFw0QkDn83m5fP2lHA4fNQvRtNvtjsfDd0WzmSfb2e/fdTqdOvdh/HLJZLOn0+d2HJ+KRGzbdl23EpFlmed5cp2maRzHQq1lvQ5KMi6EUZBGfup6E1pTfd+vrGW7jbQ2C9hTt9BpqNyIWaAwAy6xg2eBz5iRC/NomiZhGN5sqmnkauo0BUGgVQoBjQ80oCACgNQdZHfTYBkF2mxCtWWAqunWpahxIDUt3QYUxIFQpJHyIWpXjinabKbbwItMHT+NyjchrP8QKaSQQgoppJBCCimkkEIKKaSQQgoppJBCCimkkEIKKaSo+hRgAEFD17X08O2NAAAAAElFTkSuQmCC);
         background-position:top left;
         background-repeat:no-repeat;        
       }
       table.trace .open tr.file td.expand div {
-        width:19px;
+        width:23px;
       }
       table.trace tr.source td.collapse {
-        width:19px;
+        width:23px;
         background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAB1CAIAAAAqdO2mAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAVxJREFUeNrs0zFygkAUBmBlUkgJHdABlQwVkVJKKUxBYWbkALTxMJwhltyDFkss03IF8pudIcwaDaDl/6pd2P327b7d+eHwMXs4lNkzggoVKlSoUKFChQoVKlSoUKFChQoVKlSoUKFChQqVEYqm6ft9+qiSJEkYho7jTlcw2fd9NOI4nq4gEdFwXXe1Cqco63VkWVbXRTqLhTpOwQRpF7quR1E0TgGhqvLKUFCyoQqG/rks3O6kZKW/eRFpevOCoGTXVTcMQ5EyxyDEkML1c5RzuZOICIyXqn7JBVez6282MWrx731HOv2qB8Hri2lamNk0DfpVVdV1Peodappmmua8bdvzuc7zfNprzrLMth1FnGh/X8MjCAIQv/cFz/+65PcDh7rbvYv2ZUfdj+PxsyzLgVl0hKwgTqeqKApx2LeOc7t98zyv/1FWOgvx9RPii23bmL9cetJ8Ed8CDAC6aFW8bCzFhwAAAABJRU5ErkJggg==);
         background-position:bottom left;
         background-repeat:no-repeat;  
@@ -147,12 +162,26 @@
       table.trace tr td.path {
         padding-left:10px;
       }
+      table.trace tbody.app td.path {
+        color: #900;
+      }
+      table.trace tbody.framework td.path {
+        color: #009;
+      }
+      table.trace tbody.gem td.path {
+        color: #090;
+      }
       table.trace tr td.code {
         padding-left:35px;
         white-space: pre;
         line-height:9px;
-        padding-bottom:10px;        
+        padding-bottom:10px;
       }
+        table.trace tr td.code div {
+          width: 700px;
+          overflow-x: auto;
+          overflow-y: hidden;
+        }
         table.trace tr td.code em {
           font-weight:bold;
           color:#00BF10;
@@ -178,7 +207,7 @@
   </style>
 </head>
 <body>
-  <% if show_details %>
+  <% if @show_details %>
   <% if @exceptions.size > 1 %>
   <div class="internalError">
     <div class="header">
@@ -198,141 +227,150 @@
   <div class="internalError">
     <div class="header">
       <h1>Request Details</h1>
-        <h3>Parameters</h3>
-        <table class="listing" style="display: none">
-          <thead>
-            <tr><th width="25%">Parameter</th><th width="75%">Value</th></tr>
-          </thead>
-          <tbody>               
-            <% details[:params].each_with_index do |param_value, i| %>
-              <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
-            <% end %>
-            <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if details[:params].empty? %>      
-          </tbody>
-        </table>
+      <h3>Parameters</h3>
+      <%= listing("Parameter", "Value", details[:params]) %>
 
-        <h3>Session</h3>
-        <table class="listing" style="display: none">
-          <thead>
-            <tr><th width="25%">Key</th><th width="75%">Value</th></tr>
-          </thead>
-          <tbody>               
-            <% if details[:session].respond_to?( :data )%>
-              <% details[:session].data.each_with_index do |param_value, i| %>
-              <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
-              <% end %>
-            <% else %>
-              <% details[:session].each_with_index do |param_value, i| %>
-                <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
-              <% end %>
-              <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if details[:session].empty? %>
-            <% end %>
-          </tbody>
-        </table>
+      <h3>Session</h3>
+      <%= listing("Key", "Value", details[:session].respond_to?(:data) ? details[:session].data : details[:session])%>
 
-        <h3>Cookies</h3>
-        <table class="listing" style="display: none">
-          <thead>
-            <tr><th width="25%">Cookie</th><th width="75%">Value</th></tr>
-          </thead>
-          <tbody>       
-            <% details[:cookies].each_with_index do |param_value, i| %>
-              <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= param_value.first %></td><td><%= param_value.last.inspect %></td></tr>
-            <% end %>
-            <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if details[:cookies].empty? %>
-          </tbody>
-        </table>
+      <h3>Cookies</h3>
+      <%= listing("Cookie", "Value", details[:cookie]) %>
 
-        <h3>Named Routes</h3>
-        <table class="listing" style="display: none">
-          <thead>
-            <tr><th width="25%">Name</th><th width="75%">Route</th></tr>
-          </thead>
-          <tbody>
-          <% Merb::Router.named_routes.each_with_index do |name_route, i| %>
-            <tr class="<%= i % 2 == 0 ? "even" : "odd" %>"><td><%= name_route.first %></td><td><%= name_route.last %></td></tr>
-          <% end %>
-          <%= "<tr class='odd'><td colspan='2'>None</td></tr>" if Merb::Router.named_routes.empty? %>
-          </tbody>
-        </table>      
-      </div>      
-    </div>
+      <h3>Named Routes</h3>
+      <%= listing("Name", "Route", Merb::Router.named_routes)%>
+    </div>      
   </div>
   <% end %>
 
   <% @exceptions.each_with_index do |exception,i| %>
   <div class="internalError" id="exception_<%= i %>">
     <div class="header">
-      <h1><%= humanize_exception(exception) %> <sup class="error_<%= exception.class.status %>"><%= exception.class.status %></sup></h1>
-      <% if show_details -%>
-        <% message, message_details = exception.message.split("\n", 2) %>
-        <h2><%= html_escape(message) %></h2>
-        <p><%= html_escape(message_details) %></p>
-      <% else -%>
-        <h2>Sorry about that...</h2>
-      <% end -%>
+      <h1>
+        <%= humanize_exception(exception) %> 
+        <sup class="error_<%= exception.class.status %>"><%= exception.class.status %></sup>
+      </h1>
+      <%= error_codes(exception) %>
+      <p class="options">
+        <label class="all">All<input type="checkbox" autocomplete="off"></label>
+        <span class="all">
+          <label class="app">App<input type="checkbox" checked="checked" autocomplete="off"/></label>
+          <label class="framework">Framework<input type="checkbox" autocomplete="off"/></label>
+          <label class="gem">Gem<input type="checkbox" autocomplete="off"/></label>
+          <label class="other">Other<input type="checkbox" autocomplete="off"/></label>
+        </span>
+      </p>
 
-    <% if show_details %>
+    <% if @show_details %>
     <table class="trace">
       <% exception.backtrace.each_with_index do |line, index| %>
-        <tbody class="close">
+        <% type, shortname, filename, lineno, location = frame_details(line) %>
+        <tbody class="close <%= type %>" <%= "style='display:none'" unless type == "app" %>>
           <tr class="file">
-            <td class="expand"><div>&nbsp;</div></td>
+            <td class="expand"><div>&nbsp;</div></td>              
             <td class="path">
-              <%= (line.match(/^([^:]+)/)[1] rescue 'unknown').sub(/\/((opt|usr)\/local\/lib\/(ruby\/)?(gems\/)?(1.8\/)?(gems\/)?|.+\/app\/)/, '') %>
-              <% unless line.match(/\.erb:/) %>
-                in "<strong><%= line.match(/:in `(.+)'$/)[1] rescue '?' %></strong>"
-              <% else %>
+              <%= shortname %>
+              <% if filename && filename.match(/\.erb$/) %>
                 (<strong>ERB Template</strong>)
+              <% else %>
+                in <strong><%= location ? location.match(/in (`.+')$/)[1] : 'main' %></strong>
               <% end %>
             </td>
             <td class="line">
-              <a href="txmt://open?url=file://<%=file = (line.match(/^([^:]+)/)[1] rescue 'unknown')%>&amp;line=<%= lineno = line.match(/:([0-9]+):/)[1] rescue '?' %>"><%=lineno%></a>&nbsp;
+              <a href="txmt://open?url=file://<%= filename %>&amp;line=<%= lineno %>"><%= lineno %></a>&nbsp;
             </td> 
           </tr>
           <tr class="source">
             <td class="collapse">
             </td>
-            <td class="code" colspan="2"><% (__caller_lines__(file, lineno, 5) rescue []).each do |llineno, lcode, lcurrent| %>
-<a href="txmt://open?url=file://<%=file%>&amp;line=<%=llineno%>"><%= llineno %></a><%='<em>' if llineno==lineno.to_i %><%= lcode.size > 90 ? Erubis::XmlHelper.escape_xml(lcode[0..90])+'<span class="more">......</span>' : Erubis::XmlHelper.escape_xml(lcode) %><%='</em>' if llineno==lineno.to_i %>
+            <td class="code" colspan="2"><div><% (__caller_lines__(filename, lineno, 5) rescue []).each do |llineno, lcode, lcurrent| %>
+<a href="txmt://open?url=file://<%= filename %>&amp;line=<%=llineno%>"><%= llineno %></a><%='<em>' if llineno==lineno.to_i %><%= Erubis::XmlHelper.escape_xml(lcode) %><%='</em>' if llineno==lineno.to_i %>
 <% end %>
 
-</td>
+</div></td>
           </tr>
         </tbody>
       <% end %>
     </table>
-    <script type="text/javascript" charset="utf-8">
-      els = document.getElementsByTagName('td');
-      for(i=0; i<els.length; i++){
-        // swap the open & closed classes       
-        if(els[i].className=='expand' || els[i].className=='collapse'){
-          els[i].onclick = function(e){
-            tbody = this.parentNode.parentNode;
-            if(tbody.className=='open'){
-              tbody.className='closed';
-            }else{
-              tbody.className='open';
-            }
-          }
-        }
-      }
-      els = document.getElementsByTagName("h3");
-      for(i=0; i<els.length; i++) {
-        els[i].onclick = function(e) {
-          var tag = this.nextSibling;
-          while(tag.nodeType != 1) {
-            tag = tag.nextSibling;
-          }
-          tag.style.display = tag.style.display == "none" ? "" : "none";
-        }
-      }
-    </script>
   <% end %>
   <div class="footer">
     lots of love, from <a href="#">merb</a>
   </div>
   </div>
   <% end %>
+  <script type="text/javascript" charset="utf-8">
+    (function() {
+      els = document.getElementsByTagName('td');
+      var forEach = function(arr, fn) {
+        for(var i=0; i<arr.length; i++) {
+          var res = fn(arr[i]);
+          if(res === false) break;
+        }
+      }
+      var toggleClasses = function(node, first, second) {
+        var classes = node.className.split(" ");
+        var newClasses = [];
+        forEach(classes, function(k) {
+          if(k == first) newClasses.push(second);
+          else if(k == second) newClasses.push(first);
+          else newClasses.push(k);
+        });
+        console.log(newClasses.join(" "));
+        node.className = newClasses.join(" ");
+      }
+      forEach(els, function(el) {
+        // swap the open & closed classes       
+        if(hasClass(el, "expand") || hasClass(el, "collapse")) {
+          el.onclick = function(e){
+            tbody = this.parentNode.parentNode;
+            toggleClasses(tbody, "open", "close");
+          }
+        }        
+      })
+      forEach(document.getElementsByTagName("h3"), function(el) {
+        el.onclick = function(e) {
+          var tag = this.nextSibling;
+          while(tag.nodeType != 1) tag = tag.nextSibling;
+          tag.style.display = tag.style.display == "none" ? "" : "none";
+        }        
+      })
+      function hasClass(node, matchClass) {
+        var classes = node.className.split(" ");
+        for(var i=0,className;className=classes[i];i++)
+          if(className == matchClass) return true;
+        return false;
+      }
+      var els = document.getElementsByTagName("p");
+      forEach(els, function(tag) {
+        if(tag.className != "options") return true;
+        var checkboxes = tag.getElementsByTagName("input");
+        forEach(checkboxes, function(box) {
+          if(window.navigator.userAgent.match(/Firefox/)) {
+            box.style.top = "3px";
+          }
+        });
+        tag.getElementsByTagName("input")[0].onclick = function(e) {
+          forEach(checkboxes, function(box) {
+            if(box == e.target) return true;
+            box.checked = e.target.checked;
+            toggleTraces(box, box);
+          })
+        };
+        var toggleTraces = function(box, target) {
+          var tbodies = tag.parentNode.parentNode.getElementsByTagName("tbody");
+          forEach(tbodies, function(tbody) {
+            if(hasClass(tbody, target.parentNode.className)) {
+              if(target.checked) tbody.style.display = "";
+              else tbody.style.display = "none";
+            }
+          })
+        }
+        forEach(checkboxes, function(box) {
+          if(box == checkboxes[0]) return true;
+          box.onchange = function(e) { toggleTraces(box, e.target) }
+        })
+      })
+    })();
+  </script>
+  
 </body>
 </html>

@@ -1,3 +1,4 @@
+require Merb.framework_root / "merb-core" / "dispatch" / "default_exception" / "default_exception"
 module Merb
   class Dispatcher
     DEFAULT_ERROR_TEMPLATE = File.expand_path(File.dirname(__FILE__) / 'exceptions.html')
@@ -215,18 +216,17 @@ module Merb
         begin
           e = exceptions.first
           klass = Object.const_defined?("Exceptions") ? Exceptions : Controller
-          klass.send(:include, Merb::ExceptionsHelper)
           request.exception_details[:exceptions] = exceptions
           
           if action_name = e.action_name
             request.params[:action] = action_name
             dispatch_action(klass, request, route, e.class.status)
           else
-            dispatch_default_exception(klass, request, exceptions)
+            dispatch_default_exception(request)
           end          
         rescue Object => dispatch_issue
           if e.same?(dispatch_issue)
-            dispatch_default_exception(klass, request, exceptions)
+            dispatch_default_exception(request)
           else
             Merb.logger.error("Dispatching #{e.class} raised another error.")
             Merb.logger.error(Merb.exception(dispatch_issue))
@@ -254,17 +254,15 @@ module Merb
       # Array[Merb::Controller, String]::
       #   An array containing the Merb::Controller that was dispatched to and the
       #   error's name. For instance, a NotFound error's name is "not_found".
-      def dispatch_default_exception(klass, request, exceptions)
-        e = exceptions.first
-        controller = klass.new(request, e.class.status)
+      def dispatch_default_exception(request)
+        e = request.exception_details[:exceptions].first
+        controller = Merb::Dispatcher::DefaultException.new(request, e.class.status)
         if e.is_a? Redirection
           controller.headers.merge!('Location' => e.message)
           controller.body =
             "<html><body>You are being <a href=\"#{e.message}\">redirected</a>.</body></html>"
         else
-          controller.instance_variable_set("@exceptions", exceptions)
-          controller.body = controller.send(
-            Merb::Template.template_for(DEFAULT_ERROR_TEMPLATE))
+          controller._dispatch
         end
         controller
       end

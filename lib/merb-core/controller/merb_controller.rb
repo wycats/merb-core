@@ -257,9 +257,3 @@ class Merb::Controller < Merb::AbstractController
     ::Merb::Cookies.new(request.cookies, @headers)
   end
 end
-
-module Merb::ExceptionsHelper
-  def humanize_exception(e)
-    e.class.name.split("::").last.gsub(/([a-z])([A-Z])/, '\1 \2')
-  end
-end
