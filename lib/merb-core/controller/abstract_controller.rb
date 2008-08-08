@@ -516,7 +516,7 @@ class Merb::AbstractController
         not both at the same time for the same filter.") if opts.key?(:if) && opts.key?(:unless)
         
     opts.each_key do |key| raise(ArgumentError,
-      "You can only specify known filter options: #{FILTER_OPTIONS.join(', ')}, #{key} is invalid.") unless FILTER_OPTIONS.include?(key)
+      "You can only specify known filter options: #{FILTER_OPTIONS.join(', ')}. Key #{key} is invalid.") unless FILTER_OPTIONS.include?(key)
     end
 
     opts = normalize_filters!(opts)
