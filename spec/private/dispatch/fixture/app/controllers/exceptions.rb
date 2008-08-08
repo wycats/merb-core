@@ -1,5 +1,3 @@
-
-
 class Exceptions < Application
 
   attr_reader :handler 

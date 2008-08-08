@@ -117,8 +117,12 @@ module Merb
         behavior.redirects?
       end
       
-      def redirect_details
-        [behavior.redirect_status, behavior.redirect_url]
+      def redirect_status
+        behavior.redirect_status
+      end
+      
+      def redirect_url
+        behavior.redirect_url
       end
       
       # ==== Returns

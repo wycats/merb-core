@@ -200,6 +200,7 @@ class Merb::Controller < Merb::AbstractController
       raise ActionNotFound, "Action '#{action}' was not found in #{self.class}"
     end
     @_benchmarks[:action_time] = Time.now - start
+    self
   end
 
   attr_reader :request, :headers

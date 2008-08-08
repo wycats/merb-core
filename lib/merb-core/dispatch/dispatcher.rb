@@ -17,7 +17,6 @@ module Merb
     
       # This is where we grab the incoming request REQUEST_URI and use that in
       # the merb RouteMatcher to determine which controller and method to run.
-      # Returns a 2 element tuple of: [controller, action]
       #
       # ControllerExceptions are rescued here and redispatched.
       #
@@ -28,9 +27,8 @@ module Merb
       #   An IO object to hold the response
       #
       # ==== Returns
-      # Array[Merb::Controller, Symbol]::
-      #   An array containing the Merb::Controller and the action that was
-      #   dispatched to.
+      # Merb::Controller::
+      #   The Merb::Controller that was dispatched to
       def handle(rack_env)
         start = Time.now
         Merb.logger.info "Started request handling: #{start.to_s}"
@@ -38,7 +36,9 @@ module Merb
         request = Merb::Request.new(rack_env)
       
         route, params = Merb::Router.route_for(request)
-        return redirect(request, route) if route.redirects?
+        if route.redirects?
+          return redirect(request, route.redirect_status, route.redirect_url)
+        end
         request.route_params = params
 
         klass = request.controller
@@ -210,11 +210,11 @@ module Merb
           if action_name = e.action_name
             dispatch_action(Exceptions, action_name, request, e.class.status)
           else
-            dispatch_default_exception(request)
+            dispatch_default_exception(request, e.class.status)
           end          
         rescue Object => dispatch_issue
           if e.same?(dispatch_issue)
-            dispatch_default_exception(request)
+            dispatch_default_exception(request, e.class.status)
           else
             Merb.logger.error("Dispatching #{e.class} raised another error.")
             Merb.logger.error(Merb.exception(dispatch_issue))
@@ -242,17 +242,8 @@ module Merb
       # Array[Merb::Controller, String]::
       #   An array containing the Merb::Controller that was dispatched to and the
       #   error's name. For instance, a NotFound error's name is "not_found".
-      def dispatch_default_exception(request)
-        e = request.exceptions.first
-        controller = Merb::Dispatcher::DefaultException.new(request, e.class.status)
-        if e.is_a? Redirection
-          controller.headers.merge!('Location' => e.message)
-          controller.body =
-            "<html><body>You are being <a href=\"#{e.message}\">redirected</a>.</body></html>"
-        else
-          controller._dispatch
-        end
-        controller
+      def dispatch_default_exception(request, status)
+        Merb::Dispatcher::DefaultException.new(request, status)._dispatch
       end
 
       # Set up a faux controller to do redirection from the router 
@@ -268,9 +259,7 @@ module Merb
       # ==== Returns
       # Merb::Controller::
       #   Merb::Controller set with redirect headers and a 301/302 status
-      def redirect(request, route)
-        status, url  = route.redirect_details
-
+      def redirect(request, status, url)
         controller = Merb::Controller.new(request, status)
       
         Merb.logger.info("Dispatcher redirecting to: #{url} (#{status})")
