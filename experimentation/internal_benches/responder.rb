@@ -31,6 +31,21 @@ module Merb
       end
       list.sort
     end
+
+    def self.parse_new_with_for_in(accept_header)
+      # FF2 is broken. If we get FF2 headers, use FF3 headers instead.
+      if accept_header == "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
+        accept_header = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      end
+      
+      headers = accept_header.split(/,/)
+      idx, list = 0, []
+      for i in headers
+        list << AcceptType.new(headers[idx], idx)
+        idx += 1
+      end
+      list.sort
+    end
   end
 end
 
@@ -44,5 +59,9 @@ RBench.run(10_000) do
   
   report "new_parse" do
     Merb::Responder.parse_new("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+  end
+
+  report "new_parse_with_for_in" do
+    Merb::Responder.parse_new_with_for_in("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
   end  
 end
