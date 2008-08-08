@@ -87,7 +87,15 @@ module Merb
     # ==== Raises
     # ArgumentError:: The requested mime type is not valid.
     def mime_transform_method(key)
-      raise ArgumentError, ":#{key} is not a valid MIME-type" unless ResponderMixin::TYPES.key?(key)
+      unless ResponderMixin::TYPES.key?(key)
+        msg = <<-MSG
+        :#{key} MIME-type is not registered with Merb. Merb responder knows about the following types:
+         #{Responder::Mixin::TYPES.keys.join(', ')}. Use Merb.add_mime_type to add more.
+        MSG
+
+        raise ArgumentError, msg
+      end
+      
       ResponderMixin::TYPES[key][:transform_method]
     end
 
