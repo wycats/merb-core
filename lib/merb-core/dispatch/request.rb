@@ -89,16 +89,21 @@ module Merb
     METHODS.each do |m|
       class_eval "def #{m}?() method == :#{m} end"
     end
-    
+
+    # Find route using requested URI and merges route
+    # parameters (:action, :controller and named segments)
+    # into request params hash.
     def find_route!
       @route, @route_params = Merb::Router.route_for(self)
       @params.merge! @route_params
     end
-    
+
+    # Redirect status of route matched this request.
     def redirect_status
       route.redirect_status
     end
-    
+
+    # Redirect url of route matched this request.
     def redirect_url
       route.redirect_url
     end
