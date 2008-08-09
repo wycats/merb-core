@@ -31,7 +31,17 @@ module Merb
     cattr_accessor :routes, :named_routes
 
     class << self
-      
+      # Finds route matching URI of the request and
+      # returns a tuple of [route index, route params].
+      #
+      # ==== Parameters
+      # request<Merb::Request>:: request to match.
+      #
+      # ==== Returns
+      # <Array(Integer, Hash)::
+      #   Two-tuple: route index and route parameters. Route
+      #   parameters are :controller, :action and all the named
+      #   segments of the route.
       def route_for(request)
         index, params = match(request)
         route = routes[index] if index
