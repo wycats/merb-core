@@ -1,5 +1,3 @@
-
-
 class Foo < Application
 
   def index

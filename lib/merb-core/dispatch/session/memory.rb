@@ -101,10 +101,10 @@ module Merb
     def refresh_expiration 
       self.needs_new_cookie=true 
     end 
-     
+    
     # Deletes the session by emptying stored data.
     def delete
-      @data = {} 
+      @data = {}
     end
      
     # ==== Returns

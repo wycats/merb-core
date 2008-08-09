@@ -4,7 +4,8 @@ module Merb
   
   class Request
     # def env def session def route_params
-    attr_accessor :env, :session, :route_params
+    attr_accessor :env, :session, :exceptions, :route
+    attr_reader :route_params
     
     # by setting these to false, auto-parsing is disabled; this way you can
     # do your own parsing instead
@@ -34,10 +35,30 @@ module Merb
       @route_params = {}
     end
     
+    def controller
+      unless params[:controller]
+        raise ControllerExceptions::NotFound, 
+          "Route matched, but route did not specify a controller.\n" +
+          "Did you forgot to add :controller => \"people\" or :controller " +
+          "segment to route definition?\nHere is what's specified:\n" + 
+          request.route_params.inspect
+      end
+      path = [params[:namespace], params[:controller]].compact.join("/")
+      controller = path.snake_case.to_const_string
+      
+      begin
+        Object.full_const_get(controller)
+      rescue NameError => e
+        msg = "Controller class not found for controller `#{path}'"
+        Merb.logger.warn!(msg)
+        raise ControllerExceptions::NotFound, msg
+      end
+    end
+    
     METHODS = %w{get post put delete head options}
 
     # ==== Returns
-    # Symbol:: The name of the request method, e.g. :get.
+    # <Symbol>:: The name of the request method, e.g. :get.
     #
     # ==== Notes
     # If the method is post, then the blocks specified in
@@ -68,6 +89,39 @@ module Merb
     METHODS.each do |m|
       class_eval "def #{m}?() method == :#{m} end"
     end
+
+    # Find route using requested URI and merges route
+    # parameters (:action, :controller and named segments)
+    # into request params hash.
+    def find_route!
+      @route, @route_params = Merb::Router.route_for(self)
+      @params.merge! @route_params
+    end
+
+    # Redirect status of route matched this request.
+    #
+    # ==== Returns
+    # Integer::
+    #   The URL to redirect to if the route redirects
+    def redirect_status
+      route.redirect_status
+    end
+
+    # Returns redirect url of route matched this request.
+    #
+    # ==== Returns
+    # <String>:: redirect url of route matched this request
+    def redirect_url
+      route.redirect_url
+    end
+
+    # Returns true if matched route does immediate redirection.
+    #
+    # ==== Returns
+    # <Boolean>:: if matched route does immediate redirection.
+    def redirects?
+      route.redirects?
+    end
     
     private
     
@@ -91,7 +145,7 @@ module Merb
     end
 
     # ==== Returns
-    # Hash::
+    # Mash::
     #   The parameters gathered from the query string and the request body,
     #   with parameters in the body taking precedence.
     def body_and_query_params
@@ -154,7 +208,7 @@ module Merb
     
     public
     # ==== Returns
-    # Hash:: All request parameters.
+    # Mash:: All request parameters.
     #
     # ==== Notes
     # The order of precedence for the params is XML, JSON, multipart, body and
@@ -186,7 +240,14 @@ module Merb
     # ==== Returns
     # Hash:: The cookies for this request.
     def cookies
-      @cookies ||= self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
+      @cookies ||= begin 
+        cookies = self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
+        if route && route.allow_fixation? && params.key?(Merb::Controller._session_id_key)
+          Merb.logger.info("Fixated session id: #{Merb::Controller._session_id_key}")
+          cookies[Merb::Controller._session_id_key] = params[Merb::Controller._session_id_key]
+        end
+        cookies
+      end
     end
 
     # ==== Returns
@@ -249,7 +310,7 @@ module Merb
     # ==== Returns
     # String:: The request URI.
     def uri
-      @env['REQUEST_PATH'] || @env['REQUEST_URI']
+      @env['REQUEST_PATH'] || @env['REQUEST_URI'] || path_info
     end
 
     # ==== Returns

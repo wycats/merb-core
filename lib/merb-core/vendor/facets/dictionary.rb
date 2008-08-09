@@ -292,11 +292,11 @@ class Dictionary
   end
 
   def reject( &block )
-    self.dup.delete_if &block
+    self.dup.delete_if(&block)
   end
 
   def reject!( &block )
-    hsh2 = reject &block
+    hsh2 = reject(&block)
     self == hsh2 ? nil : hsh2
   end
 
@@ -321,7 +321,7 @@ class Dictionary
   end
 
   def <<(kv)
-    push *kv
+    push( *kv )
   end
 
   def push( k,v )

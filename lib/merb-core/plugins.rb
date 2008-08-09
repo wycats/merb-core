@@ -42,7 +42,7 @@ module Merb
     #   Merb::Plugins.add_rakefiles "merb_sequel" / "merbtasks"
     # end
     def self.add_rakefiles(*rakefiles)
-      Merb.add_rakefiles *rakefiles
+      Merb.add_rakefiles(*rakefiles)
     end
     
     # ==== Parameters
@@ -53,7 +53,7 @@ module Merb
     # This is the recommended way to register your plugin's generators
     # in Merb.
     def self.add_generators(*generators)
-      Merb.add_generators *generators
+      Merb.add_generators(*generators)
     end
   end
 end

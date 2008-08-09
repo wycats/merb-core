@@ -20,8 +20,6 @@ class Merb::Controller < Merb::AbstractController
   include Merb::ControllerMixin
   include Merb::AuthenticationMixin
 
-  attr_accessor :route
-
   class << self
 
     # ==== Parameters
@@ -194,6 +192,7 @@ class Merb::Controller < Merb::AbstractController
   #---
   # @semipublic
   def _dispatch(action=:index)
+    Merb.logger.info("Params: #{self.class._filter_params(request.params).inspect}")
     start = Time.now
     if self.class.callable_actions.include?(action.to_s)
       super(action)
@@ -201,6 +200,7 @@ class Merb::Controller < Merb::AbstractController
       raise ActionNotFound, "Action '#{action}' was not found in #{self.class}"
     end
     @_benchmarks[:action_time] = Time.now - start
+    self
   end
 
   attr_reader :request, :headers
@@ -240,6 +240,15 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
+  
+  # The results of the controller's render, to be returned to Rack.
+  #
+  # ==== Returns
+  # Array[Integer, Hash, String]::
+  #   The controller's status code, headers, and body
+  def rack_response
+    [status, headers, body]
+  end
   
   # Hide any methods that may have been exposed as actions before.
   hide_action(*_callable_methods)
