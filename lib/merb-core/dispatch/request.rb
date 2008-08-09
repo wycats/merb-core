@@ -129,7 +129,7 @@ module Merb
     end
 
     # ==== Returns
-    # Hash::
+    # Mash::
     #   The parameters gathered from the query string and the request body,
     #   with parameters in the body taking precedence.
     def body_and_query_params
