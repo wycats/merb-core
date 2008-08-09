@@ -58,7 +58,7 @@ module Merb
     METHODS = %w{get post put delete head options}
 
     # ==== Returns
-    # Symbol:: The name of the request method, e.g. :get.
+    # <Symbol>:: The name of the request method, e.g. :get.
     #
     # ==== Notes
     # If the method is post, then the blocks specified in
@@ -99,15 +99,26 @@ module Merb
     end
 
     # Redirect status of route matched this request.
+    #
+    # ==== Returns
+    # Integer::
+    #   The URL to redirect to if the route redirects
     def redirect_status
       route.redirect_status
     end
 
-    # Redirect url of route matched this request.
+    # Returns redirect url of route matched this request.
+    #
+    # ==== Returns
+    # <String>:: redirect url of route matched this request
     def redirect_url
       route.redirect_url
     end
-    
+
+    # Returns true if matched route does immediate redirection.
+    #
+    # ==== Returns
+    # <Boolean>:: if matched route does immediate redirection.
     def redirects?
       route.redirects?
     end
