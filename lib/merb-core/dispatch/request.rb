@@ -224,7 +224,14 @@ module Merb
     # ==== Returns
     # Hash:: The cookies for this request.
     def cookies
-      @cookies ||= self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
+      @cookies ||= begin 
+        cookies = self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
+        if route && route.allow_fixation? && params.key?(Merb::Controller._session_id_key)
+          Merb.logger.info("Fixated session id: #{Merb::Controller._session_id_key}")
+          cookies[Merb::Controller._session_id_key] = params[Merb::Controller._session_id_key]
+        end
+        cookies
+      end
     end
 
     # ==== Returns
