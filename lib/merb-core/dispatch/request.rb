@@ -192,7 +192,7 @@ module Merb
     
     public
     # ==== Returns
-    # Hash:: All request parameters.
+    # Mash:: All request parameters.
     #
     # ==== Notes
     # The order of precedence for the params is XML, JSON, multipart, body and
