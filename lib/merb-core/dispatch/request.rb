@@ -90,7 +90,7 @@ module Merb
       class_eval "def #{m}?() method == :#{m} end"
     end
     
-    def find_route
+    def find_route!
       @route, @route_params = Merb::Router.route_for(self)
       @params.merge! @route_params
     end
