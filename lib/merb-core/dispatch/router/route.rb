@@ -113,12 +113,25 @@ module Merb
         end
       end
 
+      # ==== Returns
+      # Boolean::
+      #   Does the router specify a redirect?
       def redirects?
         behavior.redirects?
       end
       
-      def redirect_details
-        [behavior.redirect_status, behavior.redirect_url]
+      # ==== Returns
+      # Integer::
+      #   The status code to use if the route redirects
+      def redirect_status
+        behavior.redirect_status
+      end
+      
+      # ==== Returns
+      # String::
+      #   The URL to redirect to if the route redirects
+      def redirect_url
+        behavior.redirect_url
       end
       
       # ==== Returns

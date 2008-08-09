@@ -21,8 +21,9 @@ describe "Kernel#caller" do
   end
 
   it "should be able to get caller lines" do
-    __caller_lines__(__caller_info__[0], __caller_info__[1], 4).length.should == 9
-    __caller_lines__(__caller_info__[0], __caller_info__[1], 4).should be_kind_of(Array)
+    i = 0
+    __caller_lines__(__caller_info__[0], __caller_info__[1], 4) { i += 1 }
+    i.should == 9
   end
 end
 

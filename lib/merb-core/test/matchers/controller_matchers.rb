@@ -165,13 +165,13 @@ module Merb::Test::Rspec::ControllerMatchers
     
     def matches?(target)
       @target = target
-      @target.request.exception_details &&
-        @target.request.exception_details[:exceptions].first.is_a?(@expected)
+      @target.request.exceptions &&
+        @target.request.exceptions.first.is_a?(@expected)
     end
     
     def failure_message
       "expected #{@target} to be a #{@expected} error, but it was " << 
-        @target.request.exception_details[:exceptions].first.inspect
+        @target.request.exceptions.first.inspect
     end
     
     def negative_failure_message

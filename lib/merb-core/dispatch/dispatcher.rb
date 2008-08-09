@@ -1,7 +1,6 @@
+require Merb.framework_root / "merb-core" / "dispatch" / "default_exception" / "default_exception"
 module Merb
   class Dispatcher
-    DEFAULT_ERROR_TEMPLATE = File.expand_path(File.dirname(__FILE__) / 'exceptions.html')
-  
     class << self
       include Merb::ControllerExceptions
     
@@ -16,36 +15,26 @@ module Merb
     
       Merb::Dispatcher.use_mutex = ::Merb::Config[:use_mutex]
     
-      # This is where we grab the incoming request REQUEST_URI and use that in
-      # the merb RouteMatcher to determine which controller and method to run.
-      # Returns a 2 element tuple of: [controller, action]
-      #
-      # ControllerExceptions are rescued here and redispatched.
+      # Dispatch the rack environment. ControllerExceptions are rescued here
+      # and redispatched.
       #
       # ==== Parameters
       # rack_env<Rack::Environment>::
       #   The rack environment, which is used to instantiate a Merb::Request
-      # response<IO>::
-      #   An IO object to hold the response
       #
       # ==== Returns
-      # Array[Merb::Controller, Symbol]::
-      #   An array containing the Merb::Controller and the action that was
-      #   dispatched to.
-      def handle(rack_env)
+      # Merb::Controller::
+      #   The Merb::Controller that was dispatched to
+      def handle(request)
         start = Time.now
         Merb.logger.info "Started request handling: #{start.to_s}"
     
-        request = Merb::Request.new(rack_env)
-      
-        route, params = Merb::Router.route_for(request)
-        return redirect(request, route) if route.redirects?
-        request.route_params = params
-
+        request.find_route
+        return redirect(request) if request.redirects?
+        
         klass = request.controller
-    
-        Merb.logger.debug("Routed to: #{params.inspect}")
-      
+        Merb.logger.debug("Routed to: #{request.params.inspect}")
+        
         unless klass < Controller
           raise NotFound, 
             "Controller '#{klass}' not found.\n" <<
@@ -59,13 +48,13 @@ module Merb
         end
       
         # TODO: move fixation logic to session loading
-        controller = dispatch_action(klass, request, route)
+        controller = dispatch_action(klass, request.params[:action], request)
         controller._benchmarks[:dispatch_time] = Time.now - start
         Merb.logger.info controller._benchmarks.inspect
         Merb.logger.flush
         controller
       rescue Object => exception
-        dispatch_exception(request, exception, route)
+        dispatch_exception(exception, request)
       end
         
   #     def handle(rack_env)
@@ -160,19 +149,16 @@ module Merb
       # action<Symbol>:: The action to dispatch.
       # request<Merb::Request>::
       #   The Merb::Request object that was created in #handle
-      # response<IO>:: The response object passed in from Mongrel
       # status<Integer>:: The status code to respond with.
       #
       # ==== Returns
-      # Array[Merb::Controller, Symbol]::
-      #   An array containing the Merb::Controller and the action that was
-      #   dispatched to.
-      def dispatch_action(klass, request, route, status=200)
+      # Merb::Controller::
+      #   The Merb::Controller that was dispatched to.
+      def dispatch_action(klass, action, request, status=200)
         # build controller
         controller = klass.new(request, status)
-        controller.route = route
         if use_mutex
-          @@mutex.synchronize { controller._dispatch(request.params[:action]) }
+          @@mutex.synchronize { controller._dispatch(action) }
         else
           controller._dispatch(request.params[:action])
         end
@@ -184,54 +170,40 @@ module Merb
       #
       # You can handle exceptions by implementing actions for specific
       # exceptions such as not_found or for entire classes of exceptions
-      # such as client_error
-      #
-      # If it is not available then just render a simple text error.
+      # such as client_error. You can also implement handlers for 
+      # exceptions outside the Merb exception hierarchy (e.g.
+      # StandardError is caught in standard_error).
       #
       # ==== Parameters
       # request<Merb::Request>:: 
       #   The request object associated with the failed request.
-      # response<IO>::
-      #   The response object to put the response into.
       # exception<Object>::
       #   The exception object that was created when trying to dispatch the
       #   original controller.
       #
       # ==== Returns
-      # Array[Merb::Controller, String]::
-      #   An array containing the Merb::Controller and the name of the exception
-      #   that triggrered #dispatch_exception. For instance, a NotFound exception
-      #   will be "not_found".
-      def dispatch_exception(request, exception, route)
+      # Exceptions::
+      #   The Merb::Controller that was dispatched to. 
+      def dispatch_exception(exception, request)
         Merb.logger.error(Merb.exception(exception))
-        exception_klass = exception.class
-        exceptions = [exception]
-        request.exception_details = {
-          :params => request.params ? request.params.dup : {},
-          :session => request.session || {},
-          :cookies => request.cookies || {},
-        }
-
+        request.exceptions = [exception]
+        
         begin
-          e = exceptions.first
-          klass = Object.const_defined?("Exceptions") ? Exceptions : Controller
-          klass.send(:include, Merb::ExceptionsHelper)
-          request.exception_details[:exceptions] = exceptions
+          e = request.exceptions.first
           
           if action_name = e.action_name
-            request.params[:action] = action_name
-            dispatch_action(klass, request, route, e.class.status)
+            dispatch_action(Exceptions, action_name, request, e.class.status)
           else
-            dispatch_default_exception(klass, request, exceptions)
+            dispatch_default_exception(request, e.class.status)
           end          
         rescue Object => dispatch_issue
           if e.same?(dispatch_issue)
-            dispatch_default_exception(klass, request, exceptions)
+            dispatch_default_exception(request, e.class.status)
           else
             Merb.logger.error("Dispatching #{e.class} raised another error.")
             Merb.logger.error(Merb.exception(dispatch_issue))
             
-            exceptions.unshift dispatch_issue
+            request.exceptions.unshift dispatch_issue
             retry
           end
         end
@@ -241,32 +213,16 @@ module Merb
       # will end up here for processing
       #
       # ==== Parameters
-      # klass<Merb::Controller>:: 
-      #   The class of the controller to use for exception dispatch.
       # request<Merb::Request>::
       #   The Merb request that produced the original error.
-      # response<IO>::
-      #   The response object that the response will be put into.
-      # e<Exception>::
-      #   The exception that caused #dispatch_exception to be called.
+      # status<Integer>::
+      #   The status code to return with the Exception.
       #
       # ==== Returns
-      # Array[Merb::Controller, String]::
-      #   An array containing the Merb::Controller that was dispatched to and the
-      #   error's name. For instance, a NotFound error's name is "not_found".
-      def dispatch_default_exception(klass, request, exceptions)
-        e = exceptions.first
-        controller = klass.new(request, e.class.status)
-        if e.is_a? Redirection
-          controller.headers.merge!('Location' => e.message)
-          controller.body =
-            "<html><body>You are being <a href=\"#{e.message}\">redirected</a>.</body></html>"
-        else
-          controller.instance_variable_set("@exceptions", exceptions)
-          controller.body = controller.send(
-            Merb::Template.template_for(DEFAULT_ERROR_TEMPLATE))
-        end
-        controller
+      # Merb::Dispatcher::DefaultException::
+      #   The DefaultException that was dispatched to.
+      def dispatch_default_exception(request, status)
+        Merb::Dispatcher::DefaultException.new(request, status)._dispatch
       end
 
       # Set up a faux controller to do redirection from the router 
@@ -274,7 +230,10 @@ module Merb
       # ==== Parameters
       # request<Merb::Request>::
       #   The Merb::Request object that was created in #handle
-      # route<Merb::Router::Route>:: Matched route object
+      # status<Integer>::
+      #   The status code to return with the controller
+      # url<String>::
+      #   The URL to return
       #
       # ==== Example
       # r.match("/my/old/crusty/url").redirect("http://example.com/index.html")
@@ -282,9 +241,8 @@ module Merb
       # ==== Returns
       # Merb::Controller::
       #   Merb::Controller set with redirect headers and a 301/302 status
-      def redirect(request, route)
-        status, url  = route.redirect_details
-
+      def redirect(request)
+        status, url = request.redirect_status, request.redirect_url
         controller = Merb::Controller.new(request, status)
       
         Merb.logger.info("Dispatcher redirecting to: #{url} (#{status})")

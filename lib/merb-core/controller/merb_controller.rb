@@ -20,8 +20,6 @@ class Merb::Controller < Merb::AbstractController
   include Merb::ControllerMixin
   include Merb::AuthenticationMixin
 
-  attr_accessor :route
-
   class << self
 
     # ==== Parameters
@@ -202,6 +200,7 @@ class Merb::Controller < Merb::AbstractController
       raise ActionNotFound, "Action '#{action}' was not found in #{self.class}"
     end
     @_benchmarks[:action_time] = Time.now - start
+    self
   end
 
   attr_reader :request, :headers
@@ -242,6 +241,15 @@ class Merb::Controller < Merb::AbstractController
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
   
+  # The results of the controller's render, to be returned to Rack.
+  #
+  # ==== Returns
+  # Array[Integer, Hash, String]::
+  #   The controller's status code, headers, and body
+  def rack_response
+    [status, headers, body]
+  end
+  
   # Hide any methods that may have been exposed as actions before.
   hide_action(*_callable_methods)
   
@@ -258,8 +266,8 @@ class Merb::Controller < Merb::AbstractController
   end
 end
 
-module Merb::ExceptionsHelper
-  def humanize_exception(e)
-    e.class.name.split("::").last.gsub(/([a-z])([A-Z])/, '\1 \2')
-  end
-end
+# module Merb::ExceptionsHelper
+#   def humanize_exception(e)
+#     e.class.name.split("::").last.gsub(/([a-z])([A-Z])/, '\1 \2')
+#   end
+# end

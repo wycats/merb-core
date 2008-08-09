@@ -13,6 +13,14 @@ describe Merb::Dispatcher do
     Merb.logger
   end
 
+  def dispatch(url)
+    Merb::Dispatcher.handle(request_for(url))
+  end
+
+  def request_for(url)
+    Merb::Request.new(Rack::MockRequest.env_for(url))
+  end
+
   before(:each) do
     Merb::Config[:exception_details] = true
   end
@@ -22,16 +30,16 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/dispatch_to/index")
+      @url = "/dispatch_to/index"
     end
   
     it "dispatches to the right controller and action" do
-      controller = Merb::Dispatcher.handle(@env)
+      controller = dispatch(@url)
       controller.body.should == "Dispatched"
     end
     
     it "sets the Request#params to include the route params" do
-      controller = Merb::Dispatcher.handle(@env)
+      controller = dispatch(@url)
       controller.request.params.should == 
         {"controller" => "dispatch_to", "action" => "index", 
          "id" => nil, "format" => nil}
@@ -39,31 +47,31 @@ describe Merb::Dispatcher do
     
     it "provides the time for start of request handling via Logger#info" do
       with_level(:info) do
-        Merb::Dispatcher.handle(@env)
+        dispatch(@url)
       end.should include_log("Started request handling")
       
       with_level(:warn) do
-        Merb::Dispatcher.handle(@env)
+        dispatch(@url)
       end.should_not include_log("Started request handling")
     end
     
     it "provides the routed params via Logger#debug" do
       with_level(:debug) do
-        Merb::Dispatcher.handle(@env)
+        dispatch(@url)
       end.should include_log("Routed to:")
       
       with_level(:info) do
-        Merb::Dispatcher.handle(@env)
+        dispatch(@url)
       end.should_not include_log("Routed to:")
     end
     
     it "provides the benchmarks via Logger#info" do
       with_level(:info) do
-        Merb::Dispatcher.handle(@env)
+        dispatch(@url)
       end.should include_log(":after_filters_time")
       
       with_level(:warn) do
-        Merb::Dispatcher.handle(@env)
+        dispatch(@url)
       end.should_not include_log(":after_filters_time")
     end
   end
@@ -74,8 +82,8 @@ describe Merb::Dispatcher do
         r.match("/redirect/to/foo").redirect("/foo")
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/redirect/to/foo")
-      @controller = Merb::Dispatcher.handle(@env)
+      @url = "/redirect/to/foo"
+      @controller = dispatch(@url)
     end
     
     it "redirects" do
@@ -84,11 +92,11 @@ describe Merb::Dispatcher do
     
     it "reports that it is redirecting via Logger#info" do
       with_level(:info) do
-        Merb::Dispatcher.handle(@env)
+        dispatch(@url)
       end.should include_log("Dispatcher redirecting to: /foo")
       
       with_level(:warn) do
-        Merb::Dispatcher.handle(@env)
+        dispatch(@url)
       end.should_not include_log("Dispatcher redirecting to: /foo")
     end
     
@@ -106,8 +114,8 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/not_a_controller/index")
-      @controller = Merb::Dispatcher.handle(@env)
+      @url = "/not_a_controller/index"
+      @controller = dispatch(@url)
     end
     
     describe "with exception details showing" do
@@ -144,8 +152,8 @@ describe Merb::Dispatcher do
         Merb::Router.prepare do |r|
           r.default_routes
         end
-        @env = Rack::MockRequest.env_for("/raise_gone/index")
-        @controller = Merb::Dispatcher.handle(@env)
+        @url = "/raise_gone/index"
+        @controller = dispatch(@url)
       end
       
       it "remembers that the Exception is Gone" do
@@ -180,8 +188,8 @@ describe Merb::Dispatcher do
         Merb::Router.prepare do |r|
           r.default_routes
         end
-        @env = Rack::MockRequest.env_for("/raise_gone/index")
-        @controller = Merb::Dispatcher.handle(@env)
+        @url = "/raise_gone/index"
+        @controller = dispatch(@url)
       end
       
       it "renders the Exception from the Exceptions controller" do
@@ -217,8 +225,8 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/raise_load_error/index")
-      @controller = Merb::Dispatcher.handle(@env)
+      @url = "/raise_load_error/index"
+      @controller = dispatch(@url)
     end
     
     it "knows that the error is a LoadError" do
@@ -253,8 +261,8 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/raise_load_error/index")
-      @controller = Merb::Dispatcher.handle(@env)
+      @url = "/raise_load_error/index"
+      @controller = dispatch(@url)
     end
     
     it "knows that the error is a StandardError" do
@@ -294,8 +302,8 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/page/not/found")
-      @controller = Merb::Dispatcher.handle(@env)
+      @url = "/page/not/found"
+      @controller = dispatch(@url)
     end
     
     it "knows that the error is a NotFound" do
@@ -331,8 +339,8 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/raise_load_error/index")
-      @controller = Merb::Dispatcher.handle(@env)
+      @url = "/raise_load_error/index"
+      @controller = dispatch(@url)
     end
     
     it "knows that the error is a NotFound" do
@@ -371,8 +379,8 @@ describe Merb::Dispatcher do
       Merb::Router.prepare do |r|
         r.default_routes
       end
-      @env = Rack::MockRequest.env_for("/raise_load_error/index")
-      @controller = Merb::Dispatcher.handle(@env)
+      @url = "/raise_load_error/index"
+      @controller = dispatch(@url)
       @body = @controller.body
     end
     

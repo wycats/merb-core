@@ -557,6 +557,22 @@ class Merb::BootLoader::AfterAppLoads < Merb::BootLoader
   end
 end
 
+# In case someone's running a sparse app, the default exceptions require the
+# Exceptions class.
+class Merb::BootLoader::SetupStubClasses < Merb::BootLoader
+  def self.run
+    unless defined?(Exceptions)
+      Object.class_eval <<-RUBY
+        class Application < Merb::Controller
+        end
+
+        class Exceptions < Application
+        end
+      RUBY
+    end
+  end
+end
+
 class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
 
   # Mixin the correct session container.
