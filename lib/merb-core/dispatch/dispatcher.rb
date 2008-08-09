@@ -47,15 +47,14 @@ module Merb
           raise NotFound, "The 'Application' controller has no public actions"
         end
       
-        # TODO: move fixation logic to session loading
         controller = dispatch_action(klass, request.params[:action], request)
         controller._benchmarks[:dispatch_time] = Time.now - start
         Merb.logger.info controller._benchmarks.inspect
         Merb.logger.flush
         controller
       rescue Object => exception
-        dispatch_exception(exception, request)
-      end
+        dispatch_exception(exception, request) 
+     end
     
       private
       # Setup the controller and call the chosen action 
