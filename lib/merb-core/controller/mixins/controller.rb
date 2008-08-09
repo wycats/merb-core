@@ -104,11 +104,16 @@ module Merb
         blk.call        
       }      
     end
-        
+
     # ==== Parameters
     # url<String>::
     #   URL to redirect to. It can be either a relative or fully-qualified URL.
-    # permanent<Boolean>::
+    # opts<Hash>:: An options hash (see below)
+    #
+    # ==== Options (opts)
+    # :message<Hash>::
+    #   Messages to pass in url query string as value for "_message"
+    # :permanent<Boolean>::
     #   When true, return status 301 Moved Permanently
     #
     # ==== Returns
@@ -116,14 +121,17 @@ module Merb
     #
     # ==== Examples
     #   redirect("/posts/34")
+    #   redirect("/posts/34", :message => { :notice => 'Post updated successfully!' })
     #   redirect("http://www.merbivore.com/")
-    #   redirect("http://www.merbivore.com/", true)
-    def redirect(url, message = nil)
-      if message
-        notice = Merb::Request.escape([Marshal.dump(message)].pack("m"))
+    #   redirect("http://www.merbivore.com/", :permanent => true)
+    def redirect(url, opts = {})
+      default_redirect_options = { :message => nil, :permanent => false }
+      opts = default_redirect_options.merge(opts)
+      if opts[:message]
+        notice = Merb::Request.escape([Marshal.dump(opts[:message])].pack("m"))
         url = url =~ /\?/ ? "#{url}&_message=#{notice}" : "#{url}?_message=#{notice}"
       end
-      self.status = 302
+      self.status = opts[:permanent] ? 301 : 302
       Merb.logger.info("Redirecting to: #{url} (#{self.status})")
       headers['Location'] = url
       "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"

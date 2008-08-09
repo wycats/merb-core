@@ -6,7 +6,13 @@ describe Merb::Controller, " redirects" do
     @controller.status.should == 302
     @controller.headers["Location"].should == "/"
   end
-  
+
+  it "permanently redirects" do
+    @controller = dispatch_to(Merb::Test::Fixtures::Controllers::PermanentRedirect, :index)
+    @controller.status.should == 301
+    @controller.headers["Location"].should == "/"
+  end
+
   it "redirects with messages" do
     @controller = dispatch_to(Merb::Test::Fixtures::Controllers::RedirectWithMessage, :index)
     @controller.status.should == 302

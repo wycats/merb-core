@@ -8,10 +8,16 @@ module Merb::Test::Fixtures::Controllers
       redirect("/")
     end
   end
-  
+
+  class PermanentRedirect < Testing
+    def index
+      redirect("/", :permanent => true)
+    end
+  end
+
   class RedirectWithMessage < Testing
     def index
-      redirect("/", :notice => "what?")
+      redirect("/", :message => { :notice => "what?" })
     end
   end
   
