@@ -314,10 +314,10 @@ namespace :repo do
 end
 
 def git_log(since_release = nil, log_format = "format:%an")
-  git_log_query = "git log --pretty='#{log_format}' --no-merges"
+  git_log_query = "git log --pretty='format:#{log_format}' --no-merges"
   git_log_query << " --since='#{since_release}'" if since_release
   puts
-  puts "Running #{git_log_query}XS"
+  puts "Running #{git_log_query}"
   puts
   `#{git_log_query}`
 end
