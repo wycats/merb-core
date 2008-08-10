@@ -360,7 +360,7 @@ namespace :history do
   namespace :current_release do
     desc "show changes since previous release"
     task :changes do
-      puts git_log(PREVIOUS_RELEASE, "* %s")
+      puts git_log(PREVIOUS_RELEASE, "format:* %s")
     end
 
 
