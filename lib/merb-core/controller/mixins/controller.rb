@@ -225,7 +225,8 @@ module Merb
         'Content-Type'              => opts[:type].strip,  # fixes a problem with extra '\r' with some browsers
         'Content-Disposition'       => disposition,
         'Content-Transfer-Encoding' => 'binary',
-        'CONTENT-LENGTH'            => opts[:content_length]
+        # Rack specification requires header values to respond to :each
+        'CONTENT-LENGTH'            => opts[:content_length].to_s
       )
       Proc.new{|response|
         response.send_status(opts[:content_length])
