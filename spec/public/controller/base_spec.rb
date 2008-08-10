@@ -9,13 +9,17 @@ describe Merb::Controller, " callable actions" do
     end
   end
   
-  it "should not have any callable actions by default" do
+  it "has no any callable actions by default" do
     Merb::Controller.callable_actions.should be_empty
   end
   
-  it "should dispatch to callable actions" do
+  it "sets body on dispatch to callable action" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::Base, :index)
     controller.body.should == "index"
+  end
+
+  it "sets status on dispatch to callable action" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::Base, :index)
     controller.status.should == 200
   end
 
