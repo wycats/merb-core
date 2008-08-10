@@ -313,6 +313,68 @@ namespace :repo do
 
 end
 
+def git_log(since_release = nil, log_format = "format:%an")
+  git_log_query = "git log --pretty='#{log_format}' --no-merges"
+  git_log_query << " --since='#{since_release}'" if since_release
+  puts
+  puts "Running #{git_log_query}XS"
+  puts
+  `#{git_log_query}`
+end
+
+def contributors(since_release = nil)
+  @merb_contributors ||= git_log(since_release).split("\n").uniq.sort
+end
+
+PREVIOUS_RELEASE = '0.9.3'
+namespace :history do
+  namespace :update do
+    desc "updates contributors list"
+    task :contributors do
+      list = contributors.join "\n"
+
+      path = File.join(File.dirname(__FILE__), 'CONTRIBUTORS')
+
+      rm path if File.exists?(path)
+
+      puts "Writing contributors (#{contributors.size} entries)."
+      # windows needs wb
+      File.open(path, "wb") do |io|
+        io << "Use #{RUBY_FORGE_PROJECT}? Say thanks the following people:\n\n"
+        io << list
+      end
+    end
+  end
+
+  
+  namespace :alltime do
+    desc 'shows all-time committers'
+    task :contributors do
+      puts 'All-time contributors (#{contributors.size} total): '
+      puts '=============================='
+      puts
+      puts contributors.join("\n")
+    end
+  end
+  
+  namespace :current_release do
+    desc "show changes since previous release"
+    task :changes do
+      puts git_log(PREVIOUS_RELEASE, "* %s")
+    end
+
+
+    desc 'shows current release committers'
+    task :contributors do
+      puts "Current release contributors (#{contributors.size} total): "
+      puts '=============================='
+      puts
+      puts contributors(PREVIOUS_RELEASE).join("\n")
+    end
+  end
+end
+
+
 # Run specific tests or test files. Searches nested spec directories as well.
 #
 # Based on a technique popularized by Geoffrey Grosenbach
