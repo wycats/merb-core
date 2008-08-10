@@ -60,9 +60,15 @@ module Merb
       def run
         subklasses = subclasses.dup
         until subclasses.empty?
+          time = Time.now.to_i
           bootloader = subclasses.shift
-          Merb.logger.debug!("Loading: #{bootloader}") if ENV['DEBUG']
+          if (ENV['DEBUG'] || $DEBUG || Merb::Config[:verbose]) && Merb.logger
+            Merb.logger.debug!("Loading: #{bootloader}")
+          end
           Object.full_const_get(bootloader).run
+          if (ENV['DEBUG'] || $DEBUG || Merb::Config[:verbose]) && Merb.logger
+            Merb.logger.debug!("It took: #{Time.now.to_i - time}")
+          end
           self.finished << bootloader
         end
         self.subclasses = subklasses
@@ -90,7 +96,7 @@ module Merb
         %w[view model helper controller mailer part].each do |component|
           Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
         end
-        Merb.push_path(:application,  Merb.root_path("app/controllers/application.rb"))
+        Merb.push_path(:application,  Merb.root_path("app" / "controllers" / "application.rb"))
         Merb.push_path(:config,       Merb.root_path("config"), nil)
         Merb.push_path(:router,       Merb.dir_for(:config), (Merb::Config[:router_file] || "router.rb"))
         Merb.push_path(:lib,          Merb.root_path("lib"), nil)
@@ -143,7 +149,7 @@ class Merb::BootLoader::Logger < Merb::BootLoader
   
   def self.print_warnings
     if Gem::Version.new(Gem::RubyGemsVersion) < Gem::Version.new("1.1")
-      Merb.logger.warn! "Please upgrade your Rubygems to the latest version"      
+      Merb.logger.warn! "Merb requires Rubygems 1.1 and later. Please upgrade RubyGems with gem update --system."
     end
   end
 end
@@ -255,6 +261,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     enable_json_gem unless Merb::disabled?(:json)
     load_dependencies
     update_logger
+    update_session_cookie_attributes
   end
 
   def self.load_dependencies
@@ -270,6 +277,11 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   def self.update_logger
     updated_logger_options = [ Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush] ]
     Merb::BootLoader::Logger.run if updated_logger_options != Merb.logger.init_args
+  end
+
+  def self.update_session_cookie_attributes
+    Merb::Controller._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
+    Merb::Controller._session_cookie_domain = Merb::Config[:session_cookie_domain]
   end
 
   private
@@ -379,7 +391,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to reload.
     def reload(file)
-      remove_file(file) { |f| load_file(f) }
+      remove_classes_in_file(file) { |f| load_file(f) }
     end
     
     # Reload the router to regenerate all routes.
@@ -393,7 +405,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to remove classes for.
     # &block:: A block to call with the file that has been removed.
-    def remove_file(file, &block)
+    def remove_classes_in_file(file, &block)
       Merb.klass_hashes.each {|x| x.protect_keys!}
       if klasses = LOADED_CLASSES.delete(file)
         klasses.each { |klass| remove_constant(klass) unless klass.to_s =~ /Router/ }
@@ -431,7 +443,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     private
 
     # "Better loading" of classes.  If a class fails to load due to a NameError
-    # it will be added to the failed_classs stack.
+    # it will be added to the failed_classes and load cycle will be repeated unless
+    # no classes load.
     #
     # ==== Parameters
     # klasses<Array[Class]>:: Classes to load.
@@ -544,6 +557,22 @@ class Merb::BootLoader::AfterAppLoads < Merb::BootLoader
   end
 end
 
+# In case someone's running a sparse app, the default exceptions require the
+# Exceptions class.
+class Merb::BootLoader::SetupStubClasses < Merb::BootLoader
+  def self.run
+    unless defined?(Exceptions)
+      Object.class_eval <<-RUBY
+        class Application < Merb::Controller
+        end
+
+        class Exceptions < Application
+        end
+      RUBY
+    end
+  end
+end
+
 class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
 
   # Mixin the correct session container.
@@ -597,7 +626,7 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
   # does not exist or is shorter than 16 charaters.
   def self.check_for_secret_key
     unless Merb::Config[:session_secret_key] && (Merb::Config[:session_secret_key].length >= 16)
-      Merb.logger.warn("You must specify a session_secret_key in your merb.yml, and it must be at least 16 characters\nbailing out...")
+      Merb.logger.warn("You must specify a session_secret_key in your init file, and it must be at least 16 characters\nbailing out...")
       exit!
     end
     Merb::Controller._session_secret_key = Merb::Config[:session_secret_key]

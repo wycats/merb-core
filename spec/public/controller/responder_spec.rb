@@ -13,7 +13,7 @@ describe Merb::Controller, " responds" do
     dispatch_to(Merb::Test::Fixtures::Controllers::HtmlDefault, :index).body.should == "HTML: Default"
   end
 
-  it "should use other mime-types if they are provided on the class level" do
+  it "should use other mime-types if they are provided on the controller-level" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassProvides, :index, {}, :http_accept => "application/xml")
     controller.body.should == "<XML:Class provides='true' />"
   end
@@ -23,9 +23,23 @@ describe Merb::Controller, " responds" do
       should raise_error(Merb::ControllerExceptions::NotAcceptable)
   end
 
-  it "should use mime-types that are provided at the local level" do
+  it "should use mime-types that are provided at the action-level" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::LocalProvides, :index, {}, :http_accept => "application/xml")
     controller.body.should == "<XML:Local provides='true' />"
+  end
+  
+  it "should use mime-types that are provided at the controller-level as well as the action-level (controller)" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassAndLocalProvides, :index, {}, :http_accept => "text/html")
+    controller.class_provided_formats.should == [:html]
+    controller._provided_formats.should == [:html, :xml]
+    controller.body.should == "HTML: Class and Local"
+  end  
+  
+  it "should use mime-types that are provided at the controller-level as well as the action-level (action)" do  
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassAndLocalProvides, :index, {}, :http_accept => "application/xml")
+    controller.class_provided_formats.should == [:html]
+    controller._provided_formats.should == [:html, :xml]
+    controller.body.should == "<XML:ClassAndLocalProvides provides='true' />"
   end
 
   it "should use the first mime-type when accepting anything */*" do
@@ -53,43 +67,57 @@ describe Merb::Controller, " responds" do
     controller.body.should == "HTML: Multi"
   end
   
-  it "should select the format based on params supplied to it with class provides" do
+  it "should select the format based on params supplied to it with controller-level provides" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassProvides, :index, :format => "xml")
     controller.content_type.should == :xml    
   end
   
-  it "should select the format based on params supplied to it with instance provides" do
+  it "should select the format based on params supplied to it with action-level provides" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::LocalProvides, :index, :format => "xml")
     controller.content_type.should == :xml    
   end
   
+  it "should select the format based on params supplied to it with controller and action provides (controller)" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassAndLocalProvides, :index, :format => "html")
+    controller.content_type.should == :html
+  end
+  
+  it "should select the format based on params supplied to it with controller and action provides (action)" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassAndLocalProvides, :index, :format => "xml")
+    controller.content_type.should == :xml
+  end
+  
   it "should properly add formats when only_provides is called in action" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::OnlyProvides, :index, {}, :http_accept => "application/xml")
+    controller._provided_formats.should == [:text, :xml]
     controller.content_type.should == :xml
   end
 
   it "should properly remove formats when only_provides is called in action" do
-    controller = dispatch_to(Merb::Test::Fixtures::Controllers::OnlyProvides, :index, {}, :http_accept => "application/html")
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::OnlyProvides, :index, {}, :http_accept => "text/html")
     lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
   end
 
   it "should properly add formats when only_provides is called in controller" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "application/xml")
+    controller._provided_formats.should == [:text, :xml]
     controller.content_type.should == :xml
   end
 
   it "should properly remove formats when only_provides is called in controller" do
-    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "application/html")
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "text/html")
+    lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
+  end
+  
+  it "should properly remove formats when does_not_provide is called in controller" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassDoesntProvides, :index, {}, :http_accept => "text/html")
+    controller._provided_formats.should == [:xml]
     lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
   end
 
   it "should properly remove formats when does_not_provide is called in action" do
-    controller = dispatch_to(Merb::Test::Fixtures::Controllers::OnlyProvides, :index, {}, :http_accept => "application/html")
-    lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
-  end
-
-  it "should properly remove formats when does_not_provide is called in controller" do
-    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassOnlyProvides, :index, {}, :http_accept => "application/html")
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::DoesntProvide, :index, {}, :http_accept => "text/html")
+    controller._provided_formats.should == [:xml]
     lambda { controller.content_type }.should raise_error(Merb::ControllerExceptions::NotAcceptable)
   end
   

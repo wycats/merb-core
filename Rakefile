@@ -5,6 +5,7 @@ require "rake/rdoctask"
 require "rake/testtask"
 require "spec/rake/spectask"
 require "fileutils"
+require "extlib"
 
 def __DIR__
   File.dirname(__FILE__)
@@ -15,32 +16,39 @@ require __DIR__ + "/tools/annotation_extract"
 
 include FileUtils
 
-NAME = "merb-core"
-
 require "lib/merb-core/version"
 require "lib/merb-core/test/run_specs"
 require 'lib/merb-core/tasks/merb_rake_helper'
 
 ##############################################################################
-# Packaging & Installation
+# Package && release
 ##############################################################################
-CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
+RUBY_FORGE_PROJECT  = "merb"
+PROJECT_URL         = "http://merbivore.com"
+PROJECT_SUMMARY     = "Merb. Pocket rocket web framework."
+PROJECT_DESCRIPTION = PROJECT_SUMMARY
 
-desc "Run the specs."
-task :default => :specs
+AUTHOR = "Ezra Zygmuntowicz"
+EMAIL  = "ez@engineyard.com"
 
-task :merb => [:clean, :rdoc, :package]
+GEM_NAME    = "merb-core"
+PKG_BUILD   = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+GEM_VERSION = Merb::VERSION + PKG_BUILD
+
+RELEASE_NAME    = "REL #{GEM_VERSION}"
+
+require "extlib/tasks/release"
 
 spec = Gem::Specification.new do |s|
-  s.name         = NAME
-  s.version      = Merb::VERSION
+  s.name         = GEM_NAME
+  s.version      = GEM_VERSION
   s.platform     = Gem::Platform::RUBY
-  s.author       = "Ezra Zygmuntowicz"
-  s.email        = "ez@engineyard.com"
-  s.homepage     = "http://merbivore.com"
-  s.summary      = "Merb. Pocket rocket web framework."
+  s.author       = AUTHOR
+  s.email        = EMAIL
+  s.homepage     = PROJECT_URL
+  s.summary      = PROJECT_SUMMARY
   s.bindir       = "bin"
-  s.description  = s.summary
+  s.description  = PROJECT_DESCRIPTION
   s.executables  = %w( merb )
   s.require_path = "lib"
   s.files        = %w( LICENSE README Rakefile TODO ) + Dir["{docs,bin,spec,lib,examples,app_generators,merb_generators,merb_default_generators,rspec_generators,test_unit_generators,script}/**/*"]
@@ -51,6 +59,7 @@ spec = Gem::Specification.new do |s|
   #s.rdoc_options     += RDOC_OPTS + ["--exclude", "^(app|uploads)"]
 
   # Dependencies
+  s.add_dependency "extlib", ">=0.9.3"
   s.add_dependency "erubis"
   s.add_dependency "rake"
   s.add_dependency "json_pure"
@@ -68,7 +77,7 @@ end
 
 desc "Run :package and install the resulting .gem"
 task :install => :package do
-  sh %{#{sudo} gem install #{install_home} --local pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri}
 end
 
 desc "Run :package and install the resulting .gem with jruby"
@@ -81,6 +90,16 @@ task :uninstall => :clean do
   sh %{#{sudo} gem uninstall #{NAME}}
 end
 
+CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
+
+desc "Run the specs."
+task :default => :specs
+
+task :merb => [:clean, :rdoc, :package]
+
+##############################################################################
+# Github
+##############################################################################
 namespace :github do
   desc "Update Github Gemspec"
   task :update_gemspec do
@@ -251,14 +270,6 @@ task :stats do
   CodeStatistics.new(*STATS_DIRECTORIES).to_s
 end
 
-task :release => :package do
-  if ENV["RELEASE"]
-    sh %{rubyforge add_release merb merb "#{ENV["RELEASE"]}" pkg/#{NAME}-#{Merb::VERSION}.gem}
-  else
-    puts "Usage: rake release RELEASE='Clever tag line goes here'"
-  end
-end
-
 ##############################################################################
 # SYNTAX CHECKING
 ##############################################################################
@@ -302,6 +313,68 @@ namespace :repo do
 
 end
 
+def git_log(since_release = nil, log_format = "format:%an")
+  git_log_query = "git log --pretty='#{log_format}' --no-merges"
+  git_log_query << " --since='#{since_release}'" if since_release
+  puts
+  puts "Running #{git_log_query}XS"
+  puts
+  `#{git_log_query}`
+end
+
+def contributors(since_release = nil)
+  @merb_contributors ||= git_log(since_release).split("\n").uniq.sort
+end
+
+PREVIOUS_RELEASE = '0.9.3'
+namespace :history do
+  namespace :update do
+    desc "updates contributors list"
+    task :contributors do
+      list = contributors.join "\n"
+
+      path = File.join(File.dirname(__FILE__), 'CONTRIBUTORS')
+
+      rm path if File.exists?(path)
+
+      puts "Writing contributors (#{contributors.size} entries)."
+      # windows needs wb
+      File.open(path, "wb") do |io|
+        io << "Use #{RUBY_FORGE_PROJECT}? Say thanks the following people:\n\n"
+        io << list
+      end
+    end
+  end
+
+  
+  namespace :alltime do
+    desc 'shows all-time committers'
+    task :contributors do
+      puts 'All-time contributors (#{contributors.size} total): '
+      puts '=============================='
+      puts
+      puts contributors.join("\n")
+    end
+  end
+  
+  namespace :current_release do
+    desc "show changes since previous release"
+    task :changes do
+      puts git_log(PREVIOUS_RELEASE, "* %s")
+    end
+
+
+    desc 'shows current release committers'
+    task :contributors do
+      puts "Current release contributors (#{contributors.size} total): "
+      puts '=============================='
+      puts
+      puts contributors(PREVIOUS_RELEASE).join("\n")
+    end
+  end
+end
+
+
 # Run specific tests or test files. Searches nested spec directories as well.
 #
 # Based on a technique popularized by Geoffrey Grosenbach
@@ -327,5 +400,47 @@ rule "" do |t|
     example = " -e '#{spec_name}'" unless spec_name.empty?
 
     sh "#{spec_cmd} #{run_file_name} --format specdoc --colour #{example}"
+  end
+end
+
+##############################################################################
+# Flog
+##############################################################################
+
+namespace :flog do
+  task :worst_methods do
+    require "flog"
+    flogger = Flog.new
+    flogger.flog_files Dir["lib/**/*.rb"]
+    totals = flogger.totals.sort_by {|k,v| v}.reverse[0..10]
+    totals.each do |meth, total|
+      puts "%50s: %s" % [meth, total]
+    end
+  end
+  
+  task :total do
+    require "flog"
+    flogger = Flog.new
+    flogger.flog_files Dir["lib/**/*.rb"]
+    puts "Total: #{flogger.total}"
+  end
+  
+  task :per_method do
+    require "flog"
+    flogger = Flog.new
+    flogger.flog_files Dir["lib/**/*.rb"]
+    methods = flogger.totals.reject { |k,v| k =~ /\#none$/ }.sort_by { |k,v| v }
+    puts "Total Flog:    #{flogger.total}"
+    puts "Total Methods: #{flogger.totals.size}"
+    puts "Flog / Method: #{flogger.total / methods.size}"
+  end
+end
+
+namespace :tools do
+  namespace :tags do
+    desc "Generates Emacs tags using Exuberant Ctags."
+    task :emacs do
+      sh "ctags -e --Ruby-kinds=-f -o TAGS -R lib"
+    end
   end
 end

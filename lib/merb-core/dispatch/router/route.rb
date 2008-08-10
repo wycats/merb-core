@@ -114,6 +114,27 @@ module Merb
       end
 
       # ==== Returns
+      # Boolean::
+      #   Does the router specify a redirect?
+      def redirects?
+        behavior.redirects?
+      end
+      
+      # ==== Returns
+      # Integer::
+      #   The status code to use if the route redirects
+      def redirect_status
+        behavior.redirect_status
+      end
+      
+      # ==== Returns
+      # String::
+      #   The URL to redirect to if the route redirects
+      def redirect_url
+        behavior.redirect_url
+      end
+      
+      # ==== Returns
       # Boolean:: True if fixation is allowed.
       def allow_fixation?
         @fixation
@@ -210,8 +231,11 @@ module Merb
           value =
             if segment.is_a? Symbol
               if params.is_a? Hash
-                params[segment] || fallback[segment]
+                if segment.to_s =~ /_id/ && params[:id].respond_to?(segment)
+                  params[segment] = params[:id].send(segment)
+                end
                 query_params.delete segment
+                params[segment] || fallback[segment]
               else
                 if segment == :id && params.respond_to?(:to_param)
                   params.to_param

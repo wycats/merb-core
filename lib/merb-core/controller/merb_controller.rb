@@ -1,10 +1,12 @@
 class Merb::Controller < Merb::AbstractController
 
-  class_inheritable_accessor :_hidden_actions, :_shown_actions
+  class_inheritable_accessor :_hidden_actions, :_shown_actions,
+                             :_session_id_key, :_session_secret_key, :_session_expiry, :_session_cookie_domain
+
   self._hidden_actions ||= []
   self._shown_actions ||= []
   
-  cattr_accessor :_subclasses, :_session_id_key, :_session_secret_key, :_session_expiry, :_session_cookie_domain
+  cattr_accessor :_subclasses
   self._subclasses = Set.new
 
   def self.subclasses_list() _subclasses end
@@ -17,8 +19,6 @@ class Merb::Controller < Merb::AbstractController
   include Merb::ResponderMixin
   include Merb::ControllerMixin
   include Merb::AuthenticationMixin
-
-  attr_accessor :route
 
   class << self
 
@@ -85,7 +85,7 @@ class Merb::Controller < Merb::AbstractController
     # ==== Returns
     # SimpleSet[String]:: A set of actions that should be callable.
     def callable_actions
-      @callable_actions ||= Merb::SimpleSet.new(_callable_methods)
+      @callable_actions ||= Extlib::SimpleSet.new(_callable_methods)
     end
 
     # This is a stub method so plugins can implement param filtering if they want.
@@ -138,7 +138,7 @@ class Merb::Controller < Merb::AbstractController
   #---
   # @public
   def _template_location(context, type = nil, controller = controller_name)
-    controller ? "#{controller}/#{context}.#{type}" : "#{context}.#{type}"
+    _conditionally_append_extension(controller ? "#{controller}/#{context}" : "#{context}", type)
   end
   
   # The location to look for a template and mime-type. This is overridden 
@@ -155,7 +155,7 @@ class Merb::Controller < Merb::AbstractController
   #
   # @public
   def _absolute_template_location(template, type)
-    template.match(/\.#{type.to_s.escape_regexp}$/) ? template : "#{template}.#{type}"
+    _conditionally_append_extension(template, type)
   end
 
   # Build a new controller.
@@ -192,6 +192,7 @@ class Merb::Controller < Merb::AbstractController
   #---
   # @semipublic
   def _dispatch(action=:index)
+    Merb.logger.info("Params: #{self.class._filter_params(request.params).inspect}")
     start = Time.now
     if self.class.callable_actions.include?(action.to_s)
       super(action)
@@ -199,6 +200,7 @@ class Merb::Controller < Merb::AbstractController
       raise ActionNotFound, "Action '#{action}' was not found in #{self.class}"
     end
     @_benchmarks[:action_time] = Time.now - start
+    self
   end
 
   attr_reader :request, :headers
@@ -239,13 +241,26 @@ class Merb::Controller < Merb::AbstractController
   # Hash:: The session that was extracted from the request object.
   def session() request.session end
   
+  # The results of the controller's render, to be returned to Rack.
+  #
+  # ==== Returns
+  # Array[Integer, Hash, String]::
+  #   The controller's status code, headers, and body
+  def rack_response
+    [status, headers, body]
+  end
+  
   # Hide any methods that may have been exposed as actions before.
   hide_action(*_callable_methods)
   
   private
 
-  # Create a default cookie jar, and pre-set a fixation cookie
-  # if fixation is enabled
+  # If not already added, add the proper mime extension to the template path.
+  def _conditionally_append_extension(template, type = nil)
+    type && !template.match(/\.#{type.to_s.escape_regexp}$/) ? "#{template}.#{type}" : template
+  end
+
+  # Create a default cookie jar, and pre-set a fixation cookie if fixation is enabled.
   def _setup_cookies
     ::Merb::Cookies.new(request.cookies, @headers)
   end

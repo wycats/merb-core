@@ -35,20 +35,10 @@ describe "resources routes" do
     route_to('/blogposts/1/edit', :method => :get).should have_route(:controller => 'blogposts', :action => 'edit', :id => "1")
   end
   
-  it "should match a get to /blogposts/1;edit to the blogposts controller and the edit action with id 1" do
-    route_to('/blogposts/1;edit', :method => :get).should have_route(:controller => 'blogposts', :action => 'edit', :id => "1")
-  end
-  
   it "should not match a put to /blogposts/1/edit" do
     # not sure which of these is the best way to specify what I mean - so they're both in...
     route_to('/blogposts/1/edit', :method => :put).should have_nil_route
     route_to('/blogposts/1/edit', :method => :put).should_not have_route(:controller => 'blogposts', :action => 'edit', :id => "1")
-  end
-  
-  it "should not match a put to /blogposts/1;edit" do
-    # not sure which of these is the best way to specify what I mean - so they're both in...
-    route_to('/blogposts/1;edit', :method => :put).should have_nil_route
-    route_to('/blogposts/1;edit', :method => :put).should_not have_route(:controller => 'blogposts', :action => 'edit', :id => "1")
   end
   
   it "should match a get to /blogposts/1/delete to the blogposts controller and the delete action with id 1" do
@@ -79,21 +69,11 @@ describe "resources routes with named keys" do
  it "should match a get to /emails/bidule/merbivore_com/edit to the  emails controller and the destroy action with username => 'bidule', domain => 'merbivore_com'" do
    route_to('/emails/bidule/merbivore_com/edit', :method => :get).should have_route(:controller => 'emails', :action => 'edit', :username => "bidule", :domain => "merbivore_com")
  end
- 
- it "should match a get to /emails/bidule/merbivore_com;edit to the  emails controller and the destroy action with username => 'bidule', domain => 'merbivore_com'" do
-   route_to('/emails/bidule/merbivore_com;edit', :method => :get).should have_route(:controller => 'emails', :action => 'edit', :username => "bidule", :domain => "merbivore_com")
- end
 
  it "should not match a put to /emails/bidule/merbivore_com/edit" do
    # not sure which of these is the best way to specify what I mean - so they're both in...
    route_to('/emails/bidule/merbivore_com/edit', :method => :put).should have_nil_route
    route_to('/emails/bidule/merbivore_com/edit', :method => :put).should_not have_route(:controller => 'emails', :action => 'edit', :username => "bidule", :domain => "merbivore_com")
- end
- 
- it "should not match a put to /emails/bidule/merbivore_com;edit" do
-   # not sure which of these is the best way to specify what I mean - so they're both in...
-   route_to('/emails/bidule/merbivore_com;edit', :method => :put).should have_nil_route
-   route_to('/emails/bidule/merbivore_com;edit', :method => :put).should_not have_route(:controller => 'emails', :action => 'edit', :username => "bidule", :domain => "merbivore_com")
  end
  
  it "should match a get to /emails/bidule/merbivore_com/delete to the emails controller and the delete action with username => 'bidule', domain => 'merbivore_com'" do

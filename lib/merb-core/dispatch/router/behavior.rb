@@ -9,7 +9,7 @@ module Merb
     class Behavior
       attr_reader :placeholders, :conditions, :params, :redirect_url, :redirect_status
       attr_accessor :parent
-      @@parent_resource = []
+      @@parent_resources = []
       class << self
 
         # ==== Parameters
@@ -367,14 +367,29 @@ module Merb
       # ==== Examples
       #
       #  r.resources :posts # will result in the typical RESTful CRUD
+      #    # lists resources
       #    # GET     /posts/?(\.:format)?      :action => "index"
       #    # GET     /posts/index(\.:format)?  :action => "index"
+      #
+      #    # shows new resource form
       #    # GET     /posts/new                :action => "new"
+      #
+      #    # creates resource
       #    # POST    /posts/?(\.:format)?,     :action => "create"
+      #
+      #    # shows resource
       #    # GET     /posts/:id(\.:format)?    :action => "show"
-      #    # GET     /posts/:id[;/]edit        :action => "edit"
+      #
+      #    # shows edit form
+      #    # GET     /posts/:id/edit        :action => "edit"
+      #
+      #    # updates resource
       #    # PUT     /posts/:id(\.:format)?    :action => "update"
-      #    # GET     /posts/:id[;/]delete      :action => "delete"
+      #
+      #    # shows deletion confirmation page
+      #    # GET     /posts/:id/delete      :action => "delete"
+      #
+      #    # destroys resources
       #    # DELETE  /posts/:id(\.:format)?    :action => "destroy"
       #
       #  # Nesting resources
@@ -395,8 +410,8 @@ module Merb
           name_prefix = namespace_to_name_prefix namespace
         end
 
-        unless @@parent_resource.empty?
-          parent_resource = namespace_to_name_prefix @@parent_resource.join('_')
+        unless @@parent_resources.empty?
+          parent_resource = namespace_to_name_prefix @@parent_resources.join('_')
         end
 
         options[:controller] ||= merged_params[:controller] || name.to_s
@@ -411,7 +426,7 @@ module Merb
         if member = options.delete(:member)
           member.each_pair do |action, methods|
             behaviors << Behavior.new(
-            { :path => %r{^/#{matched_keys}[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
+            { :path => %r{^/#{matched_keys}/#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
             { :action => action.to_s }, next_level
             )
             next_level.match("/#{matched_keys}/#{action}").to_route.name(:"#{action}_#{route_singular_name}")
@@ -421,7 +436,7 @@ module Merb
         if collection = options.delete(:collection)
           collection.each_pair do |action, methods|
             behaviors << Behavior.new(
-            { :path => %r{^[/;]#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
+            { :path => %r{^/#{action}(\.:format)?$}, :method => /^(#{[methods].flatten * '|'})$/ },
             { :action => action.to_s }, next_level
             )
             next_level.match("/#{action}").to_route.name(:"#{action}_#{route_plural_name}")
@@ -445,9 +460,9 @@ module Merb
 
         parent_keys = (matched_keys == ":id") ? ":#{singular}_id" : matched_keys
         if block_given?
-          @@parent_resource.push(singular)
+          @@parent_resources.push(singular)
           yield next_level.match("/#{parent_keys}")
-          @@parent_resource.pop
+          @@parent_resources.pop
         end
 
         routes
@@ -477,12 +492,25 @@ module Merb
       # ==== Examples
       #
       #  r.resource :account # will result in the typical RESTful CRUD
+      #    # shows new resource form      
       #    # GET     /account/new                :action => "new"
+      #
+      #    # creates resource      
       #    # POST    /account/?(\.:format)?,     :action => "create"
+      #
+      #    # shows resource      
       #    # GET     /account/(\.:format)?       :action => "show"
-      #    # GET     /account/[;/]edit           :action => "edit"
+      #
+      #    # shows edit form      
+      #    # GET     /account//edit           :action => "edit"
+      #
+      #    # updates resource      
       #    # PUT     /account/(\.:format)?       :action => "update"
-      #    # GET     /account/[;/]delete         :action => "delete"
+      #
+      #    # shows deletion confirmation page      
+      #    # GET     /account//delete         :action => "delete"
+      #
+      #    # destroys resources      
       #    # DELETE  /account/(\.:format)?       :action => "destroy"
       #
       # You can optionally pass :namespace and :controller to refine the routing
@@ -507,8 +535,8 @@ module Merb
           name_prefix = namespace_to_name_prefix namespace
         end
 
-        unless @@parent_resource.empty?
-          parent_resource = namespace_to_name_prefix @@parent_resource.join('_')
+        unless @@parent_resources.empty?
+          parent_resource = namespace_to_name_prefix @@parent_resources.join('_')
         end
 
         routes = next_level.to_resource options
@@ -521,9 +549,9 @@ module Merb
         next_level.match('/delete').to_route.name(:"delete_#{route_name}")
 
         if block_given?
-          @@parent_resource.push(route_name)
+          @@parent_resources.push(route_name)
           yield next_level
-          @@parent_resource.pop
+          @@parent_resources.pop
         end
 
         routes
@@ -664,8 +692,8 @@ module Merb
           Behavior.new({ :path => %r[^/new$],               :method => :get },    { :action => "new" },     self),
           Behavior.new({ :path => %r[^/?(\.:format)?$],     :method => :post },   { :action => "create" },  self),
           Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :get },    { :action => "show" },    self),
-          Behavior.new({ :path => %r[^/#{matched_keys}[;/]edit$],       :method => :get },    { :action => "edit" },    self),
-          Behavior.new({ :path => %r[^/#{matched_keys}[;/]delete$],     :method => :get },    { :action => "delete" },  self),
+          Behavior.new({ :path => %r[^/#{matched_keys}/edit$],       :method => :get },    { :action => "edit" },    self),
+          Behavior.new({ :path => %r[^/#{matched_keys}/delete$],     :method => :get },    { :action => "delete" },  self),
           Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :put },    { :action => "update" },  self),
           Behavior.new({ :path => %r[^/#{matched_keys}(\.:format)?$],   :method => :delete }, { :action => "destroy" }, self)
         ]
@@ -679,11 +707,11 @@ module Merb
       # Array:: Behaviors for a singular RESTful resource.
       def resource_behaviors(parent = self)
         [
-          Behavior.new({ :path => %r{^[;/]new$},        :method => :get },    { :action => "new" },     parent),
+          Behavior.new({ :path => %r{^/new$},        :method => :get },    { :action => "new" },     parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :post },   { :action => "create" },  parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :get },    { :action => "show" },    parent),
-          Behavior.new({ :path => %r{^[;/]edit$},       :method => :get },    { :action => "edit" },    parent),
-          Behavior.new({ :path => %r{^[;/]delete$},     :method => :get },    { :action => "delete" },    parent),
+          Behavior.new({ :path => %r{^/edit$},       :method => :get },    { :action => "edit" },    parent),
+          Behavior.new({ :path => %r{^/delete$},     :method => :get },    { :action => "delete" },    parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :put },    { :action => "update" },  parent),
           Behavior.new({ :path => %r{^/?(\.:format)?$}, :method => :delete }, { :action => "destroy" }, parent)
         ]

@@ -1,6 +1,5 @@
+$START_OPTIONS = {:merb_root => File.join(File.dirname(__FILE__), "directory")}
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
-Merb.start :environment => 'test',
-           :merb_root => File.dirname(__FILE__) / "directory"
 
 describe "The default Merb directory structure" do
 
@@ -33,12 +32,12 @@ describe "Merb.root_path" do
 
   it "should return a path relative to Merb.root" do
     path = Merb.root_path('/app/controllers/base.rb')
-    path.should == File.join(Merb.root, '/app/controllers/base.rb')
+    path.to_s.should == File.join(Merb.root, '/app/controllers/base.rb')
   end
 
   it "should accept multiple arguments like File.join" do
     path = Merb.root_path('app', 'controllers', 'base.rb')
-    path.should == File.join(Merb.root, 'app', 'controllers', 'base.rb')
+    path.to_s.should == File.join(Merb.root, 'app', 'controllers', 'base.rb')
   end
 
 end

@@ -1,12 +1,12 @@
 require "thin"
 
 module Merb
-  
+
   module Rack
 
     class Thin
       # start a Thin server on given host and port.
-      
+
       # ==== Parameters
       # opts<Hash>:: Options for Thin (see below).
       #
@@ -22,17 +22,17 @@ module Merb
           socket = opts[:socket] || "0"
           socket_file = opts[:socket_file] || "#{Merb.root}/log/merb.#{socket}.sock"
           Merb.logger.warn!("Using Thin adapter with socket file #{socket_file}.")
-          server = ::Thin::Server.start(socket_file, opts[:app])
+          server = ::Thin::Server.new(socket_file, opts[:app], opts)
         else
           Merb.logger.warn!("Using Thin adapter on host #{opts[:host]} and port #{opts[:port]}.")
           if opts[:host].include?('/')
             opts[:host] = "#{opts[:host]}-#{opts[:port]}"
           end
-          server = ::Thin::Server.start(opts[:host], opts[:port].to_i, opts[:app])
+          server = ::Thin::Server.new(opts[:host], opts[:port].to_i, opts[:app], opts)
         end
         Merb::Server.change_privilege
         ::Thin::Logging.silent = true
-        server.start!
+        server.start
       end
     end
   end

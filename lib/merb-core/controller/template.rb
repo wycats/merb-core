@@ -47,7 +47,7 @@ module Merb::Template
     #---
     # @semipublic
     def load_template_io(path)
-      File.open(path)
+      File.open(path, "r")
     end
 
     # Get the name of the template method for a particular path.
@@ -104,8 +104,10 @@ module Merb::Template
     # @public
     def inline_template(io, mod = Merb::InlineTemplates)
       path = File.expand_path(io.path)
-      METHOD_LIST[path.gsub(/\.[^\.]*$/, "")] = 
+      ret = METHOD_LIST[path.gsub(/\.[^\.]*$/, "")] = 
         engine_for(path).compile_template(io, template_name(path), mod)
+      io.close
+      ret
     end
     
     # Finds the engine for a particular path.
@@ -182,7 +184,7 @@ module Merb::Template
       #   <% end %>
       def capture_erb(*args, &block)
         _old_buf, @_erb_buf = @_erb_buf, ""
-        block.call
+        block.call(*args)
         ret = @_erb_buf
         @_erb_buf = _old_buf
         ret

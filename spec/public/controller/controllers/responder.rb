@@ -34,6 +34,13 @@ module Merb::Test::Fixtures::Controllers
     end
   end
 
+  class ClassAndLocalProvides < Responder
+    provides :html    
+    def index
+      provides :xml
+      render
+    end
+  end
 
   class ClassOnlyProvides < Responder
     only_provides :text, :xml

@@ -20,6 +20,12 @@ module Merb
     def self.rakefiles
       Merb.rakefiles
     end
+    
+    # ==== Returns
+    # Array(String):: All Generator load paths Merb uses for plugins.
+    def self.generators
+      Merb.generators
+    end
 
     # ==== Parameters
     # *rakefiles:: Rakefiles to add to the list of plugin Rakefiles.
@@ -36,7 +42,18 @@ module Merb
     #   Merb::Plugins.add_rakefiles "merb_sequel" / "merbtasks"
     # end
     def self.add_rakefiles(*rakefiles)
-      Merb.add_rakefiles *rakefiles
+      Merb.add_rakefiles(*rakefiles)
+    end
+    
+    # ==== Parameters
+    # *generators:: Generator paths to add to the list of plugin generators.
+    #
+    # ==== Notes
+    #
+    # This is the recommended way to register your plugin's generators
+    # in Merb.
+    def self.add_generators(*generators)
+      Merb.add_generators(*generators)
     end
   end
 end

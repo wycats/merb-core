@@ -158,6 +158,27 @@ module Merb::Test::Rspec::ControllerMatchers
     end
   end
 
+  class BeError
+    def initialize(expected)
+      @expected = expected
+    end
+    
+    def matches?(target)
+      @target = target
+      @target.request.exceptions &&
+        @target.request.exceptions.first.is_a?(@expected)
+    end
+    
+    def failure_message
+      "expected #{@target} to be a #{@expected} error, but it was " << 
+        @target.request.exceptions.first.inspect
+    end
+    
+    def negative_failure_message
+      "expected #{@target} not to be a #{@expected} error, but it was"
+    end
+  end
+
   class Provide
 
     # === Parameters
@@ -301,6 +322,10 @@ module Merb::Test::Rspec::ControllerMatchers
   # status codes based on: http://cheat.errtheblog.com/s/http_status_codes/
   def be_missing
     BeMissing.new
+  end
+  
+  def be_error(expected)
+    BeError.new(expected)
   end
 
   alias_method :be_client_error, :be_missing
