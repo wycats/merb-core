@@ -1,3 +1,10 @@
+8/10/2008:
+* Modified the way Exceptions are handled in the Dispatcher
+** To rescue all exceptions, supply Exceptions#exception
+** To rescue all Merb-generated exceptions, supply Exceptions#base
+** Exceptions#internal_server_error is no longer a catch-all and should
+   not be used as such.
+
 6/22/2008:
 
 Erubis modified:
