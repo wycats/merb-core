@@ -68,7 +68,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "mime-types"
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
-  s.required_ruby_version = ">= 1.8.4"
+  s.required_ruby_version = ">= 1.8.6"
 end
 
 Rake::GemPackageTask.new(spec) do |package|
