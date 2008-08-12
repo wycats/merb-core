@@ -80,7 +80,7 @@ module Merb
       # If you pass "all" as the port, the signal will be sent to all Merb
       # processes.
       def kill(port, sig=9)
-        Merb::BootLoader::BuildFramework.run
+        Merb::BootLoader::BuildFramework.run!
         begin
           pidfiles = port == "all" ?
             pid_files : [ pid_file(port) ]

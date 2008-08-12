@@ -15,7 +15,7 @@ module Kernel
   # Array[String, Array[Gem::Requirement, Gem::Version, Array, #to_str]]::
   #   The name and version information that was passed in.
   def dependency(name, *ver)
-    if Merb::BootLoader.finished?(Merb::BootLoader::Dependencies)
+    if Merb::BootLoader::Dependencies.finished?
       load_dependency(name, *ver)
     else
       Merb::BootLoader::Dependencies.dependencies << [name, ver]

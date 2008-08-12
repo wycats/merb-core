@@ -463,9 +463,9 @@ module Merb
     # options<Hash>:: Options to pass on to the Merb config.
     def load_dependencies(options = {})
       load_config(options)
-      Merb::BootLoader::BuildFramework.run
-      Merb::BootLoader::Dependencies.run
-      Merb::BootLoader::BeforeAppLoads.run
+      Merb::BootLoader::BuildFramework.run!
+      Merb::BootLoader::Dependencies.run!
+      Merb::BootLoader::BeforeAppLoads.run!
     end
 
     # Reload application and framework classes.

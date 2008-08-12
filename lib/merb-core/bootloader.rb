@@ -60,20 +60,25 @@ module Merb
       def run
         subklasses = subclasses.dup
         until subclasses.empty?
-          time = Time.now.to_i
           bootloader = subclasses.shift
-          if (ENV['DEBUG'] || $DEBUG || Merb::Config[:verbose]) && Merb.logger
-            Merb.logger.debug!("Loading: #{bootloader}")
-          end
-          Object.full_const_get(bootloader).run
-          if (ENV['DEBUG'] || $DEBUG || Merb::Config[:verbose]) && Merb.logger
-            Merb.logger.debug!("It took: #{Time.now.to_i - time}")
-          end
-          self.finished << bootloader
+          Object.full_const_get(bootloader).run!
         end
         self.subclasses = subklasses
       end
       
+      def run!
+        return if self.finished?
+        time = Time.now.to_i
+        if (ENV['DEBUG'] || $DEBUG || Merb::Config[:verbose]) && Merb.logger
+          Merb.logger.debug!("Loading: #{bootloader}")
+        end
+        run
+        if (ENV['DEBUG'] || $DEBUG || Merb::Config[:verbose]) && Merb.logger
+          Merb.logger.debug!("It took: #{Time.now.to_i - time}")
+        end
+         self.finished << self
+      end
+    
       # Determines whether or not a specific bootloader has finished yet.
       #
       # ==== Parameters
@@ -81,8 +86,8 @@ module Merb
       #
       # ==== Returns
       # Boolean:: Whether or not the bootloader has finished.
-      def finished?(bootloader)
-        self.finished.include?(bootloader.to_s)
+      def finished?
+        self.finished.include?(self)
       end
 
       # Set up the default framework
