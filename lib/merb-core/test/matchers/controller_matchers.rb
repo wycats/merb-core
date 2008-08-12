@@ -35,6 +35,7 @@ module Merb::Test::Rspec::ControllerMatchers
 
     # === Parameters
     # String:: The expected location
+    # Hash:: Optional hash of options (currently only :message)
     def initialize(expected, options = {})
       @expected = expected
       @options  = options
