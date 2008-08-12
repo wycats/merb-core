@@ -354,6 +354,12 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       $LOAD_PATH.unshift Merb.dir_for(:lib)
       $LOAD_PATH.unshift Merb.dir_for(:helper)
 
+      loop do
+        pid = Kernel.fork
+        break unless pid
+        exit unless Process.wait2(pid)[1].exitstatus == 128
+      end
+
       # Load application file if it exists - for flat applications
       load_file Merb.dir_for(:application) if File.file?(Merb.dir_for(:application))
       
@@ -369,9 +375,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to load.
     def load_file(file)
-      klasses = ObjectSpace.classes.dup
       load file
-      LOADED_CLASSES[file] = ObjectSpace.classes - klasses
       MTIMES[file] = File.mtime(file)
     end
     
@@ -707,7 +711,9 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
   end
 
   # Reloads all files.
-  def self.reload
+  def self.reload(force = false)
+    exit!(128) if force
+
     paths = []
     Merb.load_paths.each do |path_name, file_info|
       path, glob = file_info
@@ -719,7 +725,8 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
 
     paths.flatten.each do |file|
       next if Merb::BootLoader::LoadClasses::MTIMES[file] && Merb::BootLoader::LoadClasses::MTIMES[file] == File.mtime(file)
-      Merb::BootLoader::LoadClasses.reload(file)
+      exit!(128)
+      # Merb::BootLoader::LoadClasses.reload(file)
     end
   end
 end

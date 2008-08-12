@@ -16,7 +16,7 @@ module Merb
 
       # Reloads classes using Merb::BootLoader::ReloadClasses.
       def reload!
-        Merb::BootLoader::ReloadClasses.reload
+        Merb::BootLoader::ReloadClasses.reload(true)
       end
 
       # Prints all routes for the application.
