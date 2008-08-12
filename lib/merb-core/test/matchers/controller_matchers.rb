@@ -1,7 +1,6 @@
 module Merb::Test::Rspec::ControllerMatchers
 
   class BeRedirect
-
     # ==== Parameters
     # target<Fixnum, ~status>::
     #   Either the status code or a controller with a status code.
@@ -36,8 +35,9 @@ module Merb::Test::Rspec::ControllerMatchers
 
     # === Parameters
     # String:: The expected location
-    def initialize(expected)
+    def initialize(expected, options = {})
       @expected = expected
+      @options  = options
     end
 
     # ==== Parameters
@@ -49,6 +49,12 @@ module Merb::Test::Rspec::ControllerMatchers
     def matches?(target)
       @target, @location = target, target.headers['Location']
       @redirected = BeRedirect.new.matches?(target.status)
+
+      if @options[:message]
+        msg = Merb::Request.escape([Marshal.dump(@options[:message])].pack("m"))
+        @expected << "?_message=#{msg}"
+      end
+      
       @location == @expected && @redirected
     end
 
@@ -253,8 +259,8 @@ module Merb::Test::Rspec::ControllerMatchers
   # ==== Examples
   #   # Passes if the controller was redirected to http://example.com/
   #   controller.should redirect_to('http://example.com/')
-  def redirect_to(expected)
-    RedirectTo.new(expected)
+  def redirect_to(expected, options = {})
+    RedirectTo.new(expected, options)
   end
 
   alias_method :be_redirection_to, :redirect_to

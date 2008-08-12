@@ -7,6 +7,10 @@ class TestController < Merb::Controller
   def redirect_action; redirect(@redirect_to || "/"); end
   def success_action; end
   def missing_action; render("i can has errorz", :status => 404); end
+
+  def redirect_with_message_action
+    redirect(@redirect_to, :message => "okey dookey")
+  end
 end
 
 describe Merb::Test::Rspec::ControllerMatchers do
@@ -41,6 +45,12 @@ describe Merb::Test::Rspec::ControllerMatchers do
     
     it "should work with the result of a get helper call" do
       get("/redirect"){|controller| controller.redirect_to = "http://example.com/" }.should redirect_to("http://example.com/")
+    end
+
+    it 'takes :message option' do
+      dispatch_to(TestController, :redirect_with_message_action) { |controller|
+        controller.redirect_to = "http://example.com/"
+      }.should redirect_to("http://example.com/", :message => "okey dookey")
     end
   end
   
