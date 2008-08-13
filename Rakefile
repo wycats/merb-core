@@ -326,7 +326,7 @@ def contributors(since_release = nil)
   @merb_contributors ||= git_log(since_release).split("\n").uniq.sort
 end
 
-PREVIOUS_RELEASE = '0.9.3'
+PREVIOUS_RELEASE = '0.9.4'
 namespace :history do
   namespace :update do
     desc "updates contributors list"

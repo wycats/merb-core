@@ -1,5 +1,5 @@
 module Merb
-  VERSION = '0.9.4' unless defined?(Merb::VERSION)
+  VERSION = '0.9.5' unless defined?(Merb::VERSION)
 
   # Merb::RELEASE meanings:
   # 'dev'   : unreleased
