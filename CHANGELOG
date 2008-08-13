@@ -52,7 +52,7 @@
 * resource urls with additional params
 * Remove double-start in Thin adapter.
 * Merb::SimpleSet => Extlib::SimpleSet
-* merb-extlib => exlib
+* merb-extlib => extlib
 * add spec for empty raw_post on xml content type
 * make sure to resuce JSON parse errors and return {}
 * Use Pathname in some more places, fix breakages.
