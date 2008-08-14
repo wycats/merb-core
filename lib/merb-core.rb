@@ -326,6 +326,13 @@ module Merb
     def orm
       @orm ||= :none
     end
+    
+    # @deprecated
+    def orm_generator_scope
+      Merb.logger.warn!("WARNING: Merb.orm_generator_scope is deprecated")
+      return :merb_default if Merb.orm == :none
+      Merb.orm
+    end
 
     # Returns the default test framework for this application. For instance :rspec.
     #
@@ -333,6 +340,12 @@ module Merb
     # <Symbol>:: default test framework.
     def test_framework
       @test_framework ||= :rspec
+    end
+    
+    # @deprecated
+    def test_framework_generator_scope
+      Merb.logger.warn!("WARNING: Merb.test_framework_generator_scope is deprecated")
+      Merb.test_framework
     end
     
     # Returns the default template engine for this application. For instance :haml.
