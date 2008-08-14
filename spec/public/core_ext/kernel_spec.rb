@@ -49,6 +49,11 @@ describe Kernel, "#use_template_engine" do
     Kernel.use_template_engine(:builder)
   end
   
+  it "should add no dependency for :erb" do
+    Kernel.should_not_receive(:dependency)
+    Kernel.use_template_engine(:erb)
+  end
+  
   it "should add other plugins as a dependency" do
     Kernel.should_receive(:dependency).with('merb_liquid')
     Kernel.use_template_engine(:liquid)
