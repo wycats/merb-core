@@ -313,9 +313,9 @@ namespace :repo do
 
 end
 
-def git_log(since_release = nil, log_format = "format:%an")
+def git_log(since_release = nil, log_format = "%an")
   git_log_query = "git log --pretty='format:#{log_format}' --no-merges"
-  git_log_query << " --since='#{since_release}'" if since_release
+  git_log_query << " --since='v#{since_release}'" if since_release
   puts
   puts "Running #{git_log_query}"
   puts
@@ -360,7 +360,7 @@ namespace :history do
   namespace :current_release do
     desc "show changes since previous release"
     task :changes do
-      puts git_log(PREVIOUS_RELEASE, "format:* %s")
+      puts git_log(PREVIOUS_RELEASE, "* %s")
     end
 
 

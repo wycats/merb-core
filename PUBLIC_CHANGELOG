@@ -1,3 +1,12 @@
+8/14/2008:
+*  Merb.orm_generator_scope and friends are renamed.
+** Merb.orm_generator_scope => Merb.orm
+** Merb.test_framework_generator_scope => Merb.test_framework
+** Added Merb.template_engine
+
+Merb-gen is updated accordingly. This let us add --haml and similar
+options to merb-gen and plugin generators.
+
 8/10/2008:
 * Modified the way Exceptions are handled in the Dispatcher
 ** To rescue all exceptions, supply Exceptions#exception
