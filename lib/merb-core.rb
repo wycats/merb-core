@@ -19,12 +19,15 @@ module Merb
   module GlobalHelpers; end
   class << self
 
+    # @details [Purpose]
+    #
     # Merge environment settings
     # Can allow you to have a "localdev" that runs like your "development"
     #   OR
     # A "staging" environment that runs like your "production"
     #
-    # ==== Examples
+    # @example [Simple]
+    # 
     # From any environment config file (ie, development.rb, custom.rb, localdev.rb, etc)
     #   staging.rb:
     #     Merb.merge_env "production"         #We want to use all the settings production uses
@@ -33,10 +36,10 @@ module Merb
     #       c[:exception_details] = true      #and we want to see exception details
     #     }
     #
-    # ==== Parameters
-    # env<~String>:: Environment to run like
-    # use_db<~Boolean>:: Should Merb use the merged environments DB connection
-    #     Defaults to +false+
+    # @param env<String, Symbol>
+    #   Environment to run like
+    # @param use_db<Boolean>
+    #    Should Merb use the merged environments DB connection. Defaults to +false+.
     def merge_env(env,use_db=false)
       if Merb.environment_info.nil?
         Merb.environment_info = {
@@ -71,8 +74,7 @@ module Merb
     # Startup Merb by setting up the Config and starting the server.
     # This is where Merb application environment and root path are set.
     #
-    # ==== Parameters
-    # argv<String, Hash>::
+    # @param argv<String, Hash>
     #   The config arguments to start Merb with. Defaults to +ARGV+.
     def start(argv=ARGV)
       if Hash === argv
