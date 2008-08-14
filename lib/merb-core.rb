@@ -40,6 +40,8 @@ module Merb
     #   Environment to run like
     # @param use_db<Boolean>
     #    Should Merb use the merged environments DB connection. Defaults to +false+.
+    #
+    # @api
     def merge_env(env,use_db=false)
       if Merb.environment_info.nil?
         Merb.environment_info = {
@@ -96,8 +98,7 @@ module Merb
 
     # Start the Merb environment, but only if it hasn't been loaded yet.
     #
-    # ==== Parameters
-    # argv<String, Hash>::
+    # @param argv<String, Hash>
     #   The config arguments to start Merb with. Defaults to +ARGV+.
     def start_environment(argv=ARGV)
       unless (@started ||= false)
@@ -108,8 +109,7 @@ module Merb
 
     # Restart the Merb environment explicitly.
     #
-    # ==== Parameters
-    # argv<String, Hash>::
+    # @param argv<String, Hash>
     #   The config arguments to restart Merb with. Defaults to +Merb::Config+.
     def restart_environment(argv={})
       @started = false
@@ -123,6 +123,8 @@ module Merb
 
     Merb.load_paths = Dictionary.new { [Merb.root] } unless Merb.load_paths.is_a?(Dictionary)
 
+    # @details [Purpose]
+    #
     # This is the core mechanism for setting up your application layout.
     # There are three application layouts in Merb:
     #
@@ -145,17 +147,18 @@ module Merb
     # and Camping-style "very flat" application layout, where the whole Merb
     # application and configs fit into a single file.
     #
-    # ==== Notes
     # Autoloading for lib uses empty glob by default. If you
     # want to have your libraries under lib use autoload, add
-    # the following to Merb init file:
+    # the following to Merb init file.
+    #
+    # @example [Autoloading from lib]
     #
     # Merb.push_path(:lib, Merb.root / "lib", "**/*.rb") # glob set explicity.
     #
     # Then lib/magicwand/lib/magicwand.rb with MagicWand module will
     # be autoloaded when you first access that constant.
     #
-    # ==== Examples
+    # @example [Legacy application structure]
     # This method gives you a way to build up your own application
     # structure, for instance, to reflect the structure Rails
     # uses to simplify transition of legacy application, you can
@@ -166,10 +169,11 @@ module Merb
     # Merb.push_path(:controller, Merb.root / "app" / "controllers", "**/*.rb")
     # Merb.push_path(:view,       Merb.root / "app" / "views",       "**/*.rb")
     #
-    # ==== Parameters
-    # type<Symbol>:: The type of path being registered (i.e. :view)
-    # path<String>:: The full path
-    # file_glob<String>::
+    # @param type<Symbol>
+    #   The type of path being registered (i.e. :view)
+    # @param path<String>
+    #   The full path
+    # @param file_glob<String>
     #   A glob that will be used to autoload files under the path. Defaults to
     #   "**/*.rb".
     def push_path(type, path, file_glob = "**/*.rb")
@@ -180,11 +184,10 @@ module Merb
     # Removes given types of application components
     # from load path Merb uses for autoloading.
     #
-    # ==== Parameters
-    # *args<Array(Symbol)>::
+    # @param *args<Array(Symbol)>
     #   components names, for instance, :views, :models
     #
-    # ==== Examples
+    # @example [Legacy application structure]
     # Using this combined with Merb::GlobalHelpers.push_path
     # you can make your Merb application use legacy Rails
     # application components.
@@ -198,52 +201,49 @@ module Merb
       args.each {|arg| load_paths.delete(arg)}
     end
 
-    # ==== Parameters
-    # type<Symbol>:: The type of path to retrieve directory for, e.g. :view.
+    # @param type<Symbol>
+    #   The type of path to retrieve directory for, e.g. :view.
     #
-    # ==== Returns
-    # String:: The directory for the requested type.
+    # @returns <String>
+    #   The directory for the requested type.
     def dir_for(type)
       Merb.load_paths[type].first
     end
 
-    # ==== Parameters
-    # type<Symbol>:: The type of path to retrieve glob for, e.g. :view.
+    # @param type<Symbol>
+    #   The type of path to retrieve glob for, e.g. :view.
     #
-    # ===== Returns
-    # String:: The pattern with which to match files within the type directory.
+    # @return <String>
+    #   The pattern with which to match files within the type directory.
     def glob_for(type)
       Merb.load_paths[type][1]
     end
 
-    # ==== Returns
-    # String:: The Merb root path.
+    # @return <String>
+    #   The Merb root path.
     def root
       app_root = @root || Merb::Config[:merb_root] || Dir.pwd
 
       Pathname.new(app_root)
     end
 
-    # ==== Parameters
-    # value<String>:: Path to the root directory.
+    # @return value<String>
+    #   Path to the root directory.
     def root=(value)
       @root = Pathname.new(value)
     end
 
-    # ==== Parameters
-    # *path::
+    # @param *path<Array(String)>
     #   The relative path (or list of path components) to a directory under the
     #   root of the application.
     #
-    # ==== Returns
-    # String:: The full path including the root.
+    # @param <String>
+    #   The full path including the root.
     #
-    # ==== Examples
+    # @example [Simple]
     #   Merb.root = "/home/merb/app"
     #   Merb.path("images") # => "/home/merb/app/images"
     #   Merb.path("views", "admin") # => "/home/merb/app/views/admin"
-    #---
-    # @public
     def root_path(*path)
       Pathname.new(File.join(root, *path))
     end
@@ -251,8 +251,7 @@ module Merb
     # Logger settings
     attr_accessor :logger
 
-    # ==== Returns
-    # String::
+    # @return <String>
     #   The path to the log file. If this Merb instance is running as a daemon
     #   this will return +STDOUT+.
     def log_file
@@ -267,8 +266,8 @@ module Merb
       end
     end
 
-    # ==== Returns
-    # String:: Path to directory that contains the log file.
+    # @return <String>
+    #   Path to directory that contains the log file.
     def log_path
       path = case Merb::Config[:log_file]
       when String then File.dirname(Merb::Config[:log_file])
@@ -278,20 +277,19 @@ module Merb
       Pathname.new(path)
     end
 
-    # ==== Returns
-    # String:: The path of root directory of the Merb framework.
+    # @return <String>
+    #   The path of root directory of the Merb framework.
     def framework_root
       @framework_root ||= Pathname(File.dirname(__FILE__))
     end
 
-    # ==== Returns
-    # RegExp::
+    # @return <RegExp>
     #   Regular expression against which deferred actions
     #   are matched by Rack application handler.
     #
-    # ==== Notes
-    # Concatenates :deferred_actions configuration option
-    # values.
+    # @note 
+    #   Concatenates :deferred_actions configuration option
+    #   values.
     def deferred_actions
       @deferred ||= begin
         if Merb::Config[:deferred_actions].empty?
@@ -306,8 +304,7 @@ module Merb
     # a Merb::Router instance. This is optional since the router will
     # automatically configure the app with default routes.
     #
-    # ==== Block parameters
-    # r<Merb::Router::Behavior>::
+    # @yieldparam <Merb::Router::Behavior>
     #   The root behavior upon which new routes can be added.
     def flat!(framework = {})
       Merb::Config[:framework] = framework
@@ -323,8 +320,8 @@ module Merb
 
     # Returns the default ORM for this application. For instance, :datamapper.
     #
-    # ==== Returns
-    # <Symbol>:: default ORM.
+    # @params <Symbol>
+    #   default ORM.
     def orm
       @orm ||= :none
     end
@@ -338,8 +335,8 @@ module Merb
 
     # Returns the default test framework for this application. For instance :rspec.
     #
-    # ==== Returns
-    # <Symbol>:: default test framework.
+    # @return <Symbol>
+    #   default test framework.
     def test_framework
       @test_framework ||= :rspec
     end
@@ -352,8 +349,8 @@ module Merb
     
     # Returns the default template engine for this application. For instance :haml.
     #
-    # ==== Returns
-    # <Symbol>:: default template engine.
+    # @return <Symbol>
+    #   default template engine.
     def template_engine
       @template_engine ||= :erb
     end
@@ -362,14 +359,21 @@ module Merb
 
     attr_reader :registered_session_types
 
-    # ==== Parameters
-    # name<~to_s>:: Name of the session type to register.
-    # file<String>:: The file that defines this session type.
-    # description<String>:: An optional description of the session type.
+    # @details [Purpose]
+    #   Registers session type by mapping name to file with store adapter.
     #
-    # ==== Notes
-    # Merb currently supports memory, cookie and memcache session
-    # types.
+    # @param name<~to_s>
+    #   Name of the session type to register.
+    #   
+    # @param file<String>
+    #   The file that defines this session type.
+    #   
+    # @param description<String>
+    #   An optional description of the session type.
+    #
+    # @note
+    #   Merb currently supports memory, cookie and memcache session
+    #   types.
     def register_session_type(name, file, description = nil)
       @registered_session_types ||= Dictionary.new
       @registered_session_types[name] = {
@@ -380,10 +384,10 @@ module Merb
 
     attr_accessor :frozen
 
-    # ==== Returns
-    # Boolean:: True if Merb is running via merb-freezer or other freezer.
+    # @return <Boolean>
+    #   True if Merb is running via merb-freezer or other freezer.
     #
-    # ==== Notes
+    # @details [Purpose]
     # Freezing means bundling framework libraries with your application
     # making it independent from environment it runs in. This is a good
     # practice to freeze application framework and gems it uses and
@@ -394,17 +398,20 @@ module Merb
     end
 
     # Used by merb-freezer and other freezers to mark Merb as frozen.
-    # See Merb::GlobalHelpers.frozen? for more details on framework freezing.
+    # 
+    # @see
+    #   Merb::GlobalHelpers.frozen? for more details on framework freezing.
     def frozen!
       @frozen = true
     end
 
     # Load configuration and assign logger.
     #
-    # ==== Parameters
-    # options<Hash>:: Options to pass on to the Merb config.
+    # @param options<Hash>
+    #   Options to pass on to the Merb config.
     #
-    # ==== Options
+    # @options
+    # 
     # :host<String>::             host to bind to,
     #                             default is 0.0.0.0.
     #
@@ -457,6 +464,7 @@ module Merb
     #   no matter what controller they belong to.
     #   Default is empty array.
     #
+    # @note
     # Some of these options come from command line on Merb
     # application start, some of them are set in Merb init file
     # or environment-specific.
@@ -465,14 +473,16 @@ module Merb
       Merb::BootLoader::Logger.run
     end
 
+    # @details [Purpose]
+    #
     # Load all basic dependencies (selected BootLoaders only).
     # This sets up Merb framework component paths
     # (directories for models, controllers, etc) using
     # framework.rb or default layout, loads init file
     # and dependencies specified in it and runs before_app_loads hooks.
     #
-    # ==== Parameters
-    # options<Hash>:: Options to pass on to the Merb config.
+    # @param options<Hash>
+    #   Options to pass on to the Merb config.
     def load_dependencies(options = {})
       load_config(options)
       Merb::BootLoader::BuildFramework.run
@@ -481,23 +491,27 @@ module Merb
     end
 
     # Reload application and framework classes.
-    # See Merb::BootLoader::ReloadClasses for details.
+    # 
+    # @see
+    #   Merb::BootLoader::ReloadClasses for details.
     def reload
       Merb::BootLoader::ReloadClasses.reload
     end
 
-    # ==== Returns
-    # Boolean:: True if Merb environment is testing for instance,
-    # Merb is running with RSpec, Test::Unit of other testing facility.
+    # @return <Boolean>
+    #   True if Merb environment is testing for instance,
+    #   Merb is running with RSpec, Test::Unit of other testing facility.
     def testing?
       $TESTING || Merb::Config[:testing]
     end
 
     # Ask the question about which environment you're in.
-    # ==== Parameters
-    # env<Symbol, String>:: Name of the environment to query
     #
-    # ==== Examples
+    # @param env<Symbol, String>
+    #   Name of the environment to query
+    #
+    # @example [Simple]
+    #
     # Merb.env #=> production
     # Merb.env?(:production) #=> true
     # Merb.env?(:development) #=> false
@@ -507,17 +521,15 @@ module Merb
 
     # If block was given configures using the block.
     #
-    # ==== Parameters
-    # &block:: Configuration parameter block, see example below.
+    # @param &block<Proc>
+    #   Configuration parameter block, see example below.
     #
-    # ==== Returns
-    # Hash:: The current configuration.
+    # @param <Hash>
+    #   The current configuration.
     #
-    # ==== Notes
-    # See Merb::GlobalHelpers.load_config for configuration
-    # options list.
+    # @see Merb::GlobalHelpers.load_config
     #
-    # ==== Examples
+    # @example [Configuration]
     #   Merb.config do
     #     beer               "good"
     #     hashish            :foo => "bar"
@@ -537,65 +549,68 @@ module Merb
 
     # Disables the given core components, like a Gem for example.
     #
-    # ==== Parameters
-    # *args:: One or more symbols of Merb internal components.
+    # @param
+    #   *args<Any> One or more symbols of Merb internal components.
     def disable(*components)
       disabled_components.push(*components)
     end
 
-    # ==== Parameters
-    # Array:: All components that should be disabled.
+
+    # @param components<Array>
+    #   All components that should be disabled.
     def disabled_components=(components)
       disabled_components.replace components
     end
 
-    # ==== Returns
-    # Array:: All components that have been disabled.
+    # @return <Array>
+    #   All components that have been disabled.
     def disabled_components
       Merb::Config[:disabled_components] ||= []
     end
 
-    # ==== Returns
-    # Boolean:: True if all components (or just one) are disabled.
+    # @return <Boolean>
+    #   True if all components (or just one) are disabled.
     def disabled?(*components)
       components.all? { |c| disabled_components.include?(c) }
     end
 
-    # ==== Returns
-    # Array(String):: Paths Rakefiles are loaded from.
+    # @param <Array(String)>
+    #   Paths Rakefiles are loaded from.
     #
-    # ==== Notes
-    # Recommended way to find out what paths Rakefiles
-    # are loaded from.
+    # @note
+    #   Recommended way to find out what paths Rakefiles
+    #   are loaded from.
     def rakefiles
       @rakefiles ||= ['merb-core' / 'test' / 'tasks' / 'spectasks']
     end
     
-    # === Returns
-    # Array(String):: Paths generators are loaded from
+    # @return <Array(String)>
+    #   Paths generators are loaded from
     #
-    # === Notes
-    # Recommended way to find out what paths generators
-    # are loaded from.
+    # @note
+    #   Recommended way to find out what paths generators
+    #   are loaded from.
     def generators
       @generators ||= []
     end
 
-    # ==== Parameters
-    # *rakefiles:: Rakefile pathss to add to the list of Rakefiles.
-    #
-    # ==== Notes
-    # Recommended way to add Rakefiles load path for plugins authors.
+
+    # @param *rakefiles<Any>
+    #   Generator paths to add to the list of generators.
+    #   
+    # @note
+    #   Recommended way to add Rakefiles load path for plugins authors.
     def add_rakefiles(*rakefiles)
       @rakefiles ||= ['merb-core' / 'test' / 'tasks' / 'spectasks']
       @rakefiles += rakefiles
     end
     
-    # ==== Parameters
-    # *generators:: Generator paths to add to the list of generators.
-    #
-    # ==== Notes
-    # Recommended way to add Generator load paths for plugin authors.
+
+    # @param *generators<Any>
+    #   Generator paths to add to the list of generators.
+    #   
+    # @note
+    #   Recommended way to add Generator load paths for plugin authors.
     def add_generators(*generators)
       @generators ||= []
       @generators += generators
