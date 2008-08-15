@@ -243,7 +243,7 @@ module Merb
     #---
     # @public
     def root_path(*path)
-      Pathname.new(File.join(root, *path))
+      root.join *path
     end
 
     # Logger settings
@@ -268,12 +268,10 @@ module Merb
     # ==== Returns
     # String:: Path to directory that contains the log file.
     def log_path
-      path = case Merb::Config[:log_file]
+      case Merb::Config[:log_file]
       when String then File.dirname(Merb::Config[:log_file])
       else Merb.root_path("log")
       end
-
-      Pathname.new(path)
     end
 
     # ==== Returns
