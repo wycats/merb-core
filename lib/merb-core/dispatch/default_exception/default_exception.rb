@@ -18,10 +18,10 @@ module Merb
         filename, lineno, location = line.split(":")
         if filename.index(Merb.framework_root)
           type = "framework"
-          shortname = Pathname.new(filename).relative_path_from(Merb.framework_root)
+          shortname = Pathname.new(filename).relative_path_from(Pathname.new(Merb.framework_root))
         elsif filename.index(Merb.root)
           type = "app"
-          shortname = Pathname.new(filename).relative_path_from(Merb.root)
+          shortname = Pathname.new(filename).relative_path_from(Pathname.new(Merb.root))
         elsif path = Gem.path.find {|p| filename.index(p)}
           type = "gem"
           shortname = Pathname.new(filename).relative_path_from(Pathname.new(path))
