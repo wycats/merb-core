@@ -172,7 +172,7 @@ module Merb
     #   "**/*.rb".
     def push_path(type, path, file_glob = "**/*.rb")
       enforce!(type => Symbol)
-      load_paths[type] = [Pathname.new(path), file_glob]
+      load_paths[type] = [path, file_glob]
     end
 
     # Removes given types of application components
@@ -217,15 +217,13 @@ module Merb
     # ==== Returns
     # String:: The Merb root path.
     def root
-      app_root = @root || Merb::Config[:merb_root] || Dir.pwd
-
-      Pathname.new(app_root)
+      @root || Merb::Config[:merb_root] || Dir.pwd
     end
 
     # ==== Parameters
     # value<String>:: Path to the root directory.
     def root=(value)
-      @root = Pathname.new(value)
+      @root = value
     end
 
     # ==== Parameters
@@ -243,7 +241,7 @@ module Merb
     #---
     # @public
     def root_path(*path)
-      root.join *path
+      File.join(root, *path)
     end
 
     # Logger settings
@@ -277,7 +275,7 @@ module Merb
     # ==== Returns
     # String:: The path of root directory of the Merb framework.
     def framework_root
-      @framework_root ||= Pathname(File.dirname(__FILE__))
+      @framework_root ||= File.dirname(__FILE__)
     end
 
     # ==== Returns
@@ -564,7 +562,7 @@ module Merb
     # Recommended way to find out what paths Rakefiles
     # are loaded from.
     def rakefiles
-      @rakefiles ||= ['merb-core' / 'test' / 'tasks' / 'spectasks']
+      @rakefiles ||= ['merb-core/test/tasks/spectasks']
     end
     
     # === Returns
@@ -583,7 +581,7 @@ module Merb
     # ==== Notes
     # Recommended way to add Rakefiles load path for plugins authors.
     def add_rakefiles(*rakefiles)
-      @rakefiles ||= ['merb-core' / 'test' / 'tasks' / 'spectasks']
+      @rakefiles ||= ['merb-core/test/tasks/spectasks']
       @rakefiles += rakefiles
     end
     
@@ -600,12 +598,12 @@ module Merb
   end
 end
 
-require 'merb-core' / 'autoload'
-require 'merb-core' / 'server'
-require 'merb-core' / 'gem_ext/erubis'
-require 'merb-core' / 'logger'
-require 'merb-core' / 'version'
-require 'merb-core' / 'controller/mime'
+require 'merb-core/autoload'
+require 'merb-core/server'
+require 'merb-core/gem_ext/erubis'
+require 'merb-core/logger'
+require 'merb-core/version'
+require 'merb-core/controller/mime'
 
 # Set the environment if it hasn't already been set.
 Merb.environment ||= ENV['MERB_ENV'] || Merb::Config[:environment] || (Merb.testing? ? 'test' : 'development')
