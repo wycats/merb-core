@@ -176,7 +176,7 @@ task :aok => [:specs, :rcov]
 #   t.spec_files = Dir["spec/**/*_spec.rb"].sort
 # end
 
-def setup_specs(name, spec_cmd='spec', run_opts = "-c -f s")
+def setup_specs(name, spec_cmd='spec', run_opts = "-c")
   desc "Run all specs (#{name})"
   task "specs:#{name}" do
     run_specs("spec/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
@@ -233,7 +233,7 @@ end
 
 desc "Run a specific spec with TASK=xxxx"
 Spec::Rake::SpecTask.new("spec") do |t|
-  t.spec_opts = ["--format", "specdoc", "--colour"]
+  t.spec_opts = ["--colour"]
   t.libs = ["lib", "server/lib" ]
   t.spec_files = (ENV["TASK"] || '').split(',').map do |task|
     "spec/**/#{task}_spec.rb"
@@ -399,7 +399,7 @@ rule "" do |t|
 
     example = " -e '#{spec_name}'" unless spec_name.empty?
 
-    sh "#{spec_cmd} #{run_file_name} --format specdoc --colour #{example}"
+    sh "#{spec_cmd} #{run_file_name} --colour #{example}"
   end
 end
 
