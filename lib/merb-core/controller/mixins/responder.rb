@@ -103,8 +103,8 @@ module Merb
 
     class ContentTypeAlreadySet < StandardError; end
     
-    # ==== Parameters
-    # base<Module>:: The module that ResponderMixin was mixed into
+    # @param [Module] base
+    #   The module that ResponderMixin was mixed into
     def self.included(base)
       base.extend(ClassMethods)
       base.class_eval do
@@ -122,17 +122,16 @@ module Merb
       # Array, these are regarded as arguments to pass to the to_<mime_type>
       # method as needed.
       #
-      # ==== Parameters
-      # *formats<Symbol>::
+      # @example
+      #   provides :html, :xml
+      #
+      # @param [Symbol] *formats
       #   A list of mime-types that the controller should provide.
       #
-      # ==== Returns
-      # Array[Symbol]:: List of formats passed in.
+      # @return [Array<Symbol>, <Symbol>]
+      #   List of formats passed in.
       #
-      # ==== Examples
-      #   provides :html, :xml
-      #---
-      # @public
+      # @api public
       def provides(*formats)
         self.class_provided_formats |= formats
       end
@@ -140,14 +139,13 @@ module Merb
       # This class should only provide the formats listed here, despite any
       # other definitions previously or in superclasses.
       #
-      # ==== Parameters
-      # *formats<Symbol>:: Registered mime-types.
+      # @param [Symbol] *formats
+      #   Registered mime-types.
       # 
-      # ==== Returns
-      # Array[Symbol]:: List of formats passed in.      
+      # @return [Array<Symbol>]
+      #   List of formats passed in.      
       #
-      #---
-      # @public
+      # @api public
       def only_provides(*formats)
         clear_provides
         provides(*formats)
@@ -156,38 +154,34 @@ module Merb
       # This class should not provide any of this list of formats, despite any.
       # other definitions previously or in superclasses.
       # 
-      # ==== Parameters
-      # *formats<Symbol>:: Registered mime-types.
+      # @param [Symbol] *formats
+      #   Registered mime-types.
       # 
-      # ==== Returns
-      # Array[Symbol]::
+      # @return [Array<Symbol>]
       #   List of formats that remain after removing the ones not to provide.
       #
-      #---
-      # @public
+      # @api public
       def does_not_provide(*formats)
         self.class_provided_formats -= formats
       end
 
       # Clear the list of provides.
       #
-      # ==== Returns
-      # Array:: An empty Array.
+      # @return [Array]
+      #   n empty Array.
       def clear_provides
         self.class_provided_formats.clear
       end
       
       # Reset the list of provides to include only :html.
       #
-      # ==== Returns
-      # Array[Symbol]:: [:html].
+      # @return [Array<Symbol>, [:html]]
       def reset_provides
         only_provides(:html)
       end
     end
 
-    # ==== Returns
-    # Array[Symbol]::
+    # @return [Array<Symbol>]
     #   The current list of formats provided for this instance of the
     #   controller. It starts with what has been set in the controller (or
     #   :html by default) but can be modifed on a per-action basis.      
@@ -199,19 +193,16 @@ module Merb
     # Usually used to add formats to a single action. See also the
     # controller-level provides that affects all actions in a controller.
     #
-    # ==== Parameters
-    # *formats<Symbol>::
+    # @param [Symbol] *formats
     #   A list of formats to add to the per-action list of provided formats.
     #
-    # ==== Raises
-    # Merb::ResponderMixin::ContentTypeAlreadySet::
+    # @raise [Merb::ResponderMixin::ContentTypeAlreadySet]
     #   Content negotiation already occured, and the content_type is set.
     #
-    # ==== Returns
-    # Array[Symbol]:: List of formats passed in.
+    # @return [Array<Symbol>]
+    #   List of formats passed in.
     #
-    #---
-    # @public
+    # @api public
     def provides(*formats)
       if @_content_type
         raise ContentTypeAlreadySet, "Cannot modify provided_formats because content_type has already been set"
@@ -223,15 +214,13 @@ module Merb
     # to limit formats to a single action. See also the controller-level
     # only_provides that affects all actions in a controller.      
     # 
-    # ==== Parameters
-    # *formats<Symbol>::
+    # @param [Symbol] *formats
     #   A list of formats to use as the per-action list of provided formats.
     #
-    # ==== Returns
-    # Array[Symbol]:: List of formats passed in.
+    # @return [Array<Symbol>]
+    #   List of formats passed in.
     #
-    #---
-    # @public
+    # @api public
     def only_provides(*formats)
       @_provided_formats = []
       provides(*formats)
@@ -243,14 +232,13 @@ module Merb
     # controller.
     #
     # ==== Parameters
-    # *formats<Symbol>:: Registered mime-type
+    # @param [Symbol] *formats
+    #   Registered mime-type
     # 
-    # ==== Returns
-    # Array[Symbol]::
+    # @return [Array<Symbol>]
     #   List of formats that remain after removing the ones not to provide.
     #
-    #---
-    # @public
+    # @api public
     def does_not_provide(*formats)
       @_provided_formats -= formats.flatten
     end
@@ -297,19 +285,17 @@ module Merb
     # Called automatically by +render+, so you should only call it if
     # you need the value, not to trigger content negotiation. 
     # 
-    # ==== Parameters
-    # fmt<String>:: 
+    # @param [String] fmt
     #   An optional format to use instead of performing content negotiation.
     #   This can be used to pass in the values of opts[:format] from the 
     #   render function to short-circuit content-negotiation when it's not
     #   necessary. This optional parameter should not be considered part
     #   of the public API.
     #
-    # ==== Returns
-    # Symbol:: The content-type that will be used for this controller.
+    # @return [Symbol]
+    #   The content-type that will be used for this controller.
     #
-    #---
-    # @public
+    # @api public
     def content_type(fmt = nil)
       self.content_type = (fmt || _perform_content_negotiation) unless @_content_type
       @_content_type
@@ -319,17 +305,16 @@ module Merb
     # a passed in key. The Content-Type header will be set to the first
     # registered header for the mime-type.
     #
-    # ==== Parameters
-    # type<Symbol>:: The content type.
+    # @param [Symbol] type
+    #   The content type.
     #
-    # ==== Raises
-    # ArgumentError:: type is not in the list of registered mime-types.
+    # @raise [ArgumentError]
+    #   Type is not in the list of registered mime-types.
     #
-    # ==== Returns
-    # Symbol:: The content-type that was passed in.
+    # @return [Symbol]
+    #   The content-type that was passed in.
     #
-    #---
-    # @semipublic
+    # @api semipublic
     def content_type=(type)
       unless Merb.available_mime_types.has_key?(type)
         raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
@@ -356,11 +341,11 @@ module Merb
 
     # Parses the raw accept header into an array of sorted AcceptType objects.
     #
-    # ==== Parameters
-    # accept_header<~to_s>:: The raw accept header.
+    # @param [#to_s] accept_header
+    #   The raw accept header.
     #
-    # ==== Returns
-    # Array[AcceptType]:: The accepted types.
+    # @return [Array<AcceptType>]
+    #   The accepted types.
     def self.parse(accept_header)
       # FF2 is broken. If we get FF2 headers, use FF3 headers instead.
       if accept_header == "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
@@ -382,9 +367,9 @@ module Merb
 
     attr_reader :media_range, :quality, :index, :type, :sub_type
 
-    # ==== Parameters
-    # entry<String>:: The accept type pattern
-    # index<Fixnum>::
+    # @param [String] entry
+    #   The accept type pattern
+    # @param [Fixnum] index
     #   The index used for sorting accept types. A lower value indicates higher
     #   priority.
     def initialize(entry,index)
@@ -400,11 +385,10 @@ module Merb
     
     # Compares two accept types for sorting purposes.
     #
-    # ==== Parameters
-    # entry<AcceptType>:: The accept type to compare.
+    # @param [AcceptType] entry
+    #   The accept type to compare.
     #
-    # ==== Returns
-    # Fixnum::
+    # @return [Fixnum]
     #   -1, 0 or 1, depending on whether entry has a lower, equal or higher
     #   priority than the accept type being compared.
     def <=>(entry)
@@ -416,11 +400,10 @@ module Merb
     end
 
 
-    # ==== Parameters
-    # entry<AcceptType>:: The accept type to compare.
+    # @param [AcceptType] entry
+    #   The accept type to compare.
     #
-    # ==== Returns
-    # Boolean::
+    # @return [Boolean]
     #   True if the accept types are equal, i.e. if the synonyms for this
     #   accept type includes the entry media range.
     def eql?(entry)
@@ -430,12 +413,11 @@ module Merb
     # An alias for eql?.
     def ==(entry); eql?(entry); end
 
-    # ==== Returns
-    # Fixnum:: A hash based on the super range.
+    # @return [Fixnum]
+    #   A hash based on the super range.
     def hash; super_range.hash; end
 
-    # ==== Returns
-    # Array[String]::
+    # @return [Array<String>]
     #   All Accept header values, such as "text/html", that match this type.
     def synonyms
       return @syns if @syns
@@ -446,23 +428,22 @@ module Merb
       end
     end
 
-    # ==== Returns
-    # String::
+    # @return [String]
     #   The primary media range for this accept type, i.e. either the first
     #   synonym or, if none exist, the media range.
     def super_range
       synonyms.first || @media_range
     end
 
-    # ==== Returns
-    # Symbol: The type as a symbol, e.g. :html.
+    # @return [String]
+    #   The type as a symbol, e.g. :html.
     def to_sym
       Merb.available_mime_types.select{|k,v| 
         v[:accepts] == synonyms || v[:accepts][0] == synonyms[0]}.flatten.first
     end
 
-    # ==== Returns
-    # String:: The accept type as a string, i.e. the media range.
+    # @return [String]
+    #   The accept type as a string, i.e. the media range.
     def to_s
       @media_range
     end

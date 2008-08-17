@@ -7,49 +7,50 @@ module Merb::AuthenticationMixin
   # If no block is passed, +basic_authentication+, the +request+ and +authenticate+
   # methods can be chained. These can be used to independently request authentication
   # or confirm it, if more control is desired.
+  # 
+  # @example
+  #   class Application < Merb::Controller
+  #  
+  #     before :authenticate
+  #     
+  #     protected
+  #     
+  #     def authenticate
+  #       basic_authentication("My App") do |username, password|
+  #         password == "secret"
+  #       end
+  #     end
+  #     
+  #   end
   #
-  # ==== Parameters
-  # realm<~to_s>:: The realm to authenticate against. Defaults to 'Application'.
-  # &authenticator:: A block to check if the authentication is valid.
-  #
-  # ==== Examples
-  #     class Application < Merb::Controller
+  #   class Application < Merb::Controller
   #     
-  #       before :authenticate
+  #     before :authenticate
   #     
-  #       protected
-  #     
-  #       def authenticate
-  #         basic_authentication("My App") do |username, password|
-  #           password == "secret"
-  #         end
+  #     def authenticate
+  #       user = basic_authentication.authenticate do |username, password|
+  #         User.authenticate(username, password)
   #       end
   #     
-  #     end
-  #
-  #     class Application < Merb::Controller
-  #     
-  #       before :authenticate
-  #     
-  #       def authenticate
-  #         user = basic_authentication.authenticate do |username, password|
-  #           User.authenticate(username, password)
-  #         end
-  #     
-  #         if user
-  #           @current_user = user
-  #         else
-  #           basic_authentication.request
-  #         end
+  #       if user
+  #         @current_user = user
+  #       else
+  #         basic_authentication.request
   #       end
-  #     
   #     end
+  #     
+  #   end
   #
-  #---
-  # @public
+  # @param [#to_s] realm
+  #   The realm to authenticate against. Defaults to 'Application'.
+  # @param &authenticator
+  #   A block to check if the authentication is valid.
+  #
+  # @api public
   def basic_authentication(realm = "Application", &authenticator)
     BasicAuthentication.new(self, realm, &authenticator)
   end
+
   
   class BasicAuthentication
     # So we can have access to the status codes

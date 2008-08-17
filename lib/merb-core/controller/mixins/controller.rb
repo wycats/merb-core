@@ -1,30 +1,24 @@
 module Merb
-  # Module that is mixed in to all implemented controllers.
+  # This module is mixed into all of the implemented controllers.
   module ControllerMixin
     
-    # Enqueu a block to run in a background thread outside of the request
-    # response dispatch
+    # Enqueue a block to run in a background thread outside of the request
+    # response dispatch.
     #
-    # ==== Parameters
-    # takes a block to run later
+    # @example
+    #   run_later do
+    #     SomeBackgroundTask.run
+    #   end
     #
-    # ==== Example
-    # run_later do
-    #   SomeBackgroundTask.run
-    # end
-    #
+    # @param &block
+    #   The block to run later.
     def run_later(&blk)
       Merb::Dispatcher.work_queue << blk
     end
     
     # Renders the block given as a parameter using chunked encoding.
     #
-    # ==== Parameters
-    # &blk:: 
-    #   A block that, when called, will use send_chunks to send chunks of data
-    #   down to the server. The chunking will terminate once the block returns.
-    #
-    # ==== Examples
+    # @example
     #   def stream
     #     prefix = '<p>'
     #     suffix = "</p>\r\n"
@@ -44,6 +38,10 @@ module Merb
     #       end
     #     end
     #   end
+    #
+    # @param &blk
+    #   A block that, when called, will use send_chunks to send chunks of data
+    #   down to the server. The chunking will terminate once the block returns.
     def render_chunked(&blk)
       must_support_streaming!
       headers['Transfer-Encoding'] = 'chunked'
@@ -59,20 +57,18 @@ module Merb
     # Writes a chunk from +render_chunked+ to the response that is sent back to
     # the client. This should only be called within a +render_chunked+ block.
     #
-    # ==== Parameters
-    # data<String>:: a chunk of data to return.
+    # @param [String] data
+    #   A chunk of data to return.
     def send_chunk(data)
       @response.write('%x' % data.size + "\r\n")
       @response.write(data + "\r\n")
     end
     
-    # ==== Parameters
-    # &blk::
+    # @param &blk
     #   A proc that should get called outside the mutex, and which will return
     #   the value to render.
     #
-    # ==== Returns
-    # Proc::
+    # @return [Proc]
     #   A block that Mongrel can call later, allowing Merb to release the
     #   thread lock and render another request.
     def render_deferred(&blk)
@@ -88,12 +84,12 @@ module Merb
     # Renders the passed in string, then calls the block outside the mutex and
     # after the string has been returned to the client.
     #
-    # ==== Parameters
-    # str<String>:: A +String+ to return to the client.
-    # &blk:: A block that should get called once the string has been returned.
+    # @param [String] str
+    #   A +String+ to return to the client.
+    # @param &blk
+    #   A block that should get called once the string has been returned.
     #
-    # ==== Returns
-    # Proc::
+    # @return [Proc] 
     #   A block that Mongrel can call after returning the string to the user.
     def render_then_call(str, &blk)
       must_support_streaming!
@@ -105,25 +101,25 @@ module Merb
       }      
     end
 
-    # ==== Parameters
-    # url<String>::
-    #   URL to redirect to. It can be either a relative or fully-qualified URL.
-    # opts<Hash>:: An options hash (see below)
+    # Sends a redirect to a url, optionally with a query string message and/or
+    # a permanent move status code.
     #
-    # ==== Options (opts)
-    # :message<Hash>::
-    #   Messages to pass in url query string as value for "_message"
-    # :permanent<Boolean>::
-    #   When true, return status 301 Moved Permanently
-    #
-    # ==== Returns
-    # String:: Explanation of redirect.
-    #
-    # ==== Examples
+    # @example
     #   redirect("/posts/34")
     #   redirect("/posts/34", :message => { :notice => 'Post updated successfully!' })
     #   redirect("http://www.merbivore.com/")
     #   redirect("http://www.merbivore.com/", :permanent => true)
+    #
+    # @param [String] url
+    #   URL to redirect to. It can be either a relative or fully-qualified URL.
+    #
+    # @option :message [Hash]
+    #   Messages to pass in url query string as value for "_message"
+    # @option :permanent [Boolean]
+    #   When true, return status 301 Moved Permanently
+    #
+    # @return [String]
+    #   Explanation of redirect.
     def redirect(url, opts = {})
       default_redirect_options = { :message => nil, :permanent => false }
       opts = default_redirect_options.merge(opts)
@@ -144,19 +140,18 @@ module Merb
     # Sends a file over HTTP.  When given a path to a file, it will set the
     # right headers so that the static file is served directly.
     #
-    # ==== Parameters
-    # file<String>:: Path to file to send to the client.
-    # opts<Hash>:: Options for sending the file (see below).
+    # @param [String] file
+    #   Path to file to send to the client.
     #
-    # ==== Options (opts)
-    # :disposition<String>::
+    # @option :disposition [String]
     #   The disposition of the file send. Defaults to "attachment".
-    # :filename<String>::
+    # @option :filename [String]
     #   The name to use for the file. Defaults to the filename of file.
-    # :type<String>:: The content type.
+    # @option :type [String]
+    #   The content type.
     #
-    # ==== Returns
-    # IO:: An I/O stream for the file.
+    # @return
+    #   IO:: An I/O stream for the file.
     def send_file(file, opts={})
       opts.update(Merb::Const::DEFAULT_SEND_FILE_OPTIONS.merge(opts))
       disposition = opts[:disposition].dup || 'attachment'
@@ -172,16 +167,14 @@ module Merb
     # Send binary data over HTTP to the user as a file download. May set content type,
     # apparent file name, and specify whether to show data inline or download as an attachment.
     #
-    # ==== Parameters
-    # data<String>:: Path to file to send to the client.
-    # opts<Hash>:: Options for sending the data (see below).
+    # @param [String] data
+    #   Path to file to send to the client.
     #
-    # ==== Options (opts)
-    # :disposition<String>::
+    # @option :disposition [String]
     #   The disposition of the file send. Defaults to "attachment".
-    # :filename<String>::
+    # @option :filename [String]
     #   The name to use for the file. Defaults to the filename of file.
-    # :type<String>:: The content type.
+    # @option :type [String] The content type.
     def send_data(data, opts={})
       opts.update(Merb::Const::DEFAULT_SEND_FILE_OPTIONS.merge(opts))
       disposition = opts[:disposition].dup || 'attachment'
@@ -196,26 +189,26 @@ module Merb
     
     # Streams a file over HTTP.
     #
-    # ==== Parameters
-    # opts<Hash>:: Options for the file streaming (see below).
-    # &stream::
-    #   A block that, when called, will return an object that responds to
-    #   +get_lines+ for streaming.
-    #
-    # ==== Options
-    # :disposition<String>::
-    #   The disposition of the file send. Defaults to "attachment".
-    # :type<String>:: The content type.
-    # :content_length<Numeric>:: The length of the content to send.
-    # :filename<String>:: The name to use for the streamed file.
-    #
-    # ==== Examples
+    # @example
     #   stream_file({ :filename => file_name, :type => content_type,
     #     :content_length => content_length }) do |response|
     #     AWS::S3::S3Object.stream(user.folder_name + "-" + user_file.unique_id, bucket_name) do |chunk|
     #       response.write chunk
     #     end
     #   end
+    #
+    # @param &stream
+    #   A block that, when called, will return an object that responds to
+    #   +get_lines+ for streaming.
+    #
+    # @option :disposition [String]
+    #   The disposition of the file send. Defaults to "attachment".
+    # @option :type [String]
+    #   The content type.
+    # @option :content_length [Numeric]
+    #   The length of the content to send.
+    # @option :filename [String]
+    #   The name to use for the streamed file.
     def stream_file(opts={}, &stream)
       must_support_streaming!
       opts.update(Merb::Const::DEFAULT_SEND_FILE_OPTIONS.merge(opts))
@@ -239,8 +232,8 @@ module Merb
     # from nginx. For more information, see the nginx wiki:
     # http://wiki.codemongers.com/NginxXSendfile
     #
-    # ==== Parameters
-    # file<String>:: Path to file to send to the client.
+    # @param [String] file
+    #   Path to file to send to the client.
     def nginx_send_file(file)
       headers['X-Accel-Redirect'] = file
       return ' '
@@ -250,12 +243,14 @@ module Merb
     #
     # If you need to set a cookie, then use the +cookies+ hash.
     #
-    # ==== Parameters
-    # name<~to_s>:: A name for the cookie.
-    # value<~to_s>:: A value for the cookie.
-    # expires<~gmtime:~strftime, Hash>:: An expiration time for the cookie, or a hash of cookie options.
-    # ---
-    # @public
+    # @param [#to_s] name
+    #   A name for the cookie.
+    # @param [#to_s] value
+    #   A value for the cookie.
+    # @param [Hash, #gmtime:#strftime] expires
+    #   An expiration time for the cookie, or a hash of cookie options.
+    # 
+    # @api public
     def set_cookie(name, value, expires)
       options = expires.is_a?(Hash) ? expires : {:expires => expires}
       cookies.set_cookie(name, value, options)
@@ -266,19 +261,19 @@ module Merb
     #
     # Use the +cookies+ hash to manipulate cookies instead.
     #
-    # ==== Parameters
-    # name<~to_s>:: A name for the cookie to delete.
+    # @param [#to_s] name
+    #   A name for the cookie to delete.
     def delete_cookie(name)
       set_cookie(name, nil, Merb::Const::COOKIE_EXPIRED_TIME)
     end
     
     # Escapes the string representation of +obj+ and escapes it for use in XML.
     #
-    # ==== Parameter
-    # obj<~to_s>:: The object to escape for use in XML.
+    # @param [#to_s] obj
+    #   The object to escape for use in XML.
     #
-    # ==== Returns
-    # String:: The escaped object.
+    # @return [String]
+    #   The escaped object.
     def escape_xml(obj)
       Erubis::XmlHelper.escape_xml(obj.to_s)
     end
@@ -286,14 +281,16 @@ module Merb
     alias html_escape escape_xml
     
     private
-      # Checks whether streaming is supported by the current Rack adapter.
-      #
-      # ==== Raises
-      # NotImplemented:: The Rack adapter doens't support streaming.
-      def must_support_streaming!
-        unless request.env['rack.streaming']
-          raise(Merb::ControllerExceptions::NotImplemented, "Current Rack adapter does not support streaming")
-        end
+
+    # Checks whether streaming is supported by the current Rack adapter.
+    #
+    # @raise [NotImplemented]
+    #   The Rack adapter doens't support streaming.
+    def must_support_streaming!
+      unless request.env['rack.streaming']
+        raise(Merb::ControllerExceptions::NotImplemented, "Current Rack adapter does not support streaming")
       end
+    end
+
   end
 end
