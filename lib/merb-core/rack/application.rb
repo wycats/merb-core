@@ -12,7 +12,16 @@ module Merb
         Merb.logger.flush
         controller.rack_response
       end
-      
-    end
-  end  
-end
+
+      def deferred?(env)
+        path = env['PATH_INFO'] ? env['PATH_INFO'].chomp('/') : ""
+        if path =~ Merb.deferred_actions
+          Merb.logger.info! "Deferring Request: #{path}"
+          true
+        else
+          false
+        end        
+      end # deferred?(env)
+    end # Application
+  end # Rack
+end # Merb
