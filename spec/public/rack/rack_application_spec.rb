@@ -61,6 +61,20 @@ describe Merb::Rack::Application do
 end
 
 
+describe "transparent middleware", :shared => true do
+  it "delegates request handling to wrapped Rack application" do
+    @result.last.should == @body
+  end
+
+  describe "#deferred?" do
+    it "is delegated to wrapped Rack application" do
+      @middleware.deferred?(@env).should be(true)
+      @middleware.deferred?(Rack::MockRequest.env_for('/not-deferred/')).should be(false)
+    end
+  end
+end
+
+
 describe Merb::Rack::Middleware do
   before(:each) do
     @app = Merb::Rack::Application.new
@@ -73,14 +87,22 @@ describe Merb::Rack::Middleware do
 
   it_should_behave_like "rack application"
 
-  it "delegates request handling to wrapped Rack application" do
-    @result.last.should == @body
+  it_should_behave_like "transparent middleware"
+end
+
+
+
+describe Merb::Rack::Tracer do
+  before(:each) do
+    @app = Merb::Rack::Application.new
+    @middleware = Merb::Rack::Tracer.new(@app)
+    @env        = Rack::MockRequest.env_for('/heavy/lifting')
+    
+    @result = @middleware.call(@env)
+    @body   = "Everyone loves Rack"
   end
 
-  describe "#deferred?" do
-    it "is delegated to wrapped Rack application" do
-      @middleware.deferred?(@env).should be(true)
-      @middleware.deferred?(Rack::MockRequest.env_for('/not-deferred/')).should be(false)
-    end
-  end
+  it_should_behave_like "rack application"
+
+  it_should_behave_like "transparent middleware"  
 end

@@ -16,6 +16,7 @@ module Merb
     autoload :WEBrick,             'merb-core' / 'rack' / 'adapter' / 'webrick'
     autoload :PathPrefix,          'merb-core' / 'rack' / 'middleware' / 'path_prefix'
     autoload :Static,              'merb-core' / 'rack' / 'middleware' / 'static'
-    autoload :Profiler,            'merb-core' / 'rack' / 'middleware' / 'profiler'    
+    autoload :Profiler,            'merb-core' / 'rack' / 'middleware' / 'profiler'
+    autoload :Tracer,              'merb-core' / 'rack' / 'middleware' / 'tracer'    
   end # Rack
 end # Merb
