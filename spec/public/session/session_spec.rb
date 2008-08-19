@@ -7,8 +7,8 @@ describe "All session-store backends", :shared => true do
     @session_class.generate.should be_kind_of(@session_class)
   end
   
-  it "should persist the session using the 'persist' method" do
-    session = @session_class.persist(@session.session_id)
+  it "should setup a session" do
+    session = @session_class.setup(fake_request_with_session(@session))
     session.session_id.should == @session.session_id
   end
     
@@ -32,6 +32,7 @@ describe "All session-stores mixed into Merb::Controller", :shared => true do
     controller.body.should == @session.class.session_store_type
     controller.request.session.should be_kind_of(@session_class)
     controller.request.session.session_id.should == @session.session_id
+    controller.request.session_id == @session.session_id
   end
   
   it "should store session data" do

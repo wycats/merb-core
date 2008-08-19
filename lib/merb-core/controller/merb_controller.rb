@@ -158,7 +158,7 @@ class Merb::Controller < Merb::AbstractController
   # the controller.
   #
   # ==== Parameters
-  # request<Merb::Request>:: The Merb::Request that came in from Mongrel.
+  # request<Merb::Request>:: The Merb::Request that came in from Rack.
   # status<Integer>:: An integer code for the status. Defaults to 200.
   # headers<Hash{header => value}>::
   #   A hash of headers to start the controller with. These headers can be

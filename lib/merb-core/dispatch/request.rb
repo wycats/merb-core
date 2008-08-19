@@ -250,6 +250,22 @@ module Merb
       end
     end
 
+    # ==== Parameters
+    # session_id<String>:: The session id to track.
+    def set_session_id_cookie(session_id)
+      options = {}
+      options[:value]   = sid
+      options[:expires] = Time.now + (Merb::Config[:session_expiry] || Merb::Const::WEEK * 2)
+      options[:domain]  = Merb::Config[:session_cookie_domain]
+      cookies[Merb::Config[:session_id_key]] = options
+    end
+
+    # ==== Returns
+    # String:: The tracked session id.
+    def session_id
+      cookies[Merb::Config[:session_id_key]]
+    end
+    
     # ==== Returns
     # String:: The raw post.
     def raw_post

@@ -69,6 +69,17 @@ module Merb
         FakeRequest.new(env, StringIO.new(req || ''))
       end
 
+      # ==== Parameters
+      # session<SessionStore>:: A suitable Merb session store instance.
+      # env<Hash>:: A hash of environment keys to be merged into the default list.
+      # opt<Hash>:: A hash of options (see below).
+      #
+      # ==== Returns
+      # FakeRequest:: A Request object that is built based on the parameters.
+      def fake_request_with_session(session, env = {}, opt = {})
+        fake_request(env.merge(Merb::Const::HTTP_COOKIE => "#{Merb::Config[:session_id_key]}=#{session.session_id}"), opt)
+      end
+
       # Dispatches an action to the given class. This bypasses the router and is
       # suitable for unit testing of controllers.
       #
@@ -108,7 +119,7 @@ module Merb
       # controller_klass<Controller>::
       #   The controller class object that the action should be dispatched to.
       # action<Symbol>:: The action name, as a symbol.
-      # session<Object>:: A suitable Merb session store instance.
+      # session<SessionStore>:: A suitable Merb session store instance.
       # params<Hash>::
       #   An optional hash that will end up as params in the controller instance.
       # env<Hash>::
@@ -331,7 +342,7 @@ module Merb
       # The workhorse for the dispatch*to helpers.
       #
       # ==== Parameters
-      # request<Merb::Test::FakeRequest, Merb::Request>::
+      # request<Merb::Test::RequestHelper::FakeRequest, Merb::Request>::
       #   A request object that has been setup for testing.
       # controller_klass<Merb::Controller>::
       #   The class object off the controller to dispatch the action to.
@@ -362,7 +373,7 @@ module Merb
       # Checks to see that a request is routable.
       #
       # ==== Parameters
-      # request<Merb::Test::FakeRequest, Merb::Request>::
+      # request<Merb::Test::RequestHelper::FakeRequest, Merb::Request>::
       #   The request object to inspect.
       #
       # ==== Raises

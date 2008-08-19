@@ -8,12 +8,7 @@ module Merb
     # ==== Parameters
     # base<Class>:: The class to which the SessionMixin is mixed into.
     def setup_session
-      orig_sid = cookies[_session_id_key]
-      session = Merb::MemorySession.persist(orig_sid)
-      request.session = session
-      if session.session_id != orig_sid 
-        set_session_id_cookie(session.session_id)
-      end
+      Merb::MemorySession.setup(request)
     end
 
     # Finalizes the session by storing the session ID in a cookie, if the
@@ -57,14 +52,17 @@ module Merb
       end
 
       # ==== Parameters
-      # session_id<String:: The ID of the session to retrieve.
+      # request<Merb::Request>:: The Merb::Request that came in from Rack.
       #
       # ==== Returns
-      # Array::
-      #   A pair consisting of a MemorySession and the session's ID. If no
-      #   sessions matched session_id, a new MemorySession will be generated.
-      def persist(session_id)
-        session_id.blank? ? generate : MemorySessionContainer[session_id] || generate
+      # SessionStore:: a SessionStore. If no sessions were found, 
+      # a new SessionStore will be generated.
+      def setup(request)
+        session_id = request.session_id
+        session = session_id.blank? ? generate : MemorySessionContainer[session_id] || generate
+        request.session = session
+        request.set_session_id_cookie if session.session_id != session_id
+        session
       end
       
       # ==== Returns
@@ -72,7 +70,7 @@ module Merb
       def session_store_type
         "memory"
       end
-
+      
     end
     
     # Regenerate the Session ID

@@ -27,17 +27,7 @@ module Merb
 
     # Method stub for finalizing up the session. This will be overriden by
     # session modules.
-    def finalize_session() end    
-    
-    # Sets the session id cookie, along with the correct
-    # expiry and domain -- used for new or reset sessions
-    def set_session_id_cookie(key)
-      options = {}
-      options[:value] = key
-      options[:expires] = Time.now + _session_expiry if _session_expiry > 0
-      options[:domain] = _session_cookie_domain if _session_cookie_domain
-      cookies[_session_id_key] = options
-    end
+    def finalize_session() end
 
     @_finalize_session_exception_callbacks = []
     @_persist_exception_callbacks = []

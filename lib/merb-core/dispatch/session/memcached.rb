@@ -8,13 +8,15 @@ module Merb
     # ==== Parameters
     # base<Class>:: The class to which the SessionMixin is mixed into.
     def setup_session
-      orig_sid = cookies[_session_id_key]
-      session = Merb::MemCacheSession.persist(orig_sid)
-      request.session = session
-      @_fingerprint = Marshal.dump(request.session).hash
-      if session.session_id != orig_sid 
-        set_session_id_cookie(session.session_id)
-      end
+      # orig_sid = cookies[_session_id_key]
+      # session = Merb::MemCacheSession.persist(orig_sid)
+      # request.session = session
+      # @_fingerprint = Marshal.dump(request.session).hash
+      # if session.session_id != orig_sid 
+      #   set_session_id_cookie(session.session_id)
+      # end
+      
+      Merb::MemCacheSession.setup(request)
     end
 
     # Finalizes the session by storing the session ID in a cookie, if the
@@ -71,6 +73,28 @@ module Merb
       end
 
       # ==== Parameters
+      # request<Merb::Request>:: The Merb::Request that came in from Rack.
+      #
+      # ==== Returns
+      # SessionStore:: a SessionStore. If no sessions were found, 
+      # a new SessionStore will be generated.
+      def setup(request)
+        session = retrieve(request.session_id)
+        request.session = session
+        @_fingerprint = Marshal.dump(request.session).hash
+        set_session_id_cookie(session.session_id) if session.session_id != request.session_id
+        session
+      end
+      
+      # ==== Returns
+      # String:: The session store type, i.e. "memory".
+      def session_store_type
+        "memcache"
+      end
+      
+      private
+      
+      # ==== Parameters
       # session_id<String:: The ID of the session to retrieve.
       #
       # ==== Returns
@@ -79,9 +103,9 @@ module Merb
       #   sessions matched session_id, a new MemCacheSession will be generated.
       #
       # ==== Notes
-      # If there are persiste exceptions callbacks to execute, they all get executed
+      # If there are persisted exceptions callbacks to execute, they all get executed
       # when Memcache library raises an exception.
-      def persist(session_id)
+      def retrieve(session_id)
         unless session_id.blank?
           begin
             session = CACHE.get("session:#{session_id}")
@@ -106,12 +130,6 @@ module Merb
           session_object.update session
           session_object
         end
-      end
-      
-      # ==== Returns
-      # String:: The session store type, i.e. "memory".
-      def session_store_type
-        "memcache"
       end
 
     end

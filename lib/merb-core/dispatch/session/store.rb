@@ -13,13 +13,12 @@ class SessionStore < Hash
     end
     
     # ==== Parameters
-    # session_id<String:: The ID of the session to retrieve.
+    # request<Merb::Request>:: The Merb::Request that came in from Rack.
     #
     # ==== Returns
-    # Array::
-    #   A pair consisting of a SessionStore and the session's ID. If no
-    #   sessions matched session_id, a new SessionStore will be generated.
-    def persist(session_id)
+    # SessionStore:: a SessionStore. If no sessions were found, 
+    # a new SessionStore will be generated.
+    def setup(request)
     end
     
     # ==== Returns
