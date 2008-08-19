@@ -1,7 +1,6 @@
 class Merb::Controller < Merb::AbstractController
 
-  class_inheritable_accessor :_hidden_actions, :_shown_actions,
-                             :_session_id_key, :_session_secret_key, :_session_expiry, :_session_cookie_domain
+  class_inheritable_accessor :_hidden_actions, :_shown_actions
 
   self._hidden_actions ||= []
   self._shown_actions ||= []
@@ -10,11 +9,6 @@ class Merb::Controller < Merb::AbstractController
   self._subclasses = Set.new
 
   def self.subclasses_list() _subclasses end
-
-  self._session_secret_key = nil
-  self._session_id_key = Merb::Config[:session_id_key] || '_session_id'
-  self._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
-  self._session_cookie_domain = Merb::Config[:session_cookie_domain]
 
   include Merb::ResponderMixin
   include Merb::ControllerMixin
@@ -236,10 +230,6 @@ class Merb::Controller < Merb::AbstractController
   # Headers are passed into the cookie object so that you can do:
   #   cookies[:foo] = "bar"
   def cookies() @_cookies ||= _setup_cookies end
-
-  # ==== Returns
-  # Hash:: The session that was extracted from the request object.
-  def session() request.session end
   
   # The results of the controller's render, to be returned to Rack.
   #

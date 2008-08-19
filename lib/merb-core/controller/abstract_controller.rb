@@ -98,6 +98,7 @@ class Merb::AbstractController
   
   class_inheritable_accessor :_layout, :_template_root, :template_roots
   class_inheritable_accessor :_before_filters, :_after_filters
+  class_inheritable_accessor :_before_dispatch_callbacks, :_after_dispatch_callbacks
 
   cattr_accessor :_abstract_subclasses, :_template_path_cache
 
@@ -113,6 +114,7 @@ class Merb::AbstractController
   FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
 
   self._before_filters, self._after_filters = [], []
+  self._before_dispatch_callbacks, self._after_dispatch_callbacks = [], []
 
   #---
   # We're using abstract_subclasses so that Merb::Controller can have its
@@ -217,7 +219,7 @@ class Merb::AbstractController
         include Object.full_const_get("#{helper_module_name}") rescue nil
       HERE
       super
-    end
+    end    
   end
   
   # ==== Parameters
@@ -228,7 +230,7 @@ class Merb::AbstractController
     @_template_stack = []
   end
   
-  # This will dispatch the request, calling setup_session and finalize_session
+  # This will dispatch the request, calling internal before/after dispatch_callbacks
   # 
   # ==== Parameters
   # action<~to_s>::
@@ -238,7 +240,7 @@ class Merb::AbstractController
   # ==== Raises
   # MerbControllerError:: Invalid body content caught.
   def _dispatch(action=:to_s)
-    setup_session
+    self._before_dispatch_callbacks.each { |cb| cb.call(self) }
     self.action_name = action
     
     caught = catch(:halt) do
@@ -260,7 +262,8 @@ class Merb::AbstractController
     start = Time.now
     _call_filters(_after_filters)
     @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
-    finalize_session
+    self._after_dispatch_callbacks.each { |cb| cb.call(self) }
+    
     @body
   end
   
@@ -412,14 +415,6 @@ class Merb::AbstractController
   #---
   # Defaults that can be overridden by plugins, other mixins, or subclasses
   def _filters_halted()   "<html><body><h1>Filter Chain Halted!</h1></body></html>"  end
-
-  # Method stub for setting up the session. This will be overriden by session
-  # modules.
-  def setup_session()    end
-
-  # Method stub for finalizing up the session. This will be overriden by
-  # session modules.
-  def finalize_session() end  
 
   # Handles the template cache (which is used by BootLoader to cache the list
   # of all templates).

@@ -1,6 +1,32 @@
 module Merb
   
   module SessionMixin
+    
+    def self.included(base)
+      base.class_inheritable_accessor :_session_id_key, :_session_secret_key, 
+                                      :_session_expiry, :_session_cookie_domain
+      
+      base._session_secret_key = nil
+      base._session_id_key = Merb::Config[:session_id_key] || '_session_id'
+      base._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
+      base._session_cookie_domain = Merb::Config[:session_cookie_domain]
+      
+      base._before_dispatch_callbacks << lambda { |c| c.setup_session }
+      base._after_dispatch_callbacks  << lambda { |c| c.finalize_session }
+    end
+    
+    # ==== Returns
+    # Hash:: The session that was extracted from the request object.
+    def session() request.session end
+    
+    # Method stub for setting up the session. This will be overriden by session
+    # modules.
+    def setup_session()    end
+
+    # Method stub for finalizing up the session. This will be overriden by
+    # session modules.
+    def finalize_session() end    
+    
     # Sets the session id cookie, along with the correct
     # expiry and domain -- used for new or reset sessions
     def set_session_id_cookie(key)
