@@ -29,9 +29,9 @@ module Merb
     def session_store_type
       "memory"
     end
+    
   end
   
-  ##
   # Sessions stored in memory.
   #
   # Set it up by adding the following to your init file:
@@ -43,19 +43,8 @@ module Merb
   #
   # Sessions will remain in memory until the server is stopped or the time
   # as set in :memory_session_ttl expires.
-  class MemorySession
-
-    attr_accessor :session_id
-    attr_accessor :data
-    attr_accessor :needs_new_cookie
-
-    # ==== Parameters
-    # session_id<String>:: A unique identifier for this session.
-    def initialize(session_id)
-      @session_id = session_id
-      @data = {}
-    end
-
+  class MemorySession < SessionStore
+    
     class << self
 
       # Generates a new session ID and creates a new session.
@@ -85,7 +74,7 @@ module Merb
       end
 
     end
-
+    
     # Regenerate the Session ID
     def regenerate
       new_sid = Merb::SessionMixin::rand_uuid 
@@ -93,59 +82,11 @@ module Merb
       MemorySessionContainer[new_sid] = MemorySessionContainer[old_sid]
       @session_id = new_sid
       MemorySessionContainer.delete(old_sid)
-      self.needs_new_cookie=true 
-    end 
-      
-    # Recreates the cookie with the default expiration time. Useful during log
-    # in for pushing back the expiration date.
-    def refresh_expiration 
-      self.needs_new_cookie=true 
-    end 
-    
-    # Deletes the session by emptying stored data.
-    def delete
-      @data = {}
-    end
-     
-    # ==== Returns
-    # Boolean:: True if session has been loaded already.
-    def loaded?
-      !! @data
+      refresh_expiration
     end
     
-    # ==== Parameters
-    # k<~to_s>:: The key of the session parameter to set.
-    # v<~to_s>:: The value of the session parameter to set.
-    def []=(k, v) 
-      @data[k] = v
-    end
-
-    # ==== Parameters
-    # k<~to_s>:: The key of the session parameter to retrieve.
-    #
-    # ==== Returns
-    # String:: The value of the session parameter.
-    def [](k) 
-      @data[k] 
-    end
-
-    # Yields the session data to an each block.
-    #
-    # ==== Parameter
-    # &b:: The block to pass to each.
-    def each(&b) 
-      @data.each(&b) 
-    end
-    
-    private
-
-    # Attempts to redirect any messages to the data object.
-    def method_missing(name, *args, &block)
-      @data.send(name, *args, &block)
-    end
-
   end
-
+  
   # Used for handling multiple sessions stored in memory.
   class MemorySessionContainer
     class << self

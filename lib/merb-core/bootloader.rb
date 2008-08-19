@@ -571,7 +571,6 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
 
   # Mixin the correct session container.
   def self.run
-
     Merb.register_session_type('memory',
       Merb.framework_root / "merb-core" / "dispatch" / "session" / "memory",
       "Using in-memory sessions; sessions will be lost whenever the server stops.")

@@ -157,9 +157,6 @@ class Merb::Controller < Merb::AbstractController
   # Sets the variables that came in through the dispatch as available to
   # the controller.
   #
-  # This method uses the :session_id_cookie_only and :query_string_whitelist
-  # configuration options. See CONFIG for more details.
-  #
   # ==== Parameters
   # request<Merb::Request>:: The Merb::Request that came in from Mongrel.
   # status<Integer>:: An integer code for the status. Defaults to 200.
