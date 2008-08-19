@@ -17,6 +17,7 @@ module Merb
     autoload :PathPrefix,          'merb-core/rack/middleware/path_prefix'
     autoload :Static,              'merb-core/rack/middleware/static'
     autoload :Profiler,            'merb-core/rack/middleware/profiler'
-    autoload :Tracer,              'merb-core/rack/middleware/tracer'    
+    autoload :Tracer,              'merb-core/rack/middleware/tracer'
+    autoload :ContentLength,       'merb-core/rack/middleware/content_length'    
   end # Rack
 end # Merb
