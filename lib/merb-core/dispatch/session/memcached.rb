@@ -45,8 +45,8 @@ module Merb
   #
   # Requires setup in your +init.rb+.
   #
-  #   require 'memcache'
-  #   CACHE = MemCache.new('127.0.0.1:11211', { :namespace => 'my_app' })
+  #   require 'memcached'
+  #   CACHE = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
   #
   # And a setting in +init.rb+:
   #

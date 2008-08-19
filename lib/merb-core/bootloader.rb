@@ -577,6 +577,7 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
 
   # Mixin the correct session container.
   def self.run
+    
     Merb.register_session_type('memory',
       Merb.framework_root / "merb-core" / "dispatch" / "session" / "memory",
       "Using in-memory sessions; sessions will be lost whenever the server stops.")
@@ -588,8 +589,6 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
     Merb.register_session_type('cookie', # Last session type becomes the default
       Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie",
       "Using 'share-nothing' cookie sessions (4kb limit per client)")
-
-
 
     Merb::Controller.class_eval do
       session_store = Merb::Config[:session_store].to_s

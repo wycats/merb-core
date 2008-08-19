@@ -101,6 +101,40 @@ module Merb
         dispatch_request(build_request(params, env), controller_klass, action.to_s, &blk)
       end
 
+      # Dispatches an action to the given class and keeps track of the session_id. 
+      # This bypasses the router and is suitable for unit testing of controllers.
+      #
+      # ==== Parameters
+      # controller_klass<Controller>::
+      #   The controller class object that the action should be dispatched to.
+      # action<Symbol>:: The action name, as a symbol.
+      # session<Object>:: A suitable Merb session store instance.
+      # params<Hash>::
+      #   An optional hash that will end up as params in the controller instance.
+      # env<Hash>::
+      #   An optional hash that is passed to the fake request. Any request options
+      #   should go here (see +fake_request+), including :req or :post_body
+      #   for setting the request body itself.
+      # &blk::
+      #   The controller is yielded to the block provided for actions *prior* to
+      #   the action being dispatched.
+      #
+      # ==== Example
+      #   dispatch_to(MyController, :create, session, :name => 'Homer' ) do |controller|
+      #     controller.stub!(:current_user).and_return(@user)
+      #   end
+      #
+      # ==== Notes
+      # Does not use routes.
+      #
+      #---
+      # @public
+      def dispatch_with_session_to(controller_klass, action, session, params = {}, env = {}, &blk)
+        dispatch_to(controller_klass, action, params, env) do |controller|
+          controller.cookies[Merb::Controller._session_id_key] = session.session_id
+          yield blk if block_given?
+        end
+      end
 
       # Dispatches an action to the given class and using HTTP Basic Authentication
       # This bypasses the router and is suitable for unit testing of controllers.
