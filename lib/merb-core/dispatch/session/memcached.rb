@@ -8,12 +8,12 @@ module Merb
     # ==== Parameters
     # base<Class>:: The class to which the SessionMixin is mixed into.
     def setup_session
-      orig_key = cookies[_session_id_key]
-      session, key = Merb::MemCacheSession.persist(orig_key)
+      orig_sid = cookies[_session_id_key]
+      session = Merb::MemCacheSession.persist(orig_sid)
       request.session = session
       @_fingerprint = Marshal.dump(request.session).hash
-      if key != orig_key 
-        set_session_id_cookie(key)
+      if session.session_id != orig_sid 
+        set_session_id_cookie(session.session_id)
       end
     end
 
@@ -98,13 +98,20 @@ module Merb
           session = generate
         end
         if session.is_a?(MemCacheSession)
-          [session, session.session_id]
+          session
         else
-          # recreate using the rails session as the data
+          # Recreate using the existing session as the data, when switching 
+          # from another session type for example, eg. cookie to memcached
           session_object = MemCacheSession.new(session_id)
           session_object.update session
-          [session_object, session_object.session_id]
+          session_object
         end
+      end
+      
+      # ==== Returns
+      # String:: The session store type, i.e. "memory".
+      def session_store_type
+        "memcache"
       end
 
     end

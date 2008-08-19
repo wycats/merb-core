@@ -8,7 +8,7 @@ describe "All session-store backends", :shared => true do
   end
   
   it "should persist the session using the 'persist' method" do
-    session, session_id = @session_class.persist(@session.session_id)
+    session = @session_class.persist(@session.session_id)
     session.session_id.should == @session.session_id
   end
     
@@ -29,6 +29,7 @@ describe "All session-stores mixed into Merb::Controller", :shared => true do
   
   it "should represent the controller session" do
     controller = dispatch_with_session_to(Merb::Test::Fixtures::Controllers::SessionsController, :index, @session)
+    controller.body.should == @session.class.session_store_type
     controller.request.session.should be_kind_of(@session_class)
     controller.request.session.session_id.should == @session.session_id
   end

@@ -589,6 +589,7 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       Merb::BootLoader::MixinSessionContainer.update_session_cookie_attributes
       
       session_store = Merb::Config[:session_store].to_s
+      
       if ["", "false", "none"].include?(session_store)
         Merb.logger.warn "Not Using Sessions"
       elsif reg = Merb.registered_session_types[session_store]

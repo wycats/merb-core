@@ -8,11 +8,11 @@ module Merb
     # ==== Parameters
     # base<Class>:: The class to which the SessionMixin is mixed into.
     def setup_session
-      orig_key = cookies[_session_id_key]
-      session, key = Merb::MemorySession.persist(orig_key)
+      orig_sid = cookies[_session_id_key]
+      session = Merb::MemorySession.persist(orig_sid)
       request.session = session
-      if key != orig_key 
-        set_session_id_cookie(key)
+      if session.session_id != orig_sid 
+        set_session_id_cookie(session.session_id)
       end
     end
 
@@ -64,13 +64,13 @@ module Merb
       #   A pair consisting of a MemorySession and the session's ID. If no
       #   sessions matched session_id, a new MemorySession will be generated.
       def persist(session_id)
-        if session_id
-          session = MemorySessionContainer[session_id]
-        end
-        unless session
-          session = generate
-        end
-        [session, session.session_id]
+        session_id.blank? ? generate : MemorySessionContainer[session_id] || generate
+      end
+      
+      # ==== Returns
+      # String:: The session store type, i.e. "memory".
+      def session_store_type
+        "memory"
       end
 
     end
