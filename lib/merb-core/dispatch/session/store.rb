@@ -23,7 +23,7 @@ class SessionStore < Hash
     
     # ==== Returns
     # String:: The session store type, i.e. "memory".
-    def session_store_type; ""; end
+    def session_store_type() end
     
   end
   

@@ -261,10 +261,16 @@ module Merb
     end
 
     # ==== Returns
-    # String:: The tracked session id.
-    def session_id
+    # String:: The value of the session cookie; either the session id or the actual encoded data.
+    def session_cookie_value
       cookies[Merb::Config[:session_id_key]]
     end
+    alias :session_id :session_cookie_value
+    
+    def session_id_key
+      Merb::Config[:session_id_key]
+    end
+    
     
     # ==== Returns
     # String:: The raw post.

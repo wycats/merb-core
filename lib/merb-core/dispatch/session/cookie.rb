@@ -11,18 +11,20 @@ module Merb
     # ==== Parameters
     # base<Class>:: The class to which the SessionMixin is mixed into.
     def setup_session
-      request.session = Merb::CookieSession.new(cookies[_session_id_key], _session_secret_key)
-      @original_session = request.session.read_cookie
+      # request.session = Merb::CookieSession.new(cookies[_session_id_key], _session_secret_key)
+      # @original_session = request.session.to_cookie
+      
+      Merb::CookieSession.setup(request)
     end
 
     # Finalizes the session by storing the session in a cookie, if the session
     # has changed.
     def finalize_session
-      new_session = request.session.read_cookie
-      if @original_session != new_session
+      new_session_data = request.session.to_cookie
+      if @original_session_data != new_session_data  
         options = {:expires => (Time.now + _session_expiry)}
         options[:domain] = _session_cookie_domain if _session_cookie_domain
-        cookies.set_cookie(_session_id_key, new_session, options)
+        cookies.set_cookie(Merb::Config[:session_id_key], new_session_data, options)
       end
     end
 
@@ -46,7 +48,7 @@ module Merb
   # To use Cookie Sessions, set in config/merb.yml
   #  :session_secret_key - your secret digest key
   #  :session_store: cookie
-  class CookieSession
+  class CookieSession < SessionStore
     # TODO (maybe):
     # include request ip address
     # AES encrypt marshaled data
@@ -61,86 +63,73 @@ module Merb
     MAX = 4096
     DIGEST = OpenSSL::Digest::Digest.new('SHA1') # or MD5, RIPEMD160, SHA256?
     
-    attr_reader :data
+    class << self
 
+      # Generates a new session ID and creates a new session.
+      #
+      # ==== Returns
+      # SessionStore:: The new session.
+      def generate
+        Merb::CookieSession.new(Merb::SessionMixin::rand_uuid, "", Merb::Config[:session_secret_key])
+      end
+
+      # ==== Parameters
+      # request<Merb::Request>:: The Merb::Request that came in from Rack.
+      #
+      # ==== Returns
+      # SessionStore:: a SessionStore. If no sessions were found, 
+      # a new SessionStore will be generated.
+      def setup(request)
+        request.session = Merb::CookieSession.new(Merb::SessionMixin::rand_uuid, request.session_cookie_value, Merb::Config[:session_secret_key])
+        @original_session = request.session.to_cookie
+        request.session
+      end
+
+      # ==== Returns
+      # String:: The session store type, i.e. "memory".
+      def session_store_type 
+        "cookie"
+      end
+
+    end
+    
     # ==== Parameters
-    # cookie<String>:: The cookie.
+    # session_id<String>:: A unique identifier for this session.
+    # cookie<String>:: The raw cookie data.
     # secret<String>:: A session secret.
     #
     # ==== Raises
     # ArgumentError:: Nil or blank secret.
-    def initialize(cookie, secret)
-      if secret.nil? or secret.blank?
+    def initialize(session_id, cookie, secret)
+      super session_id
+      if secret.nil? || secret.blank?
         raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data.'
       end
       @secret = secret
-      @data = unmarshal(cookie) || Hash.new
+      self.update(cookie.blank? ? Hash.new : unmarshal(cookie))
     end
     
+    # Create the raw cookie string; includes an HMAC keyed message digest.
+    #
     # ==== Returns
     # String:: Cookie value.
     #
     # ==== Raises
     # CookieOverflow:: Session contains too much information.
-    def read_cookie
-      unless @data.nil?
-        updated = marshal(@data)
-        raise CookieOverflow if updated.size > MAX
-        updated
+    def to_cookie
+      unless self.empty?
+        data = Base64.encode64(Marshal.dump(self)).chop
+        value = Merb::Request.escape "#{data}--#{generate_digest(data)}"
+        raise CookieOverflow if value.size > MAX
+        value
       end
     end
     
-    # ==== Parameters
-    # k<~to_s>:: The key of the session parameter to set.
-    # v<~to_s>:: The value of the session parameter to set.
-    def []=(k, v) 
-      @data[k] = v
-    end
-
-    # ==== Parameters
-    # k<~to_s>:: The key of the session parameter to retrieve.
-    #
-    # ==== Returns
-    # String:: The value of the session parameter.
-    def [](k) 
-      @data[k] 
-    end
-
-    # Yields the session data to an each block.
-    #
-    # ==== Parameter
-    # &b:: The block to pass to each.
-    def each(&b) 
-      @data.each(&b) 
-    end
-
-    # Deletes the session by emptying stored data.
-    def delete  
-      @data = {} 
-    end
-    
     private
-
-    # Attempts to redirect any messages to the data object.
-    def method_missing(name, *args, &block)
-      @data.send(name, *args, &block)
-    end
     
     # Generate the HMAC keyed message digest. Uses SHA1.
     def generate_digest(data)
       OpenSSL::HMAC.hexdigest(DIGEST, @secret, data)
-    end
-    
-    # Marshal a session hash into safe cookie data. Include an integrity hash.
-    #
-    # ==== Parameters
-    # session<Hash>:: The session to store in the cookie.
-    #
-    # ==== Returns
-    # String:: The cookie to be stored.
-    def marshal(session)
-      data = Base64.encode64(Marshal.dump(session)).chop
-      Merb::Request.escape "#{data}--#{generate_digest(data)}"
     end
     
     # Unmarshal cookie data to a hash and verify its integrity.
@@ -156,13 +145,14 @@ module Merb
     def unmarshal(cookie)
       if cookie
         data, digest = cookie.split('--')
-        return {} if data.blank?
+        return {} if data.blank? || digest.blank?
         unless digest == generate_digest(data)
-          delete
+          clear
           raise TamperedWithCookie, "Maybe the site's session_secret_key has changed?"
         end
         Marshal.load(Base64.decode64(data))
       end
     end
+    
   end
 end

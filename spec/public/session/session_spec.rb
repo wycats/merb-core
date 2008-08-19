@@ -6,12 +6,7 @@ describe "All session-store backends", :shared => true do
   it "should be instanciated using the 'generate' method" do
     @session_class.generate.should be_kind_of(@session_class)
   end
-  
-  it "should setup a session" do
-    session = @session_class.setup(fake_request_with_session(@session))
-    session.session_id.should == @session.session_id
-  end
-    
+      
   it "should store the session_id" do
     @session.session_id.should match(/^[0-9a-f]{32}$/)
   end
