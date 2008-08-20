@@ -542,7 +542,7 @@ class Merb::BootLoader::MimeTypes < Merb::BootLoader
     Merb.add_mime_type(:yaml, :to_yaml, %w[application/x-yaml text/yaml], :charset => "utf-8")
     Merb.add_mime_type(:text, :to_text, %w[text/plain], :charset => "utf-8")
     Merb.add_mime_type(:html, :to_html, %w[text/html application/xhtml+xml application/html], :charset => "utf-8")
-    Merb.add_mime_type(:xml,  :to_xml,  %w[application/xml text/xml application/x-xml], :charset => "utf-8")
+    Merb.add_mime_type(:xml,  :to_xml,  %w[application/xml text/xml application/x-xml], {:charset => "utf-8"}, 0.9998)
     Merb.add_mime_type(:js,   :to_json, %w[text/javascript application/javascript application/x-javascript], :charset => "utf-8")
     Merb.add_mime_type(:json, :to_json, %w[application/json text/x-json], :charset => "utf-8")
   end
@@ -673,6 +673,7 @@ class Merb::BootLoader::RackUpApplication < Merb::BootLoader
          run Merb::Rack::Application.new
        }.to_app
     end
+    
   end
 end
 
