@@ -17,6 +17,13 @@ module Merb
         base._session_cookie_domain = Merb::Config[:session_cookie_domain]
       end
       
+      #SESSIONTODO - MEMOIZE session
+      
+      # Whether a session has been setup
+      def session?
+        self.session.is_a?(Merb::SessionStore)
+      end
+      
       # Assign default cookie values
       def set_default_cookies
         if route && route.allow_fixation? && params.key?(_session_id_key)
@@ -26,14 +33,15 @@ module Merb
       end
       
       # ==== Parameters
-      # session_id<String>:: The session id to track.
-      def set_session_id_cookie(session_id)
+      # value<String>:: The value of the session cookie; either the session id or the actual encoded data.
+      def set_session_cookie_value(value)
         options = {}
-        options[:value]   = sid
+        options[:value]   = value
         options[:expires] = Time.now + (_session_expiry || Merb::Const::WEEK * 2)
         options[:domain]  = _session_cookie_domain
         cookies[_session_id_key] = options
       end
+      alias :set_session_id_cookie :set_session_cookie_value
       
       # ==== Returns
       # String:: The value of the session cookie; either the session id or the actual encoded data.
@@ -53,21 +61,18 @@ module Merb
     end
     
     
-    
-    
     # ==== Returns
     # Hash:: The session that was extracted from the request object.
     def session() request.session end
     
-    # Method stub for setting up the session. This will be overriden by session
-    # modules.
+    
+    # Method stub for setting up the session. This will be overriden by session modules.
     def setup_session()    end
 
-    # Method stub for finalizing up the session. This will be overriden by
-    # session modules.
-    def finalize_session() end
-      
-      
+    # Method stub for finalizing up the session.
+    def finalize_session
+      request.session.finalize(request) if request.session?
+    end  
       
     # Module methods
 
@@ -92,6 +97,10 @@ module Merb
     # Marks this session as needing a new cookie.
     def needs_new_cookie!
       @_new_cookie = true
+    end
+    
+    def needs_new_cookie
+      @_new_cookie
     end
 
     # Adds a callback to the list of callbacks run when
@@ -132,7 +141,7 @@ module Merb
       end
     end
     
-    module_function :rand_uuid, :needs_new_cookie!, :finalize_session_exception_callbacks, :persist_exception_callbacks
+    module_function :rand_uuid, :needs_new_cookie, :needs_new_cookie!, :finalize_session_exception_callbacks, :persist_exception_callbacks
   end
 
 end

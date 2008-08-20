@@ -11,27 +11,6 @@ module Merb
       Merb::MemCacheSession.setup(request)
     end
 
-    # Finalizes the session by storing the session ID in a cookie, if the
-    # session has changed.
-    def finalize_session
-      if @_fingerprint != Marshal.dump(request.session).hash
-        begin
-          CACHE.set("session:#{request.session.session_id}", request.session)
-        rescue => err
-          Merb.logger.debug("MemCache Error: #{err.message}")
-          Merb::SessionMixin::finalize_session_exception_callbacks.each {|x| x.call(err) }
-        end
-      end
-      if request.session.needs_new_cookie or @_new_cookie
-        set_session_id_cookie(request.session.session_id)
-      end
-    end
-
-    # ==== Returns
-    # String:: The session store type, i.e. "memcache".
-    def session_store_type
-      "memcache"
-    end
   end
 
   ##
@@ -53,6 +32,8 @@ module Merb
   #
   class MemCacheSession < SessionStore
 
+    attr_accessor :_fingerprint
+
     class << self
 
       # Generates a new session ID and creates a new session.
@@ -73,7 +54,7 @@ module Merb
       def setup(request)
         session = retrieve(request.session_id)
         request.session = session
-        @_fingerprint = Marshal.dump(request.session).hash
+        session._fingerprint = Marshal.dump(request.session).hash
         set_session_id_cookie(session.session_id) if session.session_id != request.session_id
         session
       end
@@ -124,6 +105,20 @@ module Merb
         end
       end
 
+    end
+    
+    def finalize(request)
+      if _fingerprint != Marshal.dump(self).hash
+        begin
+          CACHE.set("session:#{request.session.session_id}", self)
+        rescue => err
+          Merb.logger.debug("MemCache Error: #{err.message}")
+          Merb::SessionMixin::finalize_session_exception_callbacks.each {|x| x.call(err) }
+        end
+      end
+      if needs_new_cookie || Merb::SessionMixin.needs_new_cookie
+        request.set_session_id_cookie(session_id)
+      end
     end
 
     # Regenerate the session ID.

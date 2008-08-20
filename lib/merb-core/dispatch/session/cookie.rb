@@ -13,23 +13,7 @@ module Merb
     def setup_session
       Merb::CookieSession.setup(request)
     end
-
-    # Finalizes the session by storing the session in a cookie, if the session
-    # has changed.
-    def finalize_session
-      new_session_data = request.session.to_cookie
-      if @original_session_data != new_session_data  
-        options = {:expires => (Time.now + request._session_expiry)}
-        options[:domain] = request._session_cookie_domain if request._session_cookie_domain
-        cookies.set_cookie(request._session_id_key, new_session_data, options)
-      end
-    end
-
-    # ==== Returns
-    # String:: The session store type, i.e. "cookie".
-    def session_store_type
-      "cookie"
-    end
+    
   end
   
   # If you have more than 4K of session data or don't want your data to be
@@ -60,6 +44,8 @@ module Merb
     MAX = 4096
     DIGEST = OpenSSL::Digest::Digest.new('SHA1') # or MD5, RIPEMD160, SHA256?
     
+    attr_accessor :_original_session_data
+    
     class << self
 
       # Generates a new session ID and creates a new session.
@@ -78,7 +64,7 @@ module Merb
       # a new SessionStore will be generated.
       def setup(request)
         request.session = Merb::CookieSession.new(Merb::SessionMixin::rand_uuid, request.session_cookie_value, Merb::Config[:session_secret_key])
-        @original_session = request.session.to_cookie
+        request.session._original_session_data = request.session.to_cookie
         request.session
       end
 
@@ -105,6 +91,11 @@ module Merb
       @secret = secret
       self.update(cookie.blank? ? Hash.new : unmarshal(cookie))
     end
+    
+    def finalize(request)
+      new_session_data = self.to_cookie
+      request.set_session_cookie_value(new_session_data) if _original_session_data != new_session_data
+    end    
     
     # Create the raw cookie string; includes an HMAC keyed message digest.
     #

@@ -66,7 +66,6 @@ describe Merb::Cookies do
       hdr.should =~ / expires=#{cookie_time(@expires)};/
     end
 
-    
     it "accepts cookies with domain" do
       domain  = 'wiki.merbivore.com'
       
@@ -90,8 +89,7 @@ describe Merb::Cookies do
     #   hdr = @_headers['Set-Cookie'].first
     #   hdr.should =~ / domain=session.cookie.domain;/
     # end    
-
-    
+ 
     it "uses / as default path" do
       @cookies[:dozen] = {
         :value   => 'twelve',
@@ -101,8 +99,7 @@ describe Merb::Cookies do
       hdr = @_headers['Set-Cookie'].first
       hdr.should =~ / path=\/;/
     end
-
-    
+   
     it "accepts cookies with path" do
       cookie_path = '/some/resource'
       
@@ -116,7 +113,6 @@ describe Merb::Cookies do
       hdr.should =~ /dozen=twelve;/
       hdr.should =~ / path=#{cookie_path};/
     end
-
 
     it "accepts cookies with security flag" do
       @cookies[:dozen] = {
@@ -147,7 +143,6 @@ describe Merb::Cookies do
       hdr.should_not =~ /secure/
     end    
     
-
     it "accepts multiple cookies" do
       @cookies[:foo] = 'bar'
       @cookies[:dozen] = {
@@ -197,7 +192,6 @@ describe Merb::Cookies do
       @cookies[:foo].should == 'new'
     end    
   end
-
 
   describe "#delete" do
     it "allows deleting of cookies" do

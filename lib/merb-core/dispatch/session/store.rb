@@ -1,47 +1,53 @@
-class SessionStore < Hash
+module Merb
+  class SessionStore < Hash
   
-  attr_accessor :session_id
-  attr_accessor :needs_new_cookie
+    attr_accessor :session_id
+    attr_accessor :needs_new_cookie
   
-  class << self
+    class << self
   
-    # Generates a new session ID and creates a new session.
-    #
-    # ==== Returns
-    # SessionStore:: The new session.
-    def generate
-    end
+      # Generates a new session ID and creates a new session.
+      #
+      # ==== Returns
+      # SessionStore:: The new session.
+      def generate
+      end
     
+      # ==== Parameters
+      # request<Merb::Request>:: The Merb::Request that came in from Rack.
+      #
+      # ==== Returns
+      # SessionStore:: a SessionStore. If no sessions were found, 
+      # a new SessionStore will be generated.
+      def setup(request)
+      end    
+    
+      # ==== Returns
+      # String:: The session store type, i.e. "memory".
+      def session_store_type() end
+    
+    end
+  
     # ==== Parameters
-    # request<Merb::Request>:: The Merb::Request that came in from Rack.
-    #
-    # ==== Returns
-    # SessionStore:: a SessionStore. If no sessions were found, 
-    # a new SessionStore will be generated.
-    def setup(request)
+    # session_id<String>:: A unique identifier for this session.
+    def initialize(session_id)
+      @session_id = session_id
     end
-    
-    # ==== Returns
-    # String:: The session store type, i.e. "memory".
-    def session_store_type() end
-    
-  end
   
-  # ==== Parameters
-  # session_id<String>:: A unique identifier for this session.
-  def initialize(session_id)
-    @session_id = session_id
-  end
+    def finalize(request)
+      p request
+    end
   
-  # Regenerate the Session ID
-  def regenerate
-    refresh_expiration
-  end
+    # Regenerate the Session ID
+    def regenerate
+      refresh_expiration
+    end
   
-  # Recreates the cookie with the default expiration time. Useful during log
-  # in for pushing back the expiration date.
-  def refresh_expiration 
-    self.needs_new_cookie=true 
-  end
+    # Recreates the cookie with the default expiration time. Useful during log
+    # in for pushing back the expiration date.
+    def refresh_expiration 
+      self.needs_new_cookie=true 
+    end
   
+  end
 end

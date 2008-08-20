@@ -10,20 +10,6 @@ module Merb
     def setup_session
       Merb::MemorySession.setup(request)
     end
-
-    # Finalizes the session by storing the session ID in a cookie, if the
-    # session has changed.
-    def finalize_session
-      if request.session.needs_new_cookie or @_new_cookie
-        set_session_id_cookie(request.session.session_id)
-      end
-    end
-
-    # ==== Returns
-    # String:: The session store type, i.e. "memory".
-    def session_store_type
-      "memory"
-    end
     
   end
   
@@ -71,6 +57,12 @@ module Merb
         "memory"
       end
       
+    end
+    
+    def finalize(request)
+      if needs_new_cookie || Merb::SessionMixin.needs_new_cookie
+        request.set_session_id_cookie(session_id)
+      end
     end
     
     # Regenerate the Session ID
