@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), "..", "lib", "merb-core")
+require File.join(File.dirname(__FILE__), "..", "..", "lib", "merb-core")
 
 module Merb
   class Responder

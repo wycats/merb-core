@@ -9,6 +9,7 @@
 # Merb::AbstractController#_dispatch(action<~to_s>)
 
 require File.join(File.dirname(__FILE__), "spec_helper")
+AbstractControllers = Merb::Test::Fixtures::Abstract
 
 describe Merb::AbstractController, " should support before and after filters" do
     
@@ -95,8 +96,32 @@ describe Merb::AbstractController, " should support before and after filters" do
     dispatch_should_make_body("TestBeforeFilterWithArguments", "index action")
   end
   
+  it "should support throwing :halt to block a filter chain" do
+    dispatch_should_make_body("BeforeFilterWithThrowHalt", "Halt thrown")
+  end
+  
+  it "should support throwing a proc in filters" do
+    dispatch_should_make_body("BeforeFilterWithThrowProc", "Proc thrown")    
+  end
+  
+  it "should raise an InternalServerError if :halt is thrown with unexpected type" do
+    calling { dispatch_to(AbstractControllers::FilterChainError, :index) }.should(
+      raise_error(ArgumentError, /Threw :halt, Merb. Expected String/))
+  end
+  
+  it "should print useful HTML if throw :halt is called with nil" do
+    dispatch_should_make_body("ThrowNil", 
+      "<html><body><h1>Filter Chain Halted!</h1></body></html>")
+  end
+  
   it "should inherit before filters" do
     dispatch_should_make_body("FilterChild2", "Before Limited", :limited)
+  end
+    
+  it "should provide benchmarks" do
+    controller = dispatch_to(AbstractControllers::Benchmarking, :index)
+    controller._benchmarks[:before_filters_time].should be_kind_of(Numeric)
+    controller._benchmarks[:after_filters_time].should be_kind_of(Numeric)
   end
   
   it "should not get contaminated by cousins" do

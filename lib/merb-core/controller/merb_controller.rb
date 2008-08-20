@@ -131,7 +131,7 @@ class Merb::Controller < Merb::AbstractController
   #
   #---
   # @public
-  def _template_location(context, type = nil, controller = controller_name)
+  def _template_location(context, type, controller)
     _conditionally_append_extension(controller ? "#{controller}/#{context}" : "#{context}", type)
   end
   
@@ -243,7 +243,7 @@ class Merb::Controller < Merb::AbstractController
   private
 
   # If not already added, add the proper mime extension to the template path.
-  def _conditionally_append_extension(template, type = nil)
+  def _conditionally_append_extension(template, type)
     type && !template.match(/\.#{type.to_s.escape_regexp}$/) ? "#{template}.#{type}" : template
   end
 

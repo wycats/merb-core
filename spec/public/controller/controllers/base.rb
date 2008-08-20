@@ -31,6 +31,22 @@ module Merb::Test::Fixtures
       end
       hide_action :hidden
     end
+    
+    class FilteredParams < Testing
+      def index
+        "Index"
+      end
+      
+      def self._filter_params(params)
+        params.reject {|k,v| k == "password" }
+      end
+    end
+
+    class SetStatus < Testing
+      def index
+        self.status = "awesome"
+      end
+    end
 
   end
 end

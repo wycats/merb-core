@@ -106,3 +106,23 @@ describe Merb::Rack::Tracer do
 
   it_should_behave_like "transparent middleware"  
 end
+
+
+describe Merb::Rack::ContentLength do
+  before(:each) do
+    @app = Merb::Rack::Application.new
+    @middleware = Merb::Rack::ContentLength.new(@app)
+    @env        = Rack::MockRequest.env_for('/heavy/lifting')
+    
+    @result = @middleware.call(@env)
+    @body   = "Everyone loves Rack"
+  end
+
+  it_should_behave_like "rack application"
+
+  it_should_behave_like "transparent middleware"
+
+  it 'sets Content-Length header to response body size' do
+    @result[1]['Content-Length'].should == @body.size.to_s
+  end
+end
