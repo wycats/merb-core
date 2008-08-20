@@ -531,7 +531,7 @@ module Merb
       #     # => { :bar => "nik", :post => { :body => "heya" } }
       def query_parse(query_string, delimiter = '&;', preserve_order = false)
         query = preserve_order ? Dictionary.new : {}
-        (query_string || '').split(/[#{delimiter}] */n).each do |pair|
+        for pair in (query_string || '').split(/[#{delimiter}] */n)
           key, value = unescape(pair).split('=',2)
           normalize_params(query, key, value)
         end
