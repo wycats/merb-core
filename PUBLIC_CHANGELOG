@@ -1,3 +1,7 @@
+8/20/2008:
+* Merb::Config[:session_cookie_domain] is now     
+  Merb::Config[:default_cookie_domain]
+
 8/14/2008:
 *  Merb.orm_generator_scope and friends are renamed.
 ** Merb.orm_generator_scope => Merb.orm

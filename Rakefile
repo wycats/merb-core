@@ -179,9 +179,11 @@ task :aok => [:specs, :rcov]
 def setup_specs(name, spec_cmd='spec', run_opts = "-c")
   desc "Run all specs (#{name})"
   task "specs:#{name}" do
-    run_specs("spec/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
+    except = []
+    except += Dir["spec/**/memcache*_spec.rb"] if ENV['MEMCACHED'] == 'no'
+    run_specs("spec/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts, except)
   end
-
+  
   desc "Run private specs (#{name})"
   task "specs:#{name}:private" do
     run_specs("spec/private/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
@@ -191,7 +193,7 @@ def setup_specs(name, spec_cmd='spec', run_opts = "-c")
   task "specs:#{name}:public" do
     run_specs("spec/public/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
-
+  
   # With profiling formatter
   desc "Run all specs (#{name}) with profiling formatter"
   task "specs:#{name}_profiled" do
@@ -206,7 +208,7 @@ def setup_specs(name, spec_cmd='spec', run_opts = "-c")
   desc "Run public specs (#{name}) with profiling formatter"
   task "specs:#{name}_profiled:public" do
     run_specs("spec/public/**/*_spec.rb", spec_cmd, "-c -f o")
-  end
+  end  
 end
 
 setup_specs("mri", "spec")

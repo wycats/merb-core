@@ -69,17 +69,6 @@ module Merb
         FakeRequest.new(env, StringIO.new(req || ''))
       end
 
-      # ==== Parameters
-      # session<SessionStore>:: A suitable Merb session store instance.
-      # env<Hash>:: A hash of environment keys to be merged into the default list.
-      # opt<Hash>:: A hash of options (see below).
-      #
-      # ==== Returns
-      # FakeRequest:: A Request object that is built based on the parameters.
-      def fake_request_with_session(session, env = {}, opt = {})
-        fake_request(env.merge(Merb::Const::HTTP_COOKIE => "#{Merb::Config[:session_id_key]}=#{session.session_id}"), opt)
-      end
-
       # Dispatches an action to the given class. This bypasses the router and is
       # suitable for unit testing of controllers.
       #

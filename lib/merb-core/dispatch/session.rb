@@ -66,6 +66,13 @@ module Merb
         end
       end
       
+      # SESSIONTODO how to differentiate between different session stores in one active app?
+      
+      # Teardown and/or persist the current session.
+      def finalize_session
+        session.finalize(self) if session?
+      end
+      
       # Assign default cookie values
       def set_default_cookies
         if route && route.allow_fixation? && params.key?(_session_id_key)
@@ -108,9 +115,9 @@ module Merb
     # Hash:: The session that was extracted from the request object.
     def session(session_store = nil) request.session(session_store) end
     
-    # SESSIONTODO how to differentiate between different session stores in one active app?
+    # SESSIONTODO
     def finalize_session
-      request.session.finalize(request) if request.session?
+      request.finalize_session
     end  
       
     # Module methods
