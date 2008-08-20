@@ -66,11 +66,9 @@ module Merb
         end
       end
       
-      # SESSIONTODO how to differentiate between different session stores in one active app?
-      
-      # Teardown and/or persist the current session.
+      # Teardown and/or persist the current sessions.
       def finalize_session
-        session.finalize(self) if session?
+        session_stores.each { |store| store.finalize(self) }
       end
       
       # Assign default cookie values
