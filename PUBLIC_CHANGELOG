@@ -1,6 +1,9 @@
 8/20/2008:
 * Merb::Config[:session_cookie_domain] is now     
   Merb::Config[:default_cookie_domain]
+* Merb.registered_session_types is now Merb::Request.registered_session_types
+* When running in :development env, cookie-based sessions won't bother you 
+  by raising TamperedWithCookie anymore.
 
 8/14/2008:
 *  Merb.orm_generator_scope and friends are renamed.

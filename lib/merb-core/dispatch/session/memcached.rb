@@ -71,7 +71,6 @@ module Merb
             session = CACHE.get("session:#{session_id}")
           rescue => err
             Merb.logger.warn!("Could not persist session to MemCache: #{err.message}")
-            Merb::SessionMixin::persist_exception_callbacks.each {|x| x.call(err) }
           end
           if session.nil?
             # Not in memcached, but assume that cookie exists
@@ -104,7 +103,6 @@ module Merb
           CACHE.set("session:#{request.session.session_id}", self)
         rescue => err
           Merb.logger.debug("MemCache Error: #{err.message}")
-          Merb::SessionMixin::finalize_session_exception_callbacks.each {|x| x.call(err) }
         end
       end
       if needs_new_cookie || Merb::SessionMixin.needs_new_cookie
@@ -114,8 +112,8 @@ module Merb
 
     # Regenerate the session ID.
     def regenerate
-      @session_id = Merb::SessionMixin::rand_uuid
-      self.needs_new_cookie=true
+      self.session_id = Merb::SessionMixin::rand_uuid
+      refresh_expiration
     end
 
   end

@@ -54,7 +54,6 @@ module Merb
       def setup(request)
         unless request._session_secret_key && request._session_secret_key.length >= 16
           Merb.logger.warn("You must specify a session_secret_key in your init file, and it must be at least 16 characters\nbailing out...")
-          exit! #SESSIONTODO
         end
         request.session = Merb::CookieSession.new(Merb::SessionMixin::rand_uuid, request.session_cookie_value, request._session_secret_key)
         request.session._original_session_data = request.session.to_cookie
@@ -133,7 +132,7 @@ module Merb
         return {} if data.blank? || digest.blank?
         unless digest == generate_digest(data)
           clear
-          raise TamperedWithCookie, "Maybe the site's session_secret_key has changed?"
+          raise TamperedWithCookie, "Maybe the site's session_secret_key has changed?" unless Merb.env?(:development)
         end
         Marshal.load(Base64.decode64(data))
       end

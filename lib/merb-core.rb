@@ -354,23 +354,6 @@ module Merb
 
     Merb.klass_hashes = []
 
-    attr_reader :registered_session_types
-
-    # ==== Parameters
-    # name<~to_s>:: Name of the session type to register.
-    # file<String>:: The file that defines this session type.
-    # description<String>:: An optional description of the session type.
-    #
-    # ==== Notes
-    # Merb currently supports memory, cookie and memcache session types.
-    def register_session_type(name, file, class_name = nil)
-      @registered_session_types ||= Dictionary.new
-      @registered_session_types[name] = {
-        :file  => file,
-        :class => class_name || "#{name}_session".camel_case
-      }
-    end
-
     attr_accessor :frozen
 
     # ==== Returns
@@ -422,12 +405,6 @@ module Merb
     #
     # :use_mutex<Boolean>::       turns action dispatch synchronization
     #                             on or off, default is on (true)
-    #
-    # :session_id_key<String>::   session identifier,
-    #                             default is _session_id
-    #
-    # :session_store<String>::    session store to use (one of cookies,
-    #                             memcache or memory)
     #
     # :log_delimiter<String>::    what Merb logger uses as delimiter
     #                             between message sections, default is " ~ "
@@ -517,8 +494,6 @@ module Merb
     #     environment        "development"
     #     log_level          "debug"
     #     use_mutex          false
-    #     session_store      "cookie"
-    #     session_secret_key "0d05a226affa226623eb18700"
     #     exception_details  true
     #     reload_classes     true
     #     reload_time        0.5

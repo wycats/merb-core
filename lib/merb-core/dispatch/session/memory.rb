@@ -61,9 +61,9 @@ module Merb
     # Regenerate the Session ID
     def regenerate
       new_sid = Merb::SessionMixin::rand_uuid 
-      old_sid = @session_id
+      old_sid = self.session_id
       MemorySessionContainer[new_sid] = MemorySessionContainer[old_sid]
-      @session_id = new_sid
+      self.session_id = new_sid
       MemorySessionContainer.delete(old_sid)
       refresh_expiration
     end

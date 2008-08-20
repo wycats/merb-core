@@ -241,6 +241,7 @@ class Merb::AbstractController
   # MerbControllerError:: Invalid body content caught.
   def _dispatch(action=:to_s)
     self._before_dispatch_callbacks.each { |cb| cb.call(self) }
+    
     self.action_name = action
     
     caught = catch(:halt) do
@@ -262,6 +263,7 @@ class Merb::AbstractController
     start = Time.now
     _call_filters(_after_filters)
     @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
+    
     self._after_dispatch_callbacks.each { |cb| cb.call(self) }
     
     @body

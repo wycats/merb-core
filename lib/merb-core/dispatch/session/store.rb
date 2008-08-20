@@ -49,7 +49,7 @@ module Merb
     # Recreates the cookie with the default expiration time. Useful during log
     # in for pushing back the expiration date.
     def refresh_expiration 
-      self.needs_new_cookie=true 
+      self.needs_new_cookie = true 
     end
   
   end

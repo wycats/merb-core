@@ -1,12 +1,67 @@
 require 'merb-core/dispatch/session/store'
 
 module Merb
-  
   module SessionMixin
+    
+    # Session configuration options:
+    #
+    # :session_id_key           The key by which a session value/id is 
+    #                           retrieved; defaults to _session_id
+    # 
+    # :session_expiry           When to expire the session cookie; 
+    #                           defaults to 2 weeks
+    # 
+    # :session_secret_key       A secret string which is used to sign/validate 
+    #                           session data; min. 16 chars
+    # 
+    # :default_cookie_domain    The default domain to write cookies for.
+    
+    def self.included(base)
+      base.class_inheritable_accessor :_default_cookie_domain
+      base._default_cookie_domain = Merb::Config[:default_cookie_domain]
+      # Register a callback to finalize sessions
+      base._after_dispatch_callbacks << lambda { |c| c.request.finalize_session }
+    end
+    
+    # ==== Parameters
+    # session_store<String>:: The type of session store to access.
+    #
+    # ==== Returns
+    # Hash:: The session that was extracted from the request object.
+    def session(session_store = nil) request.session(session_store) end
+    
+    # Module methods
+
+    # ==== Returns
+    # String:: A random 32 character string for use as a unique session ID.
+    def rand_uuid
+      values = [
+        rand(0x0010000),
+        rand(0x0010000),
+        rand(0x0010000),
+        rand(0x0010000),
+        rand(0x0010000),
+        rand(0x1000000),
+        rand(0x1000000),
+      ]
+      "%04x%04x%04x%04x%04x%06x%06x" % values
+    end
+
+    # Marks this session as needing a new cookie.
+    def needs_new_cookie!
+      @_new_cookie = true
+    end
+    
+    def needs_new_cookie
+      @_new_cookie
+    end
+    
+    module_function :rand_uuid, :needs_new_cookie, :needs_new_cookie!
     
     module RequestMixin
       
       def self.included(base)
+        base.extend ClassMethods
         base.class_inheritable_accessor :_session_id_key, :_session_secret_key, 
                                         :_session_expiry, :_default_cookie_domain
 
@@ -14,6 +69,30 @@ module Merb
         base._session_expiry        = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
         base._session_secret_key    = Merb::Config[:session_secret_key]
         base._default_cookie_domain = Merb::Config[:default_cookie_domain]
+      end
+      
+      module ClassMethods
+        
+        # ==== Parameters
+        # name<~to_s>:: Name of the session type to register.
+        # file<String>:: The file that defines this session type.
+        # description<String>:: An optional description of the session type.
+        #
+        # ==== Notes
+        # Merb currently supports memory, cookie and memcache session types.
+        def register_session_type(name, file, class_name = nil)
+          self.registered_session_types[name] = {
+            :file  => file,
+            :class => class_name || "#{name}_session".camel_case
+          }
+        end
+
+        # === Returns
+        # Hash:: All registered session stores.
+        def registered_session_types
+          @@registered_session_types ||= Hash.new
+        end
+        
       end
       
       # The default session store type.
@@ -36,9 +115,9 @@ module Merb
       # cookie-based sessions.
       def session(session_store = nil)
         session_store ||= default_session_store
-        if Merb.registered_session_types[session_store]
+        if Merb::Request.registered_session_types[session_store]
           session_stores[session_store] ||= begin
-            session_store_class = Merb.const_get(Merb.registered_session_types[session_store][:class])
+            session_store_class = Merb.const_get(Merb::Request.registered_session_types[session_store][:class])
             session_store_class.setup(self)
           end
         else
@@ -68,8 +147,9 @@ module Merb
       
       # Teardown and/or persist the current sessions.
       def finalize_session
-        session_stores.each { |store| store.finalize(self) }
+        session_stores.each { |name, store| store.finalize(self) }
       end
+      alias :finalize_sessions :finalize_session
       
       # Assign default cookie values
       def set_default_cookies
@@ -99,94 +179,6 @@ module Merb
 
     end
     
-    def self.included(base)
-      base.class_inheritable_accessor :_default_cookie_domain
-      base._default_cookie_domain = Merb::Config[:default_cookie_domain]
-      
-      base._after_dispatch_callbacks << lambda { |c| c.finalize_session }
-    end
-    
-    # ==== Parameters
-    # session_store<String>:: The type of session store to access.
-    #
-    # ==== Returns
-    # Hash:: The session that was extracted from the request object.
-    def session(session_store = nil) request.session(session_store) end
-    
-    # SESSIONTODO
-    def finalize_session
-      request.finalize_session
-    end  
-      
-    # Module methods
-
-    @_finalize_session_exception_callbacks = []
-    @_persist_exception_callbacks = []
-    
-    # ==== Returns
-    # String:: A random 32 character string for use as a unique session ID.
-    def rand_uuid
-      values = [
-        rand(0x0010000),
-        rand(0x0010000),
-        rand(0x0010000),
-        rand(0x0010000),
-        rand(0x0010000),
-        rand(0x1000000),
-        rand(0x1000000),
-      ]
-      "%04x%04x%04x%04x%04x%06x%06x" % values
-    end
-
-    # Marks this session as needing a new cookie.
-    def needs_new_cookie!
-      @_new_cookie = true
-    end
-    
-    def needs_new_cookie
-      @_new_cookie
-    end
-
-    # Adds a callback to the list of callbacks run when
-    # exception is raised on session finalization, so
-    # you can recover.
-    #
-    # See session mixins documentation for details on
-    # session finalization.
-    #
-    # ==== Params
-    # &block::
-    #   A block to be added to the callbacks that will be executed
-    #   if there's exception on session finalization.
-    def finalize_session_exception_callbacks(&block)
-      if block_given?
-        @_finalize_session_exception_callbacks << block
-      else
-        @_finalize_session_exception_callbacks
-      end
-    end
-
-    # Adds a callback to the list of callbacks run when
-    # exception is raised on session persisting, so
-    # you can recover.
-    #
-    # See session mixins documentation for details on
-    # session persisting.
-    #
-    # ==== Params
-    # &block::
-    #   A block to be added to the callbacks that will be executed
-    #   if there's exception on session persisting.
-    def persist_exception_callbacks(&block)
-      if block_given?
-        @_persist_exception_callbacks << block
-      else
-        @_persist_exception_callbacks
-      end
-    end
-    
-    module_function :rand_uuid, :needs_new_cookie, :needs_new_cookie!, 
-      :finalize_session_exception_callbacks, :persist_exception_callbacks
   end
 
 end
