@@ -23,12 +23,8 @@ end
 describe "All session-stores mixed into Merb::Controller", :shared => true do
   
   it "should represent the controller session" do
-    
-    
-    Merb::Test::RequestHelper::FakeRequest.send(:include, ::Merb::SessionMixin::RequestMixin)
-    
     controller = dispatch_with_session_to(Merb::Test::Fixtures::Controllers::SessionsController, :index, @session)
-    controller.body.should == @session.class.session_store_type
+    controller.body.should == @session.class.session_store_type.to_s
     controller.request.session.should be_kind_of(@session_class)
     controller.request.session.session_id.should == @session.session_id
     controller.request.session_id == @session.session_id

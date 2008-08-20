@@ -19,7 +19,7 @@ describe Merb::MemcacheSession do
   it_should_behave_like "All session-store backends"
   
   it "should have a session_store_type class attribute" do
-    @session.class.session_store_type.should == "memcache"
+    @session.class.session_store_type.should == :memcache
   end
   
 end

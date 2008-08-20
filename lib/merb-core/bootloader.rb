@@ -572,11 +572,11 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
   # Mixin the available session containers.
   def self.run
     # Using in-memory sessions; sessions will be lost whenever the server stops.
-    Merb.register_session_type('memory', Merb.framework_root / "merb-core" / "dispatch" / "session" / "memory")
+    Merb.register_session_type(:memory, Merb.framework_root / "merb-core" / "dispatch" / "session" / "memory")
     # Using 'memcached' sessions.
-    Merb.register_session_type('memcache', Merb.framework_root /  "merb-core" / "dispatch" / "session" / "memcached")
+    Merb.register_session_type(:memcache, Merb.framework_root /  "merb-core" / "dispatch" / "session" / "memcached")
     # Using 'share-nothing' cookie sessions (4kb limit per client)
-    Merb.register_session_type('cookie', Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie")
+    Merb.register_session_type(:cookie, Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie")
     
     Merb::Request.send(:include, ::Merb::SessionMixin::RequestMixin)
     Merb::Controller.send(:include, ::Merb::SessionMixin)

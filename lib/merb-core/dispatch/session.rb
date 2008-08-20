@@ -18,7 +18,7 @@ module Merb
       
       # The default session store type.
       def default_session_store
-        Merb::Config[:session_store]
+        Merb::Config[:session_store] ? Merb::Config[:session_store].to_sym : nil
       end
       
       # ==== Returns
@@ -44,7 +44,7 @@ module Merb
         else
           Merb.logger.warn "Session store not found, '#{session_store}'."
           Merb.logger.warn "Defaulting to CookieStore Sessions"
-          session("cookie")
+          session(:cookie)
         end
       end
       

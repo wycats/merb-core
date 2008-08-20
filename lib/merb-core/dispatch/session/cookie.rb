@@ -62,9 +62,9 @@ module Merb
       end
 
       # ==== Returns
-      # String:: The session store type, i.e. "memory".
+      # Symbol:: The session store type, i.e. :memory.
       def session_store_type 
-        "cookie"
+        :cookie
       end
 
     end

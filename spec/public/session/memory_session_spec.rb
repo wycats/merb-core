@@ -16,7 +16,7 @@ describe Merb::MemorySession do
   it_should_behave_like "All session-store backends"
   
   it "should have a session_store_type class attribute" do
-    @session.class.session_store_type.should == "memory"
+    @session.class.session_store_type.should == :memory
   end
   
 end
