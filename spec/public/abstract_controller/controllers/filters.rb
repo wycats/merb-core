@@ -210,6 +210,16 @@ module Merb::Test::Fixtures
       end
     end
     
+    class ThrowNil < Testing
+      before do
+        throw :halt, nil
+      end
+      
+      def index
+        "Awesome"
+      end
+    end
+    
     class FilterChainError < Testing
       before do
         throw :halt, Merb

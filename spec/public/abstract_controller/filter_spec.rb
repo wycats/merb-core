@@ -109,6 +109,11 @@ describe Merb::AbstractController, " should support before and after filters" do
       raise_error(ArgumentError, /Threw :halt, Merb. Expected String/))
   end
   
+  it "should print useful HTML if throw :halt is called with nil" do
+    dispatch_should_make_body("ThrowNil", 
+      "<html><body><h1>Filter Chain Halted!</h1></body></html>")
+  end
+  
   it "should inherit before filters" do
     dispatch_should_make_body("FilterChild2", "Before Limited", :limited)
   end
