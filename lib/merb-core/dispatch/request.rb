@@ -3,8 +3,8 @@ require 'tempfile'
 module Merb
   
   class Request
-    # def env def session def route_params
-    attr_accessor :env, :session, :exceptions, :route
+    # def env def exceptions def route_params
+    attr_accessor :env, :exceptions, :route
     attr_reader :route_params
     
     # by setting these to false, auto-parsing is disabled; this way you can
@@ -207,6 +207,7 @@ module Merb
     end
     
     public
+    
     # ==== Returns
     # Mash:: All request parameters.
     #
@@ -239,38 +240,17 @@ module Merb
 
     # ==== Returns
     # Hash:: The cookies for this request.
+    #
+    # ==== Notes
+    # If a method #set_default_cookies is defined it will be called. This can
+    # be used for session fixation purposes for example.
     def cookies
       @cookies ||= begin 
         cookies = self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
-        if route && route.allow_fixation? && params.key?(Merb::Controller._session_id_key)
-          Merb.logger.info("Fixated session id: #{Merb::Controller._session_id_key}")
-          cookies[Merb::Controller._session_id_key] = params[Merb::Controller._session_id_key]
-        end
+        set_default_cookies if respond_to?(:set_default_cookies)
         cookies
       end
     end
-
-    # ==== Parameters
-    # session_id<String>:: The session id to track.
-    def set_session_id_cookie(session_id)
-      options = {}
-      options[:value]   = sid
-      options[:expires] = Time.now + (Merb::Config[:session_expiry] || Merb::Const::WEEK * 2)
-      options[:domain]  = Merb::Config[:session_cookie_domain]
-      cookies[Merb::Config[:session_id_key]] = options
-    end
-
-    # ==== Returns
-    # String:: The value of the session cookie; either the session id or the actual encoded data.
-    def session_cookie_value
-      cookies[Merb::Config[:session_id_key]]
-    end
-    alias :session_id :session_cookie_value
-    
-    def session_id_key
-      Merb::Config[:session_id_key]
-    end
-    
     
     # ==== Returns
     # String:: The raw post.

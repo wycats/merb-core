@@ -18,7 +18,6 @@ module Merb
           :environment            => "development",
           :merb_root              => Dir.pwd,
           :use_mutex              => true,
-          :session_id_key         => "_session_id",
           :log_delimiter          => " ~ ",
           :log_auto_flush         => false,
           :log_level              => :info,

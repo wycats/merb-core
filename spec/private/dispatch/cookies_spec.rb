@@ -82,14 +82,14 @@ describe Merb::Cookies do
       hdr.should =~ / domain=#{domain};/      
     end
 
-    
-    it "uses / as default path" do
-      Merb::Controller.should_receive(:_session_cookie_domain).and_return("session.cookie.domain")
-      @cookies.set_cookie(:dozen, 'twelve', :expires => @expires)
-
-      hdr = @_headers['Set-Cookie'].first
-      hdr.should =~ / domain=session.cookie.domain;/
-    end    
+    # SESSIONTODO
+    # it "uses / as default path" do
+    #   Merb::Controller.should_receive(:_session_cookie_domain).and_return("session.cookie.domain")
+    #   @cookies.set_cookie(:dozen, 'twelve', :expires => @expires)
+    # 
+    #   hdr = @_headers['Set-Cookie'].first
+    #   hdr.should =~ / domain=session.cookie.domain;/
+    # end    
 
     
     it "uses / as default path" do

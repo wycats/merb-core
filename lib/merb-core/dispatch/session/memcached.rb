@@ -8,14 +8,6 @@ module Merb
     # ==== Parameters
     # base<Class>:: The class to which the SessionMixin is mixed into.
     def setup_session
-      # orig_sid = cookies[_session_id_key]
-      # session = Merb::MemCacheSession.persist(orig_sid)
-      # request.session = session
-      # @_fingerprint = Marshal.dump(request.session).hash
-      # if session.session_id != orig_sid 
-      #   set_session_id_cookie(session.session_id)
-      # end
-      
       Merb::MemCacheSession.setup(request)
     end
 

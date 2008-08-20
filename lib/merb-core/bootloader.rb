@@ -582,11 +582,15 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
     Merb.register_session_type('cookie', # Last session type becomes the default
       Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie",
       "Using 'share-nothing' cookie sessions (4kb limit per client)")
-
+    
+    
+    Merb::Request.send(:include, ::Merb::SessionMixin::RequestMixin)
+    
+    
+    
     Merb::Controller.class_eval do
       
       include ::Merb::SessionMixin
-      Merb::BootLoader::MixinSessionContainer.update_session_cookie_attributes
       
       session_store = Merb::Config[:session_store].to_s
       
@@ -605,14 +609,14 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       end
     end
     
+    Merb::BootLoader::MixinSessionContainer.update_session_cookie_attributes
+    
     Merb.logger.flush
   end
   
   # Sets the config settings on the controller.
   def self.update_session_cookie_attributes
-    Merb::Controller._session_id_key = Merb::Config[:session_id_key]
-    Merb::Controller._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
-    Merb::Controller._session_cookie_domain = Merb::Config[:session_cookie_domain]
+    Merb::Config[:session_id_key] = "_session_id" #SESSIONTODO
   end
 
   # Attempts to set the session secret key. This method will exit if the key
@@ -622,7 +626,6 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       Merb.logger.warn("You must specify a session_secret_key in your init file, and it must be at least 16 characters\nbailing out...")
       exit!
     end
-    Merb::Controller._session_secret_key = Merb::Config[:session_secret_key]
   end
 end
 

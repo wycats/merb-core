@@ -11,9 +11,6 @@ module Merb
     # ==== Parameters
     # base<Class>:: The class to which the SessionMixin is mixed into.
     def setup_session
-      # request.session = Merb::CookieSession.new(cookies[_session_id_key], _session_secret_key)
-      # @original_session = request.session.to_cookie
-      
       Merb::CookieSession.setup(request)
     end
 
@@ -22,9 +19,9 @@ module Merb
     def finalize_session
       new_session_data = request.session.to_cookie
       if @original_session_data != new_session_data  
-        options = {:expires => (Time.now + _session_expiry)}
-        options[:domain] = _session_cookie_domain if _session_cookie_domain
-        cookies.set_cookie(Merb::Config[:session_id_key], new_session_data, options)
+        options = {:expires => (Time.now + request._session_expiry)}
+        options[:domain] = request._session_cookie_domain if request._session_cookie_domain
+        cookies.set_cookie(request._session_id_key, new_session_data, options)
       end
     end
 

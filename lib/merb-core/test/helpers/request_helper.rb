@@ -142,7 +142,7 @@ module Merb
       # @public
       def dispatch_with_session_to(controller_klass, action, session, params = {}, env = {}, &blk)
         dispatch_to(controller_klass, action, params, env) do |controller|
-          controller.cookies[Merb::Controller._session_id_key] = session.session_id
+          controller.cookies[controller.request._session_id_key] = session.session_id
           yield controller if block_given?
         end
       end

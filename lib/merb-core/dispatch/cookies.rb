@@ -68,7 +68,7 @@ module Merb
       options = Mash.new(options)
       options[:expires] = Time.at(0)
 
-      if domain = options[:domain] || Merb::Controller._session_cookie_domain
+      if domain = options[:domain] || Merb::Config[:session_cookie_domain]
         options[:domain] = domain
       end
 
@@ -93,7 +93,7 @@ module Merb
         options[:expires] = expiry.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
       end
       
-      if domain = options[:domain] || Merb::Controller._session_cookie_domain
+      if domain = options[:domain] || Merb::Config[:session_cookie_domain]
         options[:domain] = domain
       end
 
