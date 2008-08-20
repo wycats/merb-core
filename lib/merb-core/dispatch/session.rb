@@ -8,12 +8,12 @@ module Merb
       
       def self.included(base)
         base.class_inheritable_accessor :_session_id_key, :_session_secret_key, 
-                                        :_session_expiry, :_session_cookie_domain
+                                        :_session_expiry, :_default_cookie_domain
 
         base._session_id_key        = Merb::Config[:session_id_key] || '_session_id'
         base._session_expiry        = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
         base._session_secret_key    = Merb::Config[:session_secret_key]
-        base._session_cookie_domain = Merb::Config[:session_cookie_domain]
+        base._default_cookie_domain = Merb::Config[:default_cookie_domain]
       end
       
       # The default session store type.
@@ -87,7 +87,7 @@ module Merb
         options = {}
         options[:value]   = value
         options[:expires] = Time.now + (_session_expiry || Merb::Const::WEEK * 2)
-        options[:domain]  = _session_cookie_domain
+        options[:domain]  = _default_cookie_domain
         cookies[_session_id_key] = options
       end
       alias :set_session_id_cookie :set_session_cookie_value
@@ -102,8 +102,8 @@ module Merb
     end
     
     def self.included(base)
-      base.class_inheritable_accessor :_session_cookie_domain
-      base._session_cookie_domain = Merb::Config[:session_cookie_domain]
+      base.class_inheritable_accessor :_default_cookie_domain
+      base._default_cookie_domain = Merb::Config[:default_cookie_domain]
       
       base._after_dispatch_callbacks << lambda { |c| c.finalize_session }
     end
