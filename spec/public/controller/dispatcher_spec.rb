@@ -269,11 +269,11 @@ describe Merb::Dispatcher do
     end
     
     it "renders the default exception template" do
-      @controller.body.should have_selector("h1:contains(Standard Error)")
-      @controller.body.should have_selector("h2:contains(Big Error)")
-      
-      @controller.body.should have_selector("h1:contains(Load Error)")
-      @controller.body.should have_selector("h2:contains(Big Error)")
+      @controller.body.should have_xpath("//h1[contains(.,'Standard Error')]")
+      @controller.body.should have_xpath("//h2[contains(.,'Big error')]")
+
+      @controller.body.should have_xpath("//h1[contains(.,'Load Error')]")
+      @controller.body.should have_xpath("//h2[contains(.,'Big error')]")
     end
     
     it "returns a 500 status code" do
@@ -310,8 +310,8 @@ describe Merb::Dispatcher do
     end
     
     it "renders the default exception template" do
-      @controller.body.should have_selector("h1:contains(Not Found)")
-      @controller.body.should have_selector("h2:contains(Somehow, the thing)")
+      @controller.body.should have_xpath("//h1[contains(.,'Not Found')]")
+      @controller.body.should have_xpath("//h2[contains(.,'Somehow, the thing')]")
     end
     
     it "returns a 404 status code" do
@@ -347,7 +347,7 @@ describe Merb::Dispatcher do
     end
     
     it "renders the default exception template" do
-      @controller.body.should have_selector("h1:contains(Something failed here)")
+      @controller.body.should have_xpath("//h2[contains(.,'Something failed here')]")
     end
     
     it "returns a 500 status code" do
@@ -388,18 +388,18 @@ describe Merb::Dispatcher do
     end
     
     it "renders a list of links to the traces" do
-      @body.should have_selector("li a[@href=#exception_0]")
-      @body.should have_selector("li a[@href=#exception_1]")
-      @body.should have_selector("li a[@href=#exception_2]")
+      @body.should have_xpath("//li//a[@href='#exception_0']")
+      @body.should have_xpath("//li//a[@href='#exception_1']")
+      @body.should have_xpath("//li//a[@href='#exception_2']")
     end
     
     it "renders the default exception template" do
-      @body.should have_selector("h1:contains(Load Error)")
-      @body.should have_selector("h2:contains(In the controller)")
-      @body.should have_selector("h1:contains(Standard Error)")
-      @body.should have_selector("h2:contains(StandardError)")
-      @body.should have_selector("h1:contains(Exception)")
-      @body.should have_selector("h2:contains(Exception)")
+      @body.should have_xpath("//h1[contains(.,'Load Error')]")
+      @body.should have_xpath("//h2[contains(.,'In the controller')]")
+      @body.should have_xpath("//h1[contains(.,'Standard Error')]")
+      @body.should have_xpath("//h2[contains(.,'StandardError')]")
+      @body.should have_xpath("//h1[contains(.,'Exception')]")
+      @body.should have_xpath("//h2[contains(.,'Exception')]")
     end
     
     it "returns a 500 status code" do
