@@ -99,7 +99,7 @@ class Merb::AbstractController
   class_inheritable_accessor :_layout, :_template_root, :template_roots
   class_inheritable_accessor :_before_filters, :_after_filters
 
-  cattr_accessor :_abstract_subclasses, :_template_path_cache
+  cattr_accessor :_abstract_subclasses
 
   #---
   # @semipublic
@@ -420,23 +420,6 @@ class Merb::AbstractController
   # Method stub for finalizing up the session. This will be overriden by
   # session modules.
   def finalize_session() end  
-
-  # Handles the template cache (which is used by BootLoader to cache the list
-  # of all templates).
-  #
-  # ==== Parameters
-  # template<String>::
-  #   The full path to a template to add to the list of available templates
-  def self.add_path_to_template_cache(template)
-    return false if template.blank? || template.split("/").last.split(".").size != 3
-    key = template.match(/(.*)\.(.*)$/)[1]
-    self._template_path_cache[key] = template
-  end
-  
-  # Resets the template_path_cache to an empty hash
-  def self.reset_template_path_cache!
-    self._template_path_cache = {}
-  end  
   
   # ==== Parameters
   # name<~to_sym, Hash>:: The name of the URL to generate.
