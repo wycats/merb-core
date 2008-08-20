@@ -34,8 +34,11 @@ module Merb
       @session_id = session_id
     end
   
+    # Teardown and/or persist the current session.
+    #
+    # ==== Parameters
+    # request<Merb::Request>:: The Merb::Request that came in from Rack.
     def finalize(request)
-      p request
     end
   
     # Regenerate the Session ID

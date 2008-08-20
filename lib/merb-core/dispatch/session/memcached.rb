@@ -1,19 +1,5 @@
 module Merb
 
-  module SessionMixin
-
-    # Adds a before and after dispatch hook for setting up the memcached
-    # session store.
-    #
-    # ==== Parameters
-    # base<Class>:: The class to which the SessionMixin is mixed into.
-    def setup_session
-      Merb::MemCacheSession.setup(request)
-    end
-
-  end
-
-  ##
   # Sessions stored in memcached.
   #
   # Requires setup in your +init.rb+.
@@ -30,7 +16,7 @@ module Merb
   #   require 'memcached'
   #   CACHE = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
   #
-  class MemCacheSession < SessionStore
+  class MemcacheSession < SessionStore
 
     attr_accessor :_fingerprint
 
@@ -39,12 +25,13 @@ module Merb
       # Generates a new session ID and creates a new session.
       #
       # ==== Returns
-      # MemCacheSession:: The new session.
+      # MemcacheSession:: The new session.
       def generate
-        sid = Merb::SessionMixin::rand_uuid
-        new(sid)
+        new(Merb::SessionMixin::rand_uuid)
       end
 
+      # Setup a new session.
+      #
       # ==== Parameters
       # request<Merb::Request>:: The Merb::Request that came in from Rack.
       #
@@ -72,8 +59,8 @@ module Merb
       #
       # ==== Returns
       # Array::
-      #   A pair consisting of a MemCacheSession and the session's ID. If no
-      #   sessions matched session_id, a new MemCacheSession will be generated.
+      #   A pair consisting of a MemcacheSession and the session's ID. If no
+      #   sessions matched session_id, a new MemcacheSession will be generated.
       #
       # ==== Notes
       # If there are persisted exceptions callbacks to execute, they all get executed
@@ -94,12 +81,12 @@ module Merb
           # No cookie...make a new session_id
           session = generate
         end
-        if session.is_a?(MemCacheSession)
+        if session.is_a?(MemcacheSession)
           session
         else
           # Recreate using the existing session as the data, when switching 
           # from another session type for example, eg. cookie to memcached
-          session_object = MemCacheSession.new(session_id)
+          session_object = MemcacheSession.new(session_id)
           session_object.update session
           session_object
         end
@@ -107,6 +94,10 @@ module Merb
 
     end
     
+    # Teardown and/or persist the current session.
+    #
+    # ==== Parameters
+    # request<Merb::Request>:: The Merb::Request that came in from Rack.
     def finalize(request)
       if _fingerprint != Marshal.dump(self).hash
         begin

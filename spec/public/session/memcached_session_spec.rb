@@ -9,10 +9,10 @@ CACHE = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
 
 require "merb-core/dispatch/session/memcached"
 
-describe Merb::MemCacheSession do
+describe Merb::MemcacheSession do
   
   before do 
-    @session_class = Merb::MemCacheSession
+    @session_class = Merb::MemcacheSession
     @session = @session_class.generate
   end
   
@@ -24,10 +24,10 @@ describe Merb::MemCacheSession do
   
 end
 
-describe Merb::MemCacheSession, "mixed into Merb::Controller" do
+describe Merb::MemcacheSession, "mixed into Merb::Controller" do
   
   before(:all) do
-    @session_class = Merb::MemCacheSession
+    @session_class = Merb::MemcacheSession
     @session = @session_class.generate
   end
   

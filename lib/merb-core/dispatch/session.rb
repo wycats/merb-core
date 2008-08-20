@@ -7,7 +7,6 @@ module Merb
     module RequestMixin
       
       def self.included(base)
-        base.send :attr_accessor, :session
         base.class_inheritable_accessor :_session_id_key, :_session_secret_key, 
                                         :_session_expiry, :_session_cookie_domain
 
@@ -17,11 +16,54 @@ module Merb
         base._session_cookie_domain = Merb::Config[:session_cookie_domain]
       end
       
-      #SESSIONTODO - MEMOIZE session
+      # The default session store type.
+      def default_session_store
+        Merb::Config[:session_store]
+      end
+      
+      # ==== Returns
+      # Hash:: All active session stores by type.
+      def session_stores
+        @session_stores ||= {}
+      end
+      
+      # ==== Parameters
+      # session_store<String>:: The type of session store to access, 
+      # defaults to default_session_store.
+      #
+      # === Notes
+      # If no suitable session store type is given, it defaults to
+      # cookie-based sessions.
+      def session(session_store = nil)
+        session_store ||= default_session_store
+        if Merb.registered_session_types[session_store]
+          session_stores[session_store] ||= begin
+            session_store_class = Merb.const_get(Merb.registered_session_types[session_store][:class])
+            session_store_class.setup(self)
+          end
+        else
+          Merb.logger.warn "Session store not found, '#{session_store}'."
+          Merb.logger.warn "Defaulting to CookieStore Sessions"
+          session("cookie")
+        end
+      end
+      
+      # ==== Parameters
+      # new_session<Merb::SessionStore>:: A session store instance.
+      #
+      # === Notes
+      # The session is assigned internally by its session_store_type key.
+      def session=(new_session)
+        session_stores[new_session.class.session_store_type] = new_session
+      end
       
       # Whether a session has been setup
-      def session?
-        self.session.is_a?(Merb::SessionStore)
+      def session?(session_store = nil)
+        if session_store
+          session_stores[session_store].is_a?(Merb::SessionStore)
+        else
+          session_stores.any? { |type, store| store.is_a?(Merb::SessionStore) }
+        end
       end
       
       # Assign default cookie values
@@ -56,20 +98,17 @@ module Merb
       base.class_inheritable_accessor :_session_cookie_domain
       base._session_cookie_domain = Merb::Config[:session_cookie_domain]
       
-      base._before_dispatch_callbacks << lambda { |c| c.setup_session }
-      base._after_dispatch_callbacks  << lambda { |c| c.finalize_session }
+      base._after_dispatch_callbacks << lambda { |c| c.finalize_session }
     end
     
-    
+    # ==== Parameters
+    # session_store<String>:: The type of session store to access.
+    #
     # ==== Returns
     # Hash:: The session that was extracted from the request object.
-    def session() request.session end
+    def session(session_store = nil) request.session(session_store) end
     
-    
-    # Method stub for setting up the session. This will be overriden by session modules.
-    def setup_session()    end
-
-    # Method stub for finalizing up the session.
+    # SESSIONTODO how to differentiate between different session stores in one active app?
     def finalize_session
       request.session.finalize(request) if request.session?
     end  
@@ -141,7 +180,8 @@ module Merb
       end
     end
     
-    module_function :rand_uuid, :needs_new_cookie, :needs_new_cookie!, :finalize_session_exception_callbacks, :persist_exception_callbacks
+    module_function :rand_uuid, :needs_new_cookie, :needs_new_cookie!, 
+      :finalize_session_exception_callbacks, :persist_exception_callbacks
   end
 
 end

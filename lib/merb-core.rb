@@ -362,13 +362,12 @@ module Merb
     # description<String>:: An optional description of the session type.
     #
     # ==== Notes
-    # Merb currently supports memory, cookie and memcache session
-    # types.
-    def register_session_type(name, file, description = nil)
+    # Merb currently supports memory, cookie and memcache session types.
+    def register_session_type(name, file, class_name = nil)
       @registered_session_types ||= Dictionary.new
       @registered_session_types[name] = {
-        :file => file,
-        :description => (description || "Using #{name} sessions")
+        :file  => file,
+        :class => class_name || "#{name}_session".camel_case
       }
     end
 

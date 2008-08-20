@@ -1,17 +1,4 @@
 module Merb
-
-  module SessionMixin
-
-    # Adds a before and after dispatch hook for setting up the memory session
-    # store.
-    #
-    # ==== Parameters
-    # base<Class>:: The class to which the SessionMixin is mixed into.
-    def setup_session
-      Merb::MemorySession.setup(request)
-    end
-    
-  end
   
   # Sessions stored in memory.
   #
@@ -36,7 +23,9 @@ module Merb
         sid = Merb::SessionMixin::rand_uuid
         MemorySessionContainer[sid] = new(sid)
       end
-
+      
+      # Setup a new session.
+      #
       # ==== Parameters
       # request<Merb::Request>:: The Merb::Request that came in from Rack.
       #
@@ -59,6 +48,10 @@ module Merb
       
     end
     
+    # Teardown and/or persist the current session.
+    #
+    # ==== Parameters
+    # request<Merb::Request>:: The Merb::Request that came in from Rack.
     def finalize(request)
       if needs_new_cookie || Merb::SessionMixin.needs_new_cookie
         request.set_session_id_cookie(session_id)

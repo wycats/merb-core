@@ -35,7 +35,7 @@ describe Merb::CookieSession, "mixed into Merb::Controller" do
   
   it "should return stored session data" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :retrieve, {}, 
-      Merb::Const::HTTP_COOKIE => "#{Merb::Config[:session_id_key]}=#{store_sample_session_data}")
+      Merb::Const::HTTP_COOKIE => "#{Merb::Request._session_id_key}=#{store_sample_session_data}")
     controller.request.session[:foo].should == "bar"
   end
   

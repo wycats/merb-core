@@ -2,19 +2,6 @@ require 'base64'        # to convert Marshal.dump to ASCII
 require 'openssl'       # to generate the HMAC message digest
 # Most of this code is taken from bitsweat's implementation in rails
 module Merb
-
-  module SessionMixin
-
-    # Adds a before and after dispatch hook for setting up the cookie session
-    # store.
-    #
-    # ==== Parameters
-    # base<Class>:: The class to which the SessionMixin is mixed into.
-    def setup_session
-      Merb::CookieSession.setup(request)
-    end
-    
-  end
   
   # If you have more than 4K of session data or don't want your data to be
   # visible to the user, pick another session store.
@@ -53,9 +40,11 @@ module Merb
       # ==== Returns
       # SessionStore:: The new session.
       def generate
-        Merb::CookieSession.new(Merb::SessionMixin::rand_uuid, "", Merb::Config[:session_secret_key])
+        Merb::CookieSession.new(Merb::SessionMixin::rand_uuid, "", Merb::Request._session_secret_key)
       end
 
+      # Setup a new session.
+      #
       # ==== Parameters
       # request<Merb::Request>:: The Merb::Request that came in from Rack.
       #
@@ -63,7 +52,11 @@ module Merb
       # SessionStore:: a SessionStore. If no sessions were found, 
       # a new SessionStore will be generated.
       def setup(request)
-        request.session = Merb::CookieSession.new(Merb::SessionMixin::rand_uuid, request.session_cookie_value, Merb::Config[:session_secret_key])
+        unless request._session_secret_key && request._session_secret_key.length >= 16
+          Merb.logger.warn("You must specify a session_secret_key in your init file, and it must be at least 16 characters\nbailing out...")
+          exit! #SESSIONTODO
+        end
+        request.session = Merb::CookieSession.new(Merb::SessionMixin::rand_uuid, request.session_cookie_value, request._session_secret_key)
         request.session._original_session_data = request.session.to_cookie
         request.session
       end
@@ -92,6 +85,10 @@ module Merb
       self.update(cookie.blank? ? Hash.new : unmarshal(cookie))
     end
     
+    # Teardown and/or persist the current session.
+    #
+    # ==== Parameters
+    # request<Merb::Request>:: The Merb::Request that came in from Rack.
     def finalize(request)
       new_session_data = self.to_cookie
       request.set_session_cookie_value(new_session_data) if _original_session_data != new_session_data
