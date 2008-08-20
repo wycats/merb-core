@@ -160,7 +160,7 @@ class Merb::AbstractController
   # of controller/action.mime.type
   #---
   # @public
-  def _template_location(context, type = nil, controller = controller_name)
+  def _template_location(context, type, controller)
     controller ? "#{controller}/#{context}" : context
   end
 
@@ -237,7 +237,7 @@ class Merb::AbstractController
   #
   # ==== Raises
   # MerbControllerError:: Invalid body content caught.
-  def _dispatch(action=:to_s)
+  def _dispatch(action)
     setup_session
     self.action_name = action
     
@@ -255,7 +255,7 @@ class Merb::AbstractController
     when Symbol                   then __send__(caught)
     when Proc                     then caught.call(self)
     else
-      raise MerbControllerError, "The before filter chain is broken dude. wtf?"
+      raise ArgumentError, "Threw :halt, #{caught}. Expected String, nil, Symbol, Proc."
     end
     start = Time.now
     _call_filters(_after_filters)

@@ -188,6 +188,45 @@ module Merb::Test::Fixtures
       def foo(bar,baz)
         bar == "bar" && baz == "baz"
       end
-    end    
+    end
+    
+    class BeforeFilterWithThrowHalt < Testing
+      before do
+        throw :halt, "Halt thrown"
+      end
+      
+      def index
+        "Halt not thrown"
+      end      
+    end
+    
+    class BeforeFilterWithThrowProc < Testing
+      before do
+        throw :halt, Proc.new { "Proc thrown" }
+      end
+      
+      def index
+        "Proc not thrown"
+      end
+    end
+    
+    class FilterChainError < Testing
+      before do
+        throw :halt, Merb
+      end
+      
+      def index
+        "Awesome"
+      end
+    end
+    
+    class Benchmarking < Testing
+      before {}
+      after {}
+      
+      def index
+        "Awesome"
+      end
+    end
   end
 end
