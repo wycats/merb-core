@@ -7,12 +7,6 @@ describe Merb::Dispatcher do
   include Merb::Test::Rspec::ControllerMatchers
   include Merb::Test::Rspec::ViewMatchers
   
-  def with_level(level)
-    Merb.logger = Merb::Logger.new(StringIO.new, level)
-    yield
-    Merb.logger
-  end
-
   def dispatch(url)
     Merb::Dispatcher.handle(request_for(url))
   end
@@ -36,6 +30,11 @@ describe Merb::Dispatcher do
     it "dispatches to the right controller and action" do
       controller = dispatch(@url)
       controller.body.should == "Dispatched"
+    end
+    
+    it "has the correct status code" do
+      controller = dispatch(@url)
+      controller.status.should == 200
     end
     
     it "sets the Request#params to include the route params" do
@@ -93,11 +92,11 @@ describe Merb::Dispatcher do
     it "reports that it is redirecting via Logger#info" do
       with_level(:info) do
         dispatch(@url)
-      end.should include_log("Dispatcher redirecting to: /foo")
+      end.should include_log("Dispatcher redirecting to: /foo (301)")
       
       with_level(:warn) do
         dispatch(@url)
-      end.should_not include_log("Dispatcher redirecting to: /foo")
+      end.should_not include_log("Dispatcher redirecting to: /foo (301)")
     end
     
     it "sets the status correctly" do

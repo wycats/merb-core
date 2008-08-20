@@ -30,7 +30,7 @@ module Merb
         def matches?(target)
           target.log.rewind
           @text = target.log.read
-          @text =~ (String === @expected ? /#{@expected}/ : @expected)
+          @text =~ (String === @expected ? /#{Regexp.escape @expected}/ : @expected)
         end
         
         def failure_message
@@ -97,6 +97,12 @@ Spec::Runner.configure do |config|
   config.include Merb::Test::Helper
   config.include Merb::Test::RspecMatchers
   config.include Merb::Test::RequestHelper
+
+  def with_level(level)
+    Merb.logger = Merb::Logger.new(StringIO.new, level)
+    yield
+    Merb.logger
+  end
 
   def capture(stream)
     begin
