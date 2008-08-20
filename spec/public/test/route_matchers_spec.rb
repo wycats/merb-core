@@ -89,6 +89,10 @@ describe Merb::Test::Rspec::RouteMatchers do
           route_matcher = RouteToMatcher.new(TestController, :get)
           route_matcher.with(:id => "123")
         end
+
+        it "should work with an empty expectation" do
+          ParameterMatcher.new({}).matches?(:param => "abc").should be_false
+        end
       end
 
       describe "#failure_message" do
