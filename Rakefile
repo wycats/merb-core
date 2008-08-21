@@ -66,6 +66,8 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "rspec"
   s.add_dependency "rack"
   s.add_dependency "mime-types"
+  s.add_development_dependency "libxml-ruby"
+  s.add_development_dependency "memcache-client"
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
   s.required_ruby_version = ">= 1.8.6"
@@ -77,7 +79,7 @@ end
 
 desc "Run :package and install the resulting .gem"
 task :install => :package do
-  sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri}
+  sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri --development}
 end
 
 desc "Run :package and install the resulting .gem with jruby"
