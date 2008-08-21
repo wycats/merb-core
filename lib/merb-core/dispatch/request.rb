@@ -242,12 +242,13 @@ module Merb
     # Hash:: The cookies for this request.
     #
     # ==== Notes
-    # If a method #set_default_cookies is defined it will be called. This can
-    # be used for session fixation purposes for example.
+    # If a method #default_cookies is defined it will be called. This can
+    # be used for session fixation purposes for example. The method returns
+    # a Hash of key => value pairs.
     def cookies
       @cookies ||= begin 
         cookies = self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
-        set_default_cookies if respond_to?(:set_default_cookies)
+        cookies.update(default_cookies) if respond_to?(:default_cookies)
         cookies
       end
     end

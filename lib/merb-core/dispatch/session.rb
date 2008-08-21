@@ -141,11 +141,13 @@ module Merb
       alias :finalize_sessions :finalize_session
       
       # Assign default cookie values
-      def set_default_cookies
+      def default_cookies
+        defaults = {}
         if route && route.allow_fixation? && params.key?(_session_id_key)
           Merb.logger.info("Fixated session id: #{_session_id_key}")
-          cookies[_session_id_key] = params[_session_id_key]
+          defaults[_session_id_key] = params[_session_id_key]
         end
+        defaults
       end
       
       # ==== Parameters
