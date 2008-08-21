@@ -64,8 +64,9 @@ module Merb
         base.extend ClassMethods
         
         # Keep track of all known session store types.
-        base.cattr_accessor :registered_session_types
+        base.cattr_accessor :registered_session_types, :registered_session_classes
         base.registered_session_types = {}
+        base.registered_session_classes = []
         
         base.class_inheritable_accessor :_session_id_key, :_session_secret_key, 
                                         :_session_expiry, :_default_cookie_domain
@@ -88,7 +89,7 @@ module Merb
         def register_session_type(name, file, class_name = nil)
           self.registered_session_types[name] = {
             :file  => file,
-            :class => class_name || "#{name}_session".camel_case
+            :class => class_name || "Merb::" + "#{name}_session".camel_case
           }
         end
         
@@ -115,11 +116,11 @@ module Merb
       def session(session_store = nil)
         session_store ||= default_session_store
         if type = Merb::Request.registered_session_types[session_store]
-          session_stores[session_store] ||= Merb.const_get(type[:class]).setup(self)
-        else
+          session_stores[session_store] ||= Object.full_const_get(type[:class]).setup(self)
+        elsif fallback = Merb::Request.registered_session_types.keys.last
           Merb.logger.warn "Session store not found, '#{session_store}'."
           Merb.logger.warn "Defaulting to CookieStore Sessions"
-          session(:cookie)
+          session(fallback)
         end
       end
       

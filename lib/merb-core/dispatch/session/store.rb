@@ -6,6 +6,11 @@ module Merb
   
     class << self
   
+      # Register the subclass as an available session store type.
+      def inherited(subclass)
+        Merb::Request.registered_session_classes << subclass.to_s
+      end
+
       # Generates a new session ID and creates a new session.
       #
       # ==== Returns

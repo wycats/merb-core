@@ -574,15 +574,20 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
     Merb::Controller.send(:include, ::Merb::SessionMixin)
     Merb::Request.send(:include, ::Merb::SessionMixin::RequestMixin)
     
-    # Using in-memory sessions; sessions will be lost whenever the server stops.
-    Merb::Request.register_session_type(:memory, Merb.framework_root / "merb-core" / "dispatch" / "session" / "memory")
-    # Using 'memcached' sessions.
-    Merb::Request.register_session_type(:memcache, Merb.framework_root /  "merb-core" / "dispatch" / "session" / "memcached")
-    # Using 'share-nothing' cookie sessions (4kb limit per client)
-    Merb::Request.register_session_type(:cookie, Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie")
+    # Require all standard Merb session stores.
+    Dir[Merb.framework_root / "merb-core" / "dispatch" / "session" / "*.rb"].each do |file|
+      require file unless File.basename(file, ".rb") == "store"
+    end
     
-    # Load all registered session stores
-    Merb::Request.registered_session_types.each { |name, details| require details[:file] }
+    # Register all configured session stores - all loaded session store classes
+    # (subclassed from Merb::SessionStore) will be available for registration.
+    config_stores = Array(Merb::Config[:session_stores] || Merb::Config[:session_store])
+    Merb::Request.registered_session_classes.each do |class_name|
+      if( store = Object.full_const_get(class_name)) && 
+        config_stores.include?(store.session_store_type.to_s)
+          Merb::Request.register_session_type(store.session_store_type, class_name)
+      end
+    end
   end
 
 end
