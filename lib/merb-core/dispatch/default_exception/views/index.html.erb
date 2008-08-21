@@ -28,8 +28,10 @@
       <h3>Parameters</h3>
       <%= listing("Parameter", "Value", request.params) %>
 
+      <% if request.session? %>
       <h3>Session</h3>
       <%= listing("Key", "Value", request.session) %>
+      <% end %>
 
       <h3>Cookies</h3>
       <%= listing("Cookie", "Value", request.cookies) %>

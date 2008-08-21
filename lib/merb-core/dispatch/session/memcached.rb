@@ -5,7 +5,7 @@ module Merb
   # Requires setup in your +init.rb+.
   #
   #   require 'memcached'
-  #   CACHE = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
+  #   Merb::MemcacheSession.cache = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
   #
   # And a setting in +init.rb+:
   #
@@ -14,11 +14,12 @@ module Merb
   # If you are using the memcached gem instead of memcache-client, you must setup like this:
   #
   #   require 'memcached'
-  #   CACHE = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
+  #   Merb::MemcacheSession.cache = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
   #
   class MemcacheSession < SessionStore
 
     attr_accessor :_fingerprint
+    cattr_accessor :cache
 
     class << self
 
@@ -43,7 +44,6 @@ module Merb
         request.session = session
         # TODO Marshal.dump is slow - needs optimization
         session._fingerprint = Marshal.dump(request.session).hash
-        set_session_id_cookie(session.session_id) if session.session_id != request.session_id
         session
       end
       
@@ -69,14 +69,12 @@ module Merb
       def retrieve(session_id)
         unless session_id.blank?
           begin
-            session = CACHE.get("session:#{session_id}")
+            session = cache.get("session:#{session_id}")
           rescue => err
             Merb.logger.warn!("Could not persist session to MemCache: #{err.message}")
           end
-          if session.nil?
-            # Not in memcached, but assume that cookie exists
-            session = new(session_id)
-          end
+          # Not in memcached, but assume that cookie exists
+          session = new(session_id) if session.nil?
         else
           # No cookie...make a new session_id
           session = generate
@@ -99,7 +97,7 @@ module Merb
     def finalize(request)
       if _fingerprint != Marshal.dump(self).hash
         begin
-          CACHE.set("session:#{request.session.session_id}", self)
+          cache.set("session:#{request.session(:memcache).session_id}", self)
         rescue => err
           Merb.logger.debug("MemCache Error: #{err.message}")
         end

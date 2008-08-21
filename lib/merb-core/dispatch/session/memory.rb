@@ -33,13 +33,12 @@ module Merb
       # SessionStore:: a SessionStore. If no sessions were found, 
       # a new SessionStore will be generated.
       def setup(request)
-        unless (session_id = request.session_id).blank?
-          session = MemorySessionContainer[session_id]
+        session = unless (session_id = request.session_id).blank?
+          MemorySessionContainer[session_id] || generate
         else
-          session = generate
+          generate
         end
         request.session = session
-        request.set_session_id_cookie if session.session_id != session_id
         session
       end
       

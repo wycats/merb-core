@@ -52,10 +52,10 @@ module Merb
       # SessionStore:: a SessionStore. If no sessions were found, 
       # a new SessionStore will be generated.
       def setup(request) 
-        request.session = Merb::CookieSession.new(Merb::SessionMixin.rand_uuid, 
+        session = Merb::CookieSession.new(Merb::SessionMixin.rand_uuid, 
           request.session_cookie_value, request._session_secret_key)
-        request.session._original_session_data = request.session.to_cookie
-        request.session
+        session._original_session_data = session.to_cookie
+        request.session = session
       end
 
       # ==== Returns

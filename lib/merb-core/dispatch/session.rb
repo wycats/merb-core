@@ -3,6 +3,9 @@ require 'merb-core/dispatch/session/store'
 module Merb
   module SessionMixin
     
+    # Raised when no suitable session store has been setup.
+    class NoSessionStore < StandardError; end
+    
     # Session configuration options:
     #
     # :session_id_key           The key by which a session value/id is 
@@ -65,7 +68,7 @@ module Merb
         
         # Keep track of all known session store types.
         base.cattr_accessor :registered_session_types
-        base.registered_session_types = {}
+        base.registered_session_types = Dictionary.new
         base.class_inheritable_accessor :_session_id_key, :_session_secret_key, 
                                         :_session_expiry, :_default_cookie_domain
 
@@ -78,13 +81,13 @@ module Merb
       module ClassMethods
         
         # ==== Parameters
-        # name<Symbol>:: Name of the session type to register.
+        # name<~to_sym>:: Name of the session type to register.
         # class_name<String>:: The corresponding class name.
         #
         # === Notres
         # This is automatically called when Merb::SessionStore is subclassed.
         def register_session_type(name, class_name)
-          self.registered_session_types[name] = class_name
+          self.registered_session_types[name.to_sym] = class_name
         end
         
       end
@@ -109,12 +112,15 @@ module Merb
       # cookie-based sessions.
       def session(session_store = nil)
         session_store ||= default_session_store
-        if class_name = Merb::Request.registered_session_types[session_store]
+        if class_name = self.class.registered_session_types[session_store]
           session_stores[session_store] ||= Object.full_const_get(class_name).setup(self)
-        elsif fallback = Merb::Request.registered_session_types.keys.last
+        elsif fallback = self.class.registered_session_types.keys.first
           Merb.logger.warn "Session store not found, '#{session_store}'."
-          Merb.logger.warn "Defaulting to CookieStore Sessions"
+          Merb.logger.warn "Defaulting to #{fallback} sessions."
           session(fallback)
+        else
+          Merb.logger.error "Can't use sessions because no session store is available."
+          raise NoSessionStore, "No session store configured."
         end
       end
       
@@ -124,6 +130,12 @@ module Merb
       # === Notes
       # The session is assigned internally by its session_store_type key.
       def session=(new_session)
+        if self.session?(new_session.class.session_store_type)
+          original_session_id = self.session(new_session.class.session_store_type).session_id
+          if new_session.session_id != original_session_id
+            set_session_id_cookie(new_session.session_id)
+          end
+        end
         session_stores[new_session.class.session_store_type] = new_session
       end
       

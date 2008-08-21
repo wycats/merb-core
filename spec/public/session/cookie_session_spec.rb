@@ -4,8 +4,6 @@ require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 require File.join(File.dirname(__FILE__), "session_spec")
 require File.join(File.dirname(__FILE__), "controllers", "sessions")
 
-require "merb-core/dispatch/session/cookie"
-
 describe Merb::CookieSession do
   
   before do 
@@ -22,6 +20,10 @@ describe Merb::CookieSession do
 end
 
 describe Merb::CookieSession, "mixed into Merb::Controller" do
+ 
+  it "should be present in Merb::Request.registered_session_types" do
+    Merb::Request.registered_session_types[:cookie].should == "Merb::CookieSession"
+  end
  
   it "should represent the controller session" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :index)

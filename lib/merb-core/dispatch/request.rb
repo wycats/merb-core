@@ -246,10 +246,9 @@ module Merb
     # be used for session fixation purposes for example. The method returns
     # a Hash of key => value pairs.
     def cookies
-      @cookies ||= begin 
+      @cookies ||= begin
         cookies = self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
         cookies.update(default_cookies) if respond_to?(:default_cookies)
-        cookies
       end
     end
     

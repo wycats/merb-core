@@ -108,7 +108,7 @@ module Merb
       # controller_klass<Controller>::
       #   The controller class object that the action should be dispatched to.
       # action<Symbol>:: The action name, as a symbol.
-      # session<SessionStore>:: A suitable Merb session store instance.
+      # session_id<String>:: The session id to track.
       # params<Hash>::
       #   An optional hash that will end up as params in the controller instance.
       # env<Hash>::
@@ -129,9 +129,9 @@ module Merb
       #
       #---
       # @public
-      def dispatch_with_session_to(controller_klass, action, session, params = {}, env = {})
+      def dispatch_with_session_to(controller_klass, action, session_id, params = {}, env = {})
         dispatch_to(controller_klass, action, params, env) do |controller|
-          controller.cookies[controller.request._session_id_key] = session.session_id
+          controller.cookies[controller.request._session_id_key] = session_id
           yield controller if block_given?
         end
       end

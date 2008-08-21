@@ -4,8 +4,6 @@ require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 require File.join(File.dirname(__FILE__), "session_spec")
 require File.join(File.dirname(__FILE__), "controllers", "sessions")
 
-require "merb-core/dispatch/session/memory"
-
 describe Merb::MemorySession do
   
   before do 
