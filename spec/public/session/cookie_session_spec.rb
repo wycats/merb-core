@@ -30,19 +30,37 @@ describe Merb::CookieSession, "mixed into Merb::Controller" do
   end
   
   it "should store session data" do
-    store_sample_session_data
+    store_sample_session
   end
   
   it "should return stored session data" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :retrieve, {}, 
-      Merb::Const::HTTP_COOKIE => "#{Merb::Request._session_id_key}=#{store_sample_session_data}")
+      Merb::Const::HTTP_COOKIE => "#{Merb::Request._session_id_key}=#{store_sample_session.to_cookie}")
     controller.request.session[:foo].should == "bar"
   end
   
-  def store_sample_session_data
+  it "shouldn't allow tampering with cookie data" do
+    session = store_sample_session
+    original_checksum = session.to_cookie.split('--').last
+    session[:foo] = "booz" # tamper with the data itself
+    cookie_data, cookie_checksum = session.to_cookie.split('--')
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :retrieve, {}, 
+      Merb::Const::HTTP_COOKIE => "#{Merb::Request._session_id_key}=#{cookie_data}--#{original_checksum}")
+    lambda { controller.request.session }.should raise_error(Merb::CookieSession::TamperedWithCookie)
+  end
+  
+  it "shouldn't allow tampering with cookie fingerprints" do
+    cookie_data, cookie_checksum = store_sample_session.to_cookie.split('--')
+    cookie_checksum = cookie_checksum.reverse # tamper with the fingerprint
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :retrieve, {}, 
+      Merb::Const::HTTP_COOKIE => "#{Merb::Request._session_id_key}=#{cookie_data}--#{cookie_checksum}")
+    lambda { controller.request.session }.should raise_error(Merb::CookieSession::TamperedWithCookie)
+  end
+  
+  def store_sample_session
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :index, :foo => "bar")
     controller.request.session[:foo].should == "bar"
-    controller.request.session.to_cookie
+    controller.request.session
   end
   
 end
