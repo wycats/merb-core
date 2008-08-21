@@ -64,10 +64,8 @@ module Merb
         base.extend ClassMethods
         
         # Keep track of all known session store types.
-        base.cattr_accessor :registered_session_types, :registered_session_classes
+        base.cattr_accessor :registered_session_types
         base.registered_session_types = {}
-        base.registered_session_classes = []
-        
         base.class_inheritable_accessor :_session_id_key, :_session_secret_key, 
                                         :_session_expiry, :_default_cookie_domain
 
@@ -80,17 +78,13 @@ module Merb
       module ClassMethods
         
         # ==== Parameters
-        # name<~to_s>:: Name of the session type to register.
-        # file<String>:: The file that defines this session type.
-        # description<String>:: An optional description of the session type.
+        # name<Symbol>:: Name of the session type to register.
+        # class_name<String>:: The corresponding class name.
         #
-        # ==== Notes
-        # Merb currently supports memory, cookie and memcache session types.
-        def register_session_type(name, file, class_name = nil)
-          self.registered_session_types[name] = {
-            :file  => file,
-            :class => class_name || "Merb::" + "#{name}_session".camel_case
-          }
+        # === Notres
+        # This is automatically called when Merb::SessionStore is subclassed.
+        def register_session_type(name, class_name)
+          self.registered_session_types[name] = class_name
         end
         
       end
@@ -115,8 +109,8 @@ module Merb
       # cookie-based sessions.
       def session(session_store = nil)
         session_store ||= default_session_store
-        if type = Merb::Request.registered_session_types[session_store]
-          session_stores[session_store] ||= Object.full_const_get(type[:class]).setup(self)
+        if class_name = Merb::Request.registered_session_types[session_store]
+          session_stores[session_store] ||= Object.full_const_get(class_name).setup(self)
         elsif fallback = Merb::Request.registered_session_types.keys.last
           Merb.logger.warn "Session store not found, '#{session_store}'."
           Merb.logger.warn "Defaulting to CookieStore Sessions"

@@ -1,14 +1,18 @@
 module Merb
   class SessionStore < Hash
   
+    cattr_accessor :subclasses
+    self.subclasses = []
+  
     attr_reader :session_id
     attr_accessor :needs_new_cookie
   
     class << self
   
       # Register the subclass as an available session store type.
-      def inherited(subclass)
-        Merb::Request.registered_session_classes << subclass.to_s
+      def inherited(klass)
+        subclasses << klass.to_s
+        super
       end
 
       # Generates a new session ID and creates a new session.

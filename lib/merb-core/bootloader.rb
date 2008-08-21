@@ -579,10 +579,10 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
       require file unless File.basename(file, ".rb") == "store"
     end
     
-    # Register all configured session stores - all loaded session store classes
+    # Register all configured session stores - any loaded session store class
     # (subclassed from Merb::SessionStore) will be available for registration.
     config_stores = Array(Merb::Config[:session_stores] || Merb::Config[:session_store])
-    Merb::Request.registered_session_classes.each do |class_name|
+    Merb::SessionStore.subclasses.each do |class_name|
       if( store = Object.full_const_get(class_name)) && 
         config_stores.include?(store.session_store_type.to_s)
           Merb::Request.register_session_type(store.session_store_type, class_name)
