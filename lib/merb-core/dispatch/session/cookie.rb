@@ -40,7 +40,7 @@ module Merb
       # ==== Returns
       # SessionStore:: The new session.
       def generate
-        Merb::CookieSession.new(Merb::SessionMixin::rand_uuid, "", Merb::Request._session_secret_key)
+        Merb::CookieSession.new(Merb::SessionMixin.rand_uuid, "", Merb::Request._session_secret_key)
       end
 
       # Setup a new session.
@@ -51,11 +51,9 @@ module Merb
       # ==== Returns
       # SessionStore:: a SessionStore. If no sessions were found, 
       # a new SessionStore will be generated.
-      def setup(request)
-        unless request._session_secret_key && request._session_secret_key.length >= 16
-          Merb.logger.warn("You must specify a session_secret_key in your init file, and it must be at least 16 characters\nbailing out...")
-        end
-        request.session = Merb::CookieSession.new(Merb::SessionMixin::rand_uuid, request.session_cookie_value, request._session_secret_key)
+      def setup(request) 
+        request.session = Merb::CookieSession.new(Merb::SessionMixin.rand_uuid, 
+          request.session_cookie_value, request._session_secret_key)
         request.session._original_session_data = request.session.to_cookie
         request.session
       end
@@ -77,7 +75,8 @@ module Merb
     # ArgumentError:: Nil or blank secret.
     def initialize(session_id, cookie, secret)
       super session_id
-      if secret.nil? || secret.blank?
+      if secret.blank? || secret.length < 16
+        Merb.logger.warn("You must specify a session_secret_key in your init file, and it must be at least 16 characters")
         raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data.'
       end
       @secret = secret
@@ -89,8 +88,9 @@ module Merb
     # ==== Parameters
     # request<Merb::Request>:: The Merb::Request that came in from Rack.
     def finalize(request)
-      new_session_data = self.to_cookie
-      request.set_session_cookie_value(new_session_data) if _original_session_data != new_session_data
+      if _original_session_data != (new_session_data = self.to_cookie)
+        request.set_session_cookie_value(new_session_data)
+      end
     end    
     
     # Create the raw cookie string; includes an HMAC keyed message digest.
@@ -132,7 +132,9 @@ module Merb
         return {} if data.blank? || digest.blank?
         unless digest == generate_digest(data)
           clear
-          raise TamperedWithCookie, "Maybe the site's session_secret_key has changed?" unless Merb.env?(:development)
+          unless Merb::Config[:ignore_tampered_cookies]
+            raise TamperedWithCookie, "Maybe the site's session_secret_key has changed?"
+          end
         end
         Marshal.load(Base64.decode64(data))
       end

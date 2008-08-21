@@ -416,23 +416,6 @@ class Merb::AbstractController
   #---
   # Defaults that can be overridden by plugins, other mixins, or subclasses
   def _filters_halted()   "<html><body><h1>Filter Chain Halted!</h1></body></html>"  end
-
-  # Handles the template cache (which is used by BootLoader to cache the list
-  # of all templates).
-  #
-  # ==== Parameters
-  # template<String>::
-  #   The full path to a template to add to the list of available templates
-  def self.add_path_to_template_cache(template)
-    return false if template.blank? || template.split("/").last.split(".").size != 3
-    key = template.match(/(.*)\.(.*)$/)[1]
-    self._template_path_cache[key] = template
-  end
-  
-  # Resets the template_path_cache to an empty hash
-  def self.reset_template_path_cache!
-    self._template_path_cache = {}
-  end  
   
   # ==== Parameters
   # name<~to_sym, Hash>:: The name of the URL to generate.

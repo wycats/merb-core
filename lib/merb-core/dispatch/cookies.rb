@@ -10,9 +10,11 @@ module Merb
     # ==== Parameters
     # request_cookies<Hash>:: Initial cookie store.
     # headers<Hash>:: The response headers.
-    def initialize(request_cookies, headers)
+    # default_domain<String>:: The default cookie domain.
+    def initialize(request_cookies, headers, default_domain = nil)
       @_cookies = request_cookies
       @_headers = headers
+      @_default_domain = default_domain
     end
 
     # ==== Parameters
@@ -68,10 +70,6 @@ module Merb
       options = Mash.new(options)
       options[:expires] = Time.at(0)
 
-      if domain = options[:domain] || Merb::Config[:default_cookie_domain]
-        options[:domain] = domain
-      end
-
       set_cookie(name, "", options)
       Merb.logger.info("Cookie deleted: #{name} => #{cookie.inspect}")
       cookie
@@ -93,7 +91,7 @@ module Merb
         options[:expires] = expiry.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
       end
       
-      if domain = options[:domain] || Merb::Config[:default_cookie_domain]
+      if domain = options[:domain] || @_default_domain
         options[:domain] = domain
       end
 

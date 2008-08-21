@@ -1,3 +1,7 @@
+8/21/2008:
+* Added Merb::Config[:ignore_tampered_cookies] option to skip cookie warnings   
+  during development. This defaults to 'on' in the development environment.
+
 8/20/2008:
 * Merb::Config[:session_cookie_domain] is now     
   Merb::Config[:default_cookie_domain]

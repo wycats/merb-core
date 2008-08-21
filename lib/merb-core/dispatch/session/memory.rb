@@ -20,7 +20,7 @@ module Merb
       # ==== Returns
       # MemorySession:: The new session.
       def generate
-        sid = Merb::SessionMixin::rand_uuid
+        sid = Merb::SessionMixin.rand_uuid
         MemorySessionContainer[sid] = new(sid)
       end
       
@@ -33,8 +33,11 @@ module Merb
       # SessionStore:: a SessionStore. If no sessions were found, 
       # a new SessionStore will be generated.
       def setup(request)
-        session_id = request.session_id
-        session = session_id.blank? ? generate : MemorySessionContainer[session_id] || generate
+        unless (session_id = request.session_id).blank?
+          session = MemorySessionContainer[session_id]
+        else
+          session = generate
+        end
         request.session = session
         request.set_session_id_cookie if session.session_id != session_id
         session
@@ -60,12 +63,10 @@ module Merb
     
     # Regenerate the Session ID
     def regenerate
-      new_sid = Merb::SessionMixin::rand_uuid 
-      old_sid = self.session_id
-      MemorySessionContainer[new_sid] = MemorySessionContainer[old_sid]
+      new_sid = Merb::SessionMixin.rand_uuid 
+      old_sid = session_id
+      MemorySessionContainer[new_sid] = MemorySessionContainer.delete(old_sid)
       self.session_id = new_sid
-      MemorySessionContainer.delete(old_sid)
-      refresh_expiration
     end
     
   end

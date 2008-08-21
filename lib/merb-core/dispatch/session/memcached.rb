@@ -27,7 +27,7 @@ module Merb
       # ==== Returns
       # MemcacheSession:: The new session.
       def generate
-        new(Merb::SessionMixin::rand_uuid)
+        new(Merb::SessionMixin.rand_uuid)
       end
 
       # Setup a new session.
@@ -41,6 +41,7 @@ module Merb
       def setup(request)
         session = retrieve(request.session_id)
         request.session = session
+        # TODO Marshal.dump is slow - needs optimization
         session._fingerprint = Marshal.dump(request.session).hash
         set_session_id_cookie(session.session_id) if session.session_id != request.session_id
         session
@@ -85,9 +86,7 @@ module Merb
         else
           # Recreate using the existing session as the data, when switching 
           # from another session type for example, eg. cookie to memcached
-          session_object = MemcacheSession.new(session_id)
-          session_object.update session
-          session_object
+          MemcacheSession.new(session_id).update(session)
         end
       end
 
@@ -112,8 +111,7 @@ module Merb
 
     # Regenerate the session ID.
     def regenerate
-      self.session_id = Merb::SessionMixin::rand_uuid
-      refresh_expiration
+      self.session_id = Merb::SessionMixin.rand_uuid
     end
 
   end

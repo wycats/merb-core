@@ -1,7 +1,7 @@
 module Merb
   class SessionStore < Hash
   
-    attr_accessor :session_id
+    attr_reader :session_id
     attr_accessor :needs_new_cookie
   
     class << self
@@ -40,16 +40,18 @@ module Merb
     # request<Merb::Request>:: The Merb::Request that came in from Rack.
     def finalize(request)
     end
+    
+    # Assign a new session_id.
+    #
+    # Recreates the cookie with the default expiration time. Useful during log
+    # in for pushing back the expiration date.
+    def session_id=(sid)
+      self.needs_new_cookie = true 
+      @session_id = sid
+    end
   
     # Regenerate the Session ID
     def regenerate
-      refresh_expiration
-    end
-  
-    # Recreates the cookie with the default expiration time. Useful during log
-    # in for pushing back the expiration date.
-    def refresh_expiration 
-      self.needs_new_cookie = true 
     end
   
   end

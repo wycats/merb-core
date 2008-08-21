@@ -62,6 +62,11 @@ module Merb
       
       def self.included(base)
         base.extend ClassMethods
+        
+        # Keep track of all known session store types.
+        base.cattr_accessor :registered_session_types
+        base.registered_session_types = {}
+        
         base.class_inheritable_accessor :_session_id_key, :_session_secret_key, 
                                         :_session_expiry, :_default_cookie_domain
 
@@ -86,18 +91,12 @@ module Merb
             :class => class_name || "#{name}_session".camel_case
           }
         end
-
-        # === Returns
-        # Hash:: All registered session stores.
-        def registered_session_types
-          @@registered_session_types ||= Hash.new
-        end
         
       end
       
       # The default session store type.
       def default_session_store
-        Merb::Config[:session_store] ? Merb::Config[:session_store].to_sym : nil
+        Merb::Config[:session_store] && Merb::Config[:session_store].to_sym
       end
       
       # ==== Returns
@@ -115,11 +114,8 @@ module Merb
       # cookie-based sessions.
       def session(session_store = nil)
         session_store ||= default_session_store
-        if Merb::Request.registered_session_types[session_store]
-          session_stores[session_store] ||= begin
-            session_store_class = Merb.const_get(Merb::Request.registered_session_types[session_store][:class])
-            session_store_class.setup(self)
-          end
+        if type = Merb::Request.registered_session_types[session_store]
+          session_stores[session_store] ||= Merb.const_get(type[:class]).setup(self)
         else
           Merb.logger.warn "Session store not found, '#{session_store}'."
           Merb.logger.warn "Defaulting to CookieStore Sessions"
@@ -138,10 +134,8 @@ module Merb
       
       # Whether a session has been setup
       def session?(session_store = nil)
-        if session_store
-          session_stores[session_store].is_a?(Merb::SessionStore)
-        else
-          session_stores.any? { |type, store| store.is_a?(Merb::SessionStore) }
+        (session_store ? [session_store] : session_stores).any? do |type, store|
+          store.is_a?(Merb::SessionStore)
         end
       end
       

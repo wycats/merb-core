@@ -1,9 +1,10 @@
 class Merb::Controller < Merb::AbstractController
 
-  class_inheritable_accessor :_hidden_actions, :_shown_actions
+  class_inheritable_accessor :_hidden_actions, :_shown_actions, 
+                              :_default_cookie_domain
 
   self._hidden_actions ||= []
-  self._shown_actions ||= []
+  self._shown_actions  ||= []
   
   cattr_accessor :_subclasses
   self._subclasses = Set.new
@@ -226,7 +227,10 @@ class Merb::Controller < Merb::AbstractController
   # ==== Notes
   # Headers are passed into the cookie object so that you can do:
   #   cookies[:foo] = "bar"
-  def cookies() @_cookies ||= _setup_cookies end
+  def cookies
+    @_cookies ||= ::Merb::Cookies.new(request.cookies, @headers, 
+      _default_cookie_domain || Merb::Config[:default_cookie_domain])
+  end
   
   # The results of the controller's render, to be returned to Rack.
   #
@@ -245,10 +249,5 @@ class Merb::Controller < Merb::AbstractController
   # If not already added, add the proper mime extension to the template path.
   def _conditionally_append_extension(template, type)
     type && !template.match(/\.#{type.to_s.escape_regexp}$/) ? "#{template}.#{type}" : template
-  end
-
-  # Create a default cookie jar, and pre-set a fixation cookie if fixation is enabled.
-  def _setup_cookies
-    ::Merb::Cookies.new(request.cookies, @headers)
   end
 end

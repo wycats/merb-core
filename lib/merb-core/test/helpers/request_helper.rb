@@ -115,9 +115,6 @@ module Merb
       #   An optional hash that is passed to the fake request. Any request options
       #   should go here (see +fake_request+), including :req or :post_body
       #   for setting the request body itself.
-      # &blk::
-      #   The controller is yielded to the block provided for actions *prior* to
-      #   the action being dispatched.
       #
       # ==== Example
       #   dispatch_to(MyController, :create, session, :name => 'Homer' ) do |controller|
@@ -127,9 +124,12 @@ module Merb
       # ==== Notes
       # Does not use routes.
       #
+      # The controller is yielded to the block provided (if any) for actions *prior* to
+      # the action being dispatched.
+      #
       #---
       # @public
-      def dispatch_with_session_to(controller_klass, action, session, params = {}, env = {}, &blk)
+      def dispatch_with_session_to(controller_klass, action, session, params = {}, env = {})
         dispatch_to(controller_klass, action, params, env) do |controller|
           controller.cookies[controller.request._session_id_key] = session.session_id
           yield controller if block_given?
