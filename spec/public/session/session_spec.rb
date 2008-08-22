@@ -47,5 +47,15 @@ describe "All session-stores mixed into Merb::Controller", :shared => true do
       controller.request.session[:foo].should == session_store_type
     end    
   end
+  
+  it "should allow regeneration of the session" do
+    session_store_type = @session_class.session_store_type.to_s
+    with_cookies(@controller_klass) do
+      controller = dispatch_to(@controller_klass, :index, :foo => session_store_type)
+      controller = dispatch_to(@controller_klass, :regenerate)
+      controller = dispatch_to(@controller_klass, :retrieve)
+      controller.request.session[:foo].should == session_store_type
+    end    
+  end
     
 end

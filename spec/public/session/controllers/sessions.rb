@@ -13,6 +13,10 @@ module Merb::Test::Fixtures
         Merb::Config[:session_store]
       end
       
+      def regenerate
+        request.session.regenerate
+      end
+      
       def retrieve
       end
     

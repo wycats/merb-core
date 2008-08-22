@@ -36,11 +36,16 @@ describe Merb::CookieSession, "mixed into Merb::Controller" do
     
       controller = dispatch_to(@controller_klass, :retrieve)
       controller.request.session[:foo].should == "cookie"
-      
-      controller = dispatch_to(@controller_klass, :index, :foo => "bar")
-      controller = dispatch_to(@controller_klass, :retrieve)
-      controller.request.session[:foo].should == "bar"
     end
+  end
+  
+  it "should allow regeneration of the session" do
+    with_cookies(@controller_klass) do
+      controller = dispatch_to(@controller_klass, :index, :foo => "cookie")
+      controller = dispatch_to(@controller_klass, :regenerate)
+      controller = dispatch_to(@controller_klass, :retrieve)
+      controller.request.session[:foo].should == "cookie"
+    end    
   end
     
   it "shouldn't allow tampering with cookie data" do

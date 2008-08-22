@@ -90,18 +90,6 @@ module Merb
         self
       end
 
-      # Creates a new session based on the options.
-      #
-      # ==== Parameters
-      # opts<Hash>:: The session options (see below).
-      #
-      # ==== Options (opts)
-      # :session_id<String>:: ID of the session to create in the container.
-      # :data<MemorySession>:: The session to create in the container.
-      def create(opts={})
-        self[opts[:session_id]] = opts[:data]
-      end
-
       # ==== Parameters
       # key<String>:: ID of the session to retrieve.
       #
@@ -121,15 +109,15 @@ module Merb
         @mutex.synchronize {
           @timestamps[key] = Time.now
           @sessions[key] = val
-        } 
+        }
       end
 
       # ==== Parameters
       # key<String>:: ID of the session to delete.
       def delete(key)
         @mutex.synchronize {
-          @sessions.delete(key)
           @timestamps.delete(key)
+          @sessions.delete(key)
         }
       end
 
@@ -163,5 +151,3 @@ module Merb
 
   end # end MemorySessionContainer
 end
-
-Merb::MemorySessionContainer.setup(Merb::Config[:memory_session_ttl])
