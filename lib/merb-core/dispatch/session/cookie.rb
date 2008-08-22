@@ -80,7 +80,7 @@ module Merb
         raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data.'
       end
       @secret = secret
-      self.update(cookie.blank? ? Hash.new : unmarshal(cookie))
+      self.update(cookie.blank? ? {} : unmarshal(cookie))
     end
     
     # Teardown and/or persist the current session.

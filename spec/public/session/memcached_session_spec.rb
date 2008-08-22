@@ -24,10 +24,7 @@ end
 
 describe Merb::MemcacheSession, "mixed into Merb::Controller" do
   
-  before(:all) do
-    @session_class = Merb::MemcacheSession
-    @session = @session_class.generate
-  end
+  before(:all) { @session_class = Merb::MemcacheSession }
   
   it_should_behave_like "All session-stores mixed into Merb::Controller"
   

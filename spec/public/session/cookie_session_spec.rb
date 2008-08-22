@@ -20,49 +20,49 @@ describe Merb::CookieSession do
 end
 
 describe Merb::CookieSession, "mixed into Merb::Controller" do
- 
-  it "should be present in Merb::Request.registered_session_types" do
-    Merb::Request.registered_session_types[:cookie].should == "Merb::CookieSession"
-  end
- 
+  
+  before(:all) { @controller_class = Merb::Test::Fixtures::Controllers::SessionsController }
+  
   it "should represent the controller session" do
-    controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :index)
+    controller = dispatch_to(@controller_class, :index)
     controller.body.should == "cookie"
     controller.request.session.should be_kind_of(Merb::CookieSession)
   end
   
-  it "should store session data" do
-    store_sample_session
+  it "should store and retrieve session data" do
+    with_cookies(@controller_class) do
+      controller = dispatch_to(@controller_class, :index, :foo => "cookie")
+      controller.request.session[:foo].should == "cookie"
+    
+      controller = dispatch_to(@controller_class, :retrieve)
+      controller.request.session[:foo].should == "cookie"
+      
+      controller = dispatch_to(@controller_class, :index, :foo => "bar")
+      controller = dispatch_to(@controller_class, :retrieve)
+      controller.request.session[:foo].should == "bar"
+    end
   end
-  
-  it "should return stored session data" do
-    controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :retrieve, {}, 
-      Merb::Const::HTTP_COOKIE => "#{Merb::Request._session_id_key}=#{store_sample_session.to_cookie}")
-    controller.request.session[:foo].should == "bar"
-  end
-  
+    
   it "shouldn't allow tampering with cookie data" do
-    session = store_sample_session
-    original_checksum = session.to_cookie.split('--').last
-    session[:foo] = "booz" # tamper with the data itself
-    cookie_data, cookie_checksum = session.to_cookie.split('--')
-    controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :retrieve, {}, 
-      Merb::Const::HTTP_COOKIE => "#{Merb::Request._session_id_key}=#{cookie_data}--#{original_checksum}")
-    lambda { controller.request.session }.should raise_error(Merb::CookieSession::TamperedWithCookie)
+    with_cookies(@controller_class) do |cookie_jar|
+      controller = dispatch_to(@controller_class, :index, :foo => "cookie")
+      cookie_data, cookie_checksum = controller.cookies[Merb::Request._session_id_key].split('--')
+      cookie_data = 'tampered-with-data'
+      cookie_jar[Merb::Request._session_id_key] = "#{cookie_data}--#{cookie_checksum}"
+      controller = dispatch_to(@controller_class, :retrieve)
+      lambda { controller.request.session }.should raise_error(Merb::CookieSession::TamperedWithCookie)
+    end
   end
-  
+    
   it "shouldn't allow tampering with cookie fingerprints" do
-    cookie_data, cookie_checksum = store_sample_session.to_cookie.split('--')
-    cookie_checksum = cookie_checksum.reverse # tamper with the fingerprint
-    controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :retrieve, {}, 
-      Merb::Const::HTTP_COOKIE => "#{Merb::Request._session_id_key}=#{cookie_data}--#{cookie_checksum}")
-    lambda { controller.request.session }.should raise_error(Merb::CookieSession::TamperedWithCookie)
-  end
-  
-  def store_sample_session
-    controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :index, :foo => "bar")
-    controller.request.session[:foo].should == "bar"
-    controller.request.session
+    with_cookies(@controller_class) do |cookie_jar|
+      controller = dispatch_to(@controller_class, :index, :foo => "cookie")
+      cookie_data, cookie_checksum = controller.cookies[Merb::Request._session_id_key].split('--')
+      cookie_checksum = 'tampered-with-checksum'
+      cookie_jar[Merb::Request._session_id_key] = "#{cookie_data}--#{cookie_checksum}"
+      controller = dispatch_to(@controller_class, :retrieve)
+      lambda { controller.request.session }.should raise_error(Merb::CookieSession::TamperedWithCookie)
+    end
   end
   
 end

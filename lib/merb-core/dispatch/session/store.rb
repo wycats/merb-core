@@ -1,5 +1,5 @@
 module Merb
-  class SessionStore < Hash
+  class SessionStore < Mash
   
     cattr_accessor :subclasses
     self.subclasses = []

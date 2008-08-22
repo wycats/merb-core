@@ -1,3 +1,8 @@
+8/22/2008:
+* controller.cookies['foo'] = { ... } (Hash with options) is now deprecated;
+  use controller.cookies['foo'] = 'bar' for simple cookies without options, or
+  use controller.cookies.set_cookie('foo', 'bar', options) for more control.
+
 8/21/2008:
 * Memcached sessions are now configured by assignment to 
   Merb::MemcachedSession.cache (previously the CACHE constant was used)

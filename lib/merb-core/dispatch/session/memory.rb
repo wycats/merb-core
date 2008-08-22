@@ -21,7 +21,9 @@ module Merb
       # MemorySession:: The new session.
       def generate
         sid = Merb::SessionMixin.rand_uuid
-        MemorySessionContainer[sid] = new(sid)
+        session = new(sid)
+        session.needs_new_cookie = true
+        MemorySessionContainer[sid] = session
       end
       
       # Setup a new session.

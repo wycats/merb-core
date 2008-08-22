@@ -28,7 +28,9 @@ module Merb
       # ==== Returns
       # MemcacheSession:: The new session.
       def generate
-        new(Merb::SessionMixin.rand_uuid)
+        session = new(Merb::SessionMixin.rand_uuid)
+        session.needs_new_cookie = true
+        session
       end
 
       # Setup a new session.

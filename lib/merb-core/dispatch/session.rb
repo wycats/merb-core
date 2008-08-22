@@ -20,8 +20,9 @@ module Merb
     # :default_cookie_domain    The default domain to write cookies for.
     
     def self.included(base)
-      # Register a callback to finalize sessions
-      base._after_dispatch_callbacks << lambda { |c| c.request.finalize_session }
+      # Register a callback to finalize sessions - needs to run before the cookie
+      # callback extracts Set-Cookie headers from request.cookies.
+      base._after_dispatch_callbacks.unshift lambda { |c| c.request.finalize_session }
     end
     
     # ==== Parameters
@@ -163,9 +164,8 @@ module Merb
       # value<String>:: The value of the session cookie; either the session id or the actual encoded data.
       def set_session_cookie_value(value)
         options = {}
-        options[:value]   = value
         options[:expires] = Time.now + (_session_expiry || Merb::Const::WEEK * 2)
-        cookies[_session_id_key] = options
+        cookies.set_cookie(_session_id_key, value, options)
       end
       alias :set_session_id_cookie :set_session_cookie_value
       

@@ -42,6 +42,26 @@ module Merb
         }) unless defined?(DEFAULT_ENV)
       end
 
+      # SimpleCookieJar keeps track of cookies in a simple hash.
+      class SimpleCookieJar < Hash
+        
+        def update_from_request(request)
+          raw_cookies = request.cookies.extract_headers["Set-Cookie"]
+          now = Time.now
+          raw_cookies.each do |str|
+            value_key = str.split('=').first
+            details = Merb::Request.query_parse(str, ';,')
+            value = details[value_key]
+            if value.blank?
+              self.delete(value_key)
+            else
+              self[value_key] = Merb::Request.unescape(value)
+            end            
+          end
+        end
+        
+      end
+
       # ==== Parameters
       # env<Hash>:: A hash of environment keys to be merged into the default list.
       # opt<Hash>:: A hash of options (see below).
@@ -100,39 +120,25 @@ module Merb
         params = merge_controller_and_action(controller_klass, action, params)
         dispatch_request(build_request(params, env), controller_klass, action.to_s, &blk)
       end
-
-      # Dispatches an action to the given class and keeps track of the session_id. 
-      # This bypasses the router and is suitable for unit testing of controllers.
+      
+      # Keep track of cookie values in SimpleCookieJar within the context of the
+      # block; you need to set this up for secific controllers.
       #
       # ==== Parameters
-      # controller_klass<Controller>::
-      #   The controller class object that the action should be dispatched to.
-      # action<Symbol>:: The action name, as a symbol.
-      # session_id<String>:: The session id to track.
-      # params<Hash>::
-      #   An optional hash that will end up as params in the controller instance.
-      # env<Hash>::
-      #   An optional hash that is passed to the fake request. Any request options
-      #   should go here (see +fake_request+), including :req or :post_body
-      #   for setting the request body itself.
-      #
-      # ==== Example
-      #   dispatch_to(MyController, :create, session, :name => 'Homer' ) do |controller|
-      #     controller.stub!(:current_user).and_return(@user)
-      #   end
-      #
-      # ==== Notes
-      # Does not use routes.
-      #
-      # The controller is yielded to the block provided (if any) for actions *prior* to
-      # the action being dispatched.
-      #
-      #---
-      # @public
-      def dispatch_with_session_to(controller_klass, action, session_id, params = {}, env = {})
-        dispatch_to(controller_klass, action, params, env) do |controller|
-          controller.cookies[controller.request._session_id_key] = session_id
-          yield controller if block_given?
+      # *controller_classes:: Controller classes to operate on in the context of the block.
+      # &blk:: The context to operate on; optionally accepts the cookie jar as an argument.
+      def with_cookies(*controller_classes, &blk)
+        cookie_jar = SimpleCookieJar.new
+        before_cb = lambda { |c| c.cookies.update(cookie_jar) }
+        after_cb  = lambda { |c| cookie_jar.update_from_request(c.request) }
+        controller_classes.each do |klass|
+          klass._before_dispatch_callbacks << before_cb
+          klass._after_dispatch_callbacks  << after_cb
+        end
+        blk.arity == 1 ? blk.call(cookie_jar) : blk.call
+        controller_classes.each do |klass|
+          klass._before_dispatch_callbacks.delete before_cb
+          klass._after_dispatch_callbacks.delete after_cb
         end
       end
 

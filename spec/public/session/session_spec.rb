@@ -22,26 +22,28 @@ end
 
 describe "All session-stores mixed into Merb::Controller", :shared => true do
   
-  it "should be present in Merb::Request.registered_session_types" do
-    Merb::Request.registered_session_types[@session.class.session_store_type].should == @session_class.to_s
-  end
+  before(:all) { @controller_class = Merb::Test::Fixtures::Controllers::SessionsController }
   
   it "should represent the controller session" do
-    controller = dispatch_with_session_to(Merb::Test::Fixtures::Controllers::SessionsController, :index, @session.session_id)
-    controller.body.should == @session.class.session_store_type.to_s
-    controller.request.session.should be_kind_of(@session_class)
-    controller.request.session.session_id.should == @session.session_id
-    controller.request.session_id == @session.session_id
+    with_cookies(@controller_class) do
+      controller = dispatch_to(@controller_class, :index)
+      controller.request.session.should be_kind_of(@session_class)
+    end
   end
   
-  it "should store session data" do
-    controller = dispatch_with_session_to(Merb::Test::Fixtures::Controllers::SessionsController, :index, @session.session_id, :foo => "bar")
-    controller.request.session[:foo].should == "bar"
+  it "should store and retrieve session data" do
+    session_store_type = @session_class.session_store_type.to_s
+    with_cookies(@controller_class) do
+      controller = dispatch_to(@controller_class, :index, :foo => session_store_type)
+      controller.request.session[:foo].should == session_store_type
+      
+      controller = dispatch_to(@controller_class, :retrieve)
+      controller.request.session[:foo].should == session_store_type
+      
+      controller = dispatch_to(@controller_class, :index, :foo => "bar")
+      controller = dispatch_to(@controller_class, :retrieve)
+      controller.request.session[:foo].should == "bar"
+    end
   end
-  
-  it "should return stored session data" do
-    controller = dispatch_with_session_to(Merb::Test::Fixtures::Controllers::SessionsController, :retrieve, @session.session_id)
-    controller.request.session[:foo].should == "bar"
-  end
-  
+    
 end
