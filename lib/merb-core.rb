@@ -217,7 +217,7 @@ module Merb
     # ==== Returns
     # String:: The Merb root path.
     def root
-      @root || Merb::Config[:merb_root] || Dir.pwd
+      @root || Merb::Config[:merb_root] || File.expand_path(Dir.pwd)
     end
 
     # ==== Parameters
