@@ -149,7 +149,7 @@ module English
     word 'Swiss'     , 'Swiss'
     word 'life'      , 'lives'
     word 'wife'      , 'wives'
-    word 'virus'     , 'viri'
+    word 'virus'     , 'virii'
     word 'octopus'   , 'octopi'
     #word 'cactus'    , 'cacti'
     word 'goose'     , 'geese'

@@ -337,6 +337,30 @@ module Merb
 
   class Responder
   
+    # def self.parse(accept_header)
+    #   headers = accept_header.split(/,/)
+    # 
+    #   ret = {}
+    #   headers.each do |header|
+    #     header =~ /\s*([^;\s]*)\s*(;\s*q=\s*([\d\.]+))?/
+    #     quality = $3.to_f || 0 if $1 == "*/*"
+    #     quality = quality ? quality.to_f : 1
+    #     mime = mime(range)
+    #     ret[mime] = [mime_name(range), quality * mime[:default_quality]]
+    #   end
+    #   ret.sort_by {|k,v| [v.last]}
+    # end
+    #   
+    # def self.mime_name(range)
+    #   @mime_names ||= {}
+    #   @mime_names[range] ||= Merb::ResponderMixin::MIMES[@media_range]
+    # end
+    #   
+    # def self.mime(range)
+    #   @mime ||= {}
+    #   @mime[range] ||= Merb.available_mime_types[mime_name(range)]
+    # end
+  
     protected
 
     # Parses the raw accept header into an array of sorted AcceptType objects.
@@ -347,11 +371,6 @@ module Merb
     # @return [Array<AcceptType>]
     #   The accepted types.
     def self.parse(accept_header)
-      # FF2 is broken. If we get FF2 headers, use FF3 headers instead.
-      if accept_header == "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
-        accept_header = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-      end
-      
       headers = accept_header.split(/,/)
       idx, list = 0, []
       while idx < headers.size
@@ -381,6 +400,7 @@ module Merb
       @type, @sub_type = @media_range.split(%r{/})
       (quality ||= 0.0) if @media_range == "*/*"
       @quality = quality ? (quality.to_f * 100).to_i : 100
+      @quality *= (mime && mime[:default_quality] || 1)
     end
     
     # Compares two accept types for sorting purposes.
@@ -421,11 +441,15 @@ module Merb
     #   All Accept header values, such as "text/html", that match this type.
     def synonyms
       return @syns if @syns
-      if mime = Merb.available_mime_types[Merb::ResponderMixin::MIMES[@media_range]]
-        @syns = mime[:accepts]
+      if _mime = mime
+        @syns = _mime[:accepts]
       else
         @syns = []
       end
+    end
+    
+    def mime
+      @mime ||= Merb.available_mime_types[Merb::ResponderMixin::MIMES[@media_range]]
     end
 
     # @return [String]

@@ -290,10 +290,8 @@ module Merb
 
       class InternalServerError         < Merb::ControllerExceptions::ServerError #:doc: 
         self.status = 500;
-        # DEFAULT_TEMPLATE = ::Merb::Dispatcher::DEFAULT_ERROR_TEMPLATE
         def initialize(exception = nil)
           @exception = exception
-          @coderay = CodeRay rescue nil
         end
 
         def backtrace

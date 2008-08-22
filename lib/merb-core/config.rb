@@ -1,5 +1,4 @@
 require "optparse"
-require "yaml"
 
 module Merb
 
@@ -93,6 +92,7 @@ module Merb
       # ==== Returns
       # String:: The config as YAML.
       def to_yaml
+        require "yaml"
         @configuration.to_yaml
       end
 
