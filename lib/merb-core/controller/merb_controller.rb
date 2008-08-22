@@ -1,7 +1,6 @@
 class Merb::Controller < Merb::AbstractController
 
-  class_inheritable_accessor :_hidden_actions, :_shown_actions, 
-                              :_default_cookie_domain
+  class_inheritable_accessor :_hidden_actions, :_shown_actions
 
   self._hidden_actions ||= []
   self._shown_actions  ||= []
@@ -218,19 +217,6 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The parameters from the request object
   def params()  request.params  end
-
-  # ==== Returns
-  # Merb::Cookies::
-  #   A new Merb::Cookies instance representing the cookies that came in
-  #   from the request object
-  #
-  # ==== Notes
-  # Headers are passed into the cookie object so that you can do:
-  #   cookies[:foo] = "bar"
-  def cookies
-    @_cookies ||= ::Merb::Cookies.new(request.cookies, @headers, 
-      _default_cookie_domain || Merb::Config[:default_cookie_domain])
-  end
   
   # The results of the controller's render, to be returned to Rack.
   #

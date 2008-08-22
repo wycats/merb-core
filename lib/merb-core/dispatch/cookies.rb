@@ -108,4 +108,108 @@ module Merb
       @_headers['Set-Cookie'] << kookie
     end
   end
+  
+  module CookiesMixin
+    
+    def self.included(base)
+      # Allow per-controller default cookie domains (see callback below)
+      base.class_inheritable_accessor :_default_cookie_domain
+      base._default_cookie_domain = Merb::Config[:default_cookie_domain]
+      
+      # Add a callback to enable Set-Cookie headers
+      base._after_dispatch_callbacks << lambda do |c|
+        headers = c.request.cookies.to_headers(:domain => c._default_cookie_domain)
+        c.headers.update(headers)
+      end
+    end
+    
+    # ==== Returns
+    # Merb::Cookies::
+    #   A new Merb::Cookies instance representing the cookies that came in
+    #   from the request object
+    #
+    # ==== Notes
+    # Headers are passed into the cookie object so that you can do:
+    #   cookies[:foo] = "bar"
+    def cookies
+      request.cookies
+    end
+    
+    module RequestMixin
+      
+      class NewCookies < Mash
+      
+        def initialize(constructor = {}, cookie_defaults = {})
+          @_options_lookup = {}
+          @_cookie_defaults = cookie_defaults
+          super constructor
+        end
+        
+        # ==== Parameters
+        # name<~to_s>:: Name of the cookie.
+        # value<~to_s>:: Value of the cookie.
+        # options<Hash>:: Additional options for the cookie (see below).
+        #
+        # ==== Options (options)
+        # :path<String>:: The path for which this cookie applies. Defaults to "/".
+        # :expires<Time>:: Cookie expiry date.
+        # :domain<String>:: The domain for which this cookie applies.
+        # :secure<Boolean>:: Security flag.
+        def set_cookie(name, value, options = {})
+          Merb.logger.info("Cookie set: #{name} => #{value} -- #{options.inspect}")
+          @_options_lookup[name] = options unless options.blank?
+          self[name] = value
+        end
+        
+        # Removes the cookie on the client machine by setting the value to an empty
+        # string and setting its expiration date into the past.
+        #
+        # ==== Parameters
+        # name<~to_s>:: Name of the cookie to delete.
+        # options<Hash>:: Additional options to pass to +set_cookie+.
+        def delete(name, options = {})
+          Merb.logger.info("Cookie deleted: #{name} => #{options.inspect}")
+          set_cookie(name, "", options.merge(:expires => Time.at(0)))
+        end
+        
+        # Generate any necessary headers.
+        #
+        # ==== Returns
+        # Hash:: The headers to set, or an empty array if no cookies are set.
+        def to_headers(controller_defaults = {})
+          defaults = @_cookie_defaults.merge(controller_defaults)
+          cookies = []
+          self.each do |name, value|
+            options = defaults.merge(@_options_lookup[name] || {})
+            secure  = options.delete(:secure)
+            kookie  = "#{name}=#{Merb::Request.escape(value)}; "
+            options.each { |k, v| kookie << "#{k}=#{v}; " }
+            kookie  << 'secure' if secure
+            cookies << kookie.rstrip
+          end
+          cookies.empty? ? {} : { 'Set-Cookie' => cookies }
+        end
+        
+      end
+            
+      # ==== Returns
+      # Hash:: The cookies for this request.
+      #
+      # ==== Notes
+      # If a method #default_cookies is defined it will be called. This can
+      # be used for session fixation purposes for example. The method returns
+      # a Hash of key => value pairs.
+      def cookies
+        @cookies ||= begin
+          values  = self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
+          cookies = NewCookies.new(values, :domain => Merb::Controller._default_cookie_domain, :path => '/')
+          cookies.update(default_cookies) if respond_to?(:default_cookies)
+          cookies
+        end
+      end
+      
+    end   
+    
+  end
+  
 end

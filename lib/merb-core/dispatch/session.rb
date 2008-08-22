@@ -20,8 +20,6 @@ module Merb
     # :default_cookie_domain    The default domain to write cookies for.
     
     def self.included(base)
-      base.class_inheritable_accessor :_default_cookie_domain
-      base._default_cookie_domain = Merb::Config[:default_cookie_domain]
       # Register a callback to finalize sessions
       base._after_dispatch_callbacks << lambda { |c| c.request.finalize_session }
     end
@@ -70,12 +68,11 @@ module Merb
         base.cattr_accessor :registered_session_types
         base.registered_session_types = Dictionary.new
         base.class_inheritable_accessor :_session_id_key, :_session_secret_key, 
-                                        :_session_expiry, :_default_cookie_domain
+                                        :_session_expiry
 
         base._session_id_key        = Merb::Config[:session_id_key] || '_session_id'
         base._session_expiry        = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
         base._session_secret_key    = Merb::Config[:session_secret_key]
-        base._default_cookie_domain = Merb::Config[:default_cookie_domain]
       end
       
       module ClassMethods
@@ -168,7 +165,6 @@ module Merb
         options = {}
         options[:value]   = value
         options[:expires] = Time.now + (_session_expiry || Merb::Const::WEEK * 2)
-        options[:domain]  = _default_cookie_domain
         cookies[_session_id_key] = options
       end
       alias :set_session_id_cookie :set_session_cookie_value

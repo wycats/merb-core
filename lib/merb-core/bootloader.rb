@@ -567,6 +567,16 @@ class Merb::BootLoader::SetupStubClasses < Merb::BootLoader
   end
 end
 
+class Merb::BootLoader::Cookies < Merb::BootLoader
+  
+  def self.run
+    require 'merb-core/dispatch/cookies'
+    Merb::Controller.send(:include, Merb::CookiesMixin)
+    Merb::Request.send(:include, Merb::CookiesMixin::RequestMixin)
+  end
+  
+end
+
 class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
 
   # Mixin the available session containers.
