@@ -21,53 +21,55 @@ module Spec
   end
 end
 
-class Merb::Counter
-  include DRb::DRbUndumped
+module Merb
+  class Counter
+    include DRb::DRbUndumped
 
-  attr_accessor :time
-  def initialize
-    @examples, @failures, @errors, @pending, @total_time = 0, 0, 0, 0, 0
-    @err = ""
-    @mutex = Mutex.new
-  end
+    attr_accessor :time
+    def initialize
+      @examples, @failures, @errors, @pending, @total_time = 0, 0, 0, 0, 0
+      @err = ""
+      @mutex = Mutex.new
+    end
   
-  def add(spec, out, err)
-    @mutex.synchronize do
-      puts
-      puts "Running #{spec}."
-      STDOUT.puts out
-      STDOUT.flush
-      match = out.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) errors?)?(?:, (\d+) pending?)?/m)
-      time = out.match(/Finished in (\d+\.\d+) seconds/)
-      @total_time += time[1].to_f
-      if match
-        e, f, errors, pending = match[1..-1]
-        @examples += e.to_i
-        @failures += f.to_i
-        @errors += errors.to_i
-        @pending += pending.to_i
-      end
-      unless err.chomp.empty?
-        @err << err.chomp << "\n"
+    def add(spec, out, err)
+      @mutex.synchronize do
+        puts
+        puts "Running #{spec}."
+        STDOUT.puts out
+        STDOUT.flush
+        match = out.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) errors?)?(?:, (\d+) pending?)?/m)
+        time = out.match(/Finished in (\d+\.\d+) seconds/)
+        @total_time += time[1].to_f
+        if match
+          e, f, errors, pending = match[1..-1]
+          @examples += e.to_i
+          @failures += f.to_i
+          @errors += errors.to_i
+          @pending += pending.to_i
+        end
+        unless err.chomp.empty?
+          @err << err.chomp << "\n"
+        end
       end
     end
-  end
 
-  def report
-    puts @err
-    puts
-    if @failures != 0 || @errors != 0
-      print "\e[31m" # Red
-    elsif @pending != 0
-      print "\e[33m" # Yellow
-    else
-      print "\e[32m" # Green
-    end
-    puts "Total actual time: #{@total_time}"
-    puts "#{@examples} examples, #{@failures} failures, #{@errors} errors, #{@pending} pending, #{sprintf("suite run in %3.3f seconds", @time.real)}"
-    # TODO: we need to report pending examples all together
-    print "\e[0m"    
-  end  
+    def report
+      puts @err
+      puts
+      if @failures != 0 || @errors != 0
+        print "\e[31m" # Red
+      elsif @pending != 0
+        print "\e[33m" # Yellow
+      else
+        print "\e[32m" # Green
+      end
+      puts "Total actual time: #{@total_time}"
+      puts "#{@examples} examples, #{@failures} failures, #{@errors} errors, #{@pending} pending, #{sprintf("suite run in %3.3f seconds", @time.real)}"
+      # TODO: we need to report pending examples all together
+      print "\e[0m"    
+    end  
+  end
 end
 
 # Runs specs in all files matching the file pattern.
