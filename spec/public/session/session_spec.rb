@@ -22,28 +22,30 @@ end
 
 describe "All session-stores mixed into Merb::Controller", :shared => true do
   
-  before(:all) { @controller_class = Merb::Test::Fixtures::Controllers::SessionsController }
+  before(:all) { @controller_klass = Merb::Test::Fixtures::Controllers::SessionsController }
   
   it "should represent the controller session" do
-    with_cookies(@controller_class) do
-      controller = dispatch_to(@controller_class, :index)
+    with_cookies(@controller_klass) do
+      controller = dispatch_to(@controller_klass, :index)
       controller.request.session.should be_kind_of(@session_class)
     end
   end
   
-  it "should store and retrieve session data" do
+  it "should store session data" do
     session_store_type = @session_class.session_store_type.to_s
-    with_cookies(@controller_class) do
-      controller = dispatch_to(@controller_class, :index, :foo => session_store_type)
+    with_cookies(@controller_klass) do
+      controller = dispatch_to(@controller_klass, :index, :foo => session_store_type)
       controller.request.session[:foo].should == session_store_type
-      
-      controller = dispatch_to(@controller_class, :retrieve)
-      controller.request.session[:foo].should == session_store_type
-      
-      controller = dispatch_to(@controller_class, :index, :foo => "bar")
-      controller = dispatch_to(@controller_class, :retrieve)
-      controller.request.session[:foo].should == "bar"
     end
+  end
+  
+  it "should retrieve session data" do
+    session_store_type = @session_class.session_store_type.to_s
+    with_cookies(@controller_klass) do
+      controller = dispatch_to(@controller_klass, :index, :foo => session_store_type)
+      controller = dispatch_to(@controller_klass, :retrieve)
+      controller.request.session[:foo].should == session_store_type
+    end    
   end
     
 end

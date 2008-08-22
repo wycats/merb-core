@@ -35,4 +35,5 @@ module Namespaced
       Merb::Test::ControllerAssertionMock.called(:index)
     end
   end
-end
+end  
+        

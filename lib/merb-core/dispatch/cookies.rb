@@ -3,7 +3,7 @@ module Merb
   class Cookies < Mash
   
     def initialize(constructor = {}, cookie_defaults = {})
-      @_options_lookup = {}
+      @_options_lookup = Mash.new
       @_cookie_defaults = cookie_defaults
       super constructor
     end

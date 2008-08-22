@@ -42,21 +42,18 @@ module Merb
         }) unless defined?(DEFAULT_ENV)
       end
 
-      # SimpleCookieJar keeps track of cookies in a simple hash.
-      class SimpleCookieJar < Hash
+      # CookieJar keeps track of cookies in a simple Mash.
+      class CookieJar < Mash
         
+        # ==== Parameters
+        # request<Merb::Request, Merb::FakeRequest>:: The controller request.
         def update_from_request(request)
-          raw_cookies = request.cookies.extract_headers["Set-Cookie"]
-          now = Time.now
-          raw_cookies.each do |str|
-            value_key = str.split('=').first
-            details = Merb::Request.query_parse(str, ';,')
-            value = details[value_key]
+          request.cookies.each do |key, value|
             if value.blank?
-              self.delete(value_key)
+              self.delete(key)
             else
-              self[value_key] = Merb::Request.unescape(value)
-            end            
+              self[key] = Merb::Request.unescape(value)
+            end
           end
         end
         
@@ -121,14 +118,14 @@ module Merb
         dispatch_request(build_request(params, env), controller_klass, action.to_s, &blk)
       end
       
-      # Keep track of cookie values in SimpleCookieJar within the context of the
+      # Keep track of cookie values in CookieJar within the context of the
       # block; you need to set this up for secific controllers.
       #
       # ==== Parameters
       # *controller_classes:: Controller classes to operate on in the context of the block.
       # &blk:: The context to operate on; optionally accepts the cookie jar as an argument.
       def with_cookies(*controller_classes, &blk)
-        cookie_jar = SimpleCookieJar.new
+        cookie_jar = CookieJar.new
         before_cb = lambda { |c| c.cookies.update(cookie_jar) }
         after_cb  = lambda { |c| cookie_jar.update_from_request(c.request) }
         controller_classes.each do |klass|
