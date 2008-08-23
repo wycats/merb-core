@@ -26,6 +26,12 @@ describe Merb::Rack::Application do
 
   it_should_behave_like "rack application"
 
+  it 'sets Date header' do
+    status, headers, body = @app.call(@env)
+
+    headers.should include(Merb::Const::DATE)
+  end
+  
   describe "#deferred?" do
     it "returns true when request path matches deferred actions regexp" do
       Merb::Config[:deferred_actions] = ['/heavy/lifting']
