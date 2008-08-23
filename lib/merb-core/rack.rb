@@ -18,6 +18,7 @@ module Merb
     autoload :Static,              'merb-core/rack/middleware/static'
     autoload :Profiler,            'merb-core/rack/middleware/profiler'
     autoload :Tracer,              'merb-core/rack/middleware/tracer'
-    autoload :ContentLength,       'merb-core/rack/middleware/content_length'    
+    autoload :ContentLength,       'merb-core/rack/middleware/content_length'
+    autoload :ConditionalGet,      'merb-core/rack/middleware/conditional_get'
   end # Rack
 end # Merb
