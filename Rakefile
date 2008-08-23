@@ -66,6 +66,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "rspec"
   s.add_dependency "rack"
   s.add_dependency "mime-types"
+  s.add_dependency "hpricot"  
   s.add_development_dependency "libxml-ruby"
   s.add_development_dependency "memcache-client"
   # Requirements

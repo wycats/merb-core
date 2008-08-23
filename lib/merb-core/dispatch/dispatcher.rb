@@ -49,8 +49,8 @@ module Merb
       unless klass < Controller
         raise NotFound, 
           "Controller '#{klass}' not found.\n" \
-          "If Merb tries to look for a controller for static files, " \
-          "you way need to check up your Rackup file, see the Problems " \
+          "If Merb tries to find a controller for static files, " \
+          "you may need to check your Rackup file, see the Problems " \
           "section at: http://wiki.merbivore.com/pages/rack-middleware"
       end
     
