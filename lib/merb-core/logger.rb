@@ -144,7 +144,7 @@ Merb::Logger = Extlib::Logger
 #     # ==== Parameters
 #     # string<String>:: The message to be logged. Defaults to nil.
 #     #
-#     # ==== Returns
+#     # @return
 #     # String:: The resulting message added to the log file.
 #     def <<(string = nil)
 #       message = ""
@@ -168,7 +168,7 @@ Merb::Logger = Extlib::Logger
 #       # ==== Parameters
 #       # string<String>:: The message to be logged. Defaults to nil.
 #       #
-#       # ==== Returns
+#       # @return
 #       # self:: The logger object for chaining.
 #       def #{name}(message = nil)
 #         self << message if #{number} >= level
@@ -182,7 +182,7 @@ Merb::Logger = Extlib::Logger
 #       # ==== Parameters
 #       # string<String>:: The message to be logged. Defaults to nil.
 #       #
-#       # ==== Returns
+#       # @return
 #       # self:: The logger object for chaining.
 #       def #{name}!(message = nil)
 #         self << message if #{number} >= level
@@ -190,7 +190,7 @@ Merb::Logger = Extlib::Logger
 #         self
 #       end
 # 
-#       # ==== Returns
+#       # @return
 #       # Boolean:: True if this level will be logged by this logger.
 #       def #{name}?
 #         #{number} >= level

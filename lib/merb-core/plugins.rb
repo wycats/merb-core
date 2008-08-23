@@ -2,7 +2,7 @@ module Merb
 
   module Plugins
 
-    # ==== Returns
+    # @return
     # Hash::
     #   The configuration loaded from Merb.root / "config/plugins.yml" or, if
     #   the load fails, an empty hash whose default value is another Hash.
@@ -15,13 +15,13 @@ module Merb
       end
     end
 
-    # ==== Returns
+    # @return
     # Array(String):: All Rakefile load paths Merb uses for plugins.
     def self.rakefiles
       Merb.rakefiles
     end
     
-    # ==== Returns
+    # @return
     # Array(String):: All Generator load paths Merb uses for plugins.
     def self.generators
       Merb.generators

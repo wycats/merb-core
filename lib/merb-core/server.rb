@@ -57,7 +57,7 @@ module Merb
       # ==== Parameters
       # port<~to_s>:: The port to check for Merb instances on.
       #
-      # ==== Returns
+      # @return
       # Boolean::
       #   True if Merb is running on the specified port.
       def alive?(port)
@@ -181,7 +181,7 @@ module Merb
       # port<~to_s>::
       #   The port of the Merb process to whom the the PID file belongs to.
       #
-      # ==== Returns
+      # @return
       # String::
       #   Location of pid file for specified port. If clustered and pid_file option
       #   is specified, it adds the port value to the path.
@@ -204,7 +204,7 @@ module Merb
 
       # Get a list of the pid files.
       #
-      # ==== Returns
+      # @return
       # Array::
       #   List of pid file paths. If not clustered, array contains a single path.
       def pid_files

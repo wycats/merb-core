@@ -120,13 +120,13 @@ class Merb::AbstractController
   # uniqueness.
   self._abstract_subclasses = Set.new
 
-  # ==== Returns
+  # @return
   # String:: The controller name in path form, e.g. "admin/items".
   #---
   # @public
   def self.controller_name() @controller_name ||= self.name.to_const_path end
 
-  # ==== Returns
+  # @return
   # String:: The controller name in path form, e.g. "admin/items".
   def controller_name()      self.class.controller_name                   end
   
@@ -141,7 +141,7 @@ class Merb::AbstractController
   #   The name of the controller. Defaults to controller_name.
   #
   #
-  # ==== Returns
+  # @return
   # String:: 
   #   Indicating where to look for the template for the current controller,
   #   context, and content-type.
@@ -185,7 +185,7 @@ class Merb::AbstractController
     self.template_roots = [[self._template_root, :_template_location]]
   end
 
-  # ==== Returns
+  # @return
   # roots<Array[Array]>::
   #   Template roots as pairs of template root path and template location
   #   method.
@@ -201,7 +201,7 @@ class Merb::AbstractController
     self.template_roots = roots
   end
   
-  # ==== Returns
+  # @return
   # Set:: The subclasses.
   def self.subclasses_list() _abstract_subclasses end
   
@@ -276,7 +276,7 @@ class Merb::AbstractController
   # filter_set<Array[Filter]>::
   #   A set of filters in the form [[:filter, rule], [:filter, rule]]
   #
-  # ==== Returns
+  # @return
   # Symbol:: :filter_chain_completed.
   #
   # ==== Notes
@@ -317,7 +317,7 @@ class Merb::AbstractController
   #   Optional list of actions not to fire. If given, action_name must not be a
   #   part of it for this function to return true.
   #
-  # ==== Returns
+  # @return
   # Boolean:: True if the action should be called.
   def _call_filter_for_action?(rule, action_name)
     # Both:
@@ -335,7 +335,7 @@ class Merb::AbstractController
   # :unless<Array>::
   #   Optional conditions that must not be met for the filter to fire.
   #
-  # ==== Returns
+  # @return
   # Boolean:: True if the conditions are met.
   def _filter_condition_met?(rule)
     # Both:
@@ -351,7 +351,7 @@ class Merb::AbstractController
   # ==== Raises
   # ArgumentError:: condition not a Symbol or Proc.
   #
-  # ==== Returns
+  # @return
   # Boolean:: True if the condition is met.
   #
   # ==== Alternatives
@@ -425,7 +425,7 @@ class Merb::AbstractController
   # name<~to_sym, Hash>:: The name of the URL to generate.
   # rparams<Hash>:: Parameters for the route generation.
   #
-  # ==== Returns
+  # @return
   # String:: The generated URL.
   #
   # ==== Alternatives
@@ -450,7 +450,7 @@ class Merb::AbstractController
   # name<~to_sym, Hash>:: The name of the URL to generate.
   # rparams<Hash>:: Parameters for the route generation.
   #
-  # ==== Returns
+  # @return
   # String:: The generated url with protocol + hostname + URL.
   #
   # ==== Alternatives
@@ -466,7 +466,7 @@ class Merb::AbstractController
   # *args:: Arguments to pass to the block.
   # &block:: The template block to call.
   #
-  # ==== Returns
+  # @return
   # String:: The output of the block.
   def capture(*args, &block)
     send("capture_#{@_engine}", *args, &block)

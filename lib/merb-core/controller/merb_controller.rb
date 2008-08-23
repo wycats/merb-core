@@ -22,9 +22,8 @@ class Merb::Controller < Merb::AbstractController
 
   class << self
 
-    # ==== Parameters
-    # klass<Merb::Controller>::
-    #   The Merb::Controller inheriting from the base class.
+    # @param klass [Class]
+    #   Merb::Controller subclass inheriting from the base class.
     def inherited(klass)
       _subclasses << klass.to_s
       super
@@ -33,15 +32,13 @@ class Merb::Controller < Merb::AbstractController
 
     # Hide each of the given methods from being callable as actions.
     #
-    # ==== Parameters
-    # *names<~to-s>:: Actions that should be added to the list.
+    # @param *names [~to-s]
+    #   Actions that should be added to the list.
     #
-    # ==== Returns
-    # Array[String]::
+    # @return Array[String]
     #   An array of actions that should not be possible to dispatch to.
     #
-    #---
-    # @public
+    # @api public
     def hide_action(*names)
       self._hidden_actions = self._hidden_actions | names.map { |n| n.to_s }
     end
@@ -49,15 +46,15 @@ class Merb::Controller < Merb::AbstractController
     # Makes each of the given methods being callable as actions. You can use
     # this to make methods included from modules callable as actions.
     #
-    # ==== Parameters
-    # *names<~to-s>:: Actions that should be added to the list.
+    # @param *names [~to-s]
+    #   Actions that should be added to the list.
     #
-    # ==== Returns
-    # Array[String]::
+    # @return [Array(String)]
     #   An array of actions that should be dispatched to even if they would not
     #   otherwise be.
     #
-    # ==== Example
+    # @example
+    # 
     #   module Foo
     #     def self.included(base)
     #       base.show_action(:foo)
@@ -72,8 +69,7 @@ class Merb::Controller < Merb::AbstractController
     #     end
     #   end
     #
-    #---
-    # @public
+    # @api public
     def show_action(*names)
       self._shown_actions = self._shown_actions | names.map {|n| n.to_s}
     end
@@ -82,21 +78,21 @@ class Merb::Controller < Merb::AbstractController
     # _hidden_actions and _shown_actions into consideration. It is calculated
     # once, the first time an action is dispatched for this controller.
     #
-    # ==== Returns
-    # SimpleSet[String]:: A set of actions that should be callable.
+    # @return SimpleSet[String]
+    #   A set of actions that should be callable.
     def callable_actions
       @callable_actions ||= Extlib::SimpleSet.new(_callable_methods)
     end
 
     # This is a stub method so plugins can implement param filtering if they want.
     #
-    # ==== Parameters
-    # params<Hash{Symbol => String}>:: A list of params
+    # @param params [Hash(Symbol => String)]
+    #   A list of params
     #
-    # ==== Returns
-    # Hash{Symbol => String}:: A new list of params, filtered as desired
-    #---
-    # @semipublic
+    # @return [Hash(Symbol => String)]
+    #   A new list of params, filtered as desired
+    #   
+    # @api semipublic
     def _filter_params(params)
       params
     end
@@ -105,8 +101,8 @@ class Merb::Controller < Merb::AbstractController
     
     # All methods that are callable as actions.
     #
-    # ==== Returns
-    # Array:: A list of method names that are also actions
+    # @return [Array]
+    #   A list of method names that are also actions
     def _callable_methods
       callables = []
       klass = self
@@ -123,20 +119,19 @@ class Merb::Controller < Merb::AbstractController
   # and mime-type. This is overridden from AbstractController, which defines a
   # version of this that does not involve mime-types.
   #
-  # ==== Parameters
-  # context<~to_s>:: The name of the action or template basename that will be rendered.
-  # type<~to_s>::
+  # @param context [~to_s]
+  #   The name of the action or template basename that will be rendered.
+  # @param type [~to_s]
   #    The mime-type of the template that will be rendered. Defaults to nil.
-  # controller<~to_s>::
+  # @param controller [~to_s]
   #   The name of the controller that will be rendered. Defaults to
   #   controller_name.
   #
-  # ==== Notes
+  # @note
   # By default, this renders ":controller/:action.:type". To change this,
   # override it in your application class or in individual controllers.
   #
-  #---
-  # @public
+  # @api public
   def _template_location(context, type, controller)
     _conditionally_append_extension(controller ? "#{controller}/#{context}" : "#{context}", type)
   end
@@ -145,12 +140,11 @@ class Merb::Controller < Merb::AbstractController
   # from AbstractController, which defines a version of this that does not 
   # involve mime-types.
   #
-  # ==== Parameters
-  # template<String>:: 
+  # @param template [String]
   #    The absolute path to a template - without mime and template extension.
   #    The mime-type extension is optional - it will be appended from the 
   #    current content type if it hasn't been added already.
-  # type<~to_s>::
+  # @param type [~to_s]
   #    The mime-type of the template that will be rendered. Defaults to nil.
   #
   # @public
@@ -166,14 +160,15 @@ class Merb::Controller < Merb::AbstractController
   # This method uses the :session_id_cookie_only and :query_string_whitelist
   # configuration options. See CONFIG for more details.
   #
-  # ==== Parameters
-  # request<Merb::Request>:: The Merb::Request that came in from Mongrel.
-  # status<Integer>:: An integer code for the status. Defaults to 200.
-  # headers<Hash{header => value}>::
+  # @param request [Merb::Request]
+  #   The Merb::Request that came in from Mongrel.
+  # @param status [Integer]
+  #   An integer code for the status. Defaults to 200.
+  # @param headers [Hash(header => value)]
   #   A hash of headers to start the controller with. These headers can be
   #   overridden later by the #headers method.
-  #---
-  # @semipublic
+  #   
+  # @api semipublic
   def initialize(request, status=200, headers={'Content-Type' => 'text/html; charset=utf-8'})
     super()
     @request, @_status, @headers = request, status, headers
@@ -181,16 +176,16 @@ class Merb::Controller < Merb::AbstractController
 
   # Dispatch the action.
   #
-  # ==== Parameters
-  # action<~to_s>:: An action to dispatch to. Defaults to :index.
+  # @param action [~to_s]
+  #   An action to dispatch to. Defaults to :index.
   #
-  # ==== Returns
-  # String:: The string sent to the logger for time spent.
+  # @return [String]
+  #   The string sent to the logger for time spent.
   #
-  # ==== Raises
-  # ActionNotFound:: The requested action was not found in class.
-  #---
-  # @semipublic
+  # @raise [ActionNotFound]
+  #   The requested action was not found in class.
+  #   
+  # @api semipublic
   def _dispatch(action=:index)
     Merb.logger.info("Params: #{self.class._filter_params(request.params).inspect}")
     start = Time.now
@@ -204,15 +199,18 @@ class Merb::Controller < Merb::AbstractController
   end
 
   attr_reader :request, :headers
-  
+
+  # Returns response status.
+  #
+  # @param status [Integer]
   def status
     @_status
   end
 
   # Set the response status code.
   #
-  # ==== Parameters
-  # s<Fixnum, Symbol>:: A status-code or named http-status
+  # @param s[Fixnum, Symbol]
+  #   A status-code or named http-status
   def status=(s)
     if s.is_a?(Symbol) && STATUS_CODES.key?(s)
       @_status = STATUS_CODES[s]
@@ -223,28 +221,26 @@ class Merb::Controller < Merb::AbstractController
     end
   end
 
-  # ==== Returns
-  # Hash:: The parameters from the request object
+  # @return
+  #   Hash:: The parameters from the request object
   def params()  request.params  end
 
-  # ==== Returns
-  # Merb::Cookies::
+  # @return [Merb::Cookies]
   #   A new Merb::Cookies instance representing the cookies that came in
   #   from the request object
   #
-  # ==== Notes
+  # @note
   # Headers are passed into the cookie object so that you can do:
   #   cookies[:foo] = "bar"
   def cookies() @_cookies ||= _setup_cookies end
 
-  # ==== Returns
-  # Hash:: The session that was extracted from the request object.
+  # @return [Hash]
+  #   The session that was extracted from the request object.
   def session() request.session end
   
   # The results of the controller's render, to be returned to Rack.
   #
-  # ==== Returns
-  # Array[Integer, Hash, String]::
+  # @return Array[Integer, Hash, String]
   #   The controller's status code, headers, and body
   def rack_response
     [status, headers, body]

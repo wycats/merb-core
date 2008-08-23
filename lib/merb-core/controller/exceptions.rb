@@ -133,7 +133,7 @@ module Merb
         # As usual, this can come from a constant upwards in
         # the inheritance chain.
         #
-        # ==== Returns
+        # @return
         # Fixnum:: The status code of this exception.
         def status
           const_get(:STATUS) rescue 0
@@ -156,7 +156,7 @@ module Merb
       
         # See if a status-code has been defined (on self explicitly).
         #
-        # ==== Returns
+        # @return
         # Boolean:: Whether the a status code has been set
         def status?
           self.const_defined?(:STATUS)

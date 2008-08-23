@@ -79,7 +79,7 @@ module Merb
       # ==== Parameters
       # bootloader<String, Class>:: The name of the bootloader to check.
       #
-      # ==== Returns
+      # @return
       # Boolean:: Whether or not the bootloader has finished.
       def finished?(bootloader)
         self.finished.include?(bootloader.to_s)
@@ -87,7 +87,7 @@ module Merb
 
       # Set up the default framework
       #
-      # ==== Returns
+      # @return
       # nil
       #
       #---
@@ -499,7 +499,7 @@ class Merb::BootLoader::Templates < Merb::BootLoader
       end
     end
 
-    # ==== Returns
+    # @return
     # Array[String]:: Template files found.
     def template_paths
       extension_glob = "{#{Merb::Template.template_extensions.join(',')}}"

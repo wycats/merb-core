@@ -6,7 +6,7 @@ module Merb
 
     class << self
 
-      # ==== Returns
+      # @return
       # Hash:: The defaults for the config.
       def defaults
         @defaults ||= {
@@ -44,7 +44,7 @@ module Merb
       # ==== Parameters
       # key<Object>:: The key to check.
       #
-      # ==== Returns
+      # @return
       # Boolean:: True if the key exists in the config.
       def key?(key)
         @configuration.key?(key)
@@ -53,7 +53,7 @@ module Merb
       # ==== Parameters
       # key<Object>:: The key to retrieve the parameter for.
       #
-      # ==== Returns
+      # @return
       # Object:: The value of the configuration parameter.
       def [](key)
         (@configuration||={})[key]
@@ -77,19 +77,19 @@ module Merb
       # default<Object>::
       #   The default value to return if the parameter is not set.
       #
-      # ==== Returns
+      # @return
       # Object:: The value of the configuration parameter or the default.
       def fetch(key, default)
         @configuration.fetch(key, default)
       end
 
-      # ==== Returns
+      # @return
       # Hash:: The config as a hash.
       def to_hash
         @configuration
       end
 
-      # ==== Returns
+      # @return
       # String:: The config as YAML.
       def to_yaml
         require "yaml"
