@@ -33,7 +33,6 @@ module Merb
   # For example you might have an action in your app that raises NotFound
   # if a resource was not available
   #
-
   #   def show
   #     product = Product.find(params[:id])
   #     raise NotFound if product.nil?
@@ -43,8 +42,9 @@ module Merb
   # This would halt execution of your action and re-route it over to your
   # Exceptions controller which might look something like:
   #
+  # @example [Not found]
+  #
   # class Exceptions < Application
-
   #   def not_found
   #     render :layout => :none
   #   end
@@ -53,10 +53,12 @@ module Merb
   # As usual, the not_found action will look for a template in
   #   app/views/exceptions/not_found.html.erb
   #
-  # Note: All standard ControllerExceptions have an HTTP status code associated 
+  # @note
+  # All standard ControllerExceptions have an HTTP status code associated 
   # with them which is sent to the browser when the action is rendered.
   #
-  # Note: If you do not specifiy how to handle raised ControllerExceptions 
+  # @note
+  # If you do not specifiy how to handle raised ControllerExceptions 
   # or an unhandlable exception occurs within your customised exception action
   # then they will be rendered using the built-in error template.
   # In development mode this "built in" template will show stack-traces for
@@ -76,7 +78,8 @@ module Merb
   # action might be to send emails to the development team, warning that their
   # application has exploded. Mock example:
   #
-
+  # @example [Internal server error]
+  #
   #   def internal_server_error
   #     MySpecialMailer.deliver(
   #       "team@cowboys.com", 
@@ -102,7 +105,6 @@ module Merb
   # Add the required action to our Exceptions controller
   #
   #   class Exceptions < Application
-
   #     def admin_access_required
   #       render
   #     end
@@ -121,8 +123,8 @@ module Merb
 
     class Base < StandardError #:doc:
 
-      # === Returns
-      # Integer:: The status-code of the error.
+      # @return [Integer]
+      #   The status-code of the error.
       def status; self.class.status; end
       alias :to_i :status
 
@@ -133,8 +135,8 @@ module Merb
         # As usual, this can come from a constant upwards in
         # the inheritance chain.
         #
-        # @return
-        # Fixnum:: The status code of this exception.
+        # @return [Fixnum]
+        #   The status code of this exception.
         def status
           const_get(:STATUS) rescue 0
         end
@@ -145,8 +147,8 @@ module Merb
         # If possible, set the STATUS constant, and update
         # any previously registered (inherited) status-code.
         #
-        # ==== Parameters
-        # num<~to_i>:: The status code
+        # @param num [~to_i]
+        #   The status code
         def status=(num)
           unless self.status?
             register_status_code(self, num)
@@ -156,8 +158,8 @@ module Merb
       
         # See if a status-code has been defined (on self explicitly).
         #
-        # @return
-        # Boolean:: Whether the a status code has been set
+        # @return [Boolean]
+        #   Whether the a status code has been set
         def status?
           self.const_defined?(:STATUS)
         end
@@ -168,9 +170,7 @@ module Merb
         # Inheritance ensures this method gets inherited by any subclasses, so
         # it goes all the way down the chain of inheritance.
         #
-        # ==== Parameters
-        # 
-        # subclass<Merb::ControllerExceptions::Base>::
+        # @param subclass [Class]
         #   The Exception class that is inheriting from Merb::ControllerExceptions::Base
         def inherited(subclass)
           # don't set the constant yet - any class methods will be called after self.inherited
@@ -182,8 +182,8 @@ module Merb
         
         # Register the status-code for an Exception class.
         #
-        # ==== Parameters
-        # num<~to_i>:: The status code
+        # @param num [~to_i]
+        #   The status code
         def register_status_code(klass, code)
           name = self.to_s.split('::').last.snake_case
           STATUS_CODES[name.to_sym] = code.to_i
@@ -306,7 +306,8 @@ module Merb
   
   # Required to show exceptions in the log file
   #
-  # e<Exception>:: The exception that a message is being generated for
+  # @param e [Exception]
+  #   The exception that a message is being generated for
   def self.exception(e)
     "#{ e.message } - (#{ e.class })\n" <<  
     "#{(e.backtrace or []).join("\n")}" 
