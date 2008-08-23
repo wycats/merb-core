@@ -2,8 +2,6 @@ module Merb
 
   class BootLoader
 
-    # def self.subclasses
-    #---
     # @semipublic
     cattr_accessor :subclasses, :after_load_callbacks, :before_load_callbacks, :finished
     self.subclasses, self.after_load_callbacks, self.before_load_callbacks, self.finished = [], [], [], []
@@ -13,28 +11,26 @@ module Merb
       # Adds the inheriting class to the list of subclasses in a position
       # specified by the before and after methods.
       #
-      # ==== Parameters
-      # klass<Class>:: The class inheriting from Merb::BootLoader.
+      # @param klass [Class]
+      #   The class inheriting from Merb::BootLoader.
       def inherited(klass)
         subclasses << klass.to_s
         super
       end
 
-      # ==== Parameters
-      # klass<~to_s>::
+
+      # @param klass [~to_s]
       #   The boot loader class after which this boot loader should be run.
       #
-      #---
       # @public
       def after(klass)
         move_klass(klass, 1)
       end
 
-      # ==== Parameters
+
       # klass<~to_s>::
       #   The boot loader class before which this boot loader should be run.
       #
-      #---
       # @public
       def before(klass)
         move_klass(klass, 0)
@@ -43,10 +39,9 @@ module Merb
       # Move a class that is inside the bootloader to some place in the Array,
       # relative to another class.
       #
-      # ==== Parameters
-      # klass<~to_s>::
+      # @param klass [~to_s]
       #   The klass to move the bootloader relative to
-      # where<Integer>::
+      # @param where [Integer]
       #   0 means insert it before; 1 means insert it after
       def move_klass(klass, where)
         index = Merb::BootLoader.subclasses.index(klass.to_s)
@@ -76,16 +71,16 @@ module Merb
       
       # Determines whether or not a specific bootloader has finished yet.
       #
-      # ==== Parameters
-      # bootloader<String, Class>:: The name of the bootloader to check.
+      # @param bootloader [String, Class]
+      #   The name of the bootloader to check.
       #
-      # @return
-      # Boolean:: Whether or not the bootloader has finished.
+      # @return [Boolean]
+      #   Whether or not the bootloader has finished.
       def finished?(bootloader)
         self.finished.include?(bootloader.to_s)
       end
 
-      # Set up the default framework
+      # Set up the default application layout paths.
       #
       # @return
       # nil
@@ -108,8 +103,8 @@ module Merb
         nil
       end
 
-      # ==== Parameters
-      # &block::
+
+      # @param block [Proc]
       #   A block to be added to the callbacks that will be executed after the
       #   app loads.
       #
@@ -119,8 +114,8 @@ module Merb
         after_load_callbacks << block
       end
 
-      # ==== Parameters
-      # &block::
+
+      # @param block [Proc]
       #   A block to be added to the callbacks that will be executed before the
       #   app loads.
       #
@@ -182,27 +177,47 @@ end
 # Build the framework paths.
 #
 # By default, the following paths will be used:
-# application:: Merb.root/app/controller/application.rb
-# config:: Merb.root/config
-# lib:: Merb.root/lib
-# log:: Merb.root/log
-# view:: Merb.root/app/views
-# model:: Merb.root/app/models
-# controller:: Merb.root/app/controllers
-# helper:: Merb.root/app/helpers
-# mailer:: Merb.root/app/mailers
-# part:: Merb.root/app/parts
+# 
+# application:
+#   Merb.root/app/controller/application.rb
+#   
+# config:
+#   Merb.root/config
+#   
+# lib:
+#   Merb.root/lib
+#   
+# log:
+#   Merb.root/log
+#   
+# view:
+#   Merb.root/app/views
+#   
+# model:
+#   Merb.root/app/models
+#   
+# controller:
+#   Merb.root/app/controllers
+#   
+# helper:
+#   Merb.root/app/helpers
+#   
+# mailer:
+#   Merb.root/app/mailers
+#   
+# part:
+#   Merb.root/app/parts
 #
 # To override the default, set Merb::Config[:framework] in your initialization
 # file. Merb::Config[:framework] takes a Hash whose key is the name of the
 # path, and whose values can be passed into Merb.push_path (see Merb.push_path
 # for full details).
 #
-# ==== Notes
+# @note
 # All paths will default to Merb.root, so you can get a flat-file structure by
 # doing Merb::Config[:framework] = {}.
 #
-# ==== Example
+# @example [Custom layout]
 #   Merb::Config[:framework] = {
 #     :view   => Merb.root / "views",
 #     :model  => Merb.root / "models",
@@ -254,7 +269,6 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   # before or after insertion methods. Since these are loaded from this
   # bootloader (Dependencies), they can only adapt the bootloaders that
   # haven't been loaded up until this point.
-
   def self.run
     load_initfile
     load_env_config
@@ -361,8 +375,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb::Controller.send :include, Merb::GlobalHelpers
     end
     
-    # ==== Parameters
-    # file<String>:: The file to load.
+    # @param file [String]
+    #   The file to load.
     def load_file(file)
       klasses = ObjectSpace.classes.dup
       load file
@@ -372,7 +386,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     
     # Load classes from given paths - using path/glob pattern.
     #
-    # *paths<Array>::
+    # @param *paths [Array]
     #   Array of paths to load classes from - may contain glob pattern
     def load_classes(*paths)
       orphaned_classes = []
@@ -388,8 +402,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       load_classes_with_requirements(orphaned_classes)
     end
 
-    # ==== Parameters
-    # file<String>:: The file to reload.
+    # @param file [String]
+    #   The file to reload.
     def reload(file)
       remove_classes_in_file(file) { |f| load_file(f) }
     end
@@ -402,9 +416,10 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
     end
     
-    # ==== Parameters
-    # file<String>:: The file to remove classes for.
-    # &block:: A block to call with the file that has been removed.
+    # @param file [String]
+    #   The file to remove classes for.
+    # @param block [Proc]
+    #   A block to call with the file that has been removed.
     def remove_classes_in_file(file, &block)
       Merb.klass_hashes.each {|x| x.protect_keys!}
       if klasses = LOADED_CLASSES.delete(file)
@@ -414,8 +429,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb.klass_hashes.each {|x| x.unprotect_keys!}
     end
 
-    # ==== Parameters
-    # const<Class>:: The class to remove.
+    # @param const [Class]
+    #   The class to remove.
     def remove_constant(const)
       # This is to support superclasses (like AbstractController) that track
       # their subclasses in a class variable. Classes that wish to use this
@@ -446,8 +461,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # it will be added to the failed_classes and load cycle will be repeated unless
     # no classes load.
     #
-    # ==== Parameters
-    # klasses<Array[Class]>:: Classes to load.
+    # @param klasses [Array(Class)]
+    #   Classes to load.
     def load_classes_with_requirements(klasses)
       klasses.uniq!
 
@@ -499,8 +514,8 @@ class Merb::BootLoader::Templates < Merb::BootLoader
       end
     end
 
-    # @return
-    # Array[String]:: Template files found.
+    # @return Array[String]
+    #   Template files found.
     def template_paths
       extension_glob = "{#{Merb::Template.template_extensions.join(',')}}"
 
@@ -524,16 +539,24 @@ class Merb::BootLoader::Templates < Merb::BootLoader
   end
 end
 
-# Register the default MIME types:
+# Register the default MIME types.
 #
 # By default, the mime-types include:
-# :all:: no transform, */*
-# :yaml:: to_yaml, application/x-yaml or text/yaml
-# :text:: to_text, text/plain
-# :html:: to_html, text/html or application/xhtml+xml or application/html
-# :xml:: to_xml, application/xml or text/xml or application/x-xml
-# :js:: to_json, text/javascript ot application/javascript or application/x-javascript
-# :json:: to_json, application/json or text/x-json
+# 
+# :all:
+#   no transform, */*
+# :yaml:
+#   to_yaml, application/x-yaml or text/yaml
+# :text:
+#   to_text, text/plain
+# :html:
+#   to_html, text/html or application/xhtml+xml or application/html
+# :xml:
+#   to_xml, application/xml or text/xml or application/x-xml
+# :js:
+#   to_json, text/javascript ot application/javascript or application/x-javascript
+# :json:
+#   to_json, application/json or text/x-json
 class Merb::BootLoader::MimeTypes < Merb::BootLoader
 
   # Registers the default MIME types.
