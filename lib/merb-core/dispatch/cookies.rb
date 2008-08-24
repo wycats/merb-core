@@ -8,6 +8,22 @@ module Merb
       super constructor
     end
     
+    # Implicit assignment of cookie key and value.
+    #
+    # ==== Parameters
+    # name<~to_s>:: Name of the cookie.
+    # value<~to_s>:: Value of the cookie.
+    #
+    # ==== Notes
+    # By using this method, a cookie key is marked for being
+    # included in the Set-Cookie response header.
+    def []=(key, value)
+      @_options_lookup[key] = {}
+      super
+    end
+    
+    # Explicit assignment of cookie key, value and options
+    #
     # ==== Parameters
     # name<~to_s>:: Name of the cookie.
     # value<~to_s>:: Value of the cookie.
@@ -18,9 +34,13 @@ module Merb
     # :expires<Time>:: Cookie expiry date.
     # :domain<String>:: The domain for which this cookie applies.
     # :secure<Boolean>:: Security flag.
+    #
+    # ==== Notes
+    # By using this method, a cookie key is marked for being
+    # included in the Set-Cookie response header.
     def set_cookie(name, value, options = {})
       Merb.logger.info("Cookie set: #{name} => #{value} -- #{options.inspect}")
-      @_options_lookup[name] = options unless options.blank?
+      @_options_lookup[name] = options
       self[name] = value
     end
     
@@ -43,7 +63,9 @@ module Merb
       defaults = @_cookie_defaults.merge(controller_defaults)
       cookies = []
       self.each do |name, value|
-        options = defaults.merge(@_options_lookup[name] || {})
+        # Only set cookies that marked for inclusion in the response header. 
+        next unless @_options_lookup[name]
+        options = defaults.merge(@_options_lookup[name])
         if (expiry = options[:expires]).respond_to?(:gmtime)
           options[:expires] = expiry.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
         end
