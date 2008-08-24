@@ -102,7 +102,7 @@ module Merb
     # CookieOverflow:: Session contains too much information.
     def to_cookie
       unless self.empty?
-        data = Base64.encode64(Marshal.dump(self)).chop
+        data = Base64.encode64(Marshal.dump(self.to_hash)).chop
         value = Merb::Request.escape "#{data}--#{generate_digest(data)}"
         raise CookieOverflow if value.size > MAX
         value
