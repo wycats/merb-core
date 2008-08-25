@@ -26,38 +26,41 @@
 # ===== Examples
 #   before :some_filter
 #   before :authenticate, :exclude => [:login, :signup]
-#   before :has_role, :with => ["Admin"], :exclude => [:index,:show]
+#   before :has_role, :with => ["Admin"], :exclude => [:index, :show]
 #   before Proc.new {|c| c.some_method }, :only => :foo
-#   before :authorize, :unless => logged_in?  
+#   before :authorize, :unless => :logged_in?  
 #
-# You can use either :only => :actionname or :exclude => [:this, :that]
-# but not both at once. :only will only run before the listed actions
-# and :exclude will run for every action that is not listed.
+# You can use either <code>:only => :actionname</code> or 
+# <code>:exclude => [:this, :that]</code> but not both at once. 
+# <code>:only</code> will only run before the listed actions and 
+# <code>:exclude</code> will run for every action that is not listed.
 #
 # Merb's before filter chain is very flexible. To halt the filter chain you
-# use throw :halt. If throw is called with only one argument of :halt the
-# return of the method filters_halted will be what is rendered to the view.
-# You can overide filters_halted in your own controllers to control what it
-# outputs. But the throw construct is much more powerful then just that.
-# throw :halt can also take a second argument. Here is what that second arg
-# can be and the behavior each type can have:
+# use <code>throw :halt</code>. If <code>throw</code> is called with only one 
+# argument of <code>:halt</code> the return value of the method 
+# <code>filters_halted</code> will be what is rendered to the view. You can 
+# override <code>filters_halted</code> in your own controllers to control what 
+# it outputs. But the <code>throw</code> construct is much more powerful than 
+# just that.
+#
+# <code>throw :halt</code> can also take a second argument. Here is what that 
+# second argument can be and the behavior each type can have:
 #
 # * +String+:
-#   when the second arg is a string then that string will be what
-#   is rendered to the browser. Since merb's render method returns
+#   when the second argument is a string then that string will be what
+#   is rendered to the browser. Since merb's <code>#render</code> method returns
 #   a string you can render a template or just use a plain string:
 #
 #     throw :halt, "You don't have permissions to do that!"
 #     throw :halt, render(:action => :access_denied)
 #
 # * +Symbol+:
-#   If the second arg is a symbol then the method named after that
+#   If the second arg is a symbol, then the method named after that
 #   symbol will be called
 #
-#   throw :halt, :must_click_disclaimer
+#     throw :halt, :must_click_disclaimer
 #
 # * +Proc+:
-#
 #   If the second arg is a Proc, it will be called and its return
 #   value will be what is rendered to the browser:
 #
@@ -86,9 +89,9 @@
 # Filter:: <Array[Symbol, (Symbol, String, Proc)]>
 #
 # ==== params[:action] and params[:controller] deprecated
-# params[:action] and params[:controller] have been deprecated as of
+# <code>params[:action]</code> and <code>params[:controller]</code> have been deprecated as of
 # the 0.9.0 release. They are no longer set during dispatch, and
-# have been replaced by action_name and controller_name respectively.
+# have been replaced by <code>action_name</code> and <code>controller_name</code> respectively.
 class Merb::AbstractController
   include Merb::RenderMixin
   include Merb::InlineTemplates
@@ -96,7 +99,7 @@ class Merb::AbstractController
   class_inheritable_accessor :_layout, :_template_root, :template_roots
   class_inheritable_accessor :_before_filters, :_after_filters
 
-  cattr_accessor :_abstract_subclasses, :_template_path_cache
+  cattr_accessor :_abstract_subclasses
 
   #---
   # @semipublic
@@ -157,7 +160,7 @@ class Merb::AbstractController
   # of controller/action.mime.type
   #---
   # @public
-  def _template_location(context, type = nil, controller = controller_name)
+  def _template_location(context, type, controller)
     controller ? "#{controller}/#{context}" : context
   end
 
@@ -234,7 +237,7 @@ class Merb::AbstractController
   #
   # ==== Raises
   # MerbControllerError:: Invalid body content caught.
-  def _dispatch(action=:to_s)
+  def _dispatch(action)
     setup_session
     self.action_name = action
     
@@ -252,7 +255,7 @@ class Merb::AbstractController
     when Symbol                   then __send__(caught)
     when Proc                     then caught.call(self)
     else
-      raise MerbControllerError, "The before filter chain is broken dude. wtf?"
+      raise ArgumentError, "Threw :halt, #{caught}. Expected String, nil, Symbol, Proc."
     end
     start = Time.now
     _call_filters(_after_filters)
@@ -417,23 +420,6 @@ class Merb::AbstractController
   # Method stub for finalizing up the session. This will be overriden by
   # session modules.
   def finalize_session() end  
-
-  # Handles the template cache (which is used by BootLoader to cache the list
-  # of all templates).
-  #
-  # ==== Parameters
-  # template<String>::
-  #   The full path to a template to add to the list of available templates
-  def self.add_path_to_template_cache(template)
-    return false if template.blank? || template.split("/").last.split(".").size != 3
-    key = template.match(/(.*)\.(.*)$/)[1]
-    self._template_path_cache[key] = template
-  end
-  
-  # Resets the template_path_cache to an empty hash
-  def self.reset_template_path_cache!
-    self._template_path_cache = {}
-  end  
   
   # ==== Parameters
   # name<~to_sym, Hash>:: The name of the URL to generate.

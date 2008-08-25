@@ -38,7 +38,7 @@ module Merb
     #   correctly appended to the mimetype itself.
     # &block:: a block which recieves the current controller when the format
     #   is set (in the controller's #content_type method)
-    def add_mime_type(key, transform_method, mimes, new_response_headers = {}, &block) 
+    def add_mime_type(key, transform_method, mimes, new_response_headers = {}, default_quality = 1, &block) 
       enforce!(key => Symbol, mimes => Array)
       
       content_type = new_response_headers["Content-Type"] || mimes.first
@@ -52,6 +52,7 @@ module Merb
          :transform_method  => transform_method,
          :content_type      => content_type,
          :response_headers  => new_response_headers,
+         :default_quality   => default_quality,
          :response_block    => block })
 
       mimes.each do |mime|

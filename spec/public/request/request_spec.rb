@@ -63,13 +63,11 @@ describe Merb::Request, " query and body params" do
 
      it "should convert #{query.inspect} to #{parse.inspect} in the query string" do
        request = fake_request({:query_string => query})
-       request.stub!(:route_params).and_return({})       
        request.params.should == parse
      end
 
      it "should convert #{query.inspect} to #{parse.inspect} in the post body" do
        request = fake_request({}, :post_body => query)
-       request.stub!(:route_params).and_return({})
        request.params.should == parse
      end
    
@@ -77,20 +75,17 @@ describe Merb::Request, " query and body params" do
    
   it "should support JSON params" do
     request = fake_request({:content_type => "application/json"}, :req => %{{"foo": "bar"}})
-    request.stub!(:route_params).and_return({})
     request.params.should == {"foo" => "bar"}
   end
   
   it "should populated the inflated_object parameter if JSON params do not inflate to a hash" do
     request = fake_request({:content_type => "application/json"}, :req => %{["foo", "bar"]})
-    request.stub!(:route_params).and_return({})
     request.params.should have_key(:inflated_object)
     request.params[:inflated_object].should eql(["foo", "bar"])
   end
   
   it "should support XML params" do
     request = fake_request({:content_type => "application/xml"}, :req => %{<foo bar="baz"><baz/></foo>})
-    request.stub!(:route_params).and_return({})
     request.params.should == {"foo" => {"baz" => nil, "bar" => "baz"}}
   end  
   

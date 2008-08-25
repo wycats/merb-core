@@ -47,6 +47,12 @@ describe Merb::Controller, " responds" do
     controller.body.should == "HTML: Multi"
   end
 
+  it "should pick application/xhtml+xml when both application/xml and application/xhtml+xml are available" do
+    controller = dispatch_to(Merb::Test::Fixtures::Controllers::ClassProvides, 
+      :index, {}, :http_accept => "application/xml,application/xhtml+xml")
+    controller.body.should == "HTML: Wins Over XML If Both Are Specified"
+  end
+
   it "should use the first mime-type when accepting anything */*, even if something unprovidable comes first" do
     controller = dispatch_to(Merb::Test::Fixtures::Controllers::HtmlDefault, :index, {}, :http_accept => "application/json, */*")
     controller.body.should == "HTML: Default"

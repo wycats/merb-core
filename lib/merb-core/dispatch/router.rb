@@ -3,19 +3,19 @@ require 'merb-core/dispatch/router/behavior'
 require 'merb-core/dispatch/router/route'
 require 'merb-core/controller/mixins/responder'
 module Merb
-  # Router stores route definitions and finds first
-  # that matches incoming request URL.
+  # Router stores route definitions and finds the first
+  # route that matches the incoming request URL.
   #
   # Then information from route is used by dispatcher to
   # call action on the controller.
   #
   # ==== Routes compilation.
   #
-  # Most interesting method of Router (and heart of
+  # The most interesting method of Router (and heart of
   # route matching machinery) is match method generated
-  # on fly from routes definitions. It is called routes
+  # on the fly from routes definitions. It is called routes
   # compilation. Generated match method body contains
-  # one if/elsif statement that picks first matching route
+  # one if/elsif statement that picks the first matching route
   # definition and sets values to named parameters of the route.
   #
   # Compilation is synchronized by mutex.

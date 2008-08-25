@@ -1,3 +1,19 @@
+8/14/2008:
+*  Merb.orm_generator_scope and friends are renamed.
+** Merb.orm_generator_scope => Merb.orm
+** Merb.test_framework_generator_scope => Merb.test_framework
+** Added Merb.template_engine
+
+Merb-gen is updated accordingly. This let us add --haml and similar
+options to merb-gen and plugin generators.
+
+8/10/2008:
+* Modified the way Exceptions are handled in the Dispatcher
+** To rescue all exceptions, supply Exceptions#exception
+** To rescue all Merb-generated exceptions, supply Exceptions#base
+** Exceptions#internal_server_error is no longer a catch-all and should
+   not be used as such.
+
 6/22/2008:
 
 Erubis modified:

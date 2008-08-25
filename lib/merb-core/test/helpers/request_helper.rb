@@ -97,6 +97,7 @@ module Merb
       #---
       # @public
       def dispatch_to(controller_klass, action, params = {}, env = {}, &blk)
+        params = merge_controller_and_action(controller_klass, action, params)
         dispatch_request(build_request(params, env), controller_klass, action.to_s, &blk)
       end
 
@@ -133,7 +134,15 @@ module Merb
       def dispatch_with_basic_authentication_to(controller_klass, action, username, password, params = {}, env = {}, &blk)
         env["X_HTTP_AUTHORIZATION"] = "Basic #{Base64.encode64("#{username}:#{password}")}"
         
+        params = merge_controller_and_action(controller_klass, action, params)        
         dispatch_request(build_request(params, env), controller_klass, action.to_s, &blk)
+      end
+      
+      def merge_controller_and_action(controller_klass, action, params)
+        params[:controller] = controller_klass.name.to_const_path
+        params[:action]     = action.to_s
+        
+        params
       end
 
       # Prepares and returns a request suitable for dispatching with

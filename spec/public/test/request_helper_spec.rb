@@ -39,6 +39,18 @@ describe Merb::Test::RequestHelper do
       Merb::Router.should_not_receive(:match)
       dispatch_to(@controller_klass, :index)
     end
+    
+    it "merges :controller into params" do
+      controller = dispatch_to(@controller_klass, :show, :name => "Fred")
+      
+      controller.params[:controller].should == @controller_klass.name.to_const_path
+    end
+    
+    it "merges :action into params" do
+      controller = dispatch_to(@controller_klass, :show, :name => "Fred")
+      
+      controller.params[:action].should == "show"
+    end
   end
   
   describe "#dispatch_with_basic_authentication_to" do

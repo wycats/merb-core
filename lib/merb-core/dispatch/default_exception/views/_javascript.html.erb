@@ -56,7 +56,7 @@
         })
       };
       var toggleTraces = function(box, target) {
-        var tbodies = tag.parentNode.parentNode.getElementsByTagName("tbody");
+        var tbodies = tag.parentNode.getElementsByTagName("tbody");
         forEach(tbodies, function(tbody) {
           if(hasClass(tbody, target.parentNode.className)) {
             if(target.checked) tbody.style.display = "";

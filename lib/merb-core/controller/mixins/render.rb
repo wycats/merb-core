@@ -478,4 +478,16 @@ module Merb::RenderMixin
     @_caught_content[obj] << string.to_s << (block_given? ? capture(&block) : "")
   end
 
+  # Called when renderers need to be sure that existing thrown content is cleared
+  # before throwing new content. This prevents double rendering of content when
+  # multiple templates are rendered after each other.
+  #
+  # ==== Parameters
+  # obj<Object>:: The key in the thrown_content hash. Defaults to :for_layout.
+  #---
+  # @public
+  def clear_content(obj = :for_layout)
+    @_caught_content.delete(obj) unless @_caught_content[obj].nil?
+  end
+
 end

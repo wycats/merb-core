@@ -172,7 +172,7 @@ module Merb
     #   "**/*.rb".
     def push_path(type, path, file_glob = "**/*.rb")
       enforce!(type => Symbol)
-      load_paths[type] = [Pathname.new(path), file_glob]
+      load_paths[type] = [path, file_glob]
     end
 
     # Removes given types of application components
@@ -217,15 +217,13 @@ module Merb
     # ==== Returns
     # String:: The Merb root path.
     def root
-      app_root = @root || Merb::Config[:merb_root] || Dir.pwd
-
-      Pathname.new(app_root)
+      @root || Merb::Config[:merb_root] || File.expand_path(Dir.pwd)
     end
 
     # ==== Parameters
     # value<String>:: Path to the root directory.
     def root=(value)
-      @root = Pathname.new(value)
+      @root = value
     end
 
     # ==== Parameters
@@ -243,7 +241,7 @@ module Merb
     #---
     # @public
     def root_path(*path)
-      Pathname.new(File.join(root, *path))
+      File.join(root, *path)
     end
 
     # Logger settings
@@ -268,18 +266,16 @@ module Merb
     # ==== Returns
     # String:: Path to directory that contains the log file.
     def log_path
-      path = case Merb::Config[:log_file]
+      case Merb::Config[:log_file]
       when String then File.dirname(Merb::Config[:log_file])
       else Merb.root_path("log")
       end
-
-      Pathname.new(path)
     end
 
     # ==== Returns
     # String:: The path of root directory of the Merb framework.
     def framework_root
-      @framework_root ||= Pathname(File.dirname(__FILE__))
+      @framework_root ||= File.dirname(__FILE__)
     end
 
     # ==== Returns
@@ -317,34 +313,44 @@ module Merb
     end
 
     # Set up default variables under Merb
-    attr_accessor :generator_scope, :klass_hashes, :orm_generator_scope, :test_framework_generator_scope
+    attr_accessor :klass_hashes, :orm, :test_framework, :template_engine
 
-    # Returns registered ORM generators as symbols,
-    # for instance, :datamapper.
+    # Returns the default ORM for this application. For instance, :datamapper.
     #
     # ==== Returns
-    # <Array(Symbol>:: registered ORM generators.
+    # <Symbol>:: default ORM.
+    def orm
+      @orm ||= :none
+    end
+    
+    # @deprecated
     def orm_generator_scope
-      @orm_generator_scope ||= :merb_default
+      Merb.logger.warn!("WARNING: Merb.orm_generator_scope is deprecated")
+      return :merb_default if Merb.orm == :none
+      Merb.orm
     end
 
-    # Returns registered test framework generators.
+    # Returns the default test framework for this application. For instance :rspec.
     #
     # ==== Returns
-    # <Array(Symbol>:: registred test framework generators.
+    # <Symbol>:: default test framework.
+    def test_framework
+      @test_framework ||= :rspec
+    end
+    
+    # @deprecated
     def test_framework_generator_scope
-      @test_framework_generator_scope ||= :rspec
+      Merb.logger.warn!("WARNING: Merb.test_framework_generator_scope is deprecated")
+      Merb.test_framework
     end
-
-    # Returns all registered generators plus Merb generator.
+    
+    # Returns the default template engine for this application. For instance :haml.
     #
     # ==== Returns
-    # <Array(Symbol>::
-    #   all registered generators, inc. needed by Merb itself.
-    def generator_scope
-      [:merb, orm_generator_scope, test_framework_generator_scope]
+    # <Symbol>:: default template engine.
+    def template_engine
+      @template_engine ||= :erb
     end
-
 
     Merb.klass_hashes = []
 
@@ -556,7 +562,7 @@ module Merb
     # Recommended way to find out what paths Rakefiles
     # are loaded from.
     def rakefiles
-      @rakefiles ||= ['merb-core' / 'test' / 'tasks' / 'spectasks']
+      @rakefiles ||= ['merb-core/test/tasks/spectasks']
     end
     
     # === Returns
@@ -575,7 +581,7 @@ module Merb
     # ==== Notes
     # Recommended way to add Rakefiles load path for plugins authors.
     def add_rakefiles(*rakefiles)
-      @rakefiles ||= ['merb-core' / 'test' / 'tasks' / 'spectasks']
+      @rakefiles ||= ['merb-core/test/tasks/spectasks']
       @rakefiles += rakefiles
     end
     
@@ -592,12 +598,12 @@ module Merb
   end
 end
 
-require 'merb-core' / 'autoload'
-require 'merb-core' / 'server'
-require 'merb-core' / 'gem_ext/erubis'
-require 'merb-core' / 'logger'
-require 'merb-core' / 'version'
-require 'merb-core' / 'controller/mime'
+require 'merb-core/autoload'
+require 'merb-core/server'
+require 'merb-core/gem_ext/erubis'
+require 'merb-core/logger'
+require 'merb-core/version'
+require 'merb-core/controller/mime'
 
 # Set the environment if it hasn't already been set.
 Merb.environment ||= ENV['MERB_ENV'] || Merb::Config[:environment] || (Merb.testing? ? 'test' : 'development')

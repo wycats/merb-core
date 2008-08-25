@@ -18,13 +18,13 @@ module Merb
     # Flash, and some older browsers can't use arbitrary
     # request methods -- i.e., are limited to GET/POST.
     # These user-agents can make POST requests in combination
-    # with these overrides to participate fully in REST
+    # with these overrides to participate fully in REST.
     # Common examples are _method or fb_sig_request_method
     # in the params, or an X-HTTP-Method-Override header
     cattr_accessor :http_method_overrides
     self.http_method_overrides = []
     
-    # Initial the request object.
+    # Initialize the request object.
     #
     # ==== Parameters
     # http_request<~params:~[], ~body:IO>:: 
@@ -519,8 +519,8 @@ module Merb
       end
       
       # ==== Parameters
-      # qs<String>:: The query string.
-      # d<String>:: The query string divider. Defaults to "&".
+      # query_string<String>:: The query string.
+      # delimiter<String>:: The query string divider. Defaults to "&".
       # preserve_order<Boolean>:: Preserve order of args. Defaults to false.
       #
       # ==== Returns
@@ -529,13 +529,13 @@ module Merb
       # ==== Examples
       #   query_parse("bar=nik&post[body]=heya")
       #     # => { :bar => "nik", :post => { :body => "heya" } }
-      def query_parse(qs, d = '&;', preserve_order = false)
-        qh = preserve_order ? Dictionary.new : {}
-        (qs||'').split(/[#{d}] */n).inject(qh) { |h,p| 
-          key, value = unescape(p).split('=',2)
-          normalize_params(h, key, value)
-        }
-        preserve_order ? qh : qh.to_mash
+      def query_parse(query_string, delimiter = '&;', preserve_order = false)
+        query = preserve_order ? Dictionary.new : {}
+        for pair in (query_string || '').split(/[#{delimiter}] */n)
+          key, value = unescape(pair).split('=',2)
+          normalize_params(query, key, value)
+        end
+        preserve_order ? query : query.to_mash
       end
     
       NAME_REGEX = /Content-Disposition:.* name="?([^\";]*)"?/ni.freeze

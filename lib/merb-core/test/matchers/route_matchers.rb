@@ -99,6 +99,7 @@ module Merb::Test::Rspec::RouteMatchers
     def matches?(parameter_hash)
       @actual = parameter_hash.dup.except(:controller, :action)
 
+      return @actual.empty? if @expected.empty?
       @expected.all? {|(k, v)| @actual.has_key?(k) && @actual[k] == v}
     end
 
