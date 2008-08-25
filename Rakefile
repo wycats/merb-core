@@ -322,8 +322,9 @@ namespace :repo do
 end
 
 def git_log(since_release = nil, log_format = "%an")
-  git_log_query = "git log --pretty='format:#{log_format}' --no-merges"
-  git_log_query << " --since='v#{since_release}'" if since_release
+  git_log_query = "git log"
+  git_log_query << " v#{since_release}..HEAD" if since_release
+  git_log_query << " --pretty='format:#{log_format}' --no-merges"
   puts
   puts "Running #{git_log_query}"
   puts
@@ -331,7 +332,7 @@ def git_log(since_release = nil, log_format = "%an")
 end
 
 def contributors(since_release = nil)
-  @merb_contributors ||= git_log(since_release).split("\n").uniq.sort
+  git_log(since_release).split("\n").uniq.sort
 end
 
 PREVIOUS_RELEASE = '0.9.4'
