@@ -80,7 +80,7 @@ module Merb
         raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data.'
       end
       @secret = secret
-      self.update(cookie.blank? ? {} : unmarshal(cookie))
+      self.update(unmarshal(cookie))
     end
     
     # Teardown and/or persist the current session.
@@ -127,8 +127,10 @@ module Merb
     # ==== Returns
     # Hash:: The stored session data.
     def unmarshal(cookie)
-      if cookie
-        data, digest = cookie.split('--')
+      if cookie.blank?
+        {}
+      else
+        data, digest = Merb::Request.unescape(cookie).split('--')
         return {} if data.blank? || digest.blank?
         unless digest == generate_digest(data)
           clear
@@ -136,7 +138,7 @@ module Merb
             raise TamperedWithCookie, "Maybe the site's session_secret_key has changed?"
           end
         end
-        Marshal.load(Base64.decode64(data))
+        Marshal.load(Base64.decode64(data)) rescue {}
       end
     end
     
