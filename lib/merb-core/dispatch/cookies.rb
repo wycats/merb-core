@@ -39,7 +39,6 @@ module Merb
     # By using this method, a cookie key is marked for being
     # included in the Set-Cookie response header.
     def set_cookie(name, value, options = {})
-      Merb.logger.info("Cookie set: #{name} => #{value} -- #{options.inspect}")
       @_options_lookup[name] = options
       self[name] = value
     end
@@ -51,7 +50,6 @@ module Merb
     # name<~to_s>:: Name of the cookie to delete.
     # options<Hash>:: Additional options to pass to +set_cookie+.
     def delete(name, options = {})
-      Merb.logger.info("Cookie deleted: #{name} => #{options.inspect}")
       set_cookie(name, "", options.merge(:expires => Time.at(0)))
     end
     
