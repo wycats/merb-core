@@ -18,13 +18,13 @@ module Merb
     # Flash, and some older browsers can't use arbitrary
     # request methods -- i.e., are limited to GET/POST.
     # These user-agents can make POST requests in combination
-    # with these overrides to participate fully in REST
+    # with these overrides to participate fully in REST.
     # Common examples are _method or fb_sig_request_method
     # in the params, or an X-HTTP-Method-Override header
     cattr_accessor :http_method_overrides
     self.http_method_overrides = []
     
-    # Initial the request object.
+    # Initialize the request object.
     #
     # ==== Parameters
     # http_request<~params:~[], ~body:IO>:: 

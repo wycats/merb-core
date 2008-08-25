@@ -96,7 +96,7 @@ module Merb
 
       # Matches a +path+ and any number of optional request methods as
       # conditions of a route. Alternatively, +path+ can be a hash of
-      # conditions, in which case +conditions+ ignored.
+      # conditions, in which case +conditions+ is ignored.
       #
       # ==== Parameters
       #
@@ -108,12 +108,12 @@ module Merb
       #   within the regular expression syntax.
       #   +path+ is optional.
       # conditions<Hash>::
-      #   Addational conditions that the request must meet in order to match.
-      #   the keys must be methods that the Merb::Request instance will respond
+      #   Additional conditions that the request must meet in order to match.
+      #   The keys must be methods that the Merb::Request instance will respond
       #   to.  The value is the string or regexp that matched the returned value.
       #   Conditions are inherited by child routes.
       #
-      #   The Following have special meaning:
+      #   The following have special meaning:
       #   * :method -- Limit this match based on the request method. (GET,
       #     POST, PUT, DELETE)
       #   * :path -- Used internally to maintain URL form information
@@ -141,13 +141,13 @@ module Merb
       #     f.match("/baz").to(:action => "caz")
       #   end
       #
-      #   #match only of the browser string contains MSIE or Gecko
+      #   #match only if the browser string contains MSIE or Gecko
       #   r.match ('/foo', :user_agent => /(MSIE|Gecko)/ )
       #        .to({:controller=>'foo', :action=>'popular')
       #
       #   # Route GET and POST requests to different actions (see also #resources)
       #   r.match('/foo', :method=>:get).to(:action=>'show')
-      #   r.mathc('/foo', :method=>:post).to(:action=>'create')
+      #   r.match('/foo', :method=>:post).to(:action=>'create')
       #
       #   # match also takes regular expressions
       #

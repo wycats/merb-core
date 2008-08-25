@@ -23,6 +23,8 @@ module Merb
     FORM_URL_ENCODED_REGEXP  = %r{^application/x-www-form-urlencoded}.freeze
     UPCASE_CONTENT_TYPE      = 'CONTENT_TYPE'.freeze
     CONTENT_TYPE             = "Content-Type".freeze
+    DATE                     = 'Date'.freeze
+    ETAG                     = 'ETag'.freeze
     LAST_MODIFIED            = "Last-Modified".freeze
     SLASH                    = "/".freeze
     REQUEST_METHOD           = "REQUEST_METHOD".freeze

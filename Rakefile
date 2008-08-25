@@ -66,6 +66,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "rspec"
   s.add_dependency "rack"
   s.add_dependency "mime-types"
+  s.add_dependency "hpricot"  
   s.add_development_dependency "libxml-ruby"
   s.add_development_dependency "memcache-client"
   # Requirements
@@ -79,7 +80,12 @@ end
 
 desc "Run :package and install the resulting .gem"
 task :install => :package do
-  sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri --development}
+  sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri}
+end
+
+desc "Install Merb with development dependencies"
+task :dev_install => :package do
+  sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri --development}  
 end
 
 desc "Run :package and install the resulting .gem with jruby"
@@ -216,9 +222,9 @@ end
 setup_specs("mri", "spec")
 setup_specs("jruby", "jruby -S spec")
 
-task "specs" => ["specs:mri"]
-task "specs:private" => ["specs:mri:private"]
-task "specs:public" => ["specs:mri:public"]
+task "specs" => ["dev_install", "specs:mri"]
+task "specs:private" => ["dev_install", "specs:mri:private"]
+task "specs:public" => ["dev_install", "specs:mri:public"]
 
 desc "Run coverage suite"
 task :rcov do
