@@ -335,6 +335,8 @@ module Merb
         raise Merb::ControllerExceptions::NotAcceptable.new("Unknown content_type for response: #{type}") 
       end
 
+      @_content_type = type
+
       mime = Merb.available_mime_types[type]
       
       headers["Content-Type"] = mime[:content_type]
@@ -345,7 +347,7 @@ module Merb
       # if given, use a block to finetune any runtime headers
       mime[:response_block].call(self) if mime[:response_block]
 
-      @_content_type = type
+      @_content_type
     end
     
   end
