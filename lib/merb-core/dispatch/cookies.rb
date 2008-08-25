@@ -18,7 +18,7 @@ module Merb
     # By using this method, a cookie key is marked for being
     # included in the Set-Cookie response header.
     def []=(key, value)
-      @_options_lookup[key] = {}
+      @_options_lookup[key] ||= {}
       super
     end
     

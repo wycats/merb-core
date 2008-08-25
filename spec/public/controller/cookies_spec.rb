@@ -1,6 +1,7 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
 
 describe Merb::Controller, "._default_cookie_domain" do
+    
   before(:each) do
     Merb::Config[:default_cookie_domain].should_not be(nil)
   end
