@@ -45,10 +45,27 @@ module Merb::AuthenticationMixin
   #     
   #     end
   #
+  # If you need to request basic authentication inside an action you need to use the request! method.
+  #
+  # ====Example
+  #
+  #    class Sessions < Application
+  #  
+  #      def new
+  #        case content_type
+  #        when :html
+  #          render
+  #        else
+  #          basic_authentication.request!
+  #        end
+  #      end
+  # 
+  #    end 
+  #
   #---
   # @public
   def basic_authentication(realm = "Application", &authenticator)
-    BasicAuthentication.new(self, realm, &authenticator)
+    @_basic_authentication ||= BasicAuthentication.new(self, realm, &authenticator)
   end
   
   class BasicAuthentication
@@ -58,22 +75,41 @@ module Merb::AuthenticationMixin
     def initialize(controller, realm = "Application", &authenticator)
       @controller = controller
       @realm = realm
+      @auth = Rack::Auth::Basic::Request.new(@controller.request.env)
       authenticate_or_request(&authenticator) if authenticator
     end
 
     def authenticate(&authenticator)
-      auth = Rack::Auth::Basic::Request.new(@controller.request.env)
-
-      if auth.provided? and auth.basic?
-        authenticator.call(*auth.credentials)
+      if @auth.provided? and @auth.basic?
+        authenticator.call(*@auth.credentials)
       else
         false
       end
     end
 
     def request
-      @controller.headers['WWW-Authenticate'] = 'Basic realm="%s"' % @realm
+      request!
       throw :halt, @controller.render("HTTP Basic: Access denied.\n", :status => Unauthorized.status, :layout => false)
+    end
+    
+    # This is a special case for use outside a before filter.  Use this if you need to 
+    # request basic authenticaiton as part of an action
+    def request!
+      @controller.status = Unauthorized.status
+      @controller.headers['WWW-Authenticate'] = 'Basic realm="%s"' % @realm
+    end
+    
+    # Checks to see if there has been any basic authentication credentials provided
+    def provided?
+      @auth.provided?
+    end
+    
+    def username
+      provided? ? @auth.credentials.first : nil
+    end
+    
+    def password
+      provided? ? @auth.credentials.last : nil
     end
     
     protected
