@@ -1,3 +1,6 @@
+8/27/2008:
+* Merb::Request#protocol now returns valid protocol names: http, not http://.
+
 8/14/2008:
 *  Merb.orm_generator_scope and friends are renamed.
 ** Merb.orm_generator_scope => Merb.orm
