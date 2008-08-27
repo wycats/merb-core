@@ -453,11 +453,24 @@ class Merb::AbstractController
   # ==== Returns
   # String:: The generated url with protocol + hostname + URL.
   #
+  # ==== Options
+  #
+  # :protocol and :host options are special: use them to explicitly
+  # specify protocol and host of resulting url. If you omit them,
+  # protocol and host of request are used.
+  #
   # ==== Alternatives
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
   def absolute_url(name, rparams={})
-    request.protocol + request.host + url(name, rparams)
+    # FIXME: arrgh, why request.protocol returns http://?
+    # :// is not part of protocol name
+    protocol = rparams.delete(:protocol)
+    protocol << "://" if protocol
+    
+    (protocol || request.protocol) +
+      (rparams.delete(:host) || request.host) +
+      url(name, rparams)
   end
 
   # Calls the capture method for the selected template engine.

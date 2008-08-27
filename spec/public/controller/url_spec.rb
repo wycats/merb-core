@@ -178,3 +178,44 @@ describe Merb::Controller, " url" do
   end
 
 end
+
+
+
+
+describe Merb::Controller, "absolute_url" do
+  before do
+    @controller = dispatch_to(Merb::Test::Fixtures::Controllers::Url, :index)
+  end
+
+  it 'takes :protocol option' do
+    @monkey = Monkey.new
+    @controller.absolute_url(:monkey,
+                             :id       => @monkey,
+                             :format   => :xml,
+                             :protocol => "https").should == "https://localhost/monkeys/45.xml"
+  end
+
+  it 'takes :host option' do
+    @monkey = Monkey.new
+    @controller.absolute_url(:monkey,
+                             :id       => @monkey,
+                             :format   => :xml,
+                             :protocol => "https",
+                             :host     => "rubyisnotrails.org").should == "https://rubyisnotrails.org/monkeys/45.xml"
+  end
+
+  it 'falls back to request protocol' do
+    @monkey = Monkey.new
+    @controller.absolute_url(:monkey,
+                             :id       => @monkey,
+                             :format   => :xml).should == "http://localhost/monkeys/45.xml"
+  end
+
+  it 'falls back to request host' do
+    @monkey = Monkey.new
+    @controller.absolute_url(:monkey,
+                             :id       => @monkey,
+                             :format   => :xml,
+                             :protocol => "https").should == "https://localhost/monkeys/45.xml"
+  end
+end
