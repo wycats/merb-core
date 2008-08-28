@@ -14,6 +14,10 @@ module Merb
         if last_modified = headers[Merb::Const::LAST_MODIFIED]
           status = 304 if last_modified == env[Merb::Const::HTTP_IF_MODIFIED_SINCE]
         end
+
+        if status == 304
+          body = ""
+        end
         
         [status, headers, body]
       end

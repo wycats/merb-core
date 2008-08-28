@@ -72,66 +72,102 @@ describe Merb::Rack::ConditionalGet do
   end
   
   describe "when response has no ETag header" do
-    it 'does not modify status' do
+    before(:each) do
       env = Rack::MockRequest.env_for('/etag/stomach')
-      status, headers, body = @middleware.call(env)
+      @status, @headers, @body = @middleware.call(env)        
+    end
 
-      status.should == 200
+    it 'does not modify status' do
+      @status.should == 200
+    end
+
+    it 'does not modify message-body' do
+      @body.should == "Everyone loves Rack"
     end
   end
 
   describe "when response has ETag header" do
     describe "and it == to HTTP_IF_NONE_MATCH of the request" do
-      it 'sets status to "304"' do
+      before(:each) do
         env = Rack::MockRequest.env_for('/etag/match')
         env['HTTP_IF_NONE_MATCH'] =
           Digest::SHA1.hexdigest("Everybody loves Rack")
-        
-        status, headers, body = @middleware.call(env)
-        status.should == 304
+        @status, @headers, @body = @middleware.call(env)        
+      end
+
+      it 'sets status to "304"' do
+        @status.should == 304
+      end
+      
+      it 'returns no message-body' do
+        @body.should == ""
       end
     end
 
     describe "and it IS NOT == to HTTP_IF_NONE_MATCH of the request" do
-      it 'does not modify status' do
+      before(:each) do
         env = Rack::MockRequest.env_for('/etag/nomatch')
         env['HTTP_IF_NONE_MATCH'] =
           Digest::SHA1.hexdigest("Everybody loves Rack")
-        
-        status, headers, body = @middleware.call(env)
-        status.should == 200
+        @status, @headers, @body = @middleware.call(env)
+      end
+      
+      it 'does not modify status' do
+        @status.should == 200
+      end
+
+      it 'does not modify message-body' do
+        @body.should == "Ruby world needs a Paste port. Or... CherryPy?"
       end
     end
   end
 
   describe "when response has no Last-Modified header" do
-    it 'does not modify status' do
+    before(:each) do
       env = Rack::MockRequest.env_for('/last_modified/stomach')
-      status, headers, body = @middleware.call(env)
+      @status, @headers, @body = @middleware.call(env)
+    end
 
-      status.should == 200
+    it 'does not modify status' do
+      @status.should == 200
+    end
+
+    it 'does not modify message-body' do
+      @body.should == "Everyone loves Rack"
     end
   end
 
   describe "when response has Last-Modified header" do
     describe "when response has Last-Modified header" do
       describe "and it == to HTTP_IF_NOT_MODIFIED_SINCE of the request" do
-        it 'sets status to "304"' do
+        before(:each) do
           env = Rack::MockRequest.env_for('/last_modified/match')
           env[Merb::Const::HTTP_IF_MODIFIED_SINCE] = :matching
-          
-          status, headers, body = @middleware.call(env)
-          status.should == 304
+          @status, @headers, @body = @middleware.call(env)
+        end
+        
+        it 'sets status to "304"' do
+          @status.should == 304
+        end
+        
+        it 'returns no message-body' do
+          @body.should == ""
         end
       end
 
       describe "and it IS NOT == to HTTP_IF_NOT_MODIFIED_SINCE of the request" do
-        it 'does not modify status' do
+        before(:each) do
           env = Rack::MockRequest.env_for('/last_modified/nomatch')
           env[Merb::Const::HTTP_IF_MODIFIED_SINCE] = :matching
-          
-          status, headers, body = @middleware.call(env)
-          status.should == 200
+          @status, @headers, @body = @middleware.call(env)
+        end
+
+        it 'does not modify status' do
+          @status.should == 200
+        end
+
+        it 'does not modify message-body' do
+          @body.should == "Who cares about efficiency? Just throw more hardware at the problem."
         end
       end
     end
