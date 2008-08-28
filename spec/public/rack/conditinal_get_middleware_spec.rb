@@ -1,175 +1,127 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
-require File.join(File.dirname(__FILE__), "shared_example_groups")
 
 require "sha1"
 
-NOW = Time.now
-
-class EtagController < Merb::Controller
-  def non_matching_etag
-    response = "Ruby world needs a Paste port. Or... CherryPy?"
+class ConditionalGetTestController < Merb::Controller
+  def with_etag
+    response = "original message-body"
     headers['ETag'] = Digest::SHA1.hexdigest(response)
 
     response
   end
 
-  def matching_etag
-    response = "Everybody loves Rack"
-    headers['ETag'] = Digest::SHA1.hexdigest(response)
+  def with_last_modified
+    headers[Merb::Const::LAST_MODIFIED] = :documents_last_modified_time
+    "original message-body"
+  end
 
-    response
-  end  
-
-  def no_etag
+  def without
     # sanity check
     headers.delete('ETag')
+    headers.delete(Merb::Const::LAST_MODIFIED)
     
-    "Everyone loves Rack"
-  end
-end
-
-class LastModifiedController < Merb::Controller
-  def non_matching_last_modified
-    response = "Who cares about efficiency? Just throw more hardware at the problem."
-    headers[Merb::Const::LAST_MODIFIED] = :non_matching
-
-    response
-  end
-
-  def matching_last_modified
-    response = "Who cares about efficiency? Just throw more hardware at the problem."
-    headers[Merb::Const::LAST_MODIFIED] = :matching
-
-    response
-  end
-
-  def no_last_modified
-    # sanity check
-    headers.delete('Last-Modified')
-    
-    "Everyone loves Rack"
+    "original message-body"
   end
 end
 
 
 Merb::Router.prepare do |r|
-  r.match("/etag/match").to(:controller => "etag_controller", :action => "matching_etag")
-  r.match("/etag/nomatch").to(:controller => "etag_controller", :action => "non_matching_etag")
-  r.match("/etag/stomach").to(:controller => "etag_controller", :action => "no_etag")
-
-  r.match("/last_modified/match").to(:controller => "last_modified_controller", :action => "matching_last_modified")
-  r.match("/last_modified/nomatch").to(:controller => "last_modified_controller", :action => "non_matching_last_modified")
-  r.match("/last_modified/stomach").to(:controller => "last_modified_controller", :action => "no_last_modified")
+  r.match("/with_etag").to(
+    :controller => "conditional_get_test_controller", :action => "with_etag"
+  )
+  r.match("/with_last_modified").to(
+    :controller => "conditional_get_test_controller", :action => "with_last_modified"
+  )
+  r.match("/without").to(
+    :controller => "conditional_get_test_controller", :action => "without"
+  )
 end
-
-
 
 describe Merb::Rack::ConditionalGet do
 
+  describe(
+    "when the client already has an up-to-date document", 
+    :shared => true
+  ) do
+    it 'sets status to "304"' do
+      @status.should == 304
+    end
+
+    it 'returns no message-body' do
+      @body.should == ""
+    end
+  end
+
+  describe(
+    "when the client does NOT have an up-to-date document",
+    :shared => true
+  ) do
+    it 'does not modify status' do
+      @status.should == 200
+    end
+
+    it 'does not modify message-body' do
+      @body.should == "original message-body"
+    end
+  end
+  
   before(:each) do
     @app        = Merb::Rack::Application.new
     @middleware = Merb::Rack::ConditionalGet.new(@app)
   end
   
-  describe "when response has no ETag header" do
+  describe "when response has no ETag header and no Last-Modified header" do
     before(:each) do
-      env = Rack::MockRequest.env_for('/etag/stomach')
+      env = Rack::MockRequest.env_for('/without')
       @status, @headers, @body = @middleware.call(env)        
     end
-
-    it 'does not modify status' do
-      @status.should == 200
-    end
-
-    it 'does not modify message-body' do
-      @body.should == "Everyone loves Rack"
-    end
+    
+    it_should_behave_like "when the client does NOT have an up-to-date document"
   end
 
   describe "when response has ETag header" do
     describe "and it == to HTTP_IF_NONE_MATCH of the request" do
       before(:each) do
-        env = Rack::MockRequest.env_for('/etag/match')
+        env = Rack::MockRequest.env_for('/with_etag')
         env['HTTP_IF_NONE_MATCH'] =
-          Digest::SHA1.hexdigest("Everybody loves Rack")
+          Digest::SHA1.hexdigest("original message-body")
         @status, @headers, @body = @middleware.call(env)        
       end
 
-      it 'sets status to "304"' do
-        @status.should == 304
-      end
-      
-      it 'returns no message-body' do
-        @body.should == ""
-      end
+      it_should_behave_like "when the client already has an up-to-date document"
     end
 
     describe "and it IS NOT == to HTTP_IF_NONE_MATCH of the request" do
       before(:each) do
-        env = Rack::MockRequest.env_for('/etag/nomatch')
+        env = Rack::MockRequest.env_for('/with_etag')
         env['HTTP_IF_NONE_MATCH'] =
-          Digest::SHA1.hexdigest("Everybody loves Rack")
+          Digest::SHA1.hexdigest("a different message-body")
         @status, @headers, @body = @middleware.call(env)
       end
       
-      it 'does not modify status' do
-        @status.should == 200
-      end
-
-      it 'does not modify message-body' do
-        @body.should == "Ruby world needs a Paste port. Or... CherryPy?"
-      end
-    end
-  end
-
-  describe "when response has no Last-Modified header" do
-    before(:each) do
-      env = Rack::MockRequest.env_for('/last_modified/stomach')
-      @status, @headers, @body = @middleware.call(env)
-    end
-
-    it 'does not modify status' do
-      @status.should == 200
-    end
-
-    it 'does not modify message-body' do
-      @body.should == "Everyone loves Rack"
+      it_should_behave_like "when the client does NOT have an up-to-date document"
     end
   end
 
   describe "when response has Last-Modified header" do
-    describe "when response has Last-Modified header" do
-      describe "and it == to HTTP_IF_NOT_MODIFIED_SINCE of the request" do
-        before(:each) do
-          env = Rack::MockRequest.env_for('/last_modified/match')
-          env[Merb::Const::HTTP_IF_MODIFIED_SINCE] = :matching
-          @status, @headers, @body = @middleware.call(env)
-        end
-        
-        it 'sets status to "304"' do
-          @status.should == 304
-        end
-        
-        it 'returns no message-body' do
-          @body.should == ""
-        end
+    describe "and it == to HTTP_IF_NOT_MODIFIED_SINCE of the request" do
+      before(:each) do
+        env = Rack::MockRequest.env_for('/with_last_modified')
+        env[Merb::Const::HTTP_IF_MODIFIED_SINCE] = :documents_last_modified_time
+        @status, @headers, @body = @middleware.call(env)
+      end
+      
+      it_should_behave_like "when the client already has an up-to-date document"
+    end
+
+    describe "and it IS NOT == to HTTP_IF_NOT_MODIFIED_SINCE of the request" do
+      before(:each) do
+        env = Rack::MockRequest.env_for('/with_last_modified')
+        env[Merb::Const::HTTP_IF_MODIFIED_SINCE] = :some_other_time
+        @status, @headers, @body = @middleware.call(env)
       end
 
-      describe "and it IS NOT == to HTTP_IF_NOT_MODIFIED_SINCE of the request" do
-        before(:each) do
-          env = Rack::MockRequest.env_for('/last_modified/nomatch')
-          env[Merb::Const::HTTP_IF_MODIFIED_SINCE] = :matching
-          @status, @headers, @body = @middleware.call(env)
-        end
-
-        it 'does not modify status' do
-          @status.should == 200
-        end
-
-        it 'does not modify message-body' do
-          @body.should == "Who cares about efficiency? Just throw more hardware at the problem."
-        end
-      end
+      it_should_behave_like "when the client does NOT have an up-to-date document"
     end
   end
 end

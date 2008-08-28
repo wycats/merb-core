@@ -5,21 +5,23 @@ module Merb
       def call(env)
         status, headers, body = @app.call(env)
 
-        # set Date header using RFC1123 date format as specified by HTTP
-        # RFC2616 section 3.3.1.
-        if etag = headers['ETag']
-          status = 304 if etag == env[Merb::Const::HTTP_IF_NONE_MATCH]
-        end
-
-        if last_modified = headers[Merb::Const::LAST_MODIFIED]
-          status = 304 if last_modified == env[Merb::Const::HTTP_IF_MODIFIED_SINCE]
-        end
-
-        if status == 304
+        if document_not_modified?(env, headers)
+          status = 304
           body = ""
+          # set Date header using RFC1123 date format as specified by HTTP
+          # RFC2616 section 3.3.1.
         end
         
         [status, headers, body]
+      end
+    
+    private
+      def document_not_modified?(env, headers)
+        if etag = headers['ETag']
+          etag == env[Merb::Const::HTTP_IF_NONE_MATCH]
+        elsif last_modified = headers[Merb::Const::LAST_MODIFIED]
+          last_modified == env[Merb::Const::HTTP_IF_MODIFIED_SINCE]
+        end
       end
     end
     
