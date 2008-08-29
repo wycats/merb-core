@@ -20,7 +20,6 @@ module Merb
     def finalize_session
       new_session = request.session.read_cookie
       if @original_session != new_session
-        options = {:expires => (Time.now + _session_expiry)}
         options = (_session_expiry > 0) ? {:expires => (Time.now + _session_expiry)} : {}
         options[:domain] = _session_cookie_domain if _session_cookie_domain
         cookies.set_cookie(_session_id_key, new_session, options)
