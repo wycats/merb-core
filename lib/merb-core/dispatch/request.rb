@@ -647,7 +647,13 @@ module Merb
         after = $' || ''
         
         if after == ""
-          parms[key] = val
+          if parms[key].is_a?(Array)
+            parms[key] << val
+          elsif parms[key]
+            parms[key] = [parms[key], val]
+          else
+            parms[key] = val
+          end
         elsif after == "[]"
           (parms[key] ||= []) << val
         elsif after =~ %r(^\[\])
