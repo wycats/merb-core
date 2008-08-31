@@ -1,3 +1,6 @@
+8/27/2008:
+* Merb::Request#protocol now returns valid protocol names: http, not http://.
+
 8/22/2008:
 * controller.cookies['foo'] = { ... } (Hash with options) is now deprecated;
   use controller.cookies['foo'] = 'bar' for simple cookies without options, or

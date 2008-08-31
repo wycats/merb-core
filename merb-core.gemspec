@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.authors = ["Ezra Zygmuntowicz"]
   s.name = "merb-core"
   s.required_rubygems_version = ">= 0"
+  s.version = "0.9.6"
   s.files = ["LICENSE",
  "README",
  "Rakefile",
