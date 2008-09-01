@@ -50,6 +50,7 @@ module Merb
           puts "Running bootloaders..." if Merb::Config[:verbose]
           BootLoader.run
           puts "Starting Rack adapter..." if Merb::Config[:verbose]
+          Merb.logger.info! "Starting Merb server listening at #{Merb::Config[:host]}:#{port}"
           Merb.adapter.start(Merb::Config.to_hash)
         end
       end
