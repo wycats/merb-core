@@ -27,7 +27,7 @@
 #   before :some_filter
 #   before :authenticate, :exclude => [:login, :signup]
 #   before :has_role, :with => ["Admin"], :exclude => [:index, :show]
-#   before Proc.new {|c| c.some_method }, :only => :foo
+#   before Proc.new { some_method }, :only => :foo
 #   before :authorize, :unless => :logged_in?  
 #
 # You can use either <code>:only => :actionname</code> or 
@@ -64,8 +64,8 @@
 #   If the second arg is a Proc, it will be called and its return
 #   value will be what is rendered to the browser:
 #
-#     throw :halt, proc {|c| c.access_denied }
-#     throw :halt, proc {|c| Tidy.new(c.index) }
+#     throw :halt, proc { access_denied }
+#     throw :halt, proc { Tidy.new(c.index) }
 #
 # ===== Filter Options (.before, .after, .add_filter, .if, .unless)
 # :only<Symbol, Array[Symbol]>::
@@ -255,7 +255,7 @@ class Merb::AbstractController
     when String                   then caught
     when nil                      then _filters_halted
     when Symbol                   then __send__(caught)
-    when Proc                     then caught.call(self)
+    when Proc                     then self.instance_eval(&caught)
     else
       raise ArgumentError, "Threw :halt, #{caught}. Expected String, nil, Symbol, Proc."
     end
@@ -302,7 +302,7 @@ class Merb::AbstractController
           else
             send(filter)
           end
-        when Proc           then self.instance_eval(&filter)
+        when Proc then self.instance_eval(&filter)
         end
       end
     end
@@ -364,7 +364,7 @@ class Merb::AbstractController
   def _evaluate_condition(condition)
     case condition
     when Symbol : self.send(condition)
-    when Proc : condition.call(self)
+    when Proc : self.instance_eval(&condition)
     else
       raise ArgumentError,
             'Filter condtions need to be either a Symbol or a Proc'
