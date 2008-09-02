@@ -307,6 +307,10 @@ describe Merb::Router::Route, "#generate" do
   it "calls #to_param on segments that respond to it" do
     @non_regexp_route.generate({ :name => stub('US', :to_param => 'USA') }).should == "/world/countries/USA"
   end
+  
+  it "adds anchor before ?" do
+    @non_regexp_route.generate({:name => 101, :area => 10101, :anchor => :an_anchor}).should == "/world/countries/101#an_anchor?area=10101"
+  end
 end
 
 

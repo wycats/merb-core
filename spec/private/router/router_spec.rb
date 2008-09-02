@@ -136,6 +136,10 @@ describe Merb::Router, ".generate", "given a Hash" do
   it "respects format parameter" do
     Merb::Router.generate({ :controller => "elements", :action => "show", :id => "fire", :format => :json }).should == "/elements/show/fire.json"
   end
+  
+  it "respects anchor parameter" do
+    Merb::Router.generate({ :controller => "elements", :action => "search", :anchor => :an_anchor }, { :q => "water" }).should == "/elements/search#an_anchor?q=water"
+  end
 end
 
 
@@ -153,6 +157,10 @@ describe Merb::Router, ".generate_for_default_route", "given a Hash" do
 
   it "respects format parameter" do
     Merb::Router.generate({ :controller => "elements", :action => "show", :id => "fire", :format => :json }).should == "/elements/show/fire.json"
+  end
+  
+  it "respects anchor parameter" do
+    Merb::Router.generate({ :controller => "elements", :action => "show", :id => "fire", :format => :json, :anchor => :an_anchor }).should == "/elements/show/fire.json#an_anchor"
   end
 
   it "requires both parameters to be present" do
