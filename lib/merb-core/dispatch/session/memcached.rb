@@ -14,39 +14,17 @@ module Merb
   # If you are using the memcached gem instead of memcache-client, you must setup like this:
   #
   #   require 'memcached'
-  #   Merb::MemcacheSession.cache = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
-  #
-  class MemcacheSession < SessionStore
-
-    attr_accessor :_fingerprint
-    cattr_accessor :cache
-
+  #   Merb::MemcacheSession.cache = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })  
+  
+  class MemcacheSession < ContainerStore
     class << self
-
-      # Generates a new session ID and creates a new session.
-      #
-      # ==== Returns
-      # MemcacheSession:: The new session.
-      def generate
-        session = new(Merb::SessionMixin.rand_uuid)
-        session.needs_new_cookie = true
-        session
-      end
-
-      # Setup a new session.
-      #
+      
       # ==== Parameters
-      # request<Merb::Request>:: The Merb::Request that came in from Rack.
+      # memcache<Memcached>:: A Memcached instance that has been setup.
       #
-      # ==== Returns
-      # SessionStore:: a SessionStore. If no sessions were found, 
-      # a new SessionStore will be generated.
-      def setup(request)
-        session = retrieve(request.session_id)
-        request.session = session
-        # TODO Marshal.dump is slow - needs optimization
-        session._fingerprint = Marshal.dump(request.session).hash
-        session
+      # Note: this is an alias for ContainerStore.container
+      def cache=(memcache)
+        self.container = memcache
       end
       
       # ==== Returns
@@ -54,66 +32,22 @@ module Merb
       def session_store_type
         :memcache
       end
-      
-      private
-      
-      # ==== Parameters
-      # session_id<String:: The ID of the session to retrieve.
-      #
-      # ==== Returns
-      # Array::
-      #   A pair consisting of a MemcacheSession and the session's ID. If no
-      #   sessions matched session_id, a new MemcacheSession will be generated.
-      #
-      # ==== Notes
-      # If there are persisted exceptions callbacks to execute, they all get executed
-      # when Memcache library raises an exception.
-      def retrieve(session_id)
-        unless session_id.blank?
-          begin
-            session = cache.get("session:#{session_id}")
-          rescue => err
-            Merb.logger.warn!("Could not persist session to MemCache: #{err.message}")
-          end
-          # Not in memcached, but assume that cookie exists
-          session = new(session_id) if session.nil?
-        else
-          # No cookie...make a new session_id
-          session = generate
-        end
-        if session.is_a?(self)
-          session
-        else
-          # Recreate using the existing session as the data, when switching 
-          # from another session type for example, eg. cookie to memcached
-          new(session_id).update(session)
-        end
-      end
 
     end
-    
-    # Teardown and/or persist the current session.
-    #
-    # ==== Parameters
-    # request<Merb::Request>:: The Merb::Request that came in from Rack.
-    def finalize(request)
-      if _fingerprint != Marshal.dump(self).hash
-        begin
-          cache.set("session:#{request.session(:memcache).session_id}", self)
-        rescue => err
-          Merb.logger.debug("MemCache Error: #{err.message}")
-        end
-      end
-      if needs_new_cookie || Merb::SessionMixin.needs_new_cookie
-        request.set_session_id_cookie(session_id)
-      end
-    end
-
-    # Regenerate the session ID.
-    def regenerate
-      self.session_id = Merb::SessionMixin.rand_uuid
-    end
-
   end
 
+end
+
+class Memcached
+  
+  # Make Memcached conform to the ContainerStore interface
+  
+  def retrieve_session(session_id)
+    get("session:#{session_id}")
+  end
+  
+  def store_session(session_id, data)
+    set("session:#{session_id}", data)
+  end
+  
 end
