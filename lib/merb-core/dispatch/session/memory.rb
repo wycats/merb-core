@@ -21,7 +21,7 @@ module Merb
       self.class.container
     end
     
-    # Lazy load/setup of MemorySessionContainer mutex and timer.
+    # Lazy load/setup of MemorySessionContainer.
     def self.container
       @_container ||= MemorySessionContainer.new(Merb::Config[:memory_session_ttl])
     end

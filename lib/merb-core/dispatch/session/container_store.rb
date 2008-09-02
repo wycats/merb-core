@@ -12,17 +12,34 @@ module Merb
     # - store_session(session_id, data)
     # - delete_session(session_id)
     #
-    # Example:
+    # You can use this session store directly by assigning to :container in your
+    # config/init.rb after_app_loads step, for example:
     #
-    # ActiveRecordSession < ContainerStore
+    # ContainerStore.container = BarSession.new(options)
     #
-    # ActiveRecordSessionModel < ::ActiveRecord::Base
+    # Or you can inherit from ContainerStore to create a SessionStore:
     #
-    # self.container = ActiveRecordSessionModel
+    # class FooSession < ContainerStore
     #
-    # ActiveRecordSessionModel.retrieve_session(session_id)
-    # ActiveRecordSessionModel.store_session(session_id, data)
-    # ActiveRecordSessionModel.delete_session(session_id)
+    #   self.container = FooContainer 
+    #
+    # end
+    #
+    # class FooContainer
+    # 
+    #   def self.retrieve_session(session_id)
+    #     ...
+    #   end
+    #
+    #   def self.store_session(session_id, data)
+    #     ...
+    #   end
+    #
+    #   def self.delete_session(session_id)
+    #     ...
+    #   end
+    #
+    # end    
     
     # When used directly, report as :container store
     self.session_store_type = :container
