@@ -1,7 +1,8 @@
 module Merb
   class SessionStore < Mash
   
-    cattr_accessor :subclasses
+    class_inheritable_accessor :session_store_type
+    cattr_accessor :subclasses 
     self.subclasses = []
   
     attr_reader :session_id
@@ -30,10 +31,6 @@ module Merb
       # a new SessionStore will be generated.
       def setup(request)
       end    
-    
-      # ==== Returns
-      # Symbol:: The session store type, i.e. :memory.
-      def session_store_type() end
     
     end
   

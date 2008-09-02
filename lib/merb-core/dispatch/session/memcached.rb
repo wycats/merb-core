@@ -17,15 +17,10 @@ module Merb
   #   Merb::MemcacheSession.container = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })  
   
   class MemcacheSession < ContainerStore
-    class << self
-            
-      # ==== Returns
-      # Symbol:: The session store type, i.e. :memory.
-      def session_store_type
-        :memcache
-      end
-
-    end
+    
+    # The session store type
+    self.session_store_type = :memcache
+    
   end
 
 end

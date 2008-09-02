@@ -32,6 +32,9 @@ module Merb
     DIGEST = OpenSSL::Digest::Digest.new('SHA1') # or MD5, RIPEMD160, SHA256?
     
     attr_accessor :_original_session_data
+
+    # The session store type
+    self.session_store_type = :cookie
     
     class << self
 
@@ -56,12 +59,6 @@ module Merb
           request.session_cookie_value, request._session_secret_key)
         session._original_session_data = session.to_cookie
         request.session = session
-      end
-
-      # ==== Returns
-      # Symbol:: The session store type, i.e. :memory.
-      def session_store_type 
-        :cookie
       end
 
     end

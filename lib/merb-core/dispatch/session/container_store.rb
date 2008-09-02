@@ -24,6 +24,9 @@ module Merb
     # ActiveRecordSessionModel.store_session(session_id, data)
     # ActiveRecordSessionModel.delete_session(session_id)
     
+    # When used directly, report as :container store
+    self.session_store_type = :container
+    
     class << self
 
       # Generates a new session ID and creates a new session.

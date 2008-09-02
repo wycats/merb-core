@@ -13,25 +13,19 @@ module Merb
   # as set in :memory_session_ttl expires.
   class MemorySession < ContainerStore
     
+    # The session store type
+    self.session_store_type = :memory
+    
     # Bypass normal implicit class attribute reader - see below.
     def container
       self.class.container
     end
     
-    class << self
-      
-      # ==== Returns
-      # Symbol:: The session store type, i.e. :memory.
-      def session_store_type
-        :memory
-      end
-      
-      # Lazy load/setup of MemorySessionContainer mutex and timer.
-      def container
-        @_container ||= MemorySessionContainer.new(Merb::Config[:memory_session_ttl])
-      end
-      
+    # Lazy load/setup of MemorySessionContainer mutex and timer.
+    def self.container
+      @_container ||= MemorySessionContainer.new(Merb::Config[:memory_session_ttl])
     end
+    
   end
   
   # Used for handling multiple sessions stored in memory.
