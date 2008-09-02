@@ -128,7 +128,9 @@ module Merb
 
     # Regenerate the session ID.
     def regenerate
+      container.delete_session(self.session_id)
       self.session_id = Merb::SessionMixin.rand_uuid
+      container.store_session(self.session_id, self)
     end
     
   end
