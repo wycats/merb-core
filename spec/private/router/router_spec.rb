@@ -137,8 +137,8 @@ describe Merb::Router, ".generate", "given a Hash" do
     Merb::Router.generate({ :controller => "elements", :action => "show", :id => "fire", :format => :json }).should == "/elements/show/fire.json"
   end
   
-  it "respects anchor parameter" do
-    Merb::Router.generate({ :controller => "elements", :action => "search", :anchor => :an_anchor }, { :q => "water" }).should == "/elements/search#an_anchor?q=water"
+  it "respects fragment parameter" do
+    Merb::Router.generate({ :controller => "elements", :action => "search", :fragment => :a_fragment }, { :q => "water" }).should == "/elements/search?q=water#a_fragment"
   end
 end
 
@@ -159,8 +159,8 @@ describe Merb::Router, ".generate_for_default_route", "given a Hash" do
     Merb::Router.generate({ :controller => "elements", :action => "show", :id => "fire", :format => :json }).should == "/elements/show/fire.json"
   end
   
-  it "respects anchor parameter" do
-    Merb::Router.generate({ :controller => "elements", :action => "show", :id => "fire", :format => :json, :anchor => :an_anchor }).should == "/elements/show/fire.json#an_anchor"
+  it "respects fragment parameter" do
+    Merb::Router.generate({ :controller => "elements", :action => "show", :id => "fire", :format => :json, :fragment => :a_fragment }).should == "/elements/show/fire.json#a_fragment"
   end
 
   it "requires both parameters to be present" do

@@ -258,11 +258,14 @@ module Merb
           format = fallback[:format] if format == :current
           url += ".#{format}"
         end
-        if query_params && anchor = query_params.delete(:anchor)
-          url += "##{anchor}"
+        if query_params
+          fragment = query_params.delete(:fragment)
         end
         if query_params && !query_params.empty?
           url += "?" + Merb::Request.params_to_query_string(query_params)
+        end
+        if fragment
+          url += "##{fragment}"
         end
         url
       end
