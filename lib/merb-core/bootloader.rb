@@ -598,10 +598,6 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
           Merb::Request.register_session_type(store.session_store_type, class_name)
       end
     end
-    # Don't activate memory sessions unless enabled.
-    if config_stores.include?('memory')
-      Merb::MemorySessionContainer.setup(Merb::Config[:memory_session_ttl]) 
-    end
   end
 
 end

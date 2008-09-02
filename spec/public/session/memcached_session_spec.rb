@@ -5,7 +5,7 @@ require File.join(File.dirname(__FILE__), "session_spec")
 require File.join(File.dirname(__FILE__), "controllers", "sessions")
 
 require 'memcached'
-Merb::MemcacheSession.cache = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
+Merb::MemcacheSession.container = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
 
 describe Merb::MemcacheSession do
   

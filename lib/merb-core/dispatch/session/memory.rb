@@ -11,38 +11,14 @@ module Merb
   #
   # Sessions will remain in memory until the server is stopped or the time
   # as set in :memory_session_ttl expires.
-  class MemorySession < SessionStore
+  class MemorySession < ContainerStore
+    
+    # Bypass normal implicit class attribute reader - see below.
+    def container
+      self.class.container
+    end
     
     class << self
-
-      # Generates a new session ID and creates a new session.
-      #
-      # ==== Returns
-      # MemorySession:: The new session.
-      def generate
-        sid = Merb::SessionMixin.rand_uuid
-        session = new(sid)
-        session.needs_new_cookie = true
-        MemorySessionContainer[sid] = session
-      end
-      
-      # Setup a new session.
-      #
-      # ==== Parameters
-      # request<Merb::Request>:: The Merb::Request that came in from Rack.
-      #
-      # ==== Returns
-      # SessionStore:: a SessionStore. If no sessions were found, 
-      # a new SessionStore will be generated.
-      def setup(request)
-        session = unless (session_id = request.session_id).blank?
-          MemorySessionContainer[session_id] || generate
-        else
-          generate
-        end
-        request.session = session
-        session
-      end
       
       # ==== Returns
       # Symbol:: The session store type, i.e. :memory.
@@ -50,104 +26,76 @@ module Merb
         :memory
       end
       
-    end
-    
-    # Teardown and/or persist the current session.
-    #
-    # ==== Parameters
-    # request<Merb::Request>:: The Merb::Request that came in from Rack.
-    def finalize(request)
-      if needs_new_cookie || Merb::SessionMixin.needs_new_cookie
-        request.set_session_id_cookie(session_id)
+      # Lazy load/setup of MemorySessionContainer mutex and timer.
+      def container
+        @_container ||= MemorySessionContainer.new(Merb::Config[:memory_session_ttl])
       end
+      
     end
-    
-    # Regenerate the Session ID
-    def regenerate
-      new_sid = Merb::SessionMixin.rand_uuid 
-      old_sid = session_id
-      MemorySessionContainer[new_sid] = MemorySessionContainer.delete(old_sid)
-      self.session_id = new_sid
-    end
-    
   end
   
   # Used for handling multiple sessions stored in memory.
   class MemorySessionContainer
-    class << self
+    
+    # ==== Parameters
+    # ttl<Fixnum>:: Session validity time in seconds. Defaults to 1 hour.
+    def initialize(ttl=nil)
+      @sessions = Hash.new
+      @timestamps = Hash.new
+      @mutex = Mutex.new
+      @session_ttl = ttl || 60*60 # default 1 hour
+      start_timer
+    end
+    
+    # ==== Parameters
+    # session_id<String>:: ID of the session to retrieve.
+    #
+    # ==== Returns
+    # ContainerSession:: The session corresponding to the ID.
+    def retrieve_session(session_id)
+      @mutex.synchronize {
+        @timestamps[session_id] = Time.now
+        @sessions[session_id]
+      }
+    end
 
-      # ==== Parameters
-      # ttl<Fixnum>:: Session validity time in seconds. Defaults to 1 hour.
-      #
-      # ==== Returns
-      # MemorySessionContainer:: The new session container.
-      def setup(ttl=nil)
-        @sessions = Hash.new
-        @timestamps = Hash.new
-        @mutex = Mutex.new
-        @session_ttl = ttl || 60*60 # default 1 hour
-        start_timer
-        self
+    # ==== Parameters
+    # session_id<String>:: ID of the session to set.
+    # data<ContainerSession>:: The session to set.
+    def store_session(session_id, data)
+      @mutex.synchronize {
+        @timestamps[session_id] = Time.now
+        @sessions[session_id] = data
+      }
+    end
+
+    # ==== Parameters
+    # session_id<String>:: ID of the session to delete.
+    def delete_session(session_id)
+      @mutex.synchronize {
+        @timestamps.delete(session_id)
+        @sessions.delete(session_id)
+      }
+    end
+
+    # Deletes any sessions that have reached their maximum validity.
+    def reap_old_sessions
+      @timestamps.each do |session_id,stamp|
+        delete_session(session_id) if (stamp + @session_ttl) < Time.now 
       end
+      GC.start
+    end
 
-      # ==== Parameters
-      # key<String>:: ID of the session to retrieve.
-      #
-      # ==== Returns
-      # MemorySession:: The session corresponding to the ID.
-      def [](key)
-        @mutex.synchronize {
-          @timestamps[key] = Time.now
-          @sessions[key]
-        }
-      end
-
-      # ==== Parameters
-      # key<String>:: ID of the session to set.
-      # val<MemorySession>:: The session to set.
-      def []=(key, val) 
-        @mutex.synchronize {
-          @timestamps[key] = Time.now
-          @sessions[key] = val
-        }
-      end
-
-      # ==== Parameters
-      # key<String>:: ID of the session to delete.
-      def delete(key)
-        @mutex.synchronize {
-          @timestamps.delete(key)
-          @sessions.delete(key)
-        }
-      end
-
-      # Deletes any sessions that have reached their maximum validity.
-      def reap_old_sessions
-        @timestamps.each do |key,stamp|
-          if stamp + @session_ttl < Time.now
-            delete(key)
-          end  
-        end
-        GC.start
-      end
-
-      # Starts the timer that will eventually reap outdated sessions.
-      def start_timer
-        Thread.new do
-          loop {
-            sleep @session_ttl
-            reap_old_sessions
-          } 
-        end  
-      end
-
-      # ==== Returns
-      # Array:: The sessions stored in this container.
-      def sessions
-        @sessions
+    # Starts the timer that will eventually reap outdated sessions.
+    def start_timer
+      Thread.new do
+        loop {
+          sleep @session_ttl
+          reap_old_sessions
+        } 
       end  
-      
-    end # end singleton class
+    end
+    
+  end
 
-  end # end MemorySessionContainer
 end

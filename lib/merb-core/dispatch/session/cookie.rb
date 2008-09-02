@@ -2,36 +2,6 @@ require 'base64'        # to convert Marshal.dump to ASCII
 require 'openssl'       # to generate the HMAC message digest
 # Most of this code is taken from bitsweat's implementation in rails
 module Merb
-
-  module SessionMixin
-
-    # Adds a before and after dispatch hook for setting up the cookie session
-    # store.
-    #
-    # ==== Parameters
-    # base<Class>:: The class to which the SessionMixin is mixed into.
-    def setup_session
-      request.session = Merb::CookieSession.new(cookies[_session_id_key], _session_secret_key)
-      @original_session = request.session.read_cookie
-    end
-
-    # Finalizes the session by storing the session in a cookie, if the session
-    # has changed.
-    def finalize_session
-      new_session = request.session.read_cookie
-      if @original_session != new_session
-        options = (_session_expiry > 0) ? {:expires => (Time.now + _session_expiry)} : {}
-        options[:domain] = _session_cookie_domain if _session_cookie_domain
-        cookies.set_cookie(_session_id_key, new_session, options)
-      end
-    end
-
-    # ==== Returns
-    # String:: The session store type, i.e. "cookie".
-    def session_store_type
-      "cookie"
-    end
-  end
   
   # If you have more than 4K of session data or don't want your data to be
   # visible to the user, pick another session store.

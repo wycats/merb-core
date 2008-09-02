@@ -8,8 +8,9 @@ module Merb
     # The class attribute :container holds a reference to an object that implements 
     # the following interface (either as class or instance methods): 
     #
-    # - retrieve_session(session_id) (returns data)
-    # - store_session(request, data)
+    # - retrieve_session(session_id) (returns data as Hash, Mash or SessionStore)
+    # - store_session(session_id, data)
+    # - delete_session(session_id)
     #
     # Example:
     #
@@ -20,8 +21,9 @@ module Merb
     # self.container = ActiveRecordSessionModel
     #
     # ActiveRecordSessionModel.retrieve_session(session_id)
-    # ActiveRecordSessionModel.store_session(request)
-
+    # ActiveRecordSessionModel.store_session(session_id, data)
+    # ActiveRecordSessionModel.delete_session(session_id)
+    
     class << self
 
       # Generates a new session ID and creates a new session.
@@ -96,7 +98,7 @@ module Merb
         begin
           container.store_session(request.session(self.class.session_store_type).session_id, self)
         rescue => err
-          Merb.logger.warn!("Could not persist session to #{self.name}: #{err.message}")
+          Merb.logger.warn!("Could not persist session to #{self.class.name}: #{err.message}")
         end
       end
       if needs_new_cookie || Merb::SessionMixin.needs_new_cookie
