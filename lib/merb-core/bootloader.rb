@@ -542,31 +542,6 @@ class Merb::BootLoader::MimeTypes < Merb::BootLoader
   end
 end
 
-class Merb::BootLoader::AfterAppLoads < Merb::BootLoader
-
-  # Call any after_app_loads hooks that were registered via after_app_loads in
-  # init.rb.
-  def self.run
-    Merb::BootLoader.after_load_callbacks.each {|x| x.call }
-  end
-end
-
-# In case someone's running a sparse app, the default exceptions require the
-# Exceptions class.
-class Merb::BootLoader::SetupStubClasses < Merb::BootLoader
-  def self.run
-    unless defined?(Exceptions)
-      Object.class_eval <<-RUBY
-        class Application < Merb::Controller
-        end
-
-        class Exceptions < Application
-        end
-      RUBY
-    end
-  end
-end
-
 class Merb::BootLoader::Cookies < Merb::BootLoader
   
   def self.run
@@ -592,14 +567,40 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
     # Register all configured session stores - any loaded session store class
     # (subclassed from Merb::SessionStore) will be available for registration.
     config_stores = Array(Merb::Config[:session_stores] || Merb::Config[:session_store])
+    config_stores.map! { |name| name.to_sym }
     Merb::SessionStore.subclasses.each do |class_name|
       if( store = Object.full_const_get(class_name)) && 
-        config_stores.include?(store.session_store_type.to_s)
+        config_stores.include?(store.session_store_type)
           Merb::Request.register_session_type(store.session_store_type, class_name)
       end
     end
   end
 
+end
+
+class Merb::BootLoader::AfterAppLoads < Merb::BootLoader
+
+  # Call any after_app_loads hooks that were registered via after_app_loads in
+  # init.rb.
+  def self.run
+    Merb::BootLoader.after_load_callbacks.each {|x| x.call }
+  end
+end
+
+# In case someone's running a sparse app, the default exceptions require the
+# Exceptions class.
+class Merb::BootLoader::SetupStubClasses < Merb::BootLoader
+  def self.run
+    unless defined?(Exceptions)
+      Object.class_eval <<-RUBY
+        class Application < Merb::Controller
+        end
+
+        class Exceptions < Application
+        end
+      RUBY
+    end
+  end
 end
 
 class Merb::BootLoader::ChooseAdapter < Merb::BootLoader

@@ -4,17 +4,11 @@ module Merb
   #
   # Requires setup in your +init.rb+.
   #
-  #   require 'memcached'
-  #   Merb::MemcacheSession.container = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
-  #
-  # And a setting in +init.rb+:
-  #
-  #   c[:session_store] = 'memcache'
-  #
-  # If you are using the memcached gem instead of memcache-client, you must setup like this:
-  #
-  #   require 'memcached'
-  #   Merb::MemcacheSession.container = Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })  
+  #   Merb::BootLoader.after_app_loads do
+  #     require 'memcached'
+  #     Merb::MemcacheSession.container = 
+  #        Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
+  #   end
   
   class MemcacheSession < ContainerStore
     

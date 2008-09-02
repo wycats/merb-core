@@ -15,31 +15,33 @@ module Merb
     # You can use this session store directly by assigning to :container in your
     # config/init.rb after_app_loads step, for example:
     #
-    # ContainerStore.container = BarSession.new(options)
+    #   Merb::BootLoader.after_app_loads do
+    #     ContainerStore.container = BarSession.new(:option => 'value')
+    #   end
     #
     # Or you can inherit from ContainerStore to create a SessionStore:
     #
-    # class FooSession < ContainerStore
-    #
-    #   self.container = FooContainer 
-    #
-    # end
-    #
-    # class FooContainer
-    # 
-    #   def self.retrieve_session(session_id)
-    #     ...
+    #   class FooSession < ContainerStore
+    #   
+    #     self.container = FooContainer 
+    #   
     #   end
     #
-    #   def self.store_session(session_id, data)
-    #     ...
-    #   end
-    #
-    #   def self.delete_session(session_id)
-    #     ...
-    #   end
-    #
-    # end    
+    #   class FooContainer
+    #   
+    #     def self.retrieve_session(session_id)
+    #       ...
+    #     end
+    #   
+    #     def self.store_session(session_id, data)
+    #       ...
+    #     end
+    #   
+    #     def self.delete_session(session_id)
+    #       ...
+    #     end
+    #   
+    #   end    
     
     # When used directly, report as :container store
     self.session_store_type = :container
