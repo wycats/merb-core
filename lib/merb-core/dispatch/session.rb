@@ -1,4 +1,5 @@
 require 'merb-core/dispatch/session/store'
+require 'merb-core/dispatch/session/container_store'
 
 module Merb
   module SessionMixin

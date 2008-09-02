@@ -81,12 +81,12 @@ module Merb
           # No cookie...make a new session_id
           session = generate
         end
-        if session.is_a?(MemcacheSession)
+        if session.is_a?(self)
           session
         else
           # Recreate using the existing session as the data, when switching 
           # from another session type for example, eg. cookie to memcached
-          MemcacheSession.new(session_id).update(session)
+          new(session_id).update(session)
         end
       end
 
