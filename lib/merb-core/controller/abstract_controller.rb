@@ -459,7 +459,12 @@ class Merb::AbstractController
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
   def absolute_url(name, rparams={})
-    (rparams.delete(:protocol) || request.protocol) + "://" +
+    # FIXME: arrgh, why request.protocol returns http://?
+    # :// is not part of protocol name
+    protocol = rparams.delete(:protocol)
+    protocol << "://" if protocol
+    
+    (protocol || request.protocol) +
       (rparams.delete(:host) || request.host) +
       url(name, rparams)
   end

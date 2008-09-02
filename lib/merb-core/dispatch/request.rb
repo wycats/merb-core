@@ -271,10 +271,10 @@ module Merb
     
     # ==== Returns
     # String::
-    #   The protocol, i.e. either "https" or "http" depending on the
+    #   The protocol, i.e. either "https://" or "http://" depending on the
     #   HTTPS header.
     def protocol
-      ssl? ? 'https' : 'http'
+      ssl? ? 'https://' : 'http://'
     end
     
     # ==== Returns
@@ -314,20 +314,6 @@ module Merb
     end
 
     # ==== Returns
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     # String:: The accepted encodings.
     def accept_encoding
       @env['HTTP_ACCEPT_ENCODING']

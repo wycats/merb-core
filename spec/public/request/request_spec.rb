@@ -131,19 +131,19 @@ describe Merb::Request, " misc" do
   
   it "should know if the protocol is http or https (when HTTPS is on)" do
     request = fake_request({:https => "on"})
-    request.protocol.should == "https"
+    request.protocol.should == "https://"
     request.should be_ssl
   end
 
   it "should know if the protocol is http or https (when HTTP_X_FORWARDED_PROTO is https)" do
     request = fake_request({:http_x_forwarded_proto => "https"})
-    request.protocol.should == "https"
+    request.protocol.should == "https://"
     request.should be_ssl
   end
 
   it "should know if the protocol is http or https (when it's regular HTTP)" do
     request = fake_request({})
-    request.protocol.should == "http"
+    request.protocol.should == "http://"
   end
   
   it "should get the content-length" do
