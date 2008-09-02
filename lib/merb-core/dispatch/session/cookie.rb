@@ -97,6 +97,11 @@ module Merb
     #
     # ==== Raises
     # CookieOverflow:: Session contains too much information.
+    #
+    # ==== Notes
+    # The data (self) is converted to a Hash first, since a container might 
+    # choose to do a full Marshal on the data, which would make it persist 
+    # attributes like 'needs_new_cookie', which it shouldn't.
     def to_cookie
       unless self.empty?
         data = Base64.encode64(Marshal.dump(self.to_hash)).chop

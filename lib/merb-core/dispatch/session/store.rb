@@ -37,7 +37,7 @@ module Merb
     # ==== Parameters
     # session_id<String>:: A unique identifier for this session.
     def initialize(session_id)
-      @session_id = session_id
+      self.session_id = session_id
     end
   
     # Teardown and/or persist the current session.
@@ -52,7 +52,7 @@ module Merb
     # Recreates the cookie with the default expiration time. Useful during log
     # in for pushing back the expiration date.
     def session_id=(sid)
-      self.needs_new_cookie = true 
+      self.needs_new_cookie = (@session_id && @session_id != sid)
       @session_id = sid
     end
   

@@ -8,8 +8,8 @@ module Merb
     # The class attribute :container holds a reference to an object that implements 
     # the following interface (either as class or instance methods): 
     #
-    # - retrieve_session(session_id) (returns data as Hash, Mash or SessionStore)
-    # - store_session(session_id, data)
+    # - retrieve_session(session_id) # returns data as Hash
+    # - store_session(session_id, data) # data should be a Hash
     # - delete_session(session_id)
     #
     # You can use this session store directly by assigning to :container in your
@@ -115,10 +115,15 @@ module Merb
     #
     # ==== Parameters
     # request<Merb::Request>:: The Merb::Request that came in from Rack.
+    #
+    # ==== Notes
+    # The data (self) is converted to a Hash first, since a container might 
+    # choose to do a full Marshal on the data, which would make it persist 
+    # attributes like 'needs_new_cookie', which it shouldn't.
     def finalize(request)
-      if _fingerprint != Marshal.dump(self).hash
+      if _fingerprint != Marshal.dump(data = self.to_hash).hash
         begin
-          container.store_session(request.session(self.class.session_store_type).session_id, self)
+          container.store_session(request.session(self.class.session_store_type).session_id, data)
         rescue => err
           Merb.logger.warn!("Could not persist session to #{self.class.name}: #{err.message}")
         end

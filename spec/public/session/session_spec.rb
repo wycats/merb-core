@@ -57,5 +57,15 @@ describe "All session-stores mixed into Merb::Controller", :shared => true do
       controller.request.session[:foo].should == session_store_type
     end    
   end
+  
+  it "should not set the Set-Cookie header when the session(_id) didn't change" do
+    session_store_type = @session_class.session_store_type.to_s
+    with_cookies(@controller_klass) do
+      controller = dispatch_to(@controller_klass, :index, :foo => session_store_type)
+      controller.headers["Set-Cookie"].should_not be_blank
+      controller = dispatch_to(@controller_klass, :retrieve)
+      controller.headers["Set-Cookie"].should be_blank
+    end
+  end
     
 end
