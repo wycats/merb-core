@@ -580,11 +580,11 @@ class Merb::BootLoader::SetupSession < Merb::BootLoader
       require file unless base_name == "container" || base_name == "store_container"
     end
     
+    # List of all session_stores from :session_stores and :session_store config options.
+    config_stores = Merb::Config.session_stores
+    
     # Register all configured session stores - any loaded session container class
     # (subclassed from Merb::SessionContainer) will be available for registration.
-    config_stores = Array(Merb::Config[:session_stores] || Merb::Config[:session_store])
-    config_stores.map! { |name| name.to_sym }
-    
     Merb::SessionContainer.subclasses.each do |class_name|
       if(store = Object.full_const_get(class_name)) && 
         config_stores.include?(store.session_store_type)

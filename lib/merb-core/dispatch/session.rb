@@ -2,6 +2,21 @@ require 'merb-core/dispatch/session/container'
 require 'merb-core/dispatch/session/store_container'
 
 module Merb
+
+  class Config
+    
+    # List of all session_stores taken from :session_stores or :session_store
+    def self.session_stores
+      @session_stores ||= begin
+        config_stores = Array(
+          Merb::Config[:session_stores] || Merb::Config[:session_store]
+        )
+        config_stores.map { |name| name.to_sym }
+      end
+    end
+    
+  end
+  
   module SessionMixin
     
     # Raised when no suitable session store has been setup.
