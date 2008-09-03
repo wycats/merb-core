@@ -169,7 +169,7 @@ module Merb
       # String:: The generated URL.
       def generate_for_default_route(params, fallback)
         query_params = params.reject do |k,v|
-          [:controller, :action, :id, :format].include?(k.to_sym)
+          [:controller, :action, :id, :format, :fragment].include?(k.to_sym)
         end
 
         controller = params[:controller] || fallback[:controller]
@@ -190,6 +190,9 @@ module Merb
         end
         unless query_params.empty?
           url += "?" + Merb::Request.params_to_query_string(query_params)
+        end
+        if params[:fragment]
+          url += "##{params[:fragment]}"
         end
         url
       end
