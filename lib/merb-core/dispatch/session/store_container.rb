@@ -2,7 +2,7 @@ module Merb
   
   class SessionStoreContainer < SessionContainer
     
-    cattr_accessor :store
+    class_inheritable_accessor :store
     attr_accessor  :_fingerprint
     
     # The class attribute :store holds a reference to an object that implements 
@@ -19,7 +19,8 @@ module Merb
     #     SessionStoreContainer.store = BarSession.new(:option => 'value')
     #   end
     #
-    # Or you can inherit from SessionStoreContainer to create a SessionContainer:
+    # Or you can inherit from SessionStoreContainer to create a SessionContainer
+    # that delegates to its 'store' attribute.
     #
     #   class FooSession < SessionStoreContainer
     #   

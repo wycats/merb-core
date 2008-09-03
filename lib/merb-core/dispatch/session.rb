@@ -1,4 +1,4 @@
-require 'merb-core/dispatch/session/store'
+require 'merb-core/dispatch/session/container'
 require 'merb-core/dispatch/session/store_container'
 
 module Merb
@@ -6,6 +6,9 @@ module Merb
     
     # Raised when no suitable session store has been setup.
     class NoSessionContainer < StandardError; end
+    
+    # Raised when storing more data than the available space reserved.
+    class SessionOverflow < StandardError; end
     
     # Session configuration options:
     #

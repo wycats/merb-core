@@ -15,7 +15,6 @@ module Merb
   autoload :Request,                  "merb-core/dispatch/request"
   autoload :ResponderMixin,           "merb-core/controller/mixins/responder"
   autoload :Router,                   "merb-core/dispatch/router"
-  autoload :SessionMixin,             "merb-core/dispatch/session"
   autoload :Test,                     "merb-core/test"
   autoload :Worker,                   "merb-core/dispatch/worker"
 end

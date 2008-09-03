@@ -12,7 +12,7 @@ module Merb
   
       # Register the subclass as an available session store type.
       def inherited(klass)
-        subclasses << klass.to_s
+        self.subclasses << klass.to_s
         super
       end
 

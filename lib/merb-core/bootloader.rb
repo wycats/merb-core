@@ -312,6 +312,23 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
 
 end
 
+class Merb::BootLoader::MixinSession < Merb::BootLoader
+
+  # Mixin the session functionality; this is done before BeforeAppLoads
+  # so that SessionContainer and SessionStoreContainer can be subclassed by
+  # plugin session stores for example - these need to be loaded in a
+  # before_app_loads block or a BootLoader that runs after MixinSession.
+  #
+  # Note: access to Merb::Config is needed, so it needs to run after 
+  # Merb::BootLoader::Dependencies is done.
+  def self.run
+    require 'merb-core/dispatch/session'
+    Merb::Controller.send(:include, ::Merb::SessionMixin)
+    Merb::Request.send(:include, ::Merb::SessionMixin::RequestMixin)
+  end
+
+end
+
 class Merb::BootLoader::BeforeAppLoads < Merb::BootLoader
 
   # Call any before_app_loads hooks that were registered via before_app_loads
@@ -552,24 +569,24 @@ class Merb::BootLoader::Cookies < Merb::BootLoader
   
 end
 
-class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
+class Merb::BootLoader::SetupSession < Merb::BootLoader
 
-  # Mixin the available session containers.
+  # Enable the configured session container(s); any class that inherits from
+  # SessionContainer will be considered by its session_store_type attribute.
   def self.run
-    Merb::Controller.send(:include, ::Merb::SessionMixin)
-    Merb::Request.send(:include, ::Merb::SessionMixin::RequestMixin)
-    
-    # Require all standard Merb session stores.
+    # Require all standard session containers.
     Dir[Merb.framework_root / "merb-core" / "dispatch" / "session" / "*.rb"].each do |file|
-      require file unless File.basename(file, ".rb") == "store"
+      base_name = File.basename(file, ".rb")
+      require file unless base_name == "container" || base_name == "store_container"
     end
     
-    # Register all configured session stores - any loaded session store class
+    # Register all configured session stores - any loaded session container class
     # (subclassed from Merb::SessionContainer) will be available for registration.
     config_stores = Array(Merb::Config[:session_stores] || Merb::Config[:session_store])
     config_stores.map! { |name| name.to_sym }
+    
     Merb::SessionContainer.subclasses.each do |class_name|
-      if( store = Object.full_const_get(class_name)) && 
+      if(store = Object.full_const_get(class_name)) && 
         config_stores.include?(store.session_store_type)
           Merb::Request.register_session_type(store.session_store_type, class_name)
       end
