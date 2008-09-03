@@ -57,6 +57,11 @@ describe Merb::Controller, " url" do
     @controller.url(:controller => "monkeys", :action => "list", :id => 4, :format => "xml").
       should eql("/monkeys/list/4.xml")
   end
+  
+  it "should match the :controller,:action,:id,:format,:fragment to the default route" do
+    @controller.url(:controller => "monkeys", :action => "list", :id => 4, :format => "xml", :fragment => :half_way).
+      should eql("/monkeys/list/4.xml#half_way")
+  end
 
   it "should raise an error" do
     lambda { @controller.url(:regexp) }.should raise_error
@@ -78,8 +83,17 @@ describe Merb::Controller, " url" do
     @controller.url(:person, :name => 'david', :format => :xml).should eql("/people/david.xml")
   end
   
+  it "should match with a :fragment" do
+    @controller.url(:person, :name => 'david', :fragment => :half_way).should eql("/people/david#half_way")
+  end
+  
   it "should match with an additional param and :format" do
     @controller.url(:person, :name => 'david', :color => 'blue', :format => :xml).should eql("/people/david.xml?color=blue")
+  end
+  
+  it "should match with an additional param, :format, and :fragment" do
+    @controller.url(:person, :name => 'david', :color => 'blue', :format => :xml, :fragment => :half_way).
+      should eql("/people/david.xml?color=blue#half_way")
   end
   
   it "should match with additional params" do
@@ -113,6 +127,11 @@ describe Merb::Controller, " url" do
   it "should match with an object, :format and additional options" do
     @monkey = Monkey.new
     @controller.url(:monkey, :id => @monkey, :format => :xml, :color => "blue").should == "/monkeys/45.xml?color=blue"
+  end
+  
+  it "should match with an object, :format, :fragment, and additional options" do
+    @monkey = Monkey.new
+    @controller.url(:monkey, :id => @monkey, :format => :xml, :color => "blue", :fragment => :half_way).should == "/monkeys/45.xml?color=blue#half_way"
   end
 
   it "should match the delete_monkey route" do
@@ -171,10 +190,19 @@ describe Merb::Controller, " url" do
     @monkey = Monkey.new
     @controller.url(:monkey, @monkey, :foo => "bar").should == "/monkeys/45?foo=bar"
   end
+  it "should match resource with fragment" do
+    @monkey = Monkey.new
+    @controller.url(:monkey, @monkey, :fragment => :half_way).should == "/monkeys/45#half_way"
+  end
 
   it "should match a nested resource with additional params" do
     @blue = Blue.new
     @controller.url(:monkey_blue, @blue, :foo => "bar").should == "/monkeys/45/blues/13?foo=bar"
+  end
+  
+  it "should match a nested resource with additional params and fragment" do
+    @blue = Blue.new
+    @controller.url(:monkey_blue, @blue, :foo => "bar", :fragment => :half_way).should == "/monkeys/45/blues/13?foo=bar#half_way"
   end
 
 end
