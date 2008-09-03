@@ -58,6 +58,7 @@ module Merb
 
       # Runs all boot loader classes by calling their run methods.
       def run
+        Merb.started = true
         subklasses = subclasses.dup
         until subclasses.empty?
           time = Time.now.to_i
