@@ -1,5 +1,5 @@
 module Merb
-  class SessionStore < Mash
+  class SessionContainer < Mash
   
     class_inheritable_accessor :session_store_type
     cattr_accessor :subclasses 
@@ -19,7 +19,7 @@ module Merb
       # Generates a new session ID and creates a new session.
       #
       # ==== Returns
-      # SessionStore:: The new session.
+      # SessionContainer:: The new session.
       def generate
       end
     
@@ -27,8 +27,8 @@ module Merb
       # request<Merb::Request>:: The Merb::Request that came in from Rack.
       #
       # ==== Returns
-      # SessionStore:: a SessionStore. If no sessions were found, 
-      # a new SessionStore will be generated.
+      # SessionContainer:: a SessionContainer. If no sessions were found, 
+      # a new SessionContainer will be generated.
       def setup(request)
       end    
     

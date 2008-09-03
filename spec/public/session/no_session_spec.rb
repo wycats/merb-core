@@ -6,7 +6,7 @@ describe "An app without sessions enabled" do
   it "should raise an exception when accessing request.session" do
     lambda {
       controller = dispatch_to(Merb::Test::Fixtures::Controllers::SessionsController, :index)
-    }.should raise_error(Merb::SessionMixin::NoSessionStore)
+    }.should raise_error(Merb::SessionMixin::NoSessionContainer)
   end
   
 end

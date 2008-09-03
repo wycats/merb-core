@@ -1,11 +1,11 @@
 require 'merb-core/dispatch/session/store'
-require 'merb-core/dispatch/session/container_store'
+require 'merb-core/dispatch/session/store_container'
 
 module Merb
   module SessionMixin
     
     # Raised when no suitable session store has been setup.
-    class NoSessionStore < StandardError; end
+    class NoSessionContainer < StandardError; end
     
     # Session configuration options:
     #
@@ -55,11 +55,11 @@ module Merb
       @_new_cookie = true
     end
     
-    def needs_new_cookie
+    def needs_new_cookie?
       @_new_cookie
     end
     
-    module_function :rand_uuid, :needs_new_cookie, :needs_new_cookie!
+    module_function :rand_uuid, :needs_new_cookie!, :needs_new_cookie?
     
     module RequestMixin
       
@@ -84,7 +84,7 @@ module Merb
         # class_name<String>:: The corresponding class name.
         #
         # === Notres
-        # This is automatically called when Merb::SessionStore is subclassed.
+        # This is automatically called when Merb::SessionContainer is subclassed.
         def register_session_type(name, class_name)
           self.registered_session_types[name.to_sym] = class_name
         end
@@ -119,12 +119,12 @@ module Merb
           session(fallback)
         else
           Merb.logger.error "Can't use sessions because no session store is available."
-          raise NoSessionStore, "No session store configured."
+          raise NoSessionContainer, "No session store configured."
         end
       end
       
       # ==== Parameters
-      # new_session<Merb::SessionStore>:: A session store instance.
+      # new_session<Merb::SessionContainer>:: A session store instance.
       #
       # === Notes
       # The session is assigned internally by its session_store_type key.
@@ -141,7 +141,7 @@ module Merb
       # Whether a session has been setup
       def session?(session_store = nil)
         (session_store ? [session_store] : session_stores).any? do |type, store|
-          store.is_a?(Merb::SessionStore)
+          store.is_a?(Merb::SessionContainer)
         end
       end
       

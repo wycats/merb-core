@@ -16,7 +16,7 @@ module Merb
   # To use Cookie Sessions, set in config/merb.yml
   #  :session_secret_key - your secret digest key
   #  :session_store: cookie
-  class CookieSession < SessionStore
+  class CookieSession < SessionContainer
     # TODO (maybe):
     # include request ip address
     # AES encrypt marshaled data
@@ -41,7 +41,7 @@ module Merb
       # Generates a new session ID and creates a new session.
       #
       # ==== Returns
-      # SessionStore:: The new session.
+      # SessionContainer:: The new session.
       def generate
         Merb::CookieSession.new(Merb::SessionMixin.rand_uuid, "", Merb::Request._session_secret_key)
       end
@@ -52,8 +52,8 @@ module Merb
       # request<Merb::Request>:: The Merb::Request that came in from Rack.
       #
       # ==== Returns
-      # SessionStore:: a SessionStore. If no sessions were found, 
-      # a new SessionStore will be generated.
+      # SessionContainer:: a SessionContainer. If no sessions were found, 
+      # a new SessionContainer will be generated.
       def setup(request) 
         session = Merb::CookieSession.new(Merb::SessionMixin.rand_uuid, 
           request.session_cookie_value, request._session_secret_key)

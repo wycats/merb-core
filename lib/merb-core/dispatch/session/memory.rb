@@ -11,25 +11,25 @@ module Merb
   #
   # Sessions will remain in memory until the server is stopped or the time
   # as set in :memory_session_ttl expires.
-  class MemorySession < ContainerStore
+  class MemorySession < SessionStoreContainer
     
     # The session store type
     self.session_store_type = :memory
     
     # Bypass normal implicit class attribute reader - see below.
-    def container
-      self.class.container
+    def store
+      self.class.store
     end
     
-    # Lazy load/setup of MemorySessionContainer.
-    def self.container
-      @_container ||= MemorySessionContainer.new(Merb::Config[:memory_session_ttl])
+    # Lazy load/setup of MemorySessionStore.
+    def self.store
+      @_store ||= MemorySessionStore.new(Merb::Config[:memory_session_ttl])
     end
     
   end
   
   # Used for handling multiple sessions stored in memory.
-  class MemorySessionContainer
+  class MemorySessionStore
     
     # ==== Parameters
     # ttl<Fixnum>:: Session validity time in seconds. Defaults to 1 hour.

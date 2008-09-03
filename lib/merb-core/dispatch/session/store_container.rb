@@ -1,29 +1,29 @@
 module Merb
   
-  class ContainerStore < SessionStore
+  class SessionStoreContainer < SessionContainer
     
-    cattr_accessor :container
+    cattr_accessor :store
     attr_accessor  :_fingerprint
     
-    # The class attribute :container holds a reference to an object that implements 
+    # The class attribute :store holds a reference to an object that implements 
     # the following interface (either as class or instance methods): 
     #
     # - retrieve_session(session_id) # returns data as Hash
     # - store_session(session_id, data) # data should be a Hash
     # - delete_session(session_id)
     #
-    # You can use this session store directly by assigning to :container in your
+    # You can use this session store directly by assigning to :store in your
     # config/init.rb after_app_loads step, for example:
     #
     #   Merb::BootLoader.after_app_loads do
-    #     ContainerStore.container = BarSession.new(:option => 'value')
+    #     SessionStoreContainer.store = BarSession.new(:option => 'value')
     #   end
     #
-    # Or you can inherit from ContainerStore to create a SessionStore:
+    # Or you can inherit from SessionStoreContainer to create a SessionContainer:
     #
-    #   class FooSession < ContainerStore
+    #   class FooSession < SessionStoreContainer
     #   
-    #     self.container = FooContainer 
+    #     self.store = FooContainer 
     #   
     #   end
     #
@@ -43,15 +43,15 @@ module Merb
     #   
     #   end    
     
-    # When used directly, report as :container store
-    self.session_store_type = :container
+    # When used directly, report as :store store
+    self.session_store_type = :store
     
     class << self
 
       # Generates a new session ID and creates a new session.
       #
       # ==== Returns
-      # ContainerStore:: The new session.
+      # SessionStoreContainer:: The new session.
       def generate
         session = new(Merb::SessionMixin.rand_uuid)
         session.needs_new_cookie = true
@@ -64,8 +64,8 @@ module Merb
       # request<Merb::Request>:: The Merb::Request that came in from Rack.
       #
       # ==== Returns
-      # SessionStore:: a SessionStore. If no sessions were found, 
-      # a new SessionStore will be generated.
+      # SessionContainer:: a SessionContainer. If no sessions were found, 
+      # a new SessionContainer will be generated.
       def setup(request)
         session = retrieve(request.session_id)
         request.session = session
@@ -80,8 +80,8 @@ module Merb
       # session_id<String:: The ID of the session to retrieve.
       #
       # ==== Returns
-      # ContainerStore:: ContainerStore instance with the session data. If no
-      #   sessions matched session_id, a new ContainerStore will be generated.
+      # SessionStoreContainer:: SessionStoreContainer instance with the session data. If no
+      #   sessions matched session_id, a new SessionStoreContainer will be generated.
       #
       # ==== Notes
       # If there are persisted exceptions callbacks to execute, they all get executed
@@ -89,7 +89,7 @@ module Merb
       def retrieve(session_id)
         unless session_id.blank?
           begin
-            session_data = container.retrieve_session(session_id)
+            session_data = store.retrieve_session(session_id)
           rescue => err
             Merb.logger.warn!("Could not retrieve session from #{self.name}: #{err.message}")
           end
@@ -123,21 +123,21 @@ module Merb
     def finalize(request)
       if _fingerprint != Marshal.dump(data = self.to_hash).hash
         begin
-          container.store_session(request.session(self.class.session_store_type).session_id, data)
+          store.store_session(request.session(self.class.session_store_type).session_id, data)
         rescue => err
           Merb.logger.warn!("Could not persist session to #{self.class.name}: #{err.message}")
         end
       end
-      if needs_new_cookie || Merb::SessionMixin.needs_new_cookie
+      if needs_new_cookie || Merb::SessionMixin.needs_new_cookie?
         request.set_session_id_cookie(session_id)
       end
     end
 
     # Regenerate the session ID.
     def regenerate
-      container.delete_session(self.session_id)
+      store.delete_session(self.session_id)
       self.session_id = Merb::SessionMixin.rand_uuid
-      container.store_session(self.session_id, self)
+      store.store_session(self.session_id, self)
     end
     
   end

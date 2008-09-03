@@ -565,10 +565,10 @@ class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
     end
     
     # Register all configured session stores - any loaded session store class
-    # (subclassed from Merb::SessionStore) will be available for registration.
+    # (subclassed from Merb::SessionContainer) will be available for registration.
     config_stores = Array(Merb::Config[:session_stores] || Merb::Config[:session_store])
     config_stores.map! { |name| name.to_sym }
-    Merb::SessionStore.subclasses.each do |class_name|
+    Merb::SessionContainer.subclasses.each do |class_name|
       if( store = Object.full_const_get(class_name)) && 
         config_stores.include?(store.session_store_type)
           Merb::Request.register_session_type(store.session_store_type, class_name)

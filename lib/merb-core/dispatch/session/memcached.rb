@@ -6,11 +6,11 @@ module Merb
   #
   #   Merb::BootLoader.after_app_loads do
   #     require 'memcached'
-  #     Merb::MemcacheSession.container = 
+  #     Merb::MemcacheSession.store = 
   #        Memcached.new('127.0.0.1:11211', { :namespace => 'my_app' })
   #   end
   
-  class MemcacheSession < ContainerStore
+  class MemcacheSession < SessionStoreContainer
     
     # The session store type
     self.session_store_type = :memcache
@@ -21,7 +21,7 @@ end
 
 class Memcached
   
-  # Make Memcached conform to the ContainerStore interface
+  # Make Memcached conform to the SessionStoreContainer interface
   
   # ==== Parameters
   # session_id<String>:: ID of the session to retrieve.
