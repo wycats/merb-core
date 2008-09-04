@@ -6,14 +6,14 @@ module Merb
     class Csrf < Merb::Rack::Middleware
       HTML_TYPES = %w(text/html application/xhtml+xml)
       POST_FORM_RE = Regexp.compile('(<form\W[^>]*\bmethod=(\'|"|)POST(\'|"|)\b[^>]*>)', Regexp::IGNORECASE)
-      ERROR_MSG = '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><body><h1>403 Forbidden</h1><p>Cross Site Request Forgery detected. Request aborted.</p></body></html>'
+      ERROR_MSG = '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><body><h1>403 Forbidden</h1><p>Cross Site Request Forgery detected. Request aborted.</p></body></html>'.freeze
 
       def call(env)
         status, header, body = @app.call(env)
 
-        if env['REQUEST_METHOD'] == 'GET'
-          body = process_response(body) if valid_content_type?(header['Content-Type'])
-        elsif env['REQUEST_METHOD'] == 'POST'
+        if env[Merb::Const::REQUEST_METHOD] == Merb::Const::GET
+          body = process_response(body) if valid_content_type?(header[Merb::Const::CONTENT_TYPE])
+        elsif env[Merb::Const::REQUEST_METHOD] == Merb::Const::POST
           status, body = process_request(env, status, body)
         end
 
@@ -62,7 +62,7 @@ module Merb
       end
 
       def valid_content_type?(content_type)
-        HTML_TYPES.include?(content_type.split(';')[0])
+        HTML_TYPES.include?(content_type.split(';').first)
       end
 
       def _make_token(session_id)

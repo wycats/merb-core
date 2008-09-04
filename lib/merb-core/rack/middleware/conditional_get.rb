@@ -17,7 +17,7 @@ module Merb
     
     private
       def document_not_modified?(env, headers)
-        if etag = headers['ETag']
+        if etag = headers[Merb::Const::ETAG]
           etag == env[Merb::Const::HTTP_IF_NONE_MATCH]
         elsif last_modified = headers[Merb::Const::LAST_MODIFIED]
           last_modified == env[Merb::Const::HTTP_IF_MODIFIED_SINCE]
