@@ -56,8 +56,7 @@ describe Merb::Request, " query and body params" do
   before(:all) { Merb::BootLoader::Dependencies.enable_json_gem }
   
   {"foo=bar&baz=bat"        => {"foo" => "bar", "baz" => "bat"},
-   "foo=bar&foo=baz"        => {"foo" => ["bar", "baz"]},
-   "foo=bar&foo=baz&bar=bat"=> {"foo" => ["bar", "baz"], "bar" => "bat"},
+   "foo=bar&foo=baz"        => {"foo" => "baz"},
    "foo[]=bar&foo[]=baz"    => {"foo" => ["bar", "baz"]},
    "foo[][bar]=1&foo[][bar]=2"  => {"foo" => [{"bar" => "1"},{"bar" => "2"}]},
    "foo[bar][][baz]=1&foo[bar][][baz]=2"  => {"foo" => {"bar" => [{"baz" => "1"},{"baz" => "2"}]}},
