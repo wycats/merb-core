@@ -581,6 +581,9 @@ class Merb::BootLoader::SetupSession < Merb::BootLoader
       require file unless base_name == "container" || base_name == "store_container"
     end
     
+    # Set some defaults.
+    Merb::Config[:session_id_key] ||= "_session_id"
+    
     # List of all session_stores from :session_stores and :session_store config options.
     config_stores = Merb::Config.session_stores
     
