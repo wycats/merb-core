@@ -1,5 +1,3 @@
-module Language
-
 module English
 
   # = English Nouns Number Inflection.
@@ -26,12 +24,12 @@ module English
       #
       # Here we define erratum/errata exception case:
       #
-      # Language::English::Inflector.word "erratum", "errata"
+      # English::Inflect.word "erratum", "errata"
       #
       # In case singular and plural forms are the same omit
       # second argument on call:
       #
-      # Language::English::Inflector.word 'information'
+      # English::Inflect.word 'information'
       def word(singular, plural=nil)
         plural = singular unless plural
         singular_word(singular, plural)
@@ -88,7 +86,7 @@ module English
       #   capitalized (Man => Men)      #
       # ==== Examples
       # Once the following rule is defined:
-      # Language::English::Inflector.rule 'y', 'ies'
+      # English::Inflect.rule 'y', 'ies'
       #
       # You can see the following results:
       # irb> "fly".plural
@@ -113,7 +111,7 @@ module English
       #
       # ==== Examples
       # Once the following rule is defined:
-      # Language::English::Inflector.singular_rule 'o', 'oes'
+      # English::Inflect.singular_rule 'o', 'oes'
       #
       # You can see the following results:
       # irb> "heroes".singular
@@ -132,7 +130,7 @@ module English
       #
       # ==== Examples
       # Once the following rule is defined:
-      # Language::English::Inflector.singular_rule 'fe', 'ves'
+      # English::Inflect.singular_rule 'fe', 'ves'
       #
       # You can see the following results:
       # irb> "wife".plural
@@ -331,15 +329,14 @@ module English
 
   end
 end
-end
 
 class String
   def singular
-    Language::English::Inflect.singular(self)
+    English::Inflect.singular(self)
   end
   alias_method(:singularize, :singular)
   def plural
-    Language::English::Inflect.plural(self)
+    English::Inflect.plural(self)
   end
   alias_method(:pluralize, :plural)
 end
