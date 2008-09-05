@@ -71,7 +71,7 @@ module Merb
         session = retrieve(request.session_id)
         request.session = session
         # TODO Marshal.dump is slow - needs optimization
-        session._fingerprint = Marshal.dump(request.session).hash
+        session._fingerprint = Marshal.dump(request.session.to_hash).hash
         session
       end
             
