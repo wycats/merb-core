@@ -183,7 +183,7 @@ module Merb
       # value<String>:: The value of the session cookie; either the session id or the actual encoded data.
       def set_session_cookie_value(value)
         options = {}
-        options[:expires] = Time.now + (_session_expiry || Merb::Const::WEEK * 2)
+        options[:expires] = Time.now + _session_expiry
         cookies.set_cookie(_session_id_key, value, options)
       end
       alias :set_session_id_cookie :set_session_cookie_value
