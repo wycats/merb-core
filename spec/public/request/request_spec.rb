@@ -222,3 +222,20 @@ describe Merb::Request, " misc" do
   end
   
 end
+
+
+
+describe Merb::Request, "#if_none_match" do
+  it 'returns value of If-None-Match request header' do
+    fake_request(Merb::Const::HTTP_IF_NONE_MATCH => "dc1562a133").if_none_match.should == "dc1562a133"
+  end
+end
+
+
+
+describe Merb::Request, "#if_modified_since" do
+  it 'returns value of If-Modified-Since request header' do
+    t = '05 Sep 2008 22:00:27 GMT'
+    fake_request(Merb::Const::HTTP_IF_MODIFIED_SINCE => t).if_modified_since.should == Time.rfc2822(t)
+  end
+end
