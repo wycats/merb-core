@@ -595,6 +595,9 @@ class Merb::BootLoader::SetupSession < Merb::BootLoader
           Merb::Request.register_session_type(store.session_store_type, class_name)
       end
     end
+    
+    # Mixin the Merb::Session module to add app-level functionality to sessions
+    Merb::SessionContainer.send(:include, Merb::Session)
   end
 
 end

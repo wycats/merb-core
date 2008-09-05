@@ -1,6 +1,18 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 require File.join(File.dirname(__FILE__), "controllers", "sessions")
 
+# The Merb::Session module gets mixed into Merb::SessionContainer to allow 
+# app-level functionality (usually found in app/models/merb/session.rb)
+module Merb
+  module Session
+    
+    def awesome?
+      self[:foo] == 'awesome'
+    end
+    
+  end
+end
+
 describe "All session-store backends", :shared => true do
   
   it "should be instanciated using the 'generate' method" do
@@ -65,6 +77,14 @@ describe "All session-stores mixed into Merb::Controller", :shared => true do
       controller.headers["Set-Cookie"].should_not be_blank
       controller = dispatch_to(@controller_klass, :retrieve)
       controller.headers["Set-Cookie"].should be_blank
+    end
+  end
+  
+  it "should have mixed in Merb::Session methods" do
+    with_cookies(@controller_klass) do
+      controller = dispatch_to(@controller_klass, :index, :foo => 'awesome')
+      controller.request.session.should respond_to(:awesome?)
+      controller.request.session.should be_awesome
     end
   end
     

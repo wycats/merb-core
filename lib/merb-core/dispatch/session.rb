@@ -17,6 +17,11 @@ module Merb
     
   end
   
+  # The Merb::Session module gets mixed into Merb::SessionContainer to allow 
+  # app-level functionality (usually found in app/models/merb/session.rb)
+  module Session
+  end
+  
   module SessionMixin
     
     # Raised when no suitable session store has been setup.
