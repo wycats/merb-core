@@ -1,5 +1,3 @@
-module Language
-
 module English
 
   # = English Nouns Number Inflection.
@@ -331,15 +329,14 @@ module English
 
   end
 end
-end
 
 class String
   def singular
-    Language::English::Inflect.singular(self)
+    English::Inflect.singular(self)
   end
   alias_method(:singularize, :singular)
   def plural
-    Language::English::Inflect.plural(self)
+    English::Inflect.plural(self)
   end
   alias_method(:pluralize, :plural)
 end
