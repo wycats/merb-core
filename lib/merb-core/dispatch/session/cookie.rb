@@ -43,7 +43,7 @@ module Merb
       # ==== Returns
       # SessionContainer:: The new session.
       def generate
-        Merb::CookieSession.new(Merb::SessionMixin.rand_uuid, "", Merb::Request._session_secret_key)
+        self.new(Merb::SessionMixin.rand_uuid, "", Merb::Request._session_secret_key)
       end
 
       # Setup a new session.
@@ -55,7 +55,7 @@ module Merb
       # SessionContainer:: a SessionContainer. If no sessions were found, 
       # a new SessionContainer will be generated.
       def setup(request) 
-        session = Merb::CookieSession.new(Merb::SessionMixin.rand_uuid, 
+        session = self.new(Merb::SessionMixin.rand_uuid, 
           request.session_cookie_value, request._session_secret_key)
         session._original_session_data = session.to_cookie
         request.session = session
@@ -104,7 +104,7 @@ module Merb
     # attributes like 'needs_new_cookie', which it shouldn't.
     def to_cookie
       unless self.empty?
-        data = Base64.encode64(Marshal.dump(self.to_hash)).chop
+        data = self.serialize
         value = Merb::Request.escape "#{data}--#{generate_digest(data)}"
         raise CookieOverflow if value.size > MAX
         value
@@ -140,9 +140,22 @@ module Merb
             raise TamperedWithCookie, "Maybe the site's session_secret_key has changed?"
           end
         end
-        Marshal.load(Base64.decode64(data)) rescue {}
+        unserialize(data)
       end
     end
     
+    protected
+    
+    # Serialize current session data - as a Hash
+    def serialize
+      Base64.encode64(Marshal.dump(self.to_hash)).chop
+    end
+    
+    # Unserialize the raw cookie data - to a Hash
+    def unserialize(data)
+      Marshal.load(Base64.decode64(data)) rescue {}
+    end
+    
   end
+  
 end

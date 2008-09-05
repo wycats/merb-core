@@ -21,7 +21,7 @@ end
 
 class Memcached
   
-  # Make Memcached conform to the SessionStoreContainer interface
+  # Make the Memcached gem conform to the SessionStoreContainer interface
   
   # ==== Parameters
   # session_id<String>:: ID of the session to retrieve.
