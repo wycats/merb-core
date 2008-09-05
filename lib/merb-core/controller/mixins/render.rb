@@ -183,7 +183,7 @@ module Merb::RenderMixin
   # @option :*
   #   options that will be pass to serialization method like #to_json or #to_xml
   def display(object, thing = nil, opts = {})
-    template_opt = opts.delete(:template)
+    template_opt = thing.is_a?(Hash) ? thing.delete(:template) : opts.delete(:template)
 
     case thing
     # display @object, "path/to/foo" means display @object, nil, :template => "path/to/foo"

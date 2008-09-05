@@ -1,3 +1,18 @@
+9/2/2008:
+* AbstractController now uniformly uses instance_eval for Procs where previously
+  the controller instance (self) was passed as an argument:
+  - Procs thrown during dispatch 
+  - Procs used as before/after filters
+  - Procs used as conditions to before/after filters
+  
+  This means that code like this:
+  
+  proc { |c| c.a_controller_method }
+  
+  Becomes the following for the cases mentioned:
+  
+  proc { a_controller_method }
+
 8/14/2008:
 *  Merb.orm_generator_scope and friends are renamed.
 ** Merb.orm_generator_scope => Merb.orm

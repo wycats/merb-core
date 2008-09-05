@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-describe Language::English::Inflect, "#singular" do
+describe English::Inflect, "#singular" do
   # ==== exceptional cases
 
   it "singularizes equipment => equipment" do

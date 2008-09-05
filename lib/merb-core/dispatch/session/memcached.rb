@@ -96,7 +96,7 @@ module Merb
         unless session_id.blank?
           begin
             session = CACHE.get("session:#{session_id}")
-          rescue => err
+          rescue Exception => err
             Merb.logger.warn!("Could not persist session to MemCache: #{err.message}")
             Merb::SessionMixin::persist_exception_callbacks.each {|x| x.call(err) }
           end

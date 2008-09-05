@@ -216,11 +216,11 @@ end
 class String
 
   def english_singular
-    Language::English::Inflect.singular(self)
+    English::Inflect.singular(self)
   end
 
   def english_plural
-    Language::English::Inflect.plural(self)
+    English::Inflect.plural(self)
   end
 end
 

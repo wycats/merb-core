@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.executables = ["merb"]
   s.authors = ["Ezra Zygmuntowicz"]
   s.required_rubygems_version = ">= 0"
-  s.version = "0.9.5"
+  s.version = "0.9.6"
   s.files = ["LICENSE",
  "README",
  "Rakefile",

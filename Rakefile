@@ -51,15 +51,14 @@ spec = Gem::Specification.new do |s|
   s.description  = PROJECT_DESCRIPTION
   s.executables  = %w( merb )
   s.require_path = "lib"
-  s.files        = %w( LICENSE README Rakefile TODO ) + Dir["{docs,bin,spec,lib,examples,app_generators,merb_generators,merb_default_generators,rspec_generators,test_unit_generators,script}/**/*"]
+  s.files        = %w( LICENSE README Rakefile TODO CHANGELOG PUBLIC_CHANGELOG CONTRIBUTORS ) + Dir["{docs,bin,spec,lib}/**/*"]
 
   # rdoc
   s.has_rdoc         = true
   s.extra_rdoc_files = %w( README LICENSE TODO )
-  #s.rdoc_options     += RDOC_OPTS + ["--exclude", "^(app|uploads)"]
 
   # Dependencies
-  s.add_dependency "extlib", ">=0.9.4"
+  s.add_dependency "extlib", "= 0.9.6"
   s.add_dependency "erubis"
   s.add_dependency "rake"
   s.add_dependency "json_pure"
@@ -165,7 +164,6 @@ namespace :doc do
 
   desc "rdoc to rubyforge"
   task :rubyforge do
-    # sh %{rake doc}
     sh %{#{sudo} chmod -R 755 doc} unless windows?
     sh %{/usr/bin/scp -r -p doc/rdoc/* ezmobius@rubyforge.org:/var/www/gforge-projects/merb}
   end
@@ -177,12 +175,6 @@ end
 ##############################################################################
 desc "Run :specs, :rcov"
 task :aok => [:specs, :rcov]
-
-# desc "Run all specs"
-# Spec::Rake::SpecTask.new("specs") do |t|
-#   t.spec_opts = ["--format", "specdoc", "--colour"]
-#   t.spec_files = Dir["spec/**/*_spec.rb"].sort
-# end
 
 def setup_specs(name, spec_cmd='spec', run_opts = "-c")
   desc "Run all specs (#{name})"
@@ -255,15 +247,6 @@ Spec::Rake::SpecTask.new("specs_html") do |t|
   t.spec_files = Dir["spec/**/*_spec.rb"].sort
 end
 
-# desc "RCov"
-# Spec::Rake::SpecTask.new("rcov") do |t|
-#   t.rcov_opts = ["--exclude", "gems", "--exclude", "spec"]
-#   t.spec_opts = ["--format", "specdoc", "--colour"]
-#   t.spec_files = Dir["spec/**/*_spec.rb"].sort
-#   t.libs = ["lib", "server/lib"]
-#   t.rcov = true
-# end
-
 STATS_DIRECTORIES = [
   ['Code', 'lib/'],
   ['Unit tests', 'spec']
@@ -322,8 +305,9 @@ namespace :repo do
 end
 
 def git_log(since_release = nil, log_format = "%an")
-  git_log_query = "git log --pretty='format:#{log_format}' --no-merges"
-  git_log_query << " --since='v#{since_release}'" if since_release
+  git_log_query = "git log"
+  git_log_query << " v#{since_release}..HEAD" if since_release
+  git_log_query << " --pretty='format:#{log_format}' --no-merges"
   puts
   puts "Running #{git_log_query}"
   puts
@@ -331,10 +315,10 @@ def git_log(since_release = nil, log_format = "%an")
 end
 
 def contributors(since_release = nil)
-  @merb_contributors ||= git_log(since_release).split("\n").uniq.sort
+  git_log(since_release).split("\n").uniq.sort
 end
 
-PREVIOUS_RELEASE = '0.9.4'
+PREVIOUS_RELEASE = '0.9.5'
 namespace :history do
   namespace :update do
     desc "updates contributors list"
