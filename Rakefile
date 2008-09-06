@@ -79,22 +79,27 @@ end
 
 desc "Run :package and install the resulting .gem"
 task :install => :package do
-  sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri}
+  sh install_command(GEM_NAME, GEM_VERSION)
 end
 
 desc "Install Merb with development dependencies"
 task :dev_install => :package do
-  sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri --development}  
+  sh dev_install_command(GEM_NAME, GEM_VERSION)  
 end
 
 desc "Run :package and install the resulting .gem with jruby"
 task :jinstall => :package do
-  sh %{#{sudo} jruby -S gem install #{install_home} pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+  sh jinstall_command(GEM_NAME, GEM_VERSION)
+end
+
+desc "Run :package and install the resulting .gem with jruby (development dependencies)"
+task :jinstall => :package do
+  sh dev_jinstall_command(GEM_NAME, GEM_VERSION)
 end
 
 desc "Run :clean and uninstall the .gem"
 task :uninstall => :clean do
-  sh %{#{sudo} gem uninstall #{NAME}}
+  sh uninstall_command(GEM_NAME)
 end
 
 CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]

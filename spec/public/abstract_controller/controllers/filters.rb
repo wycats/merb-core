@@ -79,6 +79,24 @@ module Merb::Test::Fixtures
         "#{@x} #{@y}"
       end
     end
+    
+    class TestProcFilterViaMethod < Testing
+      def self.my_before(data)
+        before proc { add_string(data) }
+      end
+      
+      my_before("one")
+      my_before("two")
+
+      def index
+        @text
+      end
+      protected
+        def add_string(str)
+          @text ||= ""
+          @text << str
+        end
+    end
 
     class TestExcludeFilter < Testing
       before :foo, :exclude => :index
