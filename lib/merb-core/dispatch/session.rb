@@ -53,7 +53,7 @@ module Merb
     # session_store<String>:: The type of session store to access.
     #
     # ==== Returns
-    # Hash:: The session that was extracted from the request object.
+    # SessionContainer:: The session that was extracted from the request object.
     def session(session_store = nil) request.session(session_store) end
     
     # Module methods
