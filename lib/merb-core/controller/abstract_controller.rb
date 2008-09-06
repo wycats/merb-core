@@ -519,9 +519,14 @@ class Merb::AbstractController
     end
 
     opts = normalize_filters!(opts)
-
+    
     case filter
-    when Symbol, Proc, String
+    when Proc
+      # filters with procs created via class methods have identical signature
+      # regardless if they handle content differently or not. So procs just
+      # get appended
+      filters << [filter, opts]
+    when Symbol, String
       if existing_filter = filters.find {|f| f.first.to_s[filter.to_s]}
         filters[ filters.index(existing_filter) ] = [filter, opts]
       else
