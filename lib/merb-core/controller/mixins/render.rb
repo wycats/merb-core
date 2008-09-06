@@ -95,7 +95,7 @@ module Merb::RenderMixin
     thing ||= action_name.to_sym
 
     # Content negotiation
-    opts[:format] ? (self.content_type = opts[:format]) : content_type
+    self.content_type = opts[:format] if opts[:format]
 
     # Handle options (:status)
     _handle_options!(opts)
