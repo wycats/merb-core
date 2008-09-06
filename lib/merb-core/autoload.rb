@@ -3,6 +3,7 @@ module Merb
   autoload :BootLoader,               "merb-core/bootloader"
   autoload :Config,                   "merb-core/config"
   autoload :Const,                    "merb-core/constants"
+  autoload :ConditionalGetMixin,      "merb-core/controller/mixins/conditional_get"
   autoload :ControllerMixin,          "merb-core/controller/mixins/controller"
   autoload :ControllerExceptions,     "merb-core/controller/exceptions"
   autoload :Dispatcher,               "merb-core/dispatch/dispatcher"

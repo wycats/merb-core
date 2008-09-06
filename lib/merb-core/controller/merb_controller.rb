@@ -13,6 +13,7 @@ class Merb::Controller < Merb::AbstractController
   include Merb::ResponderMixin
   include Merb::ControllerMixin
   include Merb::AuthenticationMixin
+  include Merb::ConditionalGetMixin  
 
   class << self
 
