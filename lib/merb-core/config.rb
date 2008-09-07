@@ -237,7 +237,11 @@ module Merb
           opts.on("-V", "--verbose", "Print extra information") do
             options[:verbose] = true
           end
-          
+
+          opts.on("-C", "--console-trap", "Enter an irb console on ^C") do
+            options[:console_trap] = true
+          end
+
           opts.on("-?", "-H", "--help", "Show this help message") do
             puts opts
             exit
