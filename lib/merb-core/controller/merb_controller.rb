@@ -1,20 +1,14 @@
 class Merb::Controller < Merb::AbstractController
 
-  class_inheritable_accessor :_hidden_actions, :_shown_actions,
-                             :_session_id_key, :_session_secret_key, :_session_expiry, :_session_cookie_domain
+  class_inheritable_accessor :_hidden_actions, :_shown_actions
 
   self._hidden_actions ||= []
-  self._shown_actions ||= []
+  self._shown_actions  ||= []
   
   cattr_accessor :_subclasses
   self._subclasses = Set.new
 
   def self.subclasses_list() _subclasses end
-
-  self._session_secret_key = nil
-  self._session_id_key = Merb::Config[:session_id_key] || '_session_id'
-  self._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
-  self._session_cookie_domain = Merb::Config[:session_cookie_domain]
 
   include Merb::ResponderMixin
   include Merb::ControllerMixin
@@ -163,11 +157,8 @@ class Merb::Controller < Merb::AbstractController
   # Sets the variables that came in through the dispatch as available to
   # the controller.
   #
-  # This method uses the :session_id_cookie_only and :query_string_whitelist
-  # configuration options. See CONFIG for more details.
-  #
   # ==== Parameters
-  # request<Merb::Request>:: The Merb::Request that came in from Mongrel.
+  # request<Merb::Request>:: The Merb::Request that came in from Rack.
   # status<Integer>:: An integer code for the status. Defaults to 200.
   # headers<Hash{header => value}>::
   #   A hash of headers to start the controller with. These headers can be
@@ -226,20 +217,6 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The parameters from the request object
   def params()  request.params  end
-
-  # ==== Returns
-  # Merb::Cookies::
-  #   A new Merb::Cookies instance representing the cookies that came in
-  #   from the request object
-  #
-  # ==== Notes
-  # Headers are passed into the cookie object so that you can do:
-  #   cookies[:foo] = "bar"
-  def cookies() @_cookies ||= _setup_cookies end
-
-  # ==== Returns
-  # Hash:: The session that was extracted from the request object.
-  def session() request.session end
   
   # The results of the controller's render, to be returned to Rack.
   #
@@ -258,10 +235,5 @@ class Merb::Controller < Merb::AbstractController
   # If not already added, add the proper mime extension to the template path.
   def _conditionally_append_extension(template, type)
     type && !template.match(/\.#{type.to_s.escape_regexp}$/) ? "#{template}.#{type}" : template
-  end
-
-  # Create a default cookie jar, and pre-set a fixation cookie if fixation is enabled.
-  def _setup_cookies
-    ::Merb::Cookies.new(request.cookies, @headers)
   end
 end

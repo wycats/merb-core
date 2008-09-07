@@ -32,14 +32,13 @@ describe Merb::Rack::Csrf do
     @app = Merb::Rack::Application.new
     @middleware = Merb::Rack::Csrf.new(@app)
     @env = Rack::MockRequest.env_for('/users/new')
-
+    
     Merb::Config[:session_secret_key] = "ABC"
   end
 
   it "should be successful" do
     env = Rack::MockRequest.env_for('/users', :method => 'POST', 'csrf_authentication_token' => "b072aa15485e028dc8973d48089efe0e")
     status, header, body = @middleware.call(env)
-    puts body.inspect
     status.should == 200
   end
 

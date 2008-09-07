@@ -18,6 +18,32 @@
   
   proc { a_controller_method }
 
+8/27/2008:
+* Merb::Request#protocol now returns valid protocol names: http, not http://.
+
+8/22/2008:
+* controller.cookies['foo'] = { ... } (Hash with options) is now deprecated;
+  use controller.cookies['foo'] = 'bar' for simple cookies without options, or
+  use controller.cookies.set_cookie('foo', 'bar', options) for more control.
+
+8/21/2008:
+* Memcached sessions are now configured by assignment to 
+  Merb::MemcachedSession.store (previously the CACHE constant was used)
+* Added Merb::Config[:ignore_tampered_cookies] option to skip cookie warnings   
+  during development. This defaults to 'on' in the development environment.
+* Merb::Config[:session_store] or Merb::Config[:session_stores] now accept an
+  Array (or String); when an Array is given, multiple session stores will be
+  available to the application.
+* If you have custom session stores (that inherit from Merb::SessionContainer)
+  be sure to require them in your init.rb
+
+8/20/2008:
+* Merb::Config[:session_cookie_domain] is now     
+  Merb::Config[:default_cookie_domain]
+* Merb.registered_session_types is now Merb::Request.registered_session_types
+* When running in :development env, cookie-based sessions won't bother you 
+  by raising TamperedWithCookie anymore.
+
 8/14/2008:
 *  Merb.orm_generator_scope and friends are renamed.
 ** Merb.orm_generator_scope => Merb.orm

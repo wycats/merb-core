@@ -5,10 +5,19 @@ module Merb::Test::Fixtures::Controllers
   end
 
   class CookiesController < Testing
+    
+    def store_cookies
+      cookies[:foo] = 'bar'
+      cookies.set_cookie(:awesome, 'super-cookie', :domain => 'blog.merbivore.com')
+    end
+    
+    def retrieve_cookies
+    end
+    
   end
   
   class OverridingSessionCookieDomain < CookiesController
-    self._session_cookie_domain = "overridden.merbivore.com"
+    self._default_cookie_domain = "overridden.merbivore.com"
   end
 
   class NotOverridingSessionCookieDomain < CookiesController

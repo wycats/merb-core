@@ -3,8 +3,8 @@ require 'tempfile'
 module Merb
   
   class Request
-    # def env def session def route_params
-    attr_accessor :env, :session, :exceptions, :route
+    # def env def exceptions def route_params
+    attr_accessor :env, :exceptions, :route
     attr_reader :route_params
     
     # by setting these to false, auto-parsing is disabled; this way you can
@@ -207,6 +207,7 @@ module Merb
     end
     
     public
+    
     # ==== Returns
     # Mash:: All request parameters.
     #
@@ -236,20 +237,7 @@ module Merb
     def reset_params!
       @params = nil
     end
-
-    # ==== Returns
-    # Hash:: The cookies for this request.
-    def cookies
-      @cookies ||= begin 
-        cookies = self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
-        if route && route.allow_fixation? && params.key?(Merb::Controller._session_id_key)
-          Merb.logger.info("Fixated session id: #{Merb::Controller._session_id_key}")
-          cookies[Merb::Controller._session_id_key] = params[Merb::Controller._session_id_key]
-        end
-        cookies
-      end
-    end
-
+    
     # ==== Returns
     # String:: The raw post.
     def raw_post

@@ -1,3 +1,10 @@
+8/20/2008:
+* Plugins that implement custom session stores should now conform to the base
+  class Merb::SessionStore and implement the stub methods defined there.
+* Merb::SessionMixin.finalize_session_exception_callbacks and
+  Merb::SessionMixin.persist_exception_callbacks are gone - implement
+  recovery strategies in the SessionStore subclass itself.
+
 6/18/2008:
 
 * Modified the public interface to Merb::Template.inline_template to accept a File or VirtualFile

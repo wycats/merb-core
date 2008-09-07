@@ -104,6 +104,7 @@ module Merb
             end
           end
         ensure
+          Merb.started = false
           exit
         end
       end

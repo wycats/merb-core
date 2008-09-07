@@ -78,3 +78,11 @@ describe Merb::Controller, "handles invalid status codes" do
       should raise_error(ArgumentError, /was.*String/)
   end
 end
+
+describe Merb::Controller, "before/after dispatch callbacks" do
+  it "are used for internal purposes" do
+    controller = dispatch_to(Controllers::DispatchCallbacks, :index)
+    controller.called_before.should be_true
+    controller.called_after.should be_true
+  end  
+end

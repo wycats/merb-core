@@ -1,8 +1,18 @@
 Gem::Specification.new do |s|
+  s.add_dependency "extlib", ">= 0.9.3, runtime"
+  s.add_dependency "erubis", ">= 0, runtime"
+  s.add_dependency "rake", ">= 0, runtime"
+  s.add_dependency "json_pure", ">= 0, runtime"
+  s.add_dependency "rspec", ">= 0, runtime"
+  s.add_dependency "rack", ">= 0, runtime"
+  s.add_dependency "mime-types", ">= 0, runtime"
+  s.requirements = ["install the json gem to get faster json parsing"]
+  s.require_paths = ["lib"]
   s.extra_rdoc_files = ["README", "LICENSE", "TODO"]
-  s.date = "Wed Aug 13 00:00:00 -0700 2008"
+  s.date = "Wed Aug 20 00:00:00 +0200 2008"
   s.executables = ["merb"]
   s.authors = ["Ezra Zygmuntowicz"]
+  s.name = "merb-core"
   s.required_rubygems_version = ">= 0"
   s.version = "0.9.6"
   s.files = ["LICENSE",
@@ -22,6 +32,7 @@ Gem::Specification.new do |s|
  "spec/private/config/adapter_spec.rb",
  "spec/private/config/config_spec.rb",
  "spec/private/config/environment_spec.rb",
+ "spec/private/config/merb_spec.rb",
  "spec/private/config/spec_helper.rb",
  "spec/private/core_ext",
  "spec/private/core_ext/kernel_spec.rb",
@@ -66,8 +77,6 @@ Gem::Specification.new do |s|
  "spec/private/dispatch/route_params_spec.rb",
  "spec/private/dispatch/session_mixin_spec.rb",
  "spec/private/dispatch/spec_helper.rb",
- "spec/private/plugins",
- "spec/private/plugins/plugin_spec.rb",
  "spec/private/router",
  "spec/private/router/behavior_spec.rb",
  "spec/private/router/fixture",
@@ -261,7 +270,6 @@ Gem::Specification.new do |s|
  "spec/public/core_ext/fixtures",
  "spec/public/core_ext/fixtures/core_ext_dependency.rb",
  "spec/public/core_ext/kernel_spec.rb",
- "spec/public/core_ext/object_spec.rb",
  "spec/public/core_ext/spec_helper.rb",
  "spec/public/DEFINITIONS",
  "spec/public/directory_structure",
@@ -284,6 +292,8 @@ Gem::Specification.new do |s|
  "spec/public/logger",
  "spec/public/logger/logger_spec.rb",
  "spec/public/logger/spec_helper.rb",
+ "spec/public/rack",
+ "spec/public/rack/rack_middleware_spec.rb",
  "spec/public/reloading",
  "spec/public/reloading/directory",
  "spec/public/reloading/directory/app",
@@ -313,6 +323,13 @@ Gem::Specification.new do |s|
  "spec/public/router/spec_helper.rb",
  "spec/public/router/special_spec.rb",
  "spec/public/router/string_spec.rb",
+ "spec/public/session",
+ "spec/public/session/controllers",
+ "spec/public/session/controllers/sessions.rb",
+ "spec/public/session/cookie_session_spec.rb",
+ "spec/public/session/memcached_session_spec.rb",
+ "spec/public/session/memory_session_spec.rb",
+ "spec/public/session/session_spec.rb",
  "spec/public/template",
  "spec/public/template/template_spec.rb",
  "spec/public/template/templates",
@@ -371,6 +388,7 @@ Gem::Specification.new do |s|
  "lib/merb-core/dispatch/session/cookie.rb",
  "lib/merb-core/dispatch/session/memcached.rb",
  "lib/merb-core/dispatch/session/memory.rb",
+ "lib/merb-core/dispatch/session/store.rb",
  "lib/merb-core/dispatch/session.rb",
  "lib/merb-core/dispatch/worker.rb",
  "lib/merb-core/gem_ext",
@@ -397,6 +415,7 @@ Gem::Specification.new do |s|
  "lib/merb-core/rack/middleware/path_prefix.rb",
  "lib/merb-core/rack/middleware/profiler.rb",
  "lib/merb-core/rack/middleware/static.rb",
+ "lib/merb-core/rack/middleware/tracer.rb",
  "lib/merb-core/rack/middleware.rb",
  "lib/merb-core/rack.rb",
  "lib/merb-core/server.rb",
@@ -436,22 +455,13 @@ Gem::Specification.new do |s|
   s.has_rdoc = "true"
   s.specification_version = "2"
   s.loaded = "false"
-  s.requirements = ["install the json gem to get faster json parsing"]
   s.email = "ez@engineyard.com"
-  s.name = "merb-core"
   s.required_ruby_version = ">= 1.8.6"
   s.bindir = "bin"
   s.rubygems_version = "1.2.0"
   s.homepage = "http://merbivore.com"
   s.platform = "ruby"
   s.summary = "Merb. Pocket rocket web framework."
+  s.version = "0.9.5"
   s.description = "Merb. Pocket rocket web framework."
-  s.add_dependency "extlib", ">= 0.9.3, runtime"
-  s.add_dependency "erubis", ">= 0, runtime"
-  s.add_dependency "rake", ">= 0, runtime"
-  s.add_dependency "json_pure", ">= 0, runtime"
-  s.add_dependency "rspec", ">= 0, runtime"
-  s.add_dependency "rack", ">= 0, runtime"
-  s.add_dependency "mime-types", ">= 0, runtime"
-  s.require_paths = ["lib"]
 end

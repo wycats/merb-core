@@ -5,7 +5,6 @@ module Merb
   autoload :Const,                    "merb-core/constants"
   autoload :ControllerMixin,          "merb-core/controller/mixins/controller"
   autoload :ControllerExceptions,     "merb-core/controller/exceptions"
-  autoload :Cookies,                  "merb-core/dispatch/cookies"
   autoload :Dispatcher,               "merb-core/dispatch/dispatcher"
   autoload :AuthenticationMixin,      "merb-core/controller/mixins/authentication"
   autoload :BasicAuthenticationMixin, "merb-core/controller/mixins/authentication/basic"
@@ -16,7 +15,6 @@ module Merb
   autoload :Request,                  "merb-core/dispatch/request"
   autoload :ResponderMixin,           "merb-core/controller/mixins/responder"
   autoload :Router,                   "merb-core/dispatch/router"
-  autoload :SessionMixin,             "merb-core/dispatch/session"
   autoload :Test,                     "merb-core/test"
   autoload :Worker,                   "merb-core/dispatch/worker"
 end
