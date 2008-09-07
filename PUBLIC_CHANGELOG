@@ -1,3 +1,8 @@
+9/5/2008:
+* Language::English::Inflector is now English::Inflect - be sure to change your
+  custom inflections in config/init.rb. Additionally, the merb-gen template 
+  config/init.rb has been changed to document the features accordingly.
+
 9/2/2008:
 * AbstractController now uniformly uses instance_eval for Procs where previously
   the controller instance (self) was passed as an argument:

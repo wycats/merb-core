@@ -41,7 +41,7 @@ module Merb::RenderMixin
     # ==== Returns
     # Hash:: The default render options.
     def layout(layout)
-      self.default_render_options.update(:layout => (layout ? layout : false))
+      self.default_render_options.update(:layout => (layout || false))
     end
 
     # Enable the default layout logic - reset the layout option.
@@ -95,7 +95,7 @@ module Merb::RenderMixin
     thing ||= action_name.to_sym
 
     # Content negotiation
-    opts[:format] ? (self.content_type = opts[:format]) : content_type
+    self.content_type = opts[:format] if opts[:format]
 
     # Handle options (:status)
     _handle_options!(opts)
