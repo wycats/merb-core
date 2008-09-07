@@ -18,6 +18,15 @@
   
   proc { a_controller_method }
 
+8/29/2008:
+* The directory Merb.root / 'framework' is now gone - framework gems are
+  expected to be installed as local gems in Merb.root / 'gems':
+  sudo gem install merb -i ./gems
+* The notion of a frozen application setup (using bundled gems) is now known
+  as a bundled setup; Merb.frozen? => Merb.bundled? By default an app uses
+  bundled gems (the -B or --bundle options to merb), to disable this use
+  the option --no-bundle.
+
 8/27/2008:
 * Merb::Request#protocol now returns valid protocol names: http, not http://.
 

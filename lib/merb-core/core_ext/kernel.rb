@@ -37,27 +37,14 @@ module Kernel
   #   If the gem cannot be found, the method will attempt to require the string
   #   as a library.
   def load_dependency(name, *ver)
-    try_framework = Merb.frozen?
     begin
-      # If this is a piece of merb, and we're frozen, try to require
-      # first, so we can pick it up from framework/,
-      # otherwise try activating the gem
-      if name =~ /^merb/ && try_framework
-        require name
-      else
-        gem(name, *ver) if ver
-        require name
-        Merb.logger.info!("loading gem '#{name}' ...")
-      end
+      gem(name, *ver) if ver
+      require name
+      Merb.logger.info!("loading gem '#{name}' ...")
     rescue LoadError
-      if try_framework
-        try_framework = false
-        retry
-      else
-        Merb.logger.info!("loading gem '#{name}' ...")
-        # Failed requiring as a gem, let's try loading with a normal require.
-        require name
-      end
+      Merb.logger.info!("loading gem '#{name}' ...")
+      # Failed requiring as a gem, let's try loading with a normal require.
+      require name
     end
   end
 

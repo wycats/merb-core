@@ -84,17 +84,6 @@ describe "Kernel#load_dependency" do
       # some people may have no RSpec gem
     end
   end
-
-  it "tries to be smart by checking if Merb is frozen" do
-    self.should_receive(:require)
-    Merb.should_receive(:frozen?).and_return(true)
-
-    begin
-      load_dependency("merb-core")
-    rescue LoadError => e
-      # some people may have no RSpec gem
-    end
-  end
 end
 
 

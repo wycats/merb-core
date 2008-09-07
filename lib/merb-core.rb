@@ -16,7 +16,9 @@ $LOAD_PATH.unshift __DIR__ unless
 require 'merb-core' / 'vendor' / 'facets'
 
 module Merb
+  # Create stub module for global controller helpers.
   module GlobalHelpers; end
+  
   class << self
 
     # Merge environment settings
@@ -354,25 +356,18 @@ module Merb
 
     Merb.klass_hashes = []
 
-    attr_accessor :frozen
-
     # ==== Returns
-    # Boolean:: True if Merb is running via merb-freezer or other freezer.
+    # Boolean:: True if Merb is running as an application with bundled gems.
+    # Can only be disabled by --no-bundle option on startup (or for Rakefile
+    # use NO_BUNDLE=true to disable local gems).
     #
     # ==== Notes
-    # Freezing means bundling framework libraries with your application
-    # making it independent from environment it runs in. This is a good
-    # practice to freeze application framework and gems it uses and
-    # very useful when application is run in some sort of sandbox,
-    # for instance, shared hosting with preconfigured gems.
-    def frozen?
-      @frozen
-    end
-
-    # Used by merb-freezer and other freezers to mark Merb as frozen.
-    # See Merb::GlobalHelpers.frozen? for more details on framework freezing.
-    def frozen!
-      @frozen = true
+    # Bundling required gems makes your application independent from the 
+    # environment it runs in. This is a good practice to freeze application 
+    # framework and gems it uses and very useful when application is run in 
+    # some sort of sandbox, for instance, shared hosting with preconfigured gems.
+    def bundled?
+      ENV.key?("BUNDLE") || Merb::Config[:bundle] || ENV.key?("NO_BUNDLE")
     end
 
     # Load configuration and assign logger.
