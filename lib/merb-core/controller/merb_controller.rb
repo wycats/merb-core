@@ -4,7 +4,7 @@ class Merb::Controller < Merb::AbstractController
 
   self._hidden_actions ||= []
   self._shown_actions  ||= []
-  
+
   cattr_accessor :_subclasses
   self._subclasses = Set.new
 
@@ -13,6 +13,7 @@ class Merb::Controller < Merb::AbstractController
   include Merb::ResponderMixin
   include Merb::ControllerMixin
   include Merb::AuthenticationMixin
+  include Merb::ConditionalGetMixin
 
   class << self
 
@@ -96,7 +97,7 @@ class Merb::Controller < Merb::AbstractController
     end
 
     private
-    
+
     # All methods that are callable as actions.
     #
     # ==== Returns
@@ -134,15 +135,15 @@ class Merb::Controller < Merb::AbstractController
   def _template_location(context, type, controller)
     _conditionally_append_extension(controller ? "#{controller}/#{context}" : "#{context}", type)
   end
-  
-  # The location to look for a template and mime-type. This is overridden 
-  # from AbstractController, which defines a version of this that does not 
+
+  # The location to look for a template and mime-type. This is overridden
+  # from AbstractController, which defines a version of this that does not
   # involve mime-types.
   #
   # ==== Parameters
-  # template<String>:: 
+  # template<String>::
   #    The absolute path to a template - without mime and template extension.
-  #    The mime-type extension is optional - it will be appended from the 
+  #    The mime-type extension is optional - it will be appended from the
   #    current content type if it hasn't been added already.
   # type<~to_s>::
   #    The mime-type of the template that will be rendered. Defaults to nil.
@@ -195,7 +196,7 @@ class Merb::Controller < Merb::AbstractController
   end
 
   attr_reader :request, :headers
-  
+
   def status
     @_status
   end
@@ -217,7 +218,7 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The parameters from the request object
   def params()  request.params  end
-  
+
   # The results of the controller's render, to be returned to Rack.
   #
   # ==== Returns
@@ -226,10 +227,10 @@ class Merb::Controller < Merb::AbstractController
   def rack_response
     [status, headers, body]
   end
-  
+
   # Hide any methods that may have been exposed as actions before.
   hide_action(*_callable_methods)
-  
+
   private
 
   # If not already added, add the proper mime extension to the template path.

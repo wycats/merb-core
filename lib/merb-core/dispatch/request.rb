@@ -447,6 +447,20 @@ module Merb
     def domain(tld_length = 1)
       host.split('.').last(1 + tld_length).join('.').sub(/:\d+$/,'')
     end
+
+    # ==== Returns
+    # Value of If-None-Match request header.
+    def if_none_match
+      @env[Merb::Const::HTTP_IF_NONE_MATCH]
+    end
+
+    # ==== Returns
+    # Value of If-Modified-Since request header.
+    def if_modified_since
+      if time = @env[Merb::Const::HTTP_IF_MODIFIED_SINCE]
+        Time.rfc2822(time)
+      end
+    end
     
     class << self
       

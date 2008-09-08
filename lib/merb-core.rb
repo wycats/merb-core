@@ -356,6 +356,8 @@ module Merb
 
     Merb.klass_hashes = []
 
+    attr_accessor :frozen
+
     # ==== Returns
     # Boolean:: True if Merb is running as an application with bundled gems.
     # Can only be disabled by --no-bundle option on startup (or for Rakefile
