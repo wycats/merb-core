@@ -58,7 +58,7 @@ spec = Gem::Specification.new do |s|
   s.extra_rdoc_files = %w( README LICENSE TODO )
 
   # Dependencies
-  s.add_dependency "extlib", "= 0.9.6"
+  s.add_dependency "extlib", ">= 0.9.6"
   s.add_dependency "erubis"
   s.add_dependency "rake"
   s.add_dependency "json_pure"
