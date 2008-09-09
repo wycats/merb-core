@@ -246,4 +246,10 @@ describe Merb::Controller, "absolute_url" do
                              :format   => :xml,
                              :protocol => "https").should == "https://localhost/monkeys/45.xml"
   end
+  
+  it "allows passing an object instead of a hash" do
+    @monkey = Monkey.new
+    @controller.absolute_url(:monkey, @monkey).should == "http://localhost/monkeys/45"
+  end
+  
 end

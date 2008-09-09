@@ -461,11 +461,14 @@ class Merb::AbstractController
   def absolute_url(name, rparams={})
     # FIXME: arrgh, why request.protocol returns http://?
     # :// is not part of protocol name
-    protocol = rparams.delete(:protocol)
-    protocol << "://" if protocol
+    if rparams.is_a?(Hash)
+      protocol = rparams.delete(:protocol)
+      protocol << "://" if protocol
+      host = rparams.delete(:host)
+    end
     
     (protocol || request.protocol) +
-      (rparams.delete(:host) || request.host) +
+      (host || request.host) +
       url(name, rparams)
   end
 
