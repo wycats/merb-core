@@ -64,7 +64,7 @@ module Merb
           # Add local paths to LOAD_PATH - remove overlapping system gem paths
           local_load_paths.each do |name, paths|
             $LOAD_PATH.unshift(*paths)
-            $LOAD_PATH.replace($LOAD_PATH - system_load_paths[name] || [])
+            $LOAD_PATH.replace($LOAD_PATH - (system_load_paths[name] || []))
           end
           return local_gems
         end
