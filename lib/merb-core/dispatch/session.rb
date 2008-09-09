@@ -44,7 +44,6 @@ module Merb
     #                           session data; min. 16 chars
     #
     # :default_cookie_domain    The default domain to write cookies for.
-
     def self.included(base)
       # Register a callback to finalize sessions - needs to run before the cookie
       # callback extracts Set-Cookie headers from request.cookies.
@@ -146,7 +145,7 @@ module Merb
           session(fallback)
         else
           Merb.logger.error "Can't use sessions because no session store is available."
-          raise NoSessionContainer, "No session store configured."
+          raise NoSessionContainer, "No session store set. Set it in init file like this: c[:session_store] = 'activerecord'"
         end
       end
 
