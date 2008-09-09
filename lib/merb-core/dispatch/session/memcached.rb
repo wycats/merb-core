@@ -1,4 +1,8 @@
-require "memcached"
+begin
+  require "memcached"
+rescue LoadError => e
+  puts "Install memcached gem to use Memcached session store"
+end
 
 module Merb
 
