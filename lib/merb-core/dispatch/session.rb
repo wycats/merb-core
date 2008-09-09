@@ -23,6 +23,7 @@ module Merb
   module Session
   end
 
+  # This is mixed into Merb::Controller on framework boot.
   module SessionMixin
 
     # Raised when no suitable session store has been setup.
