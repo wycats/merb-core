@@ -65,9 +65,11 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "rspec"
   s.add_dependency "rack"
   s.add_dependency "mime-types"
-  s.add_dependency "hpricot"  
-  s.add_development_dependency "libxml-ruby"
-  s.add_development_dependency "memcache-client"
+  s.add_dependency "hpricot"
+  # this escalates to "regular" dependencies, comment it out
+  # for now. RubyGems need some love.
+  #s.add_development_dependency "libxml-ruby"
+  #s.add_development_dependency "memcache-client"
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
   s.required_ruby_version = ">= 1.8.6"
