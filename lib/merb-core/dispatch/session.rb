@@ -54,7 +54,9 @@ module Merb
     #
     # ==== Returns
     # SessionContainer:: The session that was extracted from the request object.
-    def session(session_store = nil) request.session(session_store) end
+    def session(session_store = nil)
+      request.session(session_store)
+    end
 
     # Module methods
 
