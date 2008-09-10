@@ -13,12 +13,12 @@ describe Merb::Controller, "._default_cookie_domain" do
   end
 
   it "can be overridden for particular controller" do
-    Merb::Test::Fixtures::Controllers::OverridingSessionCookieDomain._default_cookie_domain.should ==
+    Merb::Test::Fixtures::Controllers::OverridingDefaultCookieDomain._default_cookie_domain.should ==
       "overridden.merbivore.com"
   end
 
   it 'is inherited by subclasses unless overriden' do
-    Merb::Test::Fixtures::Controllers::NotOverridingSessionCookieDomain._default_cookie_domain.should ==
+    Merb::Test::Fixtures::Controllers::NotOverridingDefaultCookieDomain._default_cookie_domain.should ==
       Merb::Config[:default_cookie_domain]
   end
 end
@@ -35,6 +35,15 @@ describe Merb::Controller, "#cookies" do
       cookies[0].should match(/domain=blog.merbivore.com;/)
       cookies[1].should match(/foo=bar;/)
       cookies[1].should match(/domain=specs.merbivore.com;/)
+    end
+  end
+  
+  it "sets the Set-Cookie response header - and ignores blank options" do
+    controller_klass = Merb::Test::Fixtures::Controllers::EmptyDefaultCookieDomain
+    with_cookies(controller_klass) do |cookie_jar|
+      controller = dispatch_to(controller_klass, :store_cookies)
+      cookies = controller.headers['Set-Cookie'].sort
+      cookies[1].should == "foo=bar; path=/;"
     end
   end
     

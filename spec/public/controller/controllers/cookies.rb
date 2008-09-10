@@ -16,10 +16,15 @@ module Merb::Test::Fixtures::Controllers
     
   end
   
-  class OverridingSessionCookieDomain < CookiesController
+  class OverridingDefaultCookieDomain < CookiesController
     self._default_cookie_domain = "overridden.merbivore.com"
   end
 
-  class NotOverridingSessionCookieDomain < CookiesController
+  class NotOverridingDefaultCookieDomain < CookiesController
   end
+  
+  class EmptyDefaultCookieDomain < CookiesController
+    self._default_cookie_domain = ''
+  end
+  
 end
