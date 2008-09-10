@@ -139,12 +139,18 @@ module Merb
     # Exceptions::
     #   The Merb::Controller that was dispatched to. 
     def dispatch_exception(exception)
-      Merb.logger.error(Merb.exception(exception))
+      if(exception.is_a?(Merb::ControllerExceptions::Base) &&
+         !exception.is_a?(Merb::ControllerExceptions::ServerError))
+        Merb.logger.info(Merb.exception(exception))
+      else
+        Merb.logger.error(Merb.exception(exception))
+      end
+
       self.exceptions = [exception]
-      
+
       begin
         e = exceptions.first
-        
+
         if action_name = e.action_name
           dispatch_action(Exceptions, action_name, e.class.status)
         else
@@ -156,7 +162,7 @@ module Merb
         else
           Merb.logger.error("Dispatching #{e.class} raised another error.")
           Merb.logger.error(Merb.exception(dispatch_issue))
-          
+
           exceptions.unshift dispatch_issue
           retry
         end
