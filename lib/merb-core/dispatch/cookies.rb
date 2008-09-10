@@ -69,7 +69,8 @@ module Merb
         end
         secure  = options.delete(:secure)
         kookie  = "#{name}=#{Merb::Request.escape(value)}; "
-        options.each { |k, v| kookie << "#{k}=#{v}; " }
+        # WebKit in particular doens't like empty cookie options - skip them.
+        options.each { |k, v| kookie << "#{k}=#{v}; " unless v.blank? }
         kookie  << 'secure' if secure
         cookies << kookie.rstrip
       end

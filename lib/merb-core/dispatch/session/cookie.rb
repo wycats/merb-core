@@ -1,6 +1,5 @@
 require 'base64'        # to convert Marshal.dump to ASCII
 require 'openssl'       # to generate the HMAC message digest
-# Most of this code is taken from Jeremy Kemper's implementation in rails
 module Merb
 
   # If you have more than 4K of session data or don't want your data to be
