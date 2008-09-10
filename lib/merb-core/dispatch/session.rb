@@ -2,10 +2,10 @@ require 'merb-core/dispatch/session/container'
 require 'merb-core/dispatch/session/store_container'
 
 module Merb
-
   class Config
-
-    # List of all session_stores taken from :session_stores or :session_store
+    # Returns stores list constructed from
+    # configured session stores (:session_stores config option)
+    # or default one (:session_store config option).
     def self.session_stores
       @session_stores ||= begin
         config_stores = Array(
@@ -14,18 +14,20 @@ module Merb
         config_stores.map { |name| name.to_sym }
       end
     end
-
-  end
+  end # Config
 
   # The Merb::Session module gets mixed into Merb::SessionContainer to allow
-  # app-level functionality (usually found in app/models/merb/session.rb)
-  # FIXME: expand it, explain what this means to end user.
+  # app-level functionality (usually found in app/models/merb/session.rb) for
+  # session.
+  #
+  # You can use this module to implement additional methods to simplify
+  # building wizard-like application components,
+  # authentication frameworks, etc.
   module Session
   end
 
   # This is mixed into Merb::Controller on framework boot.
   module SessionMixin
-
     # Raised when no suitable session store has been setup.
     class NoSessionContainer < StandardError; end
 
@@ -128,6 +130,9 @@ module Merb
         @session_stores ||= {}
       end
 
+      # Returns session container. Merb is able to handle multiple session
+      # stores, hence a parameter to pick it.
+      #
       # ==== Parameters
       # session_store<String>:: The type of session store to access,
       # defaults to default_session_store.
@@ -140,12 +145,14 @@ module Merb
         if class_name = self.class.registered_session_types[session_store]
           session_stores[session_store] ||= Object.full_const_get(class_name).setup(self)
         elsif fallback = self.class.registered_session_types.keys.first
-          Merb.logger.warn "Session store not found, '#{session_store}'."
-          Merb.logger.warn "Defaulting to #{fallback} sessions."
+          Merb.logger.warn "Session store '#{session_store}' not found. Check your configuration in init file."
+          Merb.logger.warn "Falling back to #{fallback} session store."
           session(fallback)
         else
-          Merb.logger.error "Can't use sessions because no session store is available."
-          raise NoSessionContainer, "No session store set. Set it in init file like this: c[:session_store] = 'activerecord'"
+          msg = "No session store set. Set it in init file like this: c[:session_store] = 'activerecord'"
+          Merb.logger.error!(msg)
+          raise NoSessionContainer, msg
+            
         end
       end
 
@@ -187,12 +194,12 @@ module Merb
         defaults
       end
 
+      # Sets session cookie value. Used by Cookie session store.
+      #
       # ==== Parameters
       # value<String>:: The value of the session cookie; either the session id or the actual encoded data.
       def set_session_cookie_value(value)
-        options = {}
-        options[:expires] = Time.now + _session_expiry
-        cookies.set_cookie(_session_id_key, value, options)
+        cookies.set_cookie(_session_id_key, value, { :expired => Time.now + _session_expiry })
       end
       alias :set_session_id_cookie :set_session_cookie_value
 

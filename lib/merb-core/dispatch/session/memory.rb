@@ -10,7 +10,11 @@ module Merb
   #  end
   #
   # Sessions will remain in memory until the server is stopped or the time
-  # as set in :memory_session_ttl expires.
+  # as set in :memory_session_ttl expires. Expired sessions are cleaned up in the
+  # background by a separate thread. Every time reaper
+  # cleans up expired sessions, garbage collection is scheduled start.
+  #
+  # Memory session is accessed in a thread safe manner.
   class MemorySession < SessionStoreContainer
     
     # The session store type
@@ -30,14 +34,14 @@ module Merb
   
   # Used for handling multiple sessions stored in memory.
   class MemorySessionStore
-    
+
     # ==== Parameters
     # ttl<Fixnum>:: Session validity time in seconds. Defaults to 1 hour.
     def initialize(ttl=nil)
       @sessions = Hash.new
       @timestamps = Hash.new
       @mutex = Mutex.new
-      @session_ttl = ttl || 60*60 # default 1 hour
+      @session_ttl = ttl || Merb::Const::HOUR # defaults 1 hour
       start_timer
     end
     
@@ -73,7 +77,7 @@ module Merb
     end
 
     # Deletes any sessions that have reached their maximum validity.
-    def reap_old_sessions
+    def reap_expired_sessions
       @timestamps.each do |session_id,stamp|
         delete_session(session_id) if (stamp + @session_ttl) < Time.now 
       end
@@ -85,7 +89,7 @@ module Merb
       Thread.new do
         loop {
           sleep @session_ttl
-          reap_old_sessions
+          reap_expired_sessions
         } 
       end  
     end

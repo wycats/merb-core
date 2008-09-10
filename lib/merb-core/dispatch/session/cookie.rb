@@ -45,7 +45,7 @@ module Merb
         self.new(Merb::SessionMixin.rand_uuid, "", Merb::Request._session_secret_key)
       end
 
-      # Setup a new session.
+      # Set up a new session on request: make it available on request instance.
       #
       # ==== Parameters
       # request<Merb::Request>:: The Merb::Request that came in from Rack.
@@ -72,8 +72,9 @@ module Merb
     def initialize(session_id, cookie, secret)
       super session_id
       if secret.blank? || secret.length < 16
-        Merb.logger.warn("You must specify a session_secret_key in your init file, and it must be at least 16 characters")
-        raise ArgumentError, 'A secret is required to generate an integrity hash for cookie session data.'
+        msg = "You must specify a session_secret_key in your init file, and it must be at least 16 characters"
+        Merb.logger.warn(msg)
+        raise ArgumentError, msg
       end
       @secret = secret
       self.update(unmarshal(cookie))
@@ -82,7 +83,7 @@ module Merb
     # Teardown and/or persist the current session.
     #
     # ==== Parameters
-    # request<Merb::Request>:: The Merb::Request that came in from Rack.
+    # request<Merb::Request>:: request object created from Rack environment.
     def finalize(request)
       if _original_session_data != (new_session_data = self.to_cookie)
         request.set_session_cookie_value(new_session_data)
@@ -95,17 +96,21 @@ module Merb
     # String:: Cookie value.
     #
     # ==== Raises
-    # CookieOverflow:: Session contains too much information.
+    # CookieOverflow:: More than 4K of data put into session.
     #
     # ==== Notes
-    # The data (self) is converted to a Hash first, since a container might
-    # choose to do a full Marshal on the data, which would make it persist
+    # Session data is converted to a Hash first, since a container might
+    # choose to marshal it, which would make it persist
     # attributes like 'needs_new_cookie', which it shouldn't.
     def to_cookie
       unless self.empty?
         data = self.serialize
         value = Merb::Request.escape "#{data}--#{generate_digest(data)}"
-        raise CookieOverflow if value.size > MAX
+        if value.size > MAX
+          msg = "Cookies have limit of 4K. Session contents: #{data.inspect}"
+          Merb.logger.error!(msg)
+          raise CookieOverflow, msg
+        end
         value
       end
     end
@@ -145,12 +150,13 @@ module Merb
 
     protected
 
-    # Serialize current session data - as a Hash
+    # Serialize current session data as a Hash.
+    # Uses Base64 encoding for integrity.
     def serialize
       Base64.encode64(Marshal.dump(self.to_hash)).chop
     end
 
-    # Unserialize the raw cookie data - to a Hash
+    # Unserialize the raw cookie data to a Hash
     def unserialize(data)
       Marshal.load(Base64.decode64(data)) rescue {}
     end

@@ -6,29 +6,27 @@ module Merb
     attr_accessor  :_fingerprint
     
     # The class attribute :store holds a reference to an object that implements 
-    # the following interface (either as class or instance methods): 
+    # the following interface:
     #
-    # - retrieve_session(session_id) # returns data as Hash
-    # - store_session(session_id, data) # data should be a Hash
+    # - retrieve_session(session_id) # returns a Hash
+    # - store_session(session_id, data) # expects data to be Hash
     # - delete_session(session_id)
     #
-    # You can use this session store directly by assigning to :store in your
+    # You can use session store classes directly by assigning to :store in your
     # config/init.rb after_app_loads step, for example:
     #
     #   Merb::BootLoader.after_app_loads do
-    #     SessionStoreContainer.store = BarSession.new(:option => 'value')
+    #     SessionStoreContainer.store = MemorySession.new
     #   end
     #
     # Or you can inherit from SessionStoreContainer to create a SessionContainer
-    # that delegates to its 'store' attribute.
+    # that delegates to aggregated store.
     #
-    #   class FooSession < SessionStoreContainer
-    #   
-    #     self.store = FooContainer 
-    #   
+    #   class MemorySession < SessionStoreContainer
+    #     self.session_store_type = :memory
     #   end
     #
-    #   class FooContainer
+    #   class MemoryContainer
     #   
     #     def self.retrieve_session(session_id)
     #       ...
@@ -43,7 +41,6 @@ module Merb
     #     end
     #   
     #   end    
-    
     # When used directly, report as :store store
     self.session_store_type = :store
     
