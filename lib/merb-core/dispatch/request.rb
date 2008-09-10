@@ -652,9 +652,14 @@ module Merb
           parms[key] = val
         elsif after == "[]"
           (parms[key] ||= []) << val
-        elsif after =~ %r(^\[\])
+        elsif after =~ %r(^\[\]\[([^\[\]]+)\]$)
+          child_key = $1
           parms[key] ||= []
-          parms[key] << normalize_params({}, after, val)
+          if parms[key].last.is_a?(Hash) && !parms[key].last.key?(child_key)
+            parms[key].last.update(child_key => val)
+          else
+            parms[key] << { child_key => val }
+          end
         else
           parms[key] ||= {}
           parms[key] = normalize_params(parms[key], after, val)

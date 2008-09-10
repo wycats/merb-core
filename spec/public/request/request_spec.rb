@@ -55,12 +55,25 @@ describe Merb::Request, " query and body params" do
   
   before(:all) { Merb::BootLoader::Dependencies.enable_json_gem }
   
-  {"foo=bar&baz=bat"        => {"foo" => "bar", "baz" => "bat"},
-   "foo=bar&foo=baz"        => {"foo" => "baz"},
-   "foo[]=bar&foo[]=baz"    => {"foo" => ["bar", "baz"]},
-   "foo[][bar]=1&foo[][bar]=2"  => {"foo" => [{"bar" => "1"},{"bar" => "2"}]},
-   "foo[bar][][baz]=1&foo[bar][][baz]=2"  => {"foo" => {"bar" => [{"baz" => "1"},{"baz" => "2"}]}},
-   "foo[1]=bar&foo[2]=baz"  => {"foo" => {"1" => "bar", "2" => "baz"}}}.each do |query, parse|
+  TEST_PARAMS = {
+    "foo=bar&baz=bat"                       => {"foo" => "bar", "baz" => "bat"},
+    "foo=bar&foo=baz"                       => {"foo" => "baz"},
+    "foo[]=bar&foo[]=baz"                   => {"foo" => ["bar", "baz"]},
+    "foo[][bar]=1&foo[][bar]=2"             => {"foo" => [{"bar" => "1"},{"bar" => "2"}]},
+    "foo[bar][][baz]=1&foo[bar][][baz]=2"   => {"foo" => {"bar" => [{"baz" => "1"},{"baz" => "2"}]}},
+    "foo[1]=bar&foo[2]=baz"                 => {"foo" => {"1" => "bar", "2" => "baz"}},
+    
+    "foo[bar][baz]=1&foo[bar][zot]=2&foo[bar][zip]=3&foo[bar][buz]=4" => {"foo" => {"bar" => {"baz" => "1", "zot" => "2", "zip" => "3", "buz" => "4"}}},
+    "foo[bar][][baz]=1&foo[bar][][zot]=2&foo[bar][][zip]=3&foo[bar][][buz]=4" => {"foo" => {"bar" => [{"baz" => "1", "zot" => "2", "zip" => "3", "buz" => "4"}]}},
+    "foo[bar][][baz]=1&foo[bar][][zot]=2&foo[bar][][baz]=3&foo[bar][][zot]=4" => {"foo" => {"bar" => [{"baz" => "1", "zot" => "2"},{"baz" => "3", "zot" => "4"}]}},
+    "foo[bar][][baz]=1&foo[bar][][zot]=2&foo[bar][][fuz]=A&foo[bar][][baz]=3&foo[bar][][zot]=4&foo[bar][][fuz]=B" => {"foo" => {"bar" => [{"baz" => "1", "zot" => "2", "fuz" => "A"},{"baz" => "3", "zot" => "4", "fuz" => "B"}]}},
+    "foo[bar][][baz]=1&foo[bar][][zot]=2&foo[bar][][fuz]=A&foo[bar][][baz]=3&foo[bar][][zot]=4&foo[bar][][foz]=C" => {"foo" => {"bar" => [{"baz" => "1", "zot" => "2", "fuz" => "A"},{"baz" => "3", "zot" => "4", "foz" => "C"}]}},
+    "foo[bar][][baz]=1&foo[bar][][zot]=2&foo[bar][][fuz]=A&foo[bar][][baz]=3&foo[bar][][zot]=4" => {"foo" => {"bar" => [{"baz" => "1", "zot" => "2", "fuz" => "A"},{"baz" => "3", "zot" => "4"}]}},
+    "foo[bar][][baz]=1&foo[bar][][zot]=2&foo[bar][][fuz]=A&foo[bar][][baz]=3&foo[bar][][zot]=4&foo[bar][][fuz]=B&foo[bar][][foz]=C" => {"foo" => {"bar" => [{"baz" => "1", "zot" => "2", "fuz" => "A"},{"baz" => "3", "zot" => "4", "fuz" => "B", "foz" => "C"}]}},
+    "foo[][bar][][baz]=1&foo[][bar][][zot]=2&foo[][bar][][fuz]=A&foo[][bar][][baz]=3&foo[][bar][][zot]=4&foo[][bar][][fuz]=B&foo[][bar][][foz]=C" => {"foo" => {"bar" => [{"baz" => "1", "zot" => "2", "fuz" => "A"},{"baz" => "3", "zot" => "4", "fuz" => "B", "foz" => "C"}]}}
+  }
+  
+  TEST_PARAMS.each do |query, parse|
 
      it "should convert #{query.inspect} to #{parse.inspect} in the query string" do
        request = fake_request({:query_string => query})
@@ -223,15 +236,11 @@ describe Merb::Request, " misc" do
   
 end
 
-
-
 describe Merb::Request, "#if_none_match" do
   it 'returns value of If-None-Match request header' do
     fake_request(Merb::Const::HTTP_IF_NONE_MATCH => "dc1562a133").if_none_match.should == "dc1562a133"
   end
 end
-
-
 
 describe Merb::Request, "#if_modified_since" do
   it 'returns value of If-Modified-Since request header' do
