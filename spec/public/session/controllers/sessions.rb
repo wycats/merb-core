@@ -19,6 +19,10 @@ module Merb::Test::Fixtures
       
       def retrieve
       end
+      
+      def destroy
+        request.session.clear!
+      end
     
     end
     

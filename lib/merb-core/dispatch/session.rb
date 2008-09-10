@@ -151,8 +151,7 @@ module Merb
         else
           msg = "No session store set. Set it in init file like this: c[:session_store] = 'activerecord'"
           Merb.logger.error!(msg)
-          raise NoSessionContainer, msg
-            
+          raise NoSessionContainer, msg            
         end
       end
 
@@ -194,12 +193,13 @@ module Merb
         defaults
       end
 
-      # Sets session cookie value. Used by Cookie session store.
+      # Sets session cookie value.
       #
       # ==== Parameters
       # value<String>:: The value of the session cookie; either the session id or the actual encoded data.
-      def set_session_cookie_value(value)
-        cookies.set_cookie(_session_id_key, value, { :expired => Time.now + _session_expiry })
+      # options<Hash>:: Cookie options like domain, path and expired.
+      def set_session_cookie_value(value, options = {})
+        cookies.set_cookie(_session_id_key, value, { :expires => Time.now + _session_expiry }.merge(options))
       end
       alias :set_session_id_cookie :set_session_cookie_value
 
@@ -209,6 +209,12 @@ module Merb
         cookies[_session_id_key]
       end
       alias :session_id :session_cookie_value
+      
+      # Destroy the session cookie.
+      def destroy_session_cookie
+        cookies.delete(_session_id_key)
+      end
+      
     end
   end
 end

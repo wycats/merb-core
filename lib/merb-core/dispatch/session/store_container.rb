@@ -111,6 +111,9 @@ module Merb
     
     # Teardown and/or persist the current session.
     #
+    # If @_destroy is true, clear out the session completely, including
+    # removal of the session cookie itself.
+    #
     # ==== Parameters
     # request<Merb::Request>:: The Merb::Request that came in from Rack.
     #
@@ -119,15 +122,20 @@ module Merb
     # choose to do a full Marshal on the data, which would make it persist 
     # attributes like 'needs_new_cookie', which it shouldn't.
     def finalize(request)
-      if _fingerprint != Marshal.dump(data = self.to_hash).hash
-        begin
-          store.store_session(request.session(self.class.session_store_type).session_id, data)
-        rescue => err
-          Merb.logger.warn!("Could not persist session to #{self.class.name}: #{err.message}")
+      if @_destroy
+        store.delete_session(self.session_id)
+        request.destroy_session_cookie
+      else
+        if _fingerprint != Marshal.dump(data = self.to_hash).hash
+          begin
+            store.store_session(request.session(self.class.session_store_type).session_id, data)
+          rescue => err
+            Merb.logger.warn!("Could not persist session to #{self.class.name}: #{err.message}")
+          end
         end
-      end
-      if needs_new_cookie || Merb::SessionMixin.needs_new_cookie?
-        request.set_session_id_cookie(session_id)
+        if needs_new_cookie || Merb::SessionMixin.needs_new_cookie?
+          request.set_session_id_cookie(self.session_id)
+        end
       end
     end
 

@@ -37,14 +37,8 @@ module Merb
     # ==== Parameters
     # session_id<String>:: A unique identifier for this session.
     def initialize(session_id)
+      @_destroy = false
       self.session_id = session_id
-    end
-  
-    # Teardown and/or persist the current session.
-    #
-    # ==== Parameters
-    # request<Merb::Request>:: The Merb::Request that came in from Rack.
-    def finalize(request)
     end
     
     # Assign a new session_id.
@@ -56,9 +50,25 @@ module Merb
       @session_id = sid
     end
   
-    # Regenerate the Session ID
-    def regenerate
+    # Teardown and/or persist the current session.
+    #
+    # If @_destroy is true, clear out the session completely, including
+    # removal of the session cookie itself.
+    #
+    # ==== Parameters
+    # request<Merb::Request>:: The Merb::Request that came in from Rack.
+    def finalize(request)
     end
   
+    # Destroy the current session - clears data and removes session cookie.
+    def clear!
+      @_destroy = true
+      self.clear
+    end
+  
+    # Regenerate the session_id.
+    def regenerate
+    end
+
   end
 end

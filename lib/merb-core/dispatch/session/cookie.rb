@@ -81,12 +81,22 @@ module Merb
 
     # Teardown and/or persist the current session.
     #
+    # If @_destroy is true, clear out the session completely, including
+    # removal of the session cookie itself.
+    #
     # ==== Parameters
     # request<Merb::Request>:: request object created from Rack environment.
     def finalize(request)
-      if _original_session_data != (new_session_data = self.to_cookie)
+      if @_destroy
+        request.destroy_session_cookie
+      elsif _original_session_data != (new_session_data = self.to_cookie)
         request.set_session_cookie_value(new_session_data)
       end
+    end
+    
+    # Regenerate the session_id.
+    def regenerate
+      self.session_id = Merb::SessionMixin.rand_uuid
     end
 
     # Create the raw cookie string; includes an HMAC keyed message digest.

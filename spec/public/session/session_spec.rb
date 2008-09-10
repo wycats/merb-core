@@ -70,6 +70,21 @@ describe "All session-stores mixed into Merb::Controller", :shared => true do
     end    
   end
   
+  it "should allow the session to be destroyed" do
+    session_store_type = @session_class.session_store_type.to_s
+    with_cookies(@controller_klass) do
+      controller = dispatch_to(@controller_klass, :index, :foo => session_store_type)
+      controller = dispatch_to(@controller_klass, :retrieve)
+      controller.request.session[:foo].should == session_store_type
+      
+      controller = dispatch_to(@controller_klass, :destroy)
+      controller.request.session.should be_empty
+      cookie_header = controller.headers["Set-Cookie"].first
+      cookie_header.should match(/_session_id=;/)
+      cookie_header.should match(/ 1970;/)
+    end
+  end
+  
   it "should not set the Set-Cookie header when the session(_id) didn't change" do
     session_store_type = @session_class.session_store_type.to_s
     with_cookies(@controller_klass) do
