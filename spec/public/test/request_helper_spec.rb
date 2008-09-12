@@ -65,6 +65,11 @@ describe Merb::Test::RequestHelper do
       
       controller.params[:action].should == "show"
     end
+
+    it "should support setting request.raw_post" do
+      controller = dispatch_to(@controller_klass, :show, {}, {:post_body => 'some XML'})
+      controller.request.raw_post.should == 'some XML'
+    end
   end
   
   describe "#dispatch_with_basic_authentication_to" do
@@ -213,6 +218,11 @@ describe Merb::Test::RequestHelper do
       end
     end
     
+    it "should support setting request.raw_post" do
+      controller = request("/namespaced/spec_helper_controller", {}, {:post_body => 'some XML'})
+      controller.request.raw_post.should == 'some XML'
+    end
+
     it "should get namespaced index action" do
       Merb::Test::ControllerAssertionMock.should_receive(:called).with(:index)
       controller = request("/namespaced/spec_helper_controller")
