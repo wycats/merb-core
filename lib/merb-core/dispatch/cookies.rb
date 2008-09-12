@@ -2,9 +2,9 @@ module Merb
 
   class Cookies < Mash
   
-    def initialize(constructor = {}, cookie_defaults = {})
-      @_options_lookup = Mash.new
-      @_cookie_defaults = cookie_defaults
+    def initialize(constructor = {})
+      @_options_lookup  = Mash.new
+      @_cookie_defaults = { "domain" => Merb::Controller._default_cookie_domain, "path" => '/' }
       super constructor
     end
     
@@ -50,7 +50,7 @@ module Merb
     # name<~to_s>:: Name of the cookie to delete.
     # options<Hash>:: Additional options to pass to +set_cookie+.
     def delete(name, options = {})
-      set_cookie(name, "", options.merge(:expires => Time.at(0)))
+      set_cookie(name, "", options.merge("expires" => Time.at(0)))
     end
     
     # Generate any necessary headers.
@@ -64,10 +64,10 @@ module Merb
         # Only set cookies that marked for inclusion in the response header. 
         next unless @_options_lookup[name]
         options = defaults.merge(@_options_lookup[name])
-        if (expiry = options[:expires]).respond_to?(:gmtime)
-          options[:expires] = expiry.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
+        if (expiry = options["expires"]).respond_to?(:gmtime)
+          options["expires"] = expiry.gmtime.strftime(Merb::Const::COOKIE_EXPIRATION_FORMAT)
         end
-        secure  = options.delete(:secure)
+        secure  = options.delete("secure")
         kookie  = "#{name}=#{Merb::Request.escape(value)}; "
         # WebKit in particular doens't like empty cookie options - skip them.
         options.each { |k, v| kookie << "#{k}=#{v}; " unless v.blank? }
@@ -88,7 +88,7 @@ module Merb
       
       # Add a callback to enable Set-Cookie headers
       base._after_dispatch_callbacks << lambda do |c|
-        headers = c.request.cookies.extract_headers(:domain => c._default_cookie_domain)
+        headers = c.request.cookies.extract_headers("domain" => c._default_cookie_domain)
         c.headers.update(headers)
       end
     end
@@ -117,7 +117,7 @@ module Merb
       def cookies
         @cookies ||= begin
           values  = self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
-          cookies = Merb::Cookies.new(values, :domain => Merb::Controller._default_cookie_domain, :path => '/')
+          cookies = Merb::Cookies.new(values)
           cookies.update(default_cookies) if respond_to?(:default_cookies)
           cookies
         end

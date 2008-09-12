@@ -81,7 +81,7 @@ describe "All session-stores mixed into Merb::Controller", :shared => true do
       controller.request.session.should be_empty
       cookie_header = controller.headers["Set-Cookie"].first
       cookie_header.should match(/_session_id=;/)
-      cookie_header.should match(/ 1970;/)
+      cookie_header.should match(/01-Jan-1970/)
     end
   end
   
