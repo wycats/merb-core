@@ -1,36 +1,6 @@
 #!/usr/bin/env ruby
 
-# See also: merb-gen scripts and script/merb
-
-# Try to use minigems instead of the fully rubygems library
-begin
-  require 'minigems'
-rescue LoadError
-  require 'rubygems'
-end
-
-# Load script helpers if available - either local or system-wide.
-begin
-  # Figure out the merb root - defaults to the current directory.
-  root_key = %w[-m --merb-root].detect { |o| ARGV.index(o) }
-  root = ARGV[ARGV.index(root_key) + 1] if root_key
-  __DIR__ = root.to_a.empty? ? Dir.getwd : root
-  
-  # Piggyback on the merb-core rubygem for initial setup scripts.
-  # Requiring it doesn't affect the local gem version of merb-core
-  # we might effectively want to load here after.
-  if merb_core_dir = Dir[File.join(__DIR__, 'gems', 'gems', 'merb-core-*')].last
-    require File.join(merb_core_dir, 'lib', 'merb-core', 'script')
-  else
-    require 'merb-core/script'
-  end
-  # Now setup local gems to be incorporated into the normal loaded gems.
-  # Unless the option --no-bundle is given, bundled gems are enabled.
-  include Merb::ScriptHelpers
-  setup_local_gems!(__DIR__)
-rescue LoadError
-end
-
+require 'rubygems'
 require 'merb-core'
 
 ARGV.push '-H' if ARGV[0] && ARGV[0] =~ /^[^-]/
