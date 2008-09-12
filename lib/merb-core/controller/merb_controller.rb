@@ -1,24 +1,19 @@
 class Merb::Controller < Merb::AbstractController
 
-  class_inheritable_accessor :_hidden_actions, :_shown_actions,
-                             :_session_id_key, :_session_secret_key, :_session_expiry, :_session_cookie_domain
+  class_inheritable_accessor :_hidden_actions, :_shown_actions
 
   self._hidden_actions ||= []
-  self._shown_actions ||= []
-  
+  self._shown_actions  ||= []
+
   cattr_accessor :_subclasses
   self._subclasses = Set.new
 
   def self.subclasses_list() _subclasses end
 
-  self._session_secret_key = nil
-  self._session_id_key = Merb::Config[:session_id_key] || '_session_id'
-  self._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
-  self._session_cookie_domain = Merb::Config[:session_cookie_domain]
-
   include Merb::ResponderMixin
   include Merb::ControllerMixin
   include Merb::AuthenticationMixin
+  include Merb::ConditionalGetMixin
 
   class << self
 
@@ -102,7 +97,7 @@ class Merb::Controller < Merb::AbstractController
     end
 
     private
-    
+
     # All methods that are callable as actions.
     #
     # ==== Returns
@@ -140,15 +135,15 @@ class Merb::Controller < Merb::AbstractController
   def _template_location(context, type, controller)
     _conditionally_append_extension(controller ? "#{controller}/#{context}" : "#{context}", type)
   end
-  
-  # The location to look for a template and mime-type. This is overridden 
-  # from AbstractController, which defines a version of this that does not 
+
+  # The location to look for a template and mime-type. This is overridden
+  # from AbstractController, which defines a version of this that does not
   # involve mime-types.
   #
   # ==== Parameters
-  # template<String>:: 
+  # template<String>::
   #    The absolute path to a template - without mime and template extension.
-  #    The mime-type extension is optional - it will be appended from the 
+  #    The mime-type extension is optional - it will be appended from the
   #    current content type if it hasn't been added already.
   # type<~to_s>::
   #    The mime-type of the template that will be rendered. Defaults to nil.
@@ -163,11 +158,8 @@ class Merb::Controller < Merb::AbstractController
   # Sets the variables that came in through the dispatch as available to
   # the controller.
   #
-  # This method uses the :session_id_cookie_only and :query_string_whitelist
-  # configuration options. See CONFIG for more details.
-  #
   # ==== Parameters
-  # request<Merb::Request>:: The Merb::Request that came in from Mongrel.
+  # request<Merb::Request>:: The Merb::Request that came in from Rack.
   # status<Integer>:: An integer code for the status. Defaults to 200.
   # headers<Hash{header => value}>::
   #   A hash of headers to start the controller with. These headers can be
@@ -204,7 +196,7 @@ class Merb::Controller < Merb::AbstractController
   end
 
   attr_reader :request, :headers
-  
+
   def status
     @_status
   end
@@ -227,20 +219,6 @@ class Merb::Controller < Merb::AbstractController
   # Hash:: The parameters from the request object
   def params()  request.params  end
 
-  # ==== Returns
-  # Merb::Cookies::
-  #   A new Merb::Cookies instance representing the cookies that came in
-  #   from the request object
-  #
-  # ==== Notes
-  # Headers are passed into the cookie object so that you can do:
-  #   cookies[:foo] = "bar"
-  def cookies() @_cookies ||= _setup_cookies end
-
-  # ==== Returns
-  # Hash:: The session that was extracted from the request object.
-  def session() request.session end
-  
   # The results of the controller's render, to be returned to Rack.
   #
   # ==== Returns
@@ -249,19 +227,14 @@ class Merb::Controller < Merb::AbstractController
   def rack_response
     [status, headers, body]
   end
-  
+
   # Hide any methods that may have been exposed as actions before.
   hide_action(*_callable_methods)
-  
+
   private
 
   # If not already added, add the proper mime extension to the template path.
   def _conditionally_append_extension(template, type)
     type && !template.match(/\.#{type.to_s.escape_regexp}$/) ? "#{template}.#{type}" : template
-  end
-
-  # Create a default cookie jar, and pre-set a fixation cookie if fixation is enabled.
-  def _setup_cookies
-    ::Merb::Cookies.new(request.cookies, @headers)
   end
 end

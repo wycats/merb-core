@@ -17,7 +17,6 @@ module Merb
           :environment            => "development",
           :merb_root              => Dir.pwd,
           :use_mutex              => true,
-          :session_id_key         => "_session_id",
           :log_delimiter          => " ~ ",
           :log_auto_flush         => false,
           :log_level              => :info,
@@ -116,6 +115,9 @@ module Merb
 
         # Environment variables always win
         options[:environment] = ENV["MERB_ENV"] if ENV["MERB_ENV"]
+        
+        # Enable bundled gems by default; used by bundled?
+        options[:bundle] = true
 
         # Build a parser for the command line arguments
         opts = OptionParser.new do |opts|
@@ -238,6 +240,10 @@ module Merb
 
           opts.on("-V", "--verbose", "Print extra information") do
             options[:verbose] = true
+          end
+          
+          opts.on("-B", "--[no-]bundle", "Run application using bundled gems. Enabled by default.") do |b|
+            options[:bundle] = b
           end
 
           opts.on("-?", "-H", "--help", "Show this help message") do

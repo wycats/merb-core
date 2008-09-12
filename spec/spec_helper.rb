@@ -5,7 +5,7 @@ require File.join(File.dirname(__FILE__), "..", "lib", "merb-core")
 
 default_options = {:environment => 'test', :adapter => 'runner'}
 options = default_options.merge($START_OPTIONS || {})
-Merb.start options
+Merb.start_environment(options)
 
 # -- Global custom matchers --
 
@@ -92,10 +92,10 @@ module Merb
   end
 end
 
-
 Spec::Runner.configure do |config|
   config.include Merb::Test::Helper
   config.include Merb::Test::RspecMatchers
+  config.include Merb::Test::Rspec::ViewMatchers
   config.include Merb::Test::RequestHelper
 
   def with_level(level)

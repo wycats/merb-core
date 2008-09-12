@@ -333,7 +333,11 @@ module Merb::Test::Rspec::ViewMatchers
   alias_method :match_selector, :have_selector
 
   def have_xpath(expected)
-    require "libxml"
+    begin
+      require "libxml"
+    rescue LoadError => e
+      puts "To use have_xpath helper you need to install libxml-ruby gem"
+    end
     HaveXpath.new(expected)
   end
   alias_method :match_xpath, :have_xpath

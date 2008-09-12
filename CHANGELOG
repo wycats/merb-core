@@ -1,3 +1,68 @@
+== 0.9.6 "Therapy session" 2008-09-08
+
+* Merge in simple conditional get support at controller level.
+* Merged in new bundling (aka freezer) branch
+* Merged in new-sessions branch
+* Simplify one more clever line.
+* Trenary operator is always hard to read.
+* Added PUBLIC_CHANGELOG note on Language::English::Inflector => English::Inflect
+* Filters with procs created via class methods have identical signatures regardless if they handle content differently or not. So modified add_filter to just append procs to the filter list.
+* Consolidating raw Rakefile commands to merb-core/tasks/merb_rake_helper.rb
+* Update contributors list.
+* Ticket #461 - This simply adds output for what host and port the adapter has started on.
+* More Language::English::Inflect to English::Inflect changes - getting ready for Extlib move soon
+* Language::English::Inflect => English::Inflect name changes
+* Use frozen strings where possible.
+* First pass at adding in CSRF protection in to Rack middleware.
+* Query string of the format "foo=bar&foo=baz" should return params {"foo" => "baz"}
+* Fixed multiple select not honored in params bug
+* Public specs for 'fragment' changes in url.
+* AbstractController now uniformly uses instance_eval for Procs where previously
+* Renamed anchor to fragment along with some minor tweeks to follow rfc2396 better.
+* Add support for :anchor when generating url's. Ex. url(:root, :anchor => :lower_half).
+* Revert "Make Merb::Request#protocol return valid protocol names (http, not http://)."
+* Adds specs for previous commit
+* Fixes display @object, :template => "path/to/foo"
+* Clean up Rakefile.
+* Remove a line of extra code
+* Set cookie expires to nil when session_expiry is set to 0.
+* ConditionalGet refactoring.
+* Fix: ConditionalGet should not return the message body when the status code is 304.
+* Rescue Exception subclasses, not only StandardError subclasses.
+* Make Merb::Request#protocol return valid protocol names (http, not http://).
+* Add :protocol and :host options to absolute_url
+* extends basic authentication a bit to allow usage outside of before filters
+
+== 0.9.5 "Knife and Spoons" 2008-26-08
+* Add Hpricot to dependencies: provided RSpec matchers depend on it.
+* Documentation fixes
+* Make Rack application set Date header as required by RFC2616.
+* Port Django's conditional GET middleware to Rack.
+* Fix passenger issue
+* Make Autotest consume less CPU by adding excludes.
+* Add extract! experimentally
+* Adds dev deps on rake install
+* Add necessary dev dependencies
+* Make route_to(...).with matcher work properly with empty hashes
+* Make Merb::Request#query_parse a bit faster.
+* Speed up dispatcher specs by using libxml
+* throw :halt, nil spec
+* More rigid specs
+* merb-core really cannot use >= with extlib 0.9.3 at this point, so update gemspec
+* Use Logger from Extlib
+* Fix issue with Safari having weird ordering by fixing the issue in general.
+* Fixes up a bunch of specs
+* Add ContentLength middleware.
+* Rename Rack middleware spec file
+* Add Tracer middleware.
+* Improve the documentation of AbstractController.
+* Move Merb::Rack::Middleware#deferred\? to Merb::Rack::Application.
+* No longer use Pathname for Merb.root and friends.
+* fixed merb_erb bug
+* readded _generator_scope methods with deprecation warnings
+* added use_template_engine method and removed generator_scope code that is no longer needed
+* Add clear_content to renderer
+
 == 0.9.4 "Leave No Broken Windows" 2008-12-08
 * Update required Ruby version to 1.8.6.
 * Make dispatch_to set params[:controller] and params[:action].

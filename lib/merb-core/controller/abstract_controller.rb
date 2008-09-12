@@ -27,7 +27,7 @@
 #   before :some_filter
 #   before :authenticate, :exclude => [:login, :signup]
 #   before :has_role, :with => ["Admin"], :exclude => [:index, :show]
-#   before Proc.new {|c| c.some_method }, :only => :foo
+#   before Proc.new { some_method }, :only => :foo
 #   before :authorize, :unless => :logged_in?  
 #
 # You can use either <code>:only => :actionname</code> or 
@@ -64,8 +64,8 @@
 #   If the second arg is a Proc, it will be called and its return
 #   value will be what is rendered to the browser:
 #
-#     throw :halt, proc {|c| c.access_denied }
-#     throw :halt, proc {|c| Tidy.new(c.index) }
+#     throw :halt, proc { access_denied }
+#     throw :halt, proc { Tidy.new(c.index) }
 #
 # ===== Filter Options (.before, .after, .add_filter, .if, .unless)
 # :only<Symbol, Array[Symbol]>::
@@ -98,6 +98,7 @@ class Merb::AbstractController
   
   class_inheritable_accessor :_layout, :_template_root, :template_roots
   class_inheritable_accessor :_before_filters, :_after_filters
+  class_inheritable_accessor :_before_dispatch_callbacks, :_after_dispatch_callbacks
 
   cattr_accessor :_abstract_subclasses
 
@@ -113,6 +114,7 @@ class Merb::AbstractController
   FILTER_OPTIONS = [:only, :exclude, :if, :unless, :with]
 
   self._before_filters, self._after_filters = [], []
+  self._before_dispatch_callbacks, self._after_dispatch_callbacks = [], []
 
   #---
   # We're using abstract_subclasses so that Merb::Controller can have its
@@ -217,7 +219,7 @@ class Merb::AbstractController
         include Object.full_const_get("#{helper_module_name}") rescue nil
       HERE
       super
-    end
+    end    
   end
   
   # ==== Parameters
@@ -228,7 +230,7 @@ class Merb::AbstractController
     @_template_stack = []
   end
   
-  # This will dispatch the request, calling setup_session and finalize_session
+  # This will dispatch the request, calling internal before/after dispatch_callbacks
   # 
   # ==== Parameters
   # action<~to_s>::
@@ -238,7 +240,7 @@ class Merb::AbstractController
   # ==== Raises
   # MerbControllerError:: Invalid body content caught.
   def _dispatch(action)
-    setup_session
+    self._before_dispatch_callbacks.each { |cb| cb.call(self) }
     self.action_name = action
     
     caught = catch(:halt) do
@@ -253,14 +255,16 @@ class Merb::AbstractController
     when String                   then caught
     when nil                      then _filters_halted
     when Symbol                   then __send__(caught)
-    when Proc                     then caught.call(self)
+    when Proc                     then self.instance_eval(&caught)
     else
       raise ArgumentError, "Threw :halt, #{caught}. Expected String, nil, Symbol, Proc."
     end
     start = Time.now
     _call_filters(_after_filters)
     @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
-    finalize_session
+    
+    self._after_dispatch_callbacks.each { |cb| cb.call(self) }
+    
     @body
   end
   
@@ -298,7 +302,7 @@ class Merb::AbstractController
           else
             send(filter)
           end
-        when Proc           then self.instance_eval(&filter)
+        when Proc then self.instance_eval(&filter)
         end
       end
     end
@@ -360,7 +364,7 @@ class Merb::AbstractController
   def _evaluate_condition(condition)
     case condition
     when Symbol : self.send(condition)
-    when Proc : condition.call(self)
+    when Proc : self.instance_eval(&condition)
     else
       raise ArgumentError,
             'Filter condtions need to be either a Symbol or a Proc'
@@ -412,14 +416,6 @@ class Merb::AbstractController
   #---
   # Defaults that can be overridden by plugins, other mixins, or subclasses
   def _filters_halted()   "<html><body><h1>Filter Chain Halted!</h1></body></html>"  end
-
-  # Method stub for setting up the session. This will be overriden by session
-  # modules.
-  def setup_session()    end
-
-  # Method stub for finalizing up the session. This will be overriden by
-  # session modules.
-  def finalize_session() end  
   
   # ==== Parameters
   # name<~to_sym, Hash>:: The name of the URL to generate.
@@ -453,11 +449,27 @@ class Merb::AbstractController
   # ==== Returns
   # String:: The generated url with protocol + hostname + URL.
   #
+  # ==== Options
+  #
+  # :protocol and :host options are special: use them to explicitly
+  # specify protocol and host of resulting url. If you omit them,
+  # protocol and host of request are used.
+  #
   # ==== Alternatives
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
   def absolute_url(name, rparams={})
-    request.protocol + request.host + url(name, rparams)
+    # FIXME: arrgh, why request.protocol returns http://?
+    # :// is not part of protocol name
+    if rparams.is_a?(Hash)
+      protocol = rparams.delete(:protocol)
+      protocol << "://" if protocol
+      host = rparams.delete(:host)
+    end
+    
+    (protocol || request.protocol) +
+      (host || request.host) +
+      url(name, rparams)
   end
 
   # Calls the capture method for the selected template engine.
@@ -506,9 +518,14 @@ class Merb::AbstractController
     end
 
     opts = normalize_filters!(opts)
-
+    
     case filter
-    when Symbol, Proc, String
+    when Proc
+      # filters with procs created via class methods have identical signature
+      # regardless if they handle content differently or not. So procs just
+      # get appended
+      filters << [filter, opts]
+    when Symbol, String
       if existing_filter = filters.find {|f| f.first.to_s[filter.to_s]}
         filters[ filters.index(existing_filter) ] = [filter, opts]
       else

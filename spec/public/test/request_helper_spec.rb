@@ -7,6 +7,20 @@ Dir[File.join(File.dirname(__FILE__), "controllers/**/*.rb")].each do |f|
 end
 
 describe Merb::Test::RequestHelper do
+  
+  describe Merb::Test::RequestHelper::CookieJar do
+    
+    it "should update its values from a request object" do
+      cookie_jar = Merb::Test::RequestHelper::CookieJar.new
+      cookie_jar.should be_empty
+      request = fake_request
+      request.cookies[:foo] = "bar+baz" # escaped by default
+      cookie_jar.update_from_request request
+      cookie_jar[:foo].should == 'bar baz'
+    end
+    
+  end  
+  
   describe "#dispatch_to" do
 
     before(:all) do
@@ -205,6 +219,7 @@ describe Merb::Test::RequestHelper do
       controller.class.should == Namespaced::SpecHelperController
     end
   end
+  
 end
 
 module Merb::Test::RequestHelper

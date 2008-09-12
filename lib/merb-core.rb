@@ -16,7 +16,9 @@ $LOAD_PATH.unshift __DIR__ unless
 require 'merb-core' / 'vendor' / 'facets'
 
 module Merb
+  # Create stub module for global controller helpers.
   module GlobalHelpers; end
+  
   class << self
 
     # Merge environment settings
@@ -354,43 +356,20 @@ module Merb
 
     Merb.klass_hashes = []
 
-    attr_reader :registered_session_types
-
-    # ==== Parameters
-    # name<~to_s>:: Name of the session type to register.
-    # file<String>:: The file that defines this session type.
-    # description<String>:: An optional description of the session type.
-    #
-    # ==== Notes
-    # Merb currently supports memory, cookie and memcache session
-    # types.
-    def register_session_type(name, file, description = nil)
-      @registered_session_types ||= Dictionary.new
-      @registered_session_types[name] = {
-        :file => file,
-        :description => (description || "Using #{name} sessions")
-      }
-    end
-
     attr_accessor :frozen
 
     # ==== Returns
-    # Boolean:: True if Merb is running via merb-freezer or other freezer.
+    # Boolean:: True if Merb is running as an application with bundled gems.
+    # Can only be disabled by --no-bundle option on startup (or for Rakefile
+    # use NO_BUNDLE=true to disable local gems).
     #
     # ==== Notes
-    # Freezing means bundling framework libraries with your application
-    # making it independent from environment it runs in. This is a good
-    # practice to freeze application framework and gems it uses and
-    # very useful when application is run in some sort of sandbox,
-    # for instance, shared hosting with preconfigured gems.
-    def frozen?
-      @frozen
-    end
-
-    # Used by merb-freezer and other freezers to mark Merb as frozen.
-    # See Merb::GlobalHelpers.frozen? for more details on framework freezing.
-    def frozen!
-      @frozen = true
+    # Bundling required gems makes your application independent from the 
+    # environment it runs in. This is a good practice to freeze application 
+    # framework and gems it uses and very useful when application is run in 
+    # some sort of sandbox, for instance, shared hosting with preconfigured gems.
+    def bundled?
+      ENV.key?("BUNDLE") || Merb::Config[:bundle] || ENV.key?("NO_BUNDLE")
     end
 
     # Load configuration and assign logger.
@@ -423,12 +402,6 @@ module Merb
     #
     # :use_mutex<Boolean>::       turns action dispatch synchronization
     #                             on or off, default is on (true)
-    #
-    # :session_id_key<String>::   session identifier,
-    #                             default is _session_id
-    #
-    # :session_store<String>::    session store to use (one of cookies,
-    #                             memcache or memory)
     #
     # :log_delimiter<String>::    what Merb logger uses as delimiter
     #                             between message sections, default is " ~ "
@@ -518,8 +491,6 @@ module Merb
     #     environment        "development"
     #     log_level          "debug"
     #     use_mutex          false
-    #     session_store      "cookie"
-    #     session_secret_key "0d05a226affa226623eb18700"
     #     exception_details  true
     #     reload_classes     true
     #     reload_time        0.5

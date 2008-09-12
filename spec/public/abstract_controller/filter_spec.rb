@@ -37,6 +37,10 @@ describe Merb::AbstractController, " should support before and after filters" do
     dispatch_should_make_body("TestProcFilter", "proc filter1 proc filter2")
   end
   
+  it "should support proc arguments to filters when called inside a class method" do
+    dispatch_should_make_body("TestProcFilterViaMethod", "onetwo")
+  end
+  
   it "should support filters that skip specific actions via :exclude" do
     dispatch_should_make_body("TestExcludeFilter", " ", :index)
     dispatch_should_make_body("TestExcludeFilter", "foo filter bar filter", :show)    
