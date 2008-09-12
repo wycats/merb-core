@@ -228,6 +228,17 @@ describe Merb::Test::RequestHelper do
       controller = request("/namespaced/spec_helper_controller")
       controller.class.should == Namespaced::SpecHelperController
     end
+
+    it "should make the post body available in the request on deferred routing" do
+      Merb::Router.prepare do |r|
+        r.match('/xmlrpc').defer_to do |request, params|
+          request.raw_post.should == 'XMLRPC request body'
+          {:controller => 'spec_helper_controller', :action => :index}
+        end
+      end
+
+      request('/xmlrpc', {}, {:post_body => 'XMLRPC request body'})
+    end
   end
   
 end
