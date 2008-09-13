@@ -574,3 +574,9 @@ require 'merb-core/controller/mime'
 
 # Set the environment if it hasn't already been set.
 Merb.environment ||= ENV['MERB_ENV'] || Merb::Config[:environment] || (Merb.testing? ? 'test' : 'development')
+
+# Add the local gems dir if found within the app root; any dependencies loaded
+# hereafter will try to load from the local gems before loading system gems.
+if (local_gem_dir = File.join(Merb.root, 'gems')) && $BUNDLE.nil?
+  $BUNDLE = true; Gem.clear_paths; Gem.path.unshift(local_gem_dir)
+end
