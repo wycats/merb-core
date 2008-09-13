@@ -26,7 +26,7 @@ module Merb
         env[:request_method] ||= method.to_s.upcase
         env[:request_uri] = path
         
-        check_request_for_route(fake_request(env))
+        check_request_for_route(build_request({}, env))
       end
     end
   end

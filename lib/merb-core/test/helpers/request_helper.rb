@@ -209,7 +209,8 @@ module Merb
         params             = Merb::Request.params_to_query_string(params)
         env[:query_string] = env["QUERY_STRING"] ? "#{env["QUERY_STRING"]}&#{params}" : params
         
-        fake_request(env, { :post_body => env[:post_body], :req => env[:req] })
+        post_body = env[:post_body] || env['POST_BODY']
+        fake_request(env, { :post_body => post_body, :req => env[:req] })
       end
 
       # An HTTP GET request that operates through the router.

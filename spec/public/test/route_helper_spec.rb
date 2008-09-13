@@ -8,6 +8,9 @@ end
 describe Merb::Test::RouteHelper do
   before(:each) do
     Merb::Router.prepare do |r|
+      r.match("/").defer_to do |request, params|
+        { :controller => 'test_controller', :action => request.raw_post } unless request.raw_post.blank?
+      end
       r.match("/", :method => :get).to(:controller => "test_controller", :action => "get").name(:getter)
       r.match("/", :method => :post).to(:controller => "test_controller", :action => "post")
       r.match("/:id").to(:controller => "test_controller", :action => "get").name(:with_id)
@@ -66,6 +69,10 @@ describe Merb::Test::RouteHelper do
     
     it "should contain any parameters in the result" do
       request_to("/123")[:id].should == "123"
+    end
+
+    it "should play nice with raw_post in deferred routing" do
+      request_to("/", :post, {:post_body => 'deferred'})[:action].should == 'deferred'
     end
   end
 end
