@@ -1,6 +1,21 @@
 #---
 # require 'merb' must happen after Merb::Config is instantiated
 require 'rubygems'
+
+# Add the local gems dir if found within the app root; any dependencies loaded
+# hereafter will try to load from the local gems before loading system gems.
+root_key = %w[-m --merb-root].detect { |o| ARGV.index(o) }
+root = ARGV[ARGV.index(root_key) + 1] if root_key
+root = root.to_a.empty? ? Dir.getwd : root
+if File.directory?(gems_dir = File.join(root, 'gems'))
+  $BUNDLE = true; Gem.clear_paths; Gem.path.unshift(gems_dir)
+  # Warn if local merb-core is available but not loaded.
+  if !($0 =~ /^(\.\/)?bin\/merb$/) && 
+    (local_mc = Dir[File.join(gems_dir, 'specifications', 'merb-core-*.gemspec')].last)
+    puts "Warning: please use bin/merb to load #{File.basename(local_mc, '.gemspec')} from ./gems"
+  end
+end
+
 require 'set'
 require 'fileutils'
 require 'socket'
@@ -574,9 +589,3 @@ require 'merb-core/controller/mime'
 
 # Set the environment if it hasn't already been set.
 Merb.environment ||= ENV['MERB_ENV'] || Merb::Config[:environment] || (Merb.testing? ? 'test' : 'development')
-
-# Add the local gems dir if found within the app root; any dependencies loaded
-# hereafter will try to load from the local gems before loading system gems.
-if (local_gem_dir = File.join(Merb.root, 'gems')) && $BUNDLE.nil?
-  $BUNDLE = true; Gem.clear_paths; Gem.path.unshift(local_gem_dir)
-end
