@@ -1,3 +1,37 @@
+9/13/2008:
+* Merb apps will always give priority to gems that are available locally in
+  Merb.root / gems. Because of the specific load order, you will need to use
+  bin/merb to load merb-core from local gems, as detailed below. This is also
+  the case for bin/merb-gen, bin/rake and bin/spec for example. The added 
+  advantage is that your app will be completely independent from system gems.
+
+* Thor tasks 'merb.thor' have been added for newly generated apps; regenerate
+  your app to get them; alternatively these are available on merbivore.com:
+  
+  http://merbivore.com/merb.thor
+  
+* Release 0.9.6 introduced 'merb-gen scripts' which added script/merb and
+  script/merb-gen. However, now that merb.thor provides tasks to manage
+  bundled gems, we can directly extract the correct executables. To follow the
+  standard convention, these will be installed in ./bin instead of ./script.
+  
+  With merb.thor installed, run the following to get started:
+  
+  $ thor merb:tasks:setup # adds bin/thor, bin/rake etc.
+  
+  As soon as you install other gems using merb.thor you'll have the required
+  bin executables available; these are setup so that running them will load
+  merb-core from the local gems dir, not from the system-wide rubygems.
+  
+  To get bin/merb and bin/merb-gen for a fresh application, you can use:
+  
+  $ thor merb:stable -a mongrel # install a full merb stack from stable rubygems
+  
+  Alternatively, you can install from the bleeding edge:
+  
+  $ thor merb:edge --install # install a full merb stack from github
+  $ thor merb:gems:install mongrel # or ebb, thin...
+  
 9/5/2008:
 * Language::English::Inflector is now English::Inflect - be sure to change your
   custom inflections in config/init.rb. Additionally, the merb-gen template 
