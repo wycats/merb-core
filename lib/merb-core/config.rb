@@ -119,7 +119,6 @@ module Merb
         # Build a parser for the command line arguments
         opts = OptionParser.new do |opts|
           opts.version = Merb::VERSION
-          opts.release = Merb::RELEASE
 
           opts.banner = "Usage: merb [uGdcIpPhmailLerkKX] [argument]"
           opts.define_head "Merb. Pocket rocket web framework"
