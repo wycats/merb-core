@@ -51,7 +51,7 @@ spec = Gem::Specification.new do |s|
   s.description  = PROJECT_DESCRIPTION
   s.executables  = %w( merb )
   s.require_path = "lib"
-  s.files        = %w( LICENSE README Rakefile TODO CHANGELOG PUBLIC_CHANGELOG CONTRIBUTORS ) + Dir["{docs,bin,spec,lib}/**/*"]
+  s.files        = %w( LICENSE README Rakefile TODO CHANGELOG PUBLIC_CHANGELOG CONTRIBUTORS ) + Dir["{bin,lib}/**/*"]
 
   # rdoc
   s.has_rdoc         = true
