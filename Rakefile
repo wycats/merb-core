@@ -81,22 +81,22 @@ Rake::GemPackageTask.new(spec) do |package|
 end
 
 desc "Run :package and install the resulting .gem"
-task :install => :package do
+task :install => [:clean, :package] do
   sh install_command(GEM_NAME, GEM_VERSION)
 end
 
 desc "Install Merb with development dependencies"
-task :dev_install => :package do
+task :dev_install => [:clean, :package] do
   sh dev_install_command(GEM_NAME, GEM_VERSION)  
 end
 
 desc "Run :package and install the resulting .gem with jruby"
-task :jinstall => :package do
+task :jinstall => [:clean, :package] do
   sh jinstall_command(GEM_NAME, GEM_VERSION)
 end
 
 desc "Run :package and install the resulting .gem with jruby (development dependencies)"
-task :jinstall => :package do
+task :jinstall => [:clean, :package] do
   sh dev_jinstall_command(GEM_NAME, GEM_VERSION)
 end
 
@@ -105,7 +105,7 @@ task :uninstall => :clean do
   sh uninstall_command(GEM_NAME)
 end
 
-CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
+CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "lib/*.so", "*.gem", "doc/rdoc", ".config", "coverage", "cache", "spec/**/*.log"]
 
 desc "Run the specs."
 task :default => :specs
