@@ -41,7 +41,7 @@ module Merb::RenderMixin
     # ==== Returns
     # Hash:: The default render options.
     def layout(layout)
-      self.default_render_options.update(:layout => (layout ? layout : false))
+      self.default_render_options.update(:layout => (layout || false))
     end
 
     # Enable the default layout logic - reset the layout option.
@@ -95,7 +95,7 @@ module Merb::RenderMixin
     thing ||= action_name.to_sym
 
     # Content negotiation
-    opts[:format] ? (self.content_type = opts[:format]) : content_type
+    self.content_type = opts[:format] if opts[:format]
 
     # Handle options (:status)
     _handle_options!(opts)
@@ -189,7 +189,7 @@ module Merb::RenderMixin
   # explicitly passed in the opts.
   #
   def display(object, thing = nil, opts = {})
-    template_opt = opts.delete(:template)
+    template_opt = thing.is_a?(Hash) ? thing.delete(:template) : opts.delete(:template)
 
     case thing
     # display @object, "path/to/foo" means display @object, nil, :template => "path/to/foo"
@@ -476,6 +476,18 @@ module Merb::RenderMixin
     end
     @_caught_content[obj] = [] if @_caught_content[obj].nil?
     @_caught_content[obj] << string.to_s << (block_given? ? capture(&block) : "")
+  end
+
+  # Called when renderers need to be sure that existing thrown content is cleared
+  # before throwing new content. This prevents double rendering of content when
+  # multiple templates are rendered after each other.
+  #
+  # ==== Parameters
+  # obj<Object>:: The key in the thrown_content hash. Defaults to :for_layout.
+  #---
+  # @public
+  def clear_content(obj = :for_layout)
+    @_caught_content.delete(obj) unless @_caught_content[obj].nil?
   end
 
 end

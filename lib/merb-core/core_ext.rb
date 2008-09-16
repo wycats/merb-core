@@ -6,3 +6,4 @@ rescue LoadError => e
 end
 
 require File.dirname(__FILE__) / "core_ext" / "kernel"
+require File.dirname(__FILE__) / "core_ext" / "hash"

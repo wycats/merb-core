@@ -1,13 +1,20 @@
 Gem::Specification.new do |s|
+  s.add_dependency "extlib", ">= 0.9.3, runtime"
+  s.add_dependency "erubis", ">= 0, runtime"
+  s.add_dependency "rake", ">= 0, runtime"
+  s.add_dependency "json_pure", ">= 0, runtime"
+  s.add_dependency "rspec", ">= 0, runtime"
+  s.add_dependency "rack", ">= 0, runtime"
+  s.add_dependency "mime-types", ">= 0, runtime"
   s.requirements = ["install the json gem to get faster json parsing"]
-  s.required_ruby_version = ">= 1.8.4"
-  s.extra_rdoc_files = ["README", "LICENSE", "TODO"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.1.1"
-  s.homepage = "http://merbivore.com"
+  s.extra_rdoc_files = ["README", "LICENSE", "TODO"]
+  s.date = "Wed Aug 20 00:00:00 +0200 2008"
   s.executables = ["merb"]
-  s.platform = "ruby"
-  s.summary = "Merb. Pocket rocket web framework."
+  s.authors = ["Ezra Zygmuntowicz"]
+  s.name = "merb-core"
+  s.required_rubygems_version = ">= 0"
+  s.version = "0.9.6"
   s.files = ["LICENSE",
  "README",
  "Rakefile",
@@ -25,19 +32,13 @@ Gem::Specification.new do |s|
  "spec/private/config/adapter_spec.rb",
  "spec/private/config/config_spec.rb",
  "spec/private/config/environment_spec.rb",
+ "spec/private/config/merb_spec.rb",
  "spec/private/config/spec_helper.rb",
  "spec/private/core_ext",
- "spec/private/core_ext/class_spec.rb",
- "spec/private/core_ext/hash_spec.rb",
  "spec/private/core_ext/kernel_spec.rb",
- "spec/private/core_ext/object_spec.rb",
- "spec/private/core_ext/set_spec.rb",
- "spec/private/core_ext/string_spec.rb",
- "spec/private/core_ext/time_spec.rb",
  "spec/private/dispatch",
  "spec/private/dispatch/bootloader_spec.rb",
  "spec/private/dispatch/cookies_spec.rb",
- "spec/private/dispatch/dispatch_spec.rb",
  "spec/private/dispatch/fixture",
  "spec/private/dispatch/fixture/app",
  "spec/private/dispatch/fixture/app/controllers",
@@ -67,7 +68,6 @@ Gem::Specification.new do |s|
  "spec/private/dispatch/fixture/config/router.rb",
  "spec/private/dispatch/fixture/log",
  "spec/private/dispatch/fixture/log/merb_test.log",
- "spec/private/dispatch/fixture/merb.4000.pid",
  "spec/private/dispatch/fixture/public",
  "spec/private/dispatch/fixture/public/images",
  "spec/private/dispatch/fixture/public/images/merb.jpg",
@@ -77,10 +77,6 @@ Gem::Specification.new do |s|
  "spec/private/dispatch/route_params_spec.rb",
  "spec/private/dispatch/session_mixin_spec.rb",
  "spec/private/dispatch/spec_helper.rb",
- "spec/private/plugins",
- "spec/private/plugins/plugin_spec.rb",
- "spec/private/rack",
- "spec/private/rack/application_spec.rb",
  "spec/private/router",
  "spec/private/router/behavior_spec.rb",
  "spec/private/router/fixture",
@@ -130,6 +126,10 @@ Gem::Specification.new do |s|
  "spec/public/abstract_controller/controllers/views/helpers",
  "spec/public/abstract_controller/controllers/views/helpers/capture",
  "spec/public/abstract_controller/controllers/views/helpers/capture/index.erb",
+ "spec/public/abstract_controller/controllers/views/helpers/capture_eq",
+ "spec/public/abstract_controller/controllers/views/helpers/capture_eq/index.erb",
+ "spec/public/abstract_controller/controllers/views/helpers/capture_with_args",
+ "spec/public/abstract_controller/controllers/views/helpers/capture_with_args/index.erb",
  "spec/public/abstract_controller/controllers/views/helpers/concat",
  "spec/public/abstract_controller/controllers/views/helpers/concat/index.erb",
  "spec/public/abstract_controller/controllers/views/layout",
@@ -152,6 +152,8 @@ Gem::Specification.new do |s|
  "spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template_multiple_roots",
  "spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template_multiple_roots/index.erb",
  "spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_template_multiple_roots/show.erb",
+ "spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_two_throw_contents",
+ "spec/public/abstract_controller/controllers/views/merb/test/fixtures/abstract/render_two_throw_contents/index.erb",
  "spec/public/abstract_controller/controllers/views/partial",
  "spec/public/abstract_controller/controllers/views/partial/another_directory",
  "spec/public/abstract_controller/controllers/views/partial/another_directory/_partial.erb",
@@ -176,7 +178,8 @@ Gem::Specification.new do |s|
  "spec/public/abstract_controller/controllers/views/partial/partial_with_collections_and_as/_collection.erb",
  "spec/public/abstract_controller/controllers/views/partial/partial_with_collections_and_as/index.erb",
  "spec/public/abstract_controller/controllers/views/partial/partial_with_collections_and_counter",
- "spec/public/abstract_controller/controllers/views/partial/partial_with_collections_and_yield",
+ "spec/public/abstract_controller/controllers/views/partial/partial_with_collections_and_counter/_collection.erb",
+ "spec/public/abstract_controller/controllers/views/partial/partial_with_collections_and_counter/index.erb",
  "spec/public/abstract_controller/controllers/views/partial/partial_with_locals",
  "spec/public/abstract_controller/controllers/views/partial/partial_with_locals/_variables.erb",
  "spec/public/abstract_controller/controllers/views/partial/partial_with_locals/index.erb",
@@ -213,10 +216,15 @@ Gem::Specification.new do |s|
  "spec/public/controller",
  "spec/public/controller/authentication_spec.rb",
  "spec/public/controller/base_spec.rb",
+ "spec/public/controller/config",
+ "spec/public/controller/config/init.rb",
  "spec/public/controller/controllers",
  "spec/public/controller/controllers/authentication.rb",
  "spec/public/controller/controllers/base.rb",
+ "spec/public/controller/controllers/cookies.rb",
+ "spec/public/controller/controllers/dispatcher.rb",
  "spec/public/controller/controllers/display.rb",
+ "spec/public/controller/controllers/redirect.rb",
  "spec/public/controller/controllers/responder.rb",
  "spec/public/controller/controllers/url.rb",
  "spec/public/controller/controllers/views",
@@ -228,6 +236,9 @@ Gem::Specification.new do |s|
  "spec/public/controller/controllers/views/merb/test",
  "spec/public/controller/controllers/views/merb/test/fixtures",
  "spec/public/controller/controllers/views/merb/test/fixtures/controllers",
+ "spec/public/controller/controllers/views/merb/test/fixtures/controllers/class_and_local_provides",
+ "spec/public/controller/controllers/views/merb/test/fixtures/controllers/class_and_local_provides/index.html.erb",
+ "spec/public/controller/controllers/views/merb/test/fixtures/controllers/class_and_local_provides/index.xml.erb",
  "spec/public/controller/controllers/views/merb/test/fixtures/controllers/class_provides",
  "spec/public/controller/controllers/views/merb/test/fixtures/controllers/class_provides/index.html.erb",
  "spec/public/controller/controllers/views/merb/test/fixtures/controllers/class_provides/index.xml.erb",
@@ -246,7 +257,10 @@ Gem::Specification.new do |s|
  "spec/public/controller/controllers/views/merb/test/fixtures/controllers/multi_provides",
  "spec/public/controller/controllers/views/merb/test/fixtures/controllers/multi_provides/index.html.erb",
  "spec/public/controller/controllers/views/merb/test/fixtures/controllers/multi_provides/index.js.erb",
+ "spec/public/controller/cookies_spec.rb",
+ "spec/public/controller/dispatcher_spec.rb",
  "spec/public/controller/display_spec.rb",
+ "spec/public/controller/redirect_spec.rb",
  "spec/public/controller/responder_spec.rb",
  "spec/public/controller/spec_helper.rb",
  "spec/public/controller/url_spec.rb",
@@ -274,11 +288,12 @@ Gem::Specification.new do |s|
  "spec/public/directory_structure/directory/config/router.rb",
  "spec/public/directory_structure/directory/log",
  "spec/public/directory_structure/directory/log/merb_test.log",
- "spec/public/directory_structure/directory/merb.4000.pid",
  "spec/public/directory_structure/directory_spec.rb",
  "spec/public/logger",
  "spec/public/logger/logger_spec.rb",
  "spec/public/logger/spec_helper.rb",
+ "spec/public/rack",
+ "spec/public/rack/rack_middleware_spec.rb",
  "spec/public/reloading",
  "spec/public/reloading/directory",
  "spec/public/reloading/directory/app",
@@ -289,7 +304,6 @@ Gem::Specification.new do |s|
  "spec/public/reloading/directory/config/init.rb",
  "spec/public/reloading/directory/log",
  "spec/public/reloading/directory/log/merb_test.log",
- "spec/public/reloading/directory/merb.4000.pid",
  "spec/public/reloading/reload_spec.rb",
  "spec/public/request",
  "spec/public/request/multipart_spec.rb",
@@ -309,6 +323,13 @@ Gem::Specification.new do |s|
  "spec/public/router/spec_helper.rb",
  "spec/public/router/special_spec.rb",
  "spec/public/router/string_spec.rb",
+ "spec/public/session",
+ "spec/public/session/controllers",
+ "spec/public/session/controllers/sessions.rb",
+ "spec/public/session/cookie_session_spec.rb",
+ "spec/public/session/memcached_session_spec.rb",
+ "spec/public/session/memory_session_spec.rb",
+ "spec/public/session/session_spec.rb",
  "spec/public/template",
  "spec/public/template/template_spec.rb",
  "spec/public/template/templates",
@@ -328,8 +349,6 @@ Gem::Specification.new do |s|
  "spec/public/test/route_matchers_spec.rb",
  "spec/public/test/view_helper_spec.rb",
  "spec/public/test/view_matchers_spec.rb",
- "spec/public/test_helper_methods",
- "spec/public/test_helper_methods/controllers",
  "spec/spec_helper.rb",
  "lib/merb-core",
  "lib/merb-core/autoload.rb",
@@ -348,21 +367,17 @@ Gem::Specification.new do |s|
  "lib/merb-core/controller/mixins/responder.rb",
  "lib/merb-core/controller/template.rb",
  "lib/merb-core/core_ext",
- "lib/merb-core/core_ext/class.rb",
- "lib/merb-core/core_ext/hash.rb",
  "lib/merb-core/core_ext/kernel.rb",
- "lib/merb-core/core_ext/mash.rb",
- "lib/merb-core/core_ext/object.rb",
- "lib/merb-core/core_ext/object_space.rb",
- "lib/merb-core/core_ext/rubygems.rb",
- "lib/merb-core/core_ext/set.rb",
- "lib/merb-core/core_ext/string.rb",
- "lib/merb-core/core_ext/time.rb",
  "lib/merb-core/core_ext.rb",
  "lib/merb-core/dispatch",
  "lib/merb-core/dispatch/cookies.rb",
+ "lib/merb-core/dispatch/default_exception",
+ "lib/merb-core/dispatch/default_exception/default_exception.rb",
+ "lib/merb-core/dispatch/default_exception/views",
+ "lib/merb-core/dispatch/default_exception/views/_css.html.erb",
+ "lib/merb-core/dispatch/default_exception/views/_javascript.html.erb",
+ "lib/merb-core/dispatch/default_exception/views/index.html.erb",
  "lib/merb-core/dispatch/dispatcher.rb",
- "lib/merb-core/dispatch/exceptions.html.erb",
  "lib/merb-core/dispatch/request.rb",
  "lib/merb-core/dispatch/router",
  "lib/merb-core/dispatch/router/behavior.rb",
@@ -373,7 +388,9 @@ Gem::Specification.new do |s|
  "lib/merb-core/dispatch/session/cookie.rb",
  "lib/merb-core/dispatch/session/memcached.rb",
  "lib/merb-core/dispatch/session/memory.rb",
+ "lib/merb-core/dispatch/session/store.rb",
  "lib/merb-core/dispatch/session.rb",
+ "lib/merb-core/dispatch/worker.rb",
  "lib/merb-core/gem_ext",
  "lib/merb-core/gem_ext/erubis.rb",
  "lib/merb-core/logger.rb",
@@ -386,15 +403,19 @@ Gem::Specification.new do |s|
  "lib/merb-core/rack/adapter/irb.rb",
  "lib/merb-core/rack/adapter/mongrel.rb",
  "lib/merb-core/rack/adapter/runner.rb",
+ "lib/merb-core/rack/adapter/swiftiplied_mongrel.rb",
  "lib/merb-core/rack/adapter/thin.rb",
+ "lib/merb-core/rack/adapter/thin_turbo.rb",
  "lib/merb-core/rack/adapter/webrick.rb",
  "lib/merb-core/rack/adapter.rb",
  "lib/merb-core/rack/application.rb",
- "lib/merb-core/rack/apps",
- "lib/merb-core/rack/apps/path_prefix.rb",
- "lib/merb-core/rack/apps/static.rb",
  "lib/merb-core/rack/handler",
  "lib/merb-core/rack/handler/mongrel.rb",
+ "lib/merb-core/rack/middleware",
+ "lib/merb-core/rack/middleware/path_prefix.rb",
+ "lib/merb-core/rack/middleware/profiler.rb",
+ "lib/merb-core/rack/middleware/static.rb",
+ "lib/merb-core/rack/middleware/tracer.rb",
  "lib/merb-core/rack/middleware.rb",
  "lib/merb-core/rack.rb",
  "lib/merb-core/server.rb",
@@ -402,6 +423,7 @@ Gem::Specification.new do |s|
  "lib/merb-core/tasks/audit.rake",
  "lib/merb-core/tasks/merb.rb",
  "lib/merb-core/tasks/merb_rake_helper.rb",
+ "lib/merb-core/tasks/stats.rake",
  "lib/merb-core/test",
  "lib/merb-core/test/helpers",
  "lib/merb-core/test/helpers/controller_helper.rb",
@@ -430,21 +452,16 @@ Gem::Specification.new do |s|
  "lib/merb-core/vendor/facets.rb",
  "lib/merb-core/version.rb",
  "lib/merb-core.rb"]
-  s.description = "Merb. Pocket rocket web framework."
-  s.add_dependency "erubis", ">= 0"
-  s.add_dependency "rake", ">= 0"
-  s.add_dependency "json_pure", ">= 0"
-  s.add_dependency "rspec", ">= 0"
-  s.add_dependency "rack", ">= 0"
-  s.add_dependency "mime-types", ">= 0"
-  s.date = "Wed Jun 11 00:00:00 -0700 2008"
-  s.authors = ["Ezra Zygmuntowicz"]
-  s.bindir = "bin"
-  s.version = "0.9.4"
-  s.required_rubygems_version = ">= 0"
   s.has_rdoc = "true"
   s.specification_version = "2"
-  s.name = "merb-core"
   s.loaded = "false"
   s.email = "ez@engineyard.com"
+  s.required_ruby_version = ">= 1.8.6"
+  s.bindir = "bin"
+  s.rubygems_version = "1.2.0"
+  s.homepage = "http://merbivore.com"
+  s.platform = "ruby"
+  s.summary = "Merb. Pocket rocket web framework."
+  s.version = "0.9.5"
+  s.description = "Merb. Pocket rocket web framework."
 end

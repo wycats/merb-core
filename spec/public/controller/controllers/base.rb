@@ -31,6 +31,35 @@ module Merb::Test::Fixtures
       end
       hide_action :hidden
     end
+    
+    class FilteredParams < Testing
+      def index
+        "Index"
+      end
+      
+      def self._filter_params(params)
+        params.reject {|k,v| k == "password" }
+      end
+    end
+
+    class SetStatus < Testing
+      def index
+        self.status = "awesome"
+      end
+    end
+    
+    class DispatchCallbacks < Testing
+      
+      attr_accessor :called_before, :called_after
+      
+      self._before_dispatch_callbacks << lambda { |c| c.called_before = true }
+      self._after_dispatch_callbacks  << lambda { |c| c.called_after  = true }
+      
+      def index
+        "index"
+      end
+      
+    end
 
   end
 end

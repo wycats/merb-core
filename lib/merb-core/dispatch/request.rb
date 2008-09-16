@@ -3,8 +3,8 @@ require 'tempfile'
 module Merb
   
   class Request
-    # def env def session def route_params
-    attr_accessor :env, :session, :exceptions, :route
+    # def env def exceptions def route_params
+    attr_accessor :env, :exceptions, :route
     attr_reader :route_params
     
     # by setting these to false, auto-parsing is disabled; this way you can
@@ -18,13 +18,13 @@ module Merb
     # Flash, and some older browsers can't use arbitrary
     # request methods -- i.e., are limited to GET/POST.
     # These user-agents can make POST requests in combination
-    # with these overrides to participate fully in REST
+    # with these overrides to participate fully in REST.
     # Common examples are _method or fb_sig_request_method
     # in the params, or an X-HTTP-Method-Override header
     cattr_accessor :http_method_overrides
     self.http_method_overrides = []
     
-    # Initial the request object.
+    # Initialize the request object.
     #
     # ==== Parameters
     # http_request<~params:~[], ~body:IO>:: 
@@ -207,6 +207,7 @@ module Merb
     end
     
     public
+    
     # ==== Returns
     # Mash:: All request parameters.
     #
@@ -236,20 +237,7 @@ module Merb
     def reset_params!
       @params = nil
     end
-
-    # ==== Returns
-    # Hash:: The cookies for this request.
-    def cookies
-      @cookies ||= begin 
-        cookies = self.class.query_parse(@env[Merb::Const::HTTP_COOKIE], ';,')
-        if route && route.allow_fixation? && params.key?(Merb::Controller._session_id_key)
-          Merb.logger.info("Fixated session id: #{Merb::Controller._session_id_key}")
-          cookies[Merb::Controller._session_id_key] = params[Merb::Controller._session_id_key]
-        end
-        cookies
-      end
-    end
-
+    
     # ==== Returns
     # String:: The raw post.
     def raw_post
@@ -459,6 +447,20 @@ module Merb
     def domain(tld_length = 1)
       host.split('.').last(1 + tld_length).join('.').sub(/:\d+$/,'')
     end
+
+    # ==== Returns
+    # Value of If-None-Match request header.
+    def if_none_match
+      @env[Merb::Const::HTTP_IF_NONE_MATCH]
+    end
+
+    # ==== Returns
+    # Value of If-Modified-Since request header.
+    def if_modified_since
+      if time = @env[Merb::Const::HTTP_IF_MODIFIED_SINCE]
+        Time.rfc2822(time)
+      end
+    end
     
     class << self
       
@@ -519,8 +521,8 @@ module Merb
       end
       
       # ==== Parameters
-      # qs<String>:: The query string.
-      # d<String>:: The query string divider. Defaults to "&".
+      # query_string<String>:: The query string.
+      # delimiter<String>:: The query string divider. Defaults to "&".
       # preserve_order<Boolean>:: Preserve order of args. Defaults to false.
       #
       # ==== Returns
@@ -529,13 +531,13 @@ module Merb
       # ==== Examples
       #   query_parse("bar=nik&post[body]=heya")
       #     # => { :bar => "nik", :post => { :body => "heya" } }
-      def query_parse(qs, d = '&;', preserve_order = false)
-        qh = preserve_order ? Dictionary.new : {}
-        (qs||'').split(/[#{d}] */n).inject(qh) { |h,p| 
-          key, value = unescape(p).split('=',2)
-          normalize_params(h, key, value)
-        }
-        preserve_order ? qh : qh.to_mash
+      def query_parse(query_string, delimiter = '&;', preserve_order = false)
+        query = preserve_order ? Dictionary.new : {}
+        for pair in (query_string || '').split(/[#{delimiter}] */n)
+          key, value = unescape(pair).split('=',2)
+          normalize_params(query, key, value)
+        end
+        preserve_order ? query : query.to_mash
       end
     
       NAME_REGEX = /Content-Disposition:.* name="?([^\";]*)"?/ni.freeze
@@ -650,9 +652,14 @@ module Merb
           parms[key] = val
         elsif after == "[]"
           (parms[key] ||= []) << val
-        elsif after =~ %r(^\[\])
+        elsif after =~ %r(^\[\]\[([^\[\]]+)\]$)
+          child_key = $1
           parms[key] ||= []
-          parms[key] << normalize_params({}, after, val)
+          if parms[key].last.is_a?(Hash) && !parms[key].last.key?(child_key)
+            parms[key].last.update(child_key => val)
+          else
+            parms[key] << { child_key => val }
+          end
         else
           parms[key] ||= {}
           parms[key] = normalize_params(parms[key], after, val)

@@ -41,5 +41,34 @@ module Merb::Test::Fixtures::Controllers
       basic_authentication("My SuperApp").request
     end
   end
+  
+  class PassiveBasicAuthentication < BasicAuthentication
+        
+    def index
+      "My Output"
+    end
+    
+    def authenticate
+      basic_authentication.request!
+    end
+  end
+  
+  class PassiveBasicAuthenticationWithRealm < BasicAuthentication
+    def authenticate
+      basic_authentication("My Super App").request!
+    end
+  end
+  
+  class PassiveBasicAuthenticationInAction < BasicAuthentication
+    
+    def index
+      basic_authentication.request!
+      "In Action"
+    end
+    
+    def authenticate
+      true
+    end
+  end
 
 end

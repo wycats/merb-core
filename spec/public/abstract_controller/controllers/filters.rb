@@ -79,6 +79,24 @@ module Merb::Test::Fixtures
         "#{@x} #{@y}"
       end
     end
+    
+    class TestProcFilterViaMethod < Testing
+      def self.my_before(data)
+        before proc { add_string(data) }
+      end
+      
+      my_before("one")
+      my_before("two")
+
+      def index
+        @text
+      end
+      protected
+        def add_string(str)
+          @text ||= ""
+          @text << str
+        end
+    end
 
     class TestExcludeFilter < Testing
       before :foo, :exclude => :index
@@ -188,6 +206,55 @@ module Merb::Test::Fixtures
       def foo(bar,baz)
         bar == "bar" && baz == "baz"
       end
-    end    
+    end
+    
+    class BeforeFilterWithThrowHalt < Testing
+      before do
+        throw :halt, "Halt thrown"
+      end
+      
+      def index
+        "Halt not thrown"
+      end      
+    end
+    
+    class BeforeFilterWithThrowProc < Testing
+      before do
+        throw :halt, Proc.new { "Proc thrown" }
+      end
+      
+      def index
+        "Proc not thrown"
+      end
+    end
+    
+    class ThrowNil < Testing
+      before do
+        throw :halt, nil
+      end
+      
+      def index
+        "Awesome"
+      end
+    end
+    
+    class FilterChainError < Testing
+      before do
+        throw :halt, Merb
+      end
+      
+      def index
+        "Awesome"
+      end
+    end
+    
+    class Benchmarking < Testing
+      before {}
+      after {}
+      
+      def index
+        "Awesome"
+      end
+    end
   end
 end

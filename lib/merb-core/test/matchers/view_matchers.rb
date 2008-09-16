@@ -1,4 +1,34 @@
 module Merb::Test::Rspec::ViewMatchers
+  class HaveXpath
+    def initialize(expected)
+      @expected = expected
+    end
+    
+    def matches?(stringlike)
+      @document = case stringlike
+      when LibXML::XML::Document, LibXML::XML::Node
+        stringlike
+      when StringIO
+        LibXML::XML::HTMLParser.string(stringlike.string).parse
+      else
+        LibXML::XML::HTMLParser.string(stringlike).parse
+      end
+      !@document.find(@expected).empty?
+    end
+    
+    # ==== Returns
+    # String:: The failure message.
+    def failure_message
+      "expected following text to match xpath #{@expected}:\n#{@document}"
+    end
+
+    # ==== Returns
+    # String:: The failure message to be displayed in negative matches.
+    def negative_failure_message
+      "expected following text to not match xpath #{@expected}:\n#{@document}"
+    end    
+  end
+  
   class HaveSelector
 
     # ==== Parameters
@@ -301,6 +331,16 @@ module Merb::Test::Rspec::ViewMatchers
     HaveSelector.new(expected)
   end
   alias_method :match_selector, :have_selector
+
+  def have_xpath(expected)
+    begin
+      require "libxml"
+    rescue LoadError => e
+      puts "To use have_xpath helper you need to install libxml-ruby gem"
+    end
+    HaveXpath.new(expected)
+  end
+  alias_method :match_xpath, :have_xpath
 
   # RSpec matcher to test for the presence of tags.
   #

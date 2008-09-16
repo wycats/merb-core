@@ -7,6 +7,20 @@ Dir[File.join(File.dirname(__FILE__), "controllers/**/*.rb")].each do |f|
 end
 
 describe Merb::Test::RequestHelper do
+  
+  describe Merb::Test::RequestHelper::CookieJar do
+    
+    it "should update its values from a request object" do
+      cookie_jar = Merb::Test::RequestHelper::CookieJar.new
+      cookie_jar.should be_empty
+      request = fake_request
+      request.cookies[:foo] = "bar+baz" # escaped by default
+      cookie_jar.update_from_request request
+      cookie_jar[:foo].should == 'bar baz'
+    end
+    
+  end  
+  
   describe "#dispatch_to" do
 
     before(:all) do
@@ -50,6 +64,11 @@ describe Merb::Test::RequestHelper do
       controller = dispatch_to(@controller_klass, :show, :name => "Fred")
       
       controller.params[:action].should == "show"
+    end
+
+    it "should support setting request.raw_post" do
+      controller = dispatch_to(@controller_klass, :show, {}, {:post_body => 'some XML'})
+      controller.request.raw_post.should == 'some XML'
     end
   end
   
@@ -199,12 +218,29 @@ describe Merb::Test::RequestHelper do
       end
     end
     
+    it "should support setting request.raw_post" do
+      controller = request("/namespaced/spec_helper_controller", {}, {:post_body => 'some XML'})
+      controller.request.raw_post.should == 'some XML'
+    end
+
     it "should get namespaced index action" do
       Merb::Test::ControllerAssertionMock.should_receive(:called).with(:index)
       controller = request("/namespaced/spec_helper_controller")
       controller.class.should == Namespaced::SpecHelperController
     end
+
+    it "should make the post body available in the request on deferred routing" do
+      Merb::Router.prepare do |r|
+        r.match('/xmlrpc').defer_to do |request, params|
+          request.raw_post.should == 'XMLRPC request body'
+          {:controller => 'spec_helper_controller', :action => :index}
+        end
+      end
+
+      request('/xmlrpc', {}, {:post_body => 'XMLRPC request body'})
+    end
   end
+  
 end
 
 module Merb::Test::RequestHelper

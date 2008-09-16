@@ -51,21 +51,29 @@ spec = Gem::Specification.new do |s|
   s.description  = PROJECT_DESCRIPTION
   s.executables  = %w( merb )
   s.require_path = "lib"
-  s.files        = %w( LICENSE README Rakefile TODO ) + Dir["{docs,bin,spec,lib,examples,app_generators,merb_generators,merb_default_generators,rspec_generators,test_unit_generators,script}/**/*"]
+  s.files        = %w( LICENSE README Rakefile TODO CHANGELOG PUBLIC_CHANGELOG CONTRIBUTORS ) + Dir["{bin,lib}/**/*"]
+
+  # use minigems by default
+  # s.minigems         = true
 
   # rdoc
   s.has_rdoc         = true
   s.extra_rdoc_files = %w( README LICENSE TODO )
-  #s.rdoc_options     += RDOC_OPTS + ["--exclude", "^(app|uploads)"]
 
   # Dependencies
-  s.add_dependency "extlib", ">=0.9.3"
+  s.add_dependency "extlib", ">= 0.9.6"
   s.add_dependency "erubis"
   s.add_dependency "rake"
   s.add_dependency "json_pure"
   s.add_dependency "rspec"
   s.add_dependency "rack"
   s.add_dependency "mime-types"
+  s.add_dependency "hpricot"
+  s.add_dependency "thor", ">= 0.9.6"
+  # this escalates to "regular" dependencies, comment it out
+  # for now. RubyGems need some love.
+  #s.add_development_dependency "libxml-ruby"
+  #s.add_development_dependency "memcache-client"
   # Requirements
   s.requirements << "install the json gem to get faster json parsing"
   s.required_ruby_version = ">= 1.8.6"
@@ -76,21 +84,31 @@ Rake::GemPackageTask.new(spec) do |package|
 end
 
 desc "Run :package and install the resulting .gem"
-task :install => :package do
-  sh %{#{sudo} gem install #{install_home} --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem --no-rdoc --no-ri}
+task :install => [:clean, :package] do
+  sh install_command(GEM_NAME, GEM_VERSION)
+end
+
+desc "Install Merb with development dependencies"
+task :dev_install => [:clean, :package] do
+  sh dev_install_command(GEM_NAME, GEM_VERSION)  
 end
 
 desc "Run :package and install the resulting .gem with jruby"
-task :jinstall => :package do
-  sh %{#{sudo} jruby -S gem install #{install_home} pkg/#{NAME}-#{Merb::VERSION}.gem --no-rdoc --no-ri}
+task :jinstall => [:clean, :package] do
+  sh jinstall_command(GEM_NAME, GEM_VERSION)
+end
+
+desc "Run :package and install the resulting .gem with jruby (development dependencies)"
+task :jinstall => [:clean, :package] do
+  sh dev_jinstall_command(GEM_NAME, GEM_VERSION)
 end
 
 desc "Run :clean and uninstall the .gem"
 task :uninstall => :clean do
-  sh %{#{sudo} gem uninstall #{NAME}}
+  sh uninstall_command(GEM_NAME)
 end
 
-CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
+CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "lib/*.so", "*.gem", "doc/rdoc", ".config", "coverage", "cache", "spec/**/*.log"]
 
 desc "Run the specs."
 task :default => :specs
@@ -157,7 +175,6 @@ namespace :doc do
 
   desc "rdoc to rubyforge"
   task :rubyforge do
-    # sh %{rake doc}
     sh %{#{sudo} chmod -R 755 doc} unless windows?
     sh %{/usr/bin/scp -r -p doc/rdoc/* ezmobius@rubyforge.org:/var/www/gforge-projects/merb}
   end
@@ -170,18 +187,14 @@ end
 desc "Run :specs, :rcov"
 task :aok => [:specs, :rcov]
 
-# desc "Run all specs"
-# Spec::Rake::SpecTask.new("specs") do |t|
-#   t.spec_opts = ["--format", "specdoc", "--colour"]
-#   t.spec_files = Dir["spec/**/*_spec.rb"].sort
-# end
-
-def setup_specs(name, spec_cmd='spec', run_opts = "-c -f s")
+def setup_specs(name, spec_cmd='spec', run_opts = "-c")
   desc "Run all specs (#{name})"
   task "specs:#{name}" do
-    run_specs("spec/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
+    except = []
+    except += Dir["spec/**/memcache*_spec.rb"] if ENV['MEMCACHED'] == 'no'
+    run_specs("spec/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts, except)
   end
-
+  
   desc "Run private specs (#{name})"
   task "specs:#{name}:private" do
     run_specs("spec/private/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
@@ -191,7 +204,7 @@ def setup_specs(name, spec_cmd='spec', run_opts = "-c -f s")
   task "specs:#{name}:public" do
     run_specs("spec/public/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
-
+  
   # With profiling formatter
   desc "Run all specs (#{name}) with profiling formatter"
   task "specs:#{name}_profiled" do
@@ -206,15 +219,15 @@ def setup_specs(name, spec_cmd='spec', run_opts = "-c -f s")
   desc "Run public specs (#{name}) with profiling formatter"
   task "specs:#{name}_profiled:public" do
     run_specs("spec/public/**/*_spec.rb", spec_cmd, "-c -f o")
-  end
+  end  
 end
 
 setup_specs("mri", "spec")
 setup_specs("jruby", "jruby -S spec")
 
-task "specs" => ["specs:mri"]
-task "specs:private" => ["specs:mri:private"]
-task "specs:public" => ["specs:mri:public"]
+task "specs" => ["dev_install", "specs:mri"]
+task "specs:private" => ["dev_install", "specs:mri:private"]
+task "specs:public" => ["dev_install", "specs:mri:public"]
 
 desc "Run coverage suite"
 task :rcov do
@@ -233,7 +246,7 @@ end
 
 desc "Run a specific spec with TASK=xxxx"
 Spec::Rake::SpecTask.new("spec") do |t|
-  t.spec_opts = ["--format", "specdoc", "--colour"]
+  t.spec_opts = ["--colour"]
   t.libs = ["lib", "server/lib" ]
   t.spec_files = (ENV["TASK"] || '').split(',').map do |task|
     "spec/**/#{task}_spec.rb"
@@ -246,15 +259,6 @@ Spec::Rake::SpecTask.new("specs_html") do |t|
   t.libs = ["lib", "server/lib" ]
   t.spec_files = Dir["spec/**/*_spec.rb"].sort
 end
-
-# desc "RCov"
-# Spec::Rake::SpecTask.new("rcov") do |t|
-#   t.rcov_opts = ["--exclude", "gems", "--exclude", "spec"]
-#   t.spec_opts = ["--format", "specdoc", "--colour"]
-#   t.spec_files = Dir["spec/**/*_spec.rb"].sort
-#   t.libs = ["lib", "server/lib"]
-#   t.rcov = true
-# end
 
 STATS_DIRECTORIES = [
   ['Code', 'lib/'],
@@ -313,9 +317,10 @@ namespace :repo do
 
 end
 
-def git_log(since_release = nil, log_format = "format:%an")
-  git_log_query = "git log --pretty='format:#{log_format}' --no-merges"
-  git_log_query << " --since='#{since_release}'" if since_release
+def git_log(since_release = nil, log_format = "%an")
+  git_log_query = "git log"
+  git_log_query << " v#{since_release}..HEAD" if since_release
+  git_log_query << " --pretty='format:#{log_format}' --no-merges"
   puts
   puts "Running #{git_log_query}"
   puts
@@ -323,10 +328,10 @@ def git_log(since_release = nil, log_format = "format:%an")
 end
 
 def contributors(since_release = nil)
-  @merb_contributors ||= git_log(since_release).split("\n").uniq.sort
+  git_log(since_release).split("\n").uniq.sort
 end
 
-PREVIOUS_RELEASE = '0.9.3'
+PREVIOUS_RELEASE = '0.9.7'
 namespace :history do
   namespace :update do
     desc "updates contributors list"
@@ -360,7 +365,7 @@ namespace :history do
   namespace :current_release do
     desc "show changes since previous release"
     task :changes do
-      puts git_log(PREVIOUS_RELEASE, "format:* %s")
+      puts git_log(PREVIOUS_RELEASE, "* %s")
     end
 
 
@@ -399,7 +404,7 @@ rule "" do |t|
 
     example = " -e '#{spec_name}'" unless spec_name.empty?
 
-    sh "#{spec_cmd} #{run_file_name} --format specdoc --colour #{example}"
+    sh "#{spec_cmd} #{run_file_name} --colour #{example}"
   end
 end
 

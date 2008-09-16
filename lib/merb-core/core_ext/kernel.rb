@@ -37,28 +37,11 @@ module Kernel
   #   If the gem cannot be found, the method will attempt to require the string
   #   as a library.
   def load_dependency(name, *ver)
-    try_framework = Merb.frozen?
-    begin
-      # If this is a piece of merb, and we're frozen, try to require
-      # first, so we can pick it up from framework/,
-      # otherwise try activating the gem
-      if name =~ /^merb/ && try_framework
-        require name
-      else
-        gem(name, *ver) if ver
-        require name
-        Merb.logger.info!("loading gem '#{name}' ...")
-      end
-    rescue LoadError
-      if try_framework
-        try_framework = false
-        retry
-      else
-        Merb.logger.info!("loading gem '#{name}' ...")
-        # Failed requiring as a gem, let's try loading with a normal require.
-        require name
-      end
-    end
+    ver.empty? ? gem(name) : gem(name, *ver)
+  rescue Gem::LoadError
+  ensure
+    require name
+    Merb.logger.info!("loading gem '#{name}' ...")
   end
 
   # Loads both gem and library dependencies that are passed in as arguments.
@@ -113,7 +96,7 @@ module Kernel
   # Mapper) you wish to use. Currently Merb has plugins to support
   # ActiveRecord, DataMapper, and Sequel.
   #
-  # @param orm<#to_s> The ORM to use.
+  # @param orm<Symbol> The ORM to use.
   #
   # @example
   #   use_orm :datamapper
@@ -124,26 +107,16 @@ module Kernel
   # @note
   #   If for some reason this is called more than once, latter
   #   call takes over other.
+  # @api public
   def use_orm(orm)
     begin
-      register_orm(orm)
+      Merb.orm = orm
       orm_plugin = "merb_#{orm}"
       Kernel.dependency(orm_plugin)
     rescue LoadError => e
       Merb.logger.warn!("The #{orm_plugin} gem was not found.  You may need to install it.")
       raise e
     end
-  end
-
-
-  # Registers ORM at generator scope.
-  #
-  # @param orm<#to_sym>
-  #   ORM alias, like :activerecord, :datamapper or :sequel.
-  #
-  # @api private
-  def register_orm(orm)
-    Merb.orm_generator_scope = orm
   end
 
   # Used in Merb.root/config/init.rb to tell Merb which testing framework to
@@ -157,32 +130,39 @@ module Kernel
   #
   #   # This will now use the RSpec generator for tests
   #   $ merb-gen model ActivityEvent
+  # @api public
   def use_test(test_framework, *test_dependencies)
-    raise "use_test only supports :rspec and :test_unit currently" unless supported_test_framework?(test_framework)
-    register_test_framework(test_framework)
-
-    dependencies test_dependencies if Merb.env == "test" || Merb.env.nil?
+    Merb.test_framework = test_framework
+    
+    Kernel.dependencies test_dependencies if Merb.env == "test" || Merb.env.nil?
   end
+  
+  # Used in Merb.root/config/init.rb to tell Merb which template engine to
+  # prefer.
+  #
+  # @param template_engine<Symbol>
+  #   The template engine to use.
+  #
+  # @example
+  #   use_template_engine :haml
+  #
+  #   # This will now use haml templates in generators where available.
+  #   $ merb-gen resource_controller Project 
+  # @api public
+  def use_template_engine(template_engine)
+    Merb.template_engine = template_engine
 
-  # Check whether Merb supports test framework. Currently Merb has plugins to support RSpec and Test::Unit.
-  #
-  # @param test_framework<Symbol>
-  #   The test framework to check. Currently only supports :rspec and :test_unit.
-  #
-  # @api plugin
-  def supported_test_framework?(test_framework)
-    [:rspec, :test_unit].include?(test_framework.to_sym)
-  end
-
-  # Register test framework at generator scope. Currently Merb has plugins to support RSpec and Test::Unit.
-  #
-  # @param test_framework<Symbol>
-  #   The test framework to check. Currently only supports :rspec and :test_unit but the 
-  #   check is performed before registration if you use API.
-  #
-  # @api private
-  def register_test_framework(test_framework)
-    Merb.test_framework_generator_scope = test_framework
+    if template_engine != :erb
+      if template_engine.in?(:haml, :builder)
+        template_engine_plugin = "merb-#{template_engine}"
+      else
+        template_engine_plugin = "merb_#{template_engine}"
+      end
+      Kernel.dependency(template_engine_plugin)
+    end
+  rescue LoadError => e
+    Merb.logger.warn!("The #{template_engine_plugin} gem was not found.  You may need to install it.")
+    raise e
   end
 
   # @param i<Fixnum> The caller number. Defaults to 1.

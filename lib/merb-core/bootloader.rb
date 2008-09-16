@@ -58,6 +58,7 @@ module Merb
 
       # Runs all boot loader classes by calling their run methods.
       def run
+        Merb.started = true
         subklasses = subclasses.dup
         until subclasses.empty?
           bootloader = subclasses.shift
@@ -266,7 +267,6 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     enable_json_gem unless Merb::disabled?(:json)
     load_dependencies
     update_logger
-    update_session_cookie_attributes
   end
 
   def self.load_dependencies
@@ -282,11 +282,6 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   def self.update_logger
     updated_logger_options = [ Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush] ]
     Merb::BootLoader::Logger.run if updated_logger_options != Merb.logger.init_args
-  end
-
-  def self.update_session_cookie_attributes
-    Merb::Controller._session_expiry = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
-    Merb::Controller._session_cookie_domain = Merb::Config[:session_cookie_domain]
   end
 
   private
@@ -320,6 +315,23 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     def self.load_initfile
       load(initfile) if File.exists?(initfile)
     end
+
+end
+
+class Merb::BootLoader::MixinSession < Merb::BootLoader
+
+  # Mixin the session functionality; this is done before BeforeAppLoads
+  # so that SessionContainer and SessionStoreContainer can be subclassed by
+  # plugin session stores for example - these need to be loaded in a
+  # before_app_loads block or a BootLoader that runs after MixinSession.
+  #
+  # Note: access to Merb::Config is needed, so it needs to run after 
+  # Merb::BootLoader::Dependencies is done.
+  def self.run
+    require 'merb-core/dispatch/session'
+    Merb::Controller.send(:include, ::Merb::SessionMixin)
+    Merb::Request.send(:include, ::Merb::SessionMixin::RequestMixin)
+  end
 
 end
 
@@ -551,10 +563,52 @@ class Merb::BootLoader::MimeTypes < Merb::BootLoader
     Merb.add_mime_type(:yaml, :to_yaml, %w[application/x-yaml text/yaml], :charset => "utf-8")
     Merb.add_mime_type(:text, :to_text, %w[text/plain], :charset => "utf-8")
     Merb.add_mime_type(:html, :to_html, %w[text/html application/xhtml+xml application/html], :charset => "utf-8")
-    Merb.add_mime_type(:xml,  :to_xml,  %w[application/xml text/xml application/x-xml], :charset => "utf-8")
+    Merb.add_mime_type(:xml,  :to_xml,  %w[application/xml text/xml application/x-xml], {:charset => "utf-8"}, 0.9998)
     Merb.add_mime_type(:js,   :to_json, %w[text/javascript application/javascript application/x-javascript], :charset => "utf-8")
     Merb.add_mime_type(:json, :to_json, %w[application/json text/x-json], :charset => "utf-8")
   end
+end
+
+class Merb::BootLoader::Cookies < Merb::BootLoader
+  
+  def self.run
+    require 'merb-core/dispatch/cookies'
+    Merb::Controller.send(:include, Merb::CookiesMixin)
+    Merb::Request.send(:include, Merb::CookiesMixin::RequestMixin)
+  end
+  
+end
+
+class Merb::BootLoader::SetupSession < Merb::BootLoader
+
+  # Enable the configured session container(s); any class that inherits from
+  # SessionContainer will be considered by its session_store_type attribute.
+  def self.run
+    # Require all standard session containers.
+    Dir[Merb.framework_root / "merb-core" / "dispatch" / "session" / "*.rb"].each do |file|
+      base_name = File.basename(file, ".rb")
+      require file unless base_name == "container" || base_name == "store_container"
+    end
+    
+    # Set some defaults.
+    Merb::Config[:session_id_key] ||= "_session_id"
+    
+    # List of all session_stores from :session_stores and :session_store config options.
+    config_stores = Merb::Config.session_stores
+    
+    # Register all configured session stores - any loaded session container class
+    # (subclassed from Merb::SessionContainer) will be available for registration.
+    Merb::SessionContainer.subclasses.each do |class_name|
+      if(store = Object.full_const_get(class_name)) && 
+        config_stores.include?(store.session_store_type)
+          Merb::Request.register_session_type(store.session_store_type, class_name)
+      end
+    end
+    
+    # Mixin the Merb::Session module to add app-level functionality to sessions
+    Merb::SessionContainer.send(:include, Merb::Session)
+  end
+
 end
 
 class Merb::BootLoader::AfterAppLoads < Merb::BootLoader
@@ -579,66 +633,6 @@ class Merb::BootLoader::SetupStubClasses < Merb::BootLoader
         end
       RUBY
     end
-  end
-end
-
-class Merb::BootLoader::MixinSessionContainer < Merb::BootLoader
-
-  # Mixin the correct session container.
-  def self.run
-    Merb.register_session_type('memory',
-      Merb.framework_root / "merb-core" / "dispatch" / "session" / "memory",
-      "Using in-memory sessions; sessions will be lost whenever the server stops.")
-
-    Merb.register_session_type('memcache',
-      Merb.framework_root /  "merb-core" / "dispatch" / "session" / "memcached",
-      "Using 'memcached' sessions")
-
-    Merb.register_session_type('cookie', # Last session type becomes the default
-      Merb.framework_root /  "merb-core" / "dispatch" / "session" / "cookie",
-      "Using 'share-nothing' cookie sessions (4kb limit per client)")
-
-
-
-    Merb::Controller.class_eval do
-      session_store = Merb::Config[:session_store].to_s
-      if ["", "false", "none"].include?(session_store)
-        Merb.logger.warn "Not Using Sessions"
-      elsif reg = Merb.registered_session_types[session_store]
-        Merb::BootLoader::MixinSessionContainer.check_for_secret_key if session_store == "cookie"
-        Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
-        require reg[:file]
-        include ::Merb::SessionMixin
-        Merb.logger.warn reg[:description]
-      else
-        Merb.logger.warn "Session store not found, '#{Merb::Config[:session_store]}'."
-        Merb.logger.warn "Defaulting to CookieStore Sessions"
-        Merb::BootLoader::MixinSessionContainer.check_for_secret_key
-        Merb::BootLoader::MixinSessionContainer.check_for_session_id_key
-        require Merb.registered_session_types['cookie'][:file]
-        include ::Merb::SessionMixin
-        Merb.logger.warn "(plugin not installed?)"
-      end
-    end
-
-    Merb.logger.flush
-  end
-
-  # Sets the controller session ID key if it has been set in config.
-  def self.check_for_session_id_key
-    if Merb::Config[:session_id_key]
-      Merb::Controller._session_id_key = Merb::Config[:session_id_key]
-    end
-  end
-
-  # Attempts to set the session secret key. This method will exit if the key
-  # does not exist or is shorter than 16 charaters.
-  def self.check_for_secret_key
-    unless Merb::Config[:session_secret_key] && (Merb::Config[:session_secret_key].length >= 16)
-      Merb.logger.warn("You must specify a session_secret_key in your init file, and it must be at least 16 characters\nbailing out...")
-      exit!
-    end
-    Merb::Controller._session_secret_key = Merb::Config[:session_secret_key]
   end
 end
 
@@ -682,6 +676,7 @@ class Merb::BootLoader::RackUpApplication < Merb::BootLoader
          run Merb::Rack::Application.new
        }.to_app
     end
+    
   end
 end
 

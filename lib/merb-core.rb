@@ -1,6 +1,21 @@
 #---
 # require 'merb' must happen after Merb::Config is instantiated
 require 'rubygems'
+
+# Add the local gems dir if found within the app root; any dependencies loaded
+# hereafter will try to load from the local gems before loading system gems.
+root_key = %w[-m --merb-root].detect { |o| ARGV.index(o) }
+root = ARGV[ARGV.index(root_key) + 1] if root_key
+root = root.to_a.empty? ? Dir.getwd : root
+if File.directory?(gems_dir = File.join(root, 'gems'))
+  $BUNDLE = true; Gem.clear_paths; Gem.path.unshift(gems_dir)
+  # Warn if local merb-core is available but not loaded.
+  if !($0 =~ /^(\.\/)?bin\/merb$/) && 
+    (local_mc = Dir[File.join(gems_dir, 'specifications', 'merb-core-*.gemspec')].last)
+    puts "Warning: please use bin/merb to load #{File.basename(local_mc, '.gemspec')} from ./gems"
+  end
+end
+
 require 'set'
 require 'fileutils'
 require 'socket'
@@ -16,7 +31,9 @@ $LOAD_PATH.unshift __DIR__ unless
 require 'merb-core' / 'vendor' / 'facets'
 
 module Merb
+  # Create stub module for global controller helpers.
   module GlobalHelpers; end
+  
   class << self
 
     # Merge environment settings
@@ -171,7 +188,7 @@ module Merb
     #   "**/*.rb".
     def push_path(type, path, file_glob = "**/*.rb")
       enforce!(type => Symbol)
-      load_paths[type] = [Pathname.new(path), file_glob]
+      load_paths[type] = [path, file_glob]
     end
 
     # Removes given types of application components
@@ -216,15 +233,13 @@ module Merb
     # ==== Returns
     # String:: The Merb root path.
     def root
-      app_root = @root || Merb::Config[:merb_root] || Dir.pwd
-
-      Pathname.new(app_root)
+      @root || Merb::Config[:merb_root] || File.expand_path(Dir.pwd)
     end
 
     # ==== Parameters
     # value<String>:: Path to the root directory.
     def root=(value)
-      @root = Pathname.new(value)
+      @root = value
     end
 
     # ==== Parameters
@@ -242,7 +257,7 @@ module Merb
     #---
     # @public
     def root_path(*path)
-      Pathname.new(File.join(root, *path))
+      File.join(root, *path)
     end
 
     # Logger settings
@@ -267,18 +282,16 @@ module Merb
     # ==== Returns
     # String:: Path to directory that contains the log file.
     def log_path
-      path = case Merb::Config[:log_file]
+      case Merb::Config[:log_file]
       when String then File.dirname(Merb::Config[:log_file])
       else Merb.root_path("log")
       end
-
-      Pathname.new(path)
     end
 
     # ==== Returns
     # String:: The path of root directory of the Merb framework.
     def framework_root
-      @framework_root ||= Pathname(File.dirname(__FILE__))
+      @framework_root ||= File.dirname(__FILE__)
     end
 
     # ==== Returns
@@ -307,7 +320,13 @@ module Merb
     # r<Merb::Router::Behavior>::
     #   The root behavior upon which new routes can be added.
     def flat!(framework = {})
-      Merb::Config[:framework] = framework
+      default = {
+        :framework => { :public => [Merb.root / "public", nil] },
+        :session_store => 'none',
+        :exception_details => true
+      }
+            
+      Merb::Config[:framework] = default.merge(framework)
 
       Merb::Router.prepare do |r|
         yield(r) if block_given?
@@ -316,74 +335,57 @@ module Merb
     end
 
     # Set up default variables under Merb
-    attr_accessor :generator_scope, :klass_hashes, :orm_generator_scope, :test_framework_generator_scope
+    attr_accessor :klass_hashes, :orm, :test_framework, :template_engine
 
-    # Returns registered ORM generators as symbols,
-    # for instance, :datamapper.
+    # Returns the default ORM for this application. For instance, :datamapper.
     #
     # ==== Returns
-    # <Array(Symbol>:: registered ORM generators.
+    # <Symbol>:: default ORM.
+    def orm
+      @orm ||= :none
+    end
+    
+    # @deprecated
     def orm_generator_scope
-      @orm_generator_scope ||= :merb_default
+      Merb.logger.warn!("WARNING: Merb.orm_generator_scope is deprecated")
+      return :merb_default if Merb.orm == :none
+      Merb.orm
     end
 
-    # Returns registered test framework generators.
+    # Returns the default test framework for this application. For instance :rspec.
     #
     # ==== Returns
-    # <Array(Symbol>:: registred test framework generators.
+    # <Symbol>:: default test framework.
+    def test_framework
+      @test_framework ||= :rspec
+    end
+    
+    # @deprecated
     def test_framework_generator_scope
-      @test_framework_generator_scope ||= :rspec
+      Merb.logger.warn!("WARNING: Merb.test_framework_generator_scope is deprecated")
+      Merb.test_framework
     end
-
-    # Returns all registered generators plus Merb generator.
+    
+    # Returns the default template engine for this application. For instance :haml.
     #
     # ==== Returns
-    # <Array(Symbol>::
-    #   all registered generators, inc. needed by Merb itself.
-    def generator_scope
-      [:merb, orm_generator_scope, test_framework_generator_scope]
+    # <Symbol>:: default template engine.
+    def template_engine
+      @template_engine ||= :erb
     end
-
 
     Merb.klass_hashes = []
 
-    attr_reader :registered_session_types
-
-    # ==== Parameters
-    # name<~to_s>:: Name of the session type to register.
-    # file<String>:: The file that defines this session type.
-    # description<String>:: An optional description of the session type.
-    #
-    # ==== Notes
-    # Merb currently supports memory, cookie and memcache session
-    # types.
-    def register_session_type(name, file, description = nil)
-      @registered_session_types ||= Dictionary.new
-      @registered_session_types[name] = {
-        :file => file,
-        :description => (description || "Using #{name} sessions")
-      }
-    end
-
-    attr_accessor :frozen
-
     # ==== Returns
-    # Boolean:: True if Merb is running via merb-freezer or other freezer.
+    # Boolean:: True if Merb is running as an application with bundled gems.
     #
     # ==== Notes
-    # Freezing means bundling framework libraries with your application
-    # making it independent from environment it runs in. This is a good
-    # practice to freeze application framework and gems it uses and
-    # very useful when application is run in some sort of sandbox,
-    # for instance, shared hosting with preconfigured gems.
-    def frozen?
-      @frozen
-    end
-
-    # Used by merb-freezer and other freezers to mark Merb as frozen.
-    # See Merb::GlobalHelpers.frozen? for more details on framework freezing.
-    def frozen!
-      @frozen = true
+    # Bundling required gems makes your application independent from the 
+    # environment it runs in. This is a good practice to freeze application 
+    # framework and gems it uses and very useful when application is run in 
+    # some sort of sandbox, for instance, shared hosting with preconfigured gems.
+    def bundled?
+      $BUNDLE || ENV.key?("BUNDLE")
     end
 
     # Load configuration and assign logger.
@@ -416,12 +418,6 @@ module Merb
     #
     # :use_mutex<Boolean>::       turns action dispatch synchronization
     #                             on or off, default is on (true)
-    #
-    # :session_id_key<String>::   session identifier,
-    #                             default is _session_id
-    #
-    # :session_store<String>::    session store to use (one of cookies,
-    #                             memcache or memory)
     #
     # :log_delimiter<String>::    what Merb logger uses as delimiter
     #                             between message sections, default is " ~ "
@@ -511,8 +507,6 @@ module Merb
     #     environment        "development"
     #     log_level          "debug"
     #     use_mutex          false
-    #     session_store      "cookie"
-    #     session_secret_key "0d05a226affa226623eb18700"
     #     exception_details  true
     #     reload_classes     true
     #     reload_time        0.5
@@ -555,7 +549,7 @@ module Merb
     # Recommended way to find out what paths Rakefiles
     # are loaded from.
     def rakefiles
-      @rakefiles ||= ['merb-core' / 'test' / 'tasks' / 'spectasks']
+      @rakefiles ||= ['merb-core/test/tasks/spectasks']
     end
     
     # === Returns
@@ -574,7 +568,7 @@ module Merb
     # ==== Notes
     # Recommended way to add Rakefiles load path for plugins authors.
     def add_rakefiles(*rakefiles)
-      @rakefiles ||= ['merb-core' / 'test' / 'tasks' / 'spectasks']
+      @rakefiles ||= ['merb-core/test/tasks/spectasks']
       @rakefiles += rakefiles
     end
     
@@ -591,12 +585,12 @@ module Merb
   end
 end
 
-require 'merb-core' / 'autoload'
-require 'merb-core' / 'server'
-require 'merb-core' / 'gem_ext/erubis'
-require 'merb-core' / 'logger'
-require 'merb-core' / 'version'
-require 'merb-core' / 'controller/mime'
+require 'merb-core/autoload'
+require 'merb-core/server'
+require 'merb-core/gem_ext/erubis'
+require 'merb-core/logger'
+require 'merb-core/version'
+require 'merb-core/controller/mime'
 
 # Set the environment if it hasn't already been set.
 Merb.environment ||= ENV['MERB_ENV'] || Merb::Config[:environment] || (Merb.testing? ? 'test' : 'development')

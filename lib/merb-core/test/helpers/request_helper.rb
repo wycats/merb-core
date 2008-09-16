@@ -42,6 +42,23 @@ module Merb
         }) unless defined?(DEFAULT_ENV)
       end
 
+      # CookieJar keeps track of cookies in a simple Mash.
+      class CookieJar < Mash
+        
+        # ==== Parameters
+        # request<Merb::Request, Merb::FakeRequest>:: The controller request.
+        def update_from_request(request)
+          request.cookies.each do |key, value|
+            if value.blank?
+              self.delete(key)
+            else
+              self[key] = Merb::Request.unescape(value)
+            end
+          end
+        end
+        
+      end
+
       # ==== Parameters
       # env<Hash>:: A hash of environment keys to be merged into the default list.
       # opt<Hash>:: A hash of options (see below).
@@ -100,7 +117,27 @@ module Merb
         params = merge_controller_and_action(controller_klass, action, params)
         dispatch_request(build_request(params, env), controller_klass, action.to_s, &blk)
       end
-
+      
+      # Keep track of cookie values in CookieJar within the context of the
+      # block; you need to set this up for secific controllers.
+      #
+      # ==== Parameters
+      # *controller_classes:: Controller classes to operate on in the context of the block.
+      # &blk:: The context to operate on; optionally accepts the cookie jar as an argument.
+      def with_cookies(*controller_classes, &blk)
+        cookie_jar = CookieJar.new
+        before_cb = lambda { |c| c.cookies.update(cookie_jar) }
+        after_cb  = lambda { |c| cookie_jar.update_from_request(c.request) }
+        controller_classes.each do |klass|
+          klass._before_dispatch_callbacks << before_cb
+          klass._after_dispatch_callbacks  << after_cb
+        end
+        blk.arity == 1 ? blk.call(cookie_jar) : blk.call
+        controller_classes.each do |klass|
+          klass._before_dispatch_callbacks.delete before_cb
+          klass._after_dispatch_callbacks.delete after_cb
+        end
+      end
 
       # Dispatches an action to the given class and using HTTP Basic Authentication
       # This bypasses the router and is suitable for unit testing of controllers.
@@ -170,9 +207,12 @@ module Merb
       # @public      
       def build_request(params = {}, env = {})
         params             = Merb::Request.params_to_query_string(params)
-        env[:query_string] = env["QUERY_STRING"] ? "#{env["QUERY_STRING"]}&#{params}" : params
+
+        query_string = env[:query_string] || env['QUERY_STRING']
+        env[:query_string] = query_string ? "#{query_string}&#{params}" : params
         
-        fake_request(env, { :post_body => env[:post_body], :req => env[:req] })
+        post_body = env[:post_body] || env['POST_BODY']
+        fake_request(env, { :post_body => post_body, :req => env[:req] })
       end
 
       # An HTTP GET request that operates through the router.
@@ -281,7 +321,7 @@ module Merb
         
         multipart = env.delete(:test_with_multipart)
 
-        request = fake_request(env)
+        request = build_request(params, env)
 
         opts = check_request_for_route(request) # Check that the request will be routed correctly
         controller_name = (opts[:namespace] ? opts.delete(:namespace) + '/' : '') + opts.delete(:controller)
@@ -297,7 +337,7 @@ module Merb
       # The workhorse for the dispatch*to helpers.
       #
       # ==== Parameters
-      # request<Merb::Test::FakeRequest, Merb::Request>::
+      # request<Merb::Test::RequestHelper::FakeRequest, Merb::Request>::
       #   A request object that has been setup for testing.
       # controller_klass<Merb::Controller>::
       #   The class object off the controller to dispatch the action to.
@@ -328,7 +368,7 @@ module Merb
       # Checks to see that a request is routable.
       #
       # ==== Parameters
-      # request<Merb::Test::FakeRequest, Merb::Request>::
+      # request<Merb::Test::RequestHelper::FakeRequest, Merb::Request>::
       #   The request object to inspect.
       #
       # ==== Raises

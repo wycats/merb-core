@@ -30,7 +30,13 @@ module Merb::Test::Fixtures
         display @obj, "test_display/foo.html"
       end
     end
-    
+
+    class DisplayObjectWithPathViaOpts < Testing
+      def index
+        @obj = SomeModel.new
+        display @obj, :template => "test_display/foo.html"
+      end
+    end
     
     class DisplayObjectWithMultipleRoots < DisplayObject
       self._template_roots << [File.dirname(__FILE__) / "alt_views", :_template_location]

@@ -149,7 +149,7 @@ module English
     word 'Swiss'     , 'Swiss'
     word 'life'      , 'lives'
     word 'wife'      , 'wives'
-    word 'virus'     , 'viri'
+    word 'virus'     , 'virii'
     word 'octopus'   , 'octopi'
     #word 'cactus'    , 'cacti'
     word 'goose'     , 'geese'
@@ -216,11 +216,11 @@ end
 class String
 
   def english_singular
-    Language::English::Inflect.singular(self)
+    English::Inflect.singular(self)
   end
 
   def english_plural
-    Language::English::Inflect.plural(self)
+    English::Inflect.plural(self)
   end
 end
 

@@ -1,5 +1,4 @@
 require "optparse"
-require "yaml"
 
 module Merb
 
@@ -18,7 +17,6 @@ module Merb
           :environment            => "development",
           :merb_root              => Dir.pwd,
           :use_mutex              => true,
-          :session_id_key         => "_session_id",
           :log_delimiter          => " ~ ",
           :log_auto_flush         => false,
           :log_level              => :info,
@@ -93,6 +91,7 @@ module Merb
       # ==== Returns
       # String:: The config as YAML.
       def to_yaml
+        require "yaml"
         @configuration.to_yaml
       end
 
@@ -116,11 +115,10 @@ module Merb
 
         # Environment variables always win
         options[:environment] = ENV["MERB_ENV"] if ENV["MERB_ENV"]
-
+        
         # Build a parser for the command line arguments
         opts = OptionParser.new do |opts|
           opts.version = Merb::VERSION
-          opts.release = Merb::RELEASE
 
           opts.banner = "Usage: merb [uGdcIpPhmailLerkKX] [argument]"
           opts.define_head "Merb. Pocket rocket web framework"
@@ -239,7 +237,7 @@ module Merb
           opts.on("-V", "--verbose", "Print extra information") do
             options[:verbose] = true
           end
-
+          
           opts.on("-?", "-H", "--help", "Show this help message") do
             puts opts
             exit
