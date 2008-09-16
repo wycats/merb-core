@@ -321,7 +321,13 @@ module Merb
     # r<Merb::Router::Behavior>::
     #   The root behavior upon which new routes can be added.
     def flat!(framework = {})
-      Merb::Config[:framework] = framework
+      default = {
+        :framework => { :public => [Merb.root / "public", nil] },
+        :session_store => 'none',
+        :exception_details => true
+      }
+            
+      Merb::Config[:framework] = default.merge(framework)
 
       Merb::Router.prepare do |r|
         yield(r) if block_given?
