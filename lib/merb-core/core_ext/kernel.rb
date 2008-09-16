@@ -37,7 +37,7 @@ module Kernel
   #   If the gem cannot be found, the method will attempt to require the string
   #   as a library.
   def load_dependency(name, *ver)
-    gem(name, *ver) if ver
+    gem(name, *ver) unless ver.empty?
     require name
     Merb.logger.info!("loading gem '#{name}' ...")
   end

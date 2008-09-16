@@ -53,6 +53,9 @@ spec = Gem::Specification.new do |s|
   s.require_path = "lib"
   s.files        = %w( LICENSE README Rakefile TODO CHANGELOG PUBLIC_CHANGELOG CONTRIBUTORS ) + Dir["{bin,lib}/**/*"]
 
+  # use minigems by default
+  # s.minigems         = true
+
   # rdoc
   s.has_rdoc         = true
   s.extra_rdoc_files = %w( README LICENSE TODO )
