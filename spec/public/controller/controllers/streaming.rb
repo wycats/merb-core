@@ -12,7 +12,7 @@ module Merb::Test::Fixtures
       def x_accel_redirect_with_default_content_type
         nginx_send_file "/protected/content.pdf"
       end
-      
+
     end
   end
 end
