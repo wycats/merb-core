@@ -239,10 +239,23 @@ module Merb
     # from nginx. For more information, see the nginx wiki:
     # http://wiki.codemongers.com/NginxXSendfile
     #
+    # Unless Content-Disposition is set before calling this method,
+    # it is set to attachment with streamed file name.
+    #
     # ==== Parameters
-    # file<String>:: Path to file to send to the client.
-    def nginx_send_file(file)
-      headers['X-Accel-Redirect'] = file
+    # path<String>:: Path to file to send to the client.
+    # content_type<String>:: content type header value. By default is set to empty string to let
+    #                        Nginx detect it.
+    #
+    # ==== Return
+    # One space string.
+    def nginx_send_file(path, content_type = "")
+      # Let Nginx detect content type unless it is explicitly set
+      headers['Content-Type']        = content_type
+      headers["Content-Disposition"] ||= "attachment; filename=#{path.split('/').last}"
+      
+      headers['X-Accel-Redirect']    = path
+      
       return ' '
     end  
   
