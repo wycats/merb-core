@@ -239,6 +239,13 @@ module Merb
     # from nginx. For more information, see the nginx wiki:
     # http://wiki.codemongers.com/NginxXSendfile
     #
+    # and the following sample gist:
+    # http://gist.github.com/11225
+    #
+    # there's also example application up on GitHub:
+    #
+    # http://github.com/michaelklishin/nginx-x-accel-redirect-example-application/tree/master
+    #
     # Unless Content-Disposition is set before calling this method,
     # it is set to attachment with streamed file name.
     #
