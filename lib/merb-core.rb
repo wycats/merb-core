@@ -10,9 +10,9 @@ root = root.to_a.empty? ? Dir.getwd : root
 if File.directory?(gems_dir = File.join(root, 'gems'))
   $BUNDLE = true; Gem.clear_paths; Gem.path.unshift(gems_dir)
   # Warn if local merb-core is available but not loaded.
-  if !($0 =~ /^(\.\/)?bin\/merb$/) && 
+  if File.expand_path($0).index(root) != 0 && 
     (local_mc = Dir[File.join(gems_dir, 'specifications', 'merb-core-*.gemspec')].last)
-    puts "Warning: please use bin/merb to load #{File.basename(local_mc, '.gemspec')} from ./gems"
+    puts "Warning: please use bin/#{File.basename($0)} to load #{File.basename(local_mc, '.gemspec')} from ./gems"
   end
 end
 
