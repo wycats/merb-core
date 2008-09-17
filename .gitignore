@@ -16,3 +16,4 @@ TAGS
 *.tmproj
 .#*
 tools/allison-2.0.2/cache/*
+doc/*
