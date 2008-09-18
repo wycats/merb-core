@@ -8,7 +8,7 @@ module Merb
       def error_codes(exception)
         if @show_details
           message, message_details = exception.message.split("\n", 2)
-          "<h2>#{html_escape(message)}</h2><p>#{html_escape(message_details)}</p>"
+          "<h2>#{escape_html(message)}</h2><p>#{escape_html(message_details)}</p>"
         else
           "<h2>Sorry about that...</h2>"
         end

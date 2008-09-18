@@ -303,7 +303,7 @@ module Merb
       Erubis::XmlHelper.escape_xml(obj.to_s)
     end
     alias h escape_xml
-    alias html_escape escape_xml
+    alias escape_html escape_xml
     
     private
       # Checks whether streaming is supported by the current Rack adapter.

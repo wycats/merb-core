@@ -14,7 +14,7 @@
         <% @exceptions.each_with_index do |exception,i| %>
           <li>
             <a href="#exception_<%= i %>"><%= humanize_exception(exception) %></a>
-            <%= html_escape(exception.message.split("\n",2).first) %>
+            <%= escape_html(exception.message.split("\n",2).first) %>
           </li>
         <% end %>
       </ul>
