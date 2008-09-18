@@ -353,9 +353,6 @@ module Merb
   end
 
   class Responder
-  
-    protected
-
     # Parses the raw accept header into an array of sorted AcceptType objects.
     #
     # ==== Parameters
@@ -372,11 +369,9 @@ module Merb
       end
       list.sort
     end
-      
   end
 
   class AcceptType
-
     attr_reader :media_range, :quality, :index, :type, :sub_type
 
     # ==== Parameters
