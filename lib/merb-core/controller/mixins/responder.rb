@@ -354,30 +354,6 @@ module Merb
 
   class Responder
   
-    # def self.parse(accept_header)
-    #   headers = accept_header.split(/,/)
-    # 
-    #   ret = {}
-    #   headers.each do |header|
-    #     header =~ /\s*([^;\s]*)\s*(;\s*q=\s*([\d\.]+))?/
-    #     quality = $3.to_f || 0 if $1 == "*/*"
-    #     quality = quality ? quality.to_f : 1
-    #     mime = mime(range)
-    #     ret[mime] = [mime_name(range), quality * mime[:default_quality]]
-    #   end
-    #   ret.sort_by {|k,v| [v.last]}
-    # end
-    #   
-    # def self.mime_name(range)
-    #   @mime_names ||= {}
-    #   @mime_names[range] ||= Merb::ResponderMixin::MIMES[@media_range]
-    # end
-    #   
-    # def self.mime(range)
-    #   @mime ||= {}
-    #   @mime[range] ||= Merb.available_mime_types[mime_name(range)]
-    # end
-  
     protected
 
     # Parses the raw accept header into an array of sorted AcceptType objects.
