@@ -618,6 +618,7 @@ class Merb::BootLoader::SetupStubClasses < Merb::BootLoader
     unless defined?(Exceptions)
       Object.class_eval <<-RUBY
         class Application < Merb::Controller
+          abstract!
         end
 
         class Exceptions < Application

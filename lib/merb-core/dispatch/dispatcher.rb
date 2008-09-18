@@ -53,9 +53,9 @@ module Merb
           "you may need to check your Rackup file, see the Problems " \
           "section at: http://wiki.merbivore.com/pages/rack-middleware"
       end
-    
-      if klass == Application
-        raise NotFound, "The 'Application' controller has no public actions"
+      
+      if klass.abstract?
+        raise NotFound, "The '#{klass}' controller has no public actions"
       end
     
       controller = dispatch_action(klass, params[:action])
