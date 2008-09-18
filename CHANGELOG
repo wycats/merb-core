@@ -1,3 +1,35 @@
+== 0.9.7 "Universe In A Bundle" 2008-09-13
+
+* Made the post body available to the routing when testing a request.
+* Better local gems dir detection and end-user feedback
+* Updated PUBLIC_CHANGELOG regarding gem management and merb.thor
+* Fixed compatibility with the *new* bundle logic
+* Made request('/path', {}, {:post_body => 'some XML'}) not setting the post body to nil.
+* Added two specs for setting request.raw_post. Passes for #dispatch_to, fails for #request.
+* You can now use request_to with a post body:
+* It's official: Thor is now a dependency
+* Removed MerbScriptHelper - simplified loading bundled gems - see merb.thor
+* Bug Fix: Cookie headers not being formatted correctly
+* Added request.session.clear! method to clear and destroy the session (including the _session_id cookie itself)
+* Both memcache-client and memcached gems are supported by the session store
+* Added better query param parsing (naive but adequate) for nested params
+* Added specs to make sure blank cookie options aren't used for Set-Cookie
+* Fixed cookie issues in WebKit/Safari browsers
+* Log ControllerExceptions with error level and only ServerErrors with info.
+* Modified absolute_url to handle an object as well as a Hash
+* Touches to new sessions: doc and minor code improvements.
+* More meaningful exception message when no session container is configured.
+* Make it clear how session mixin makes it's way into controller.
+* Leave a note where new sessions doc needs to be improved.
+* Fix smart formatting.
+* Give smart people proper credit when you use their work.
+* Loosen extlib dependency a bit.
+* Meaningful message when Memcached session store can't be loaded because of load error.
+* Remove libxml-ruby and memcache-client dev dependencies.
+* Require memcached gem where memcached session store is defined (it's lazy loaded).
+* Meaninful message when have_xpath matcher is used but libxml-ruby fails to load.
+* Don't blow up when there are no system paths.
+
 == 0.9.6 "Therapy session" 2008-09-08
 
 * Merge in simple conditional get support at controller level.

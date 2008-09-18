@@ -51,7 +51,10 @@ spec = Gem::Specification.new do |s|
   s.description  = PROJECT_DESCRIPTION
   s.executables  = %w( merb )
   s.require_path = "lib"
-  s.files        = %w( LICENSE README Rakefile TODO CHANGELOG PUBLIC_CHANGELOG CONTRIBUTORS ) + Dir["{docs,bin,spec,lib}/**/*"]
+  s.files        = %w( LICENSE README Rakefile TODO CHANGELOG PUBLIC_CHANGELOG CONTRIBUTORS ) + Dir["{doc/rdoc,bin,lib}/**/*"]
+
+  # use minigems by default
+  # s.minigems         = true
 
   # rdoc
   s.has_rdoc         = true
@@ -66,6 +69,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "rack"
   s.add_dependency "mime-types"
   s.add_dependency "hpricot"
+  s.add_dependency "thor", ">= 0.9.6"
   # this escalates to "regular" dependencies, comment it out
   # for now. RubyGems need some love.
   #s.add_development_dependency "libxml-ruby"
@@ -80,22 +84,22 @@ Rake::GemPackageTask.new(spec) do |package|
 end
 
 desc "Run :package and install the resulting .gem"
-task :install => :package do
+task :install => [:clean, :package] do
   sh install_command(GEM_NAME, GEM_VERSION)
 end
 
 desc "Install Merb with development dependencies"
-task :dev_install => :package do
+task :dev_install => [:clean, :package] do
   sh dev_install_command(GEM_NAME, GEM_VERSION)  
 end
 
 desc "Run :package and install the resulting .gem with jruby"
-task :jinstall => :package do
+task :jinstall => [:clean, :package] do
   sh jinstall_command(GEM_NAME, GEM_VERSION)
 end
 
 desc "Run :package and install the resulting .gem with jruby (development dependencies)"
-task :jinstall => :package do
+task :jinstall => [:clean, :package] do
   sh dev_jinstall_command(GEM_NAME, GEM_VERSION)
 end
 
@@ -104,7 +108,7 @@ task :uninstall => :clean do
   sh uninstall_command(GEM_NAME)
 end
 
-CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
+CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "lib/*.so", "*.gem", "doc/rdoc", ".config", "coverage", "cache", "spec/**/*.log"]
 
 desc "Run the specs."
 task :default => :specs
@@ -327,7 +331,7 @@ def contributors(since_release = nil)
   git_log(since_release).split("\n").uniq.sort
 end
 
-PREVIOUS_RELEASE = '0.9.5'
+PREVIOUS_RELEASE = '0.9.7'
 namespace :history do
   namespace :update do
     desc "updates contributors list"

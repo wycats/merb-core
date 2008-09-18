@@ -407,4 +407,75 @@ describe Merb::Dispatcher do
     end
   end
   
+  describe "dispatching to abstract controllers" do
+    before(:each) do
+      Object.class_eval <<-RUBY
+        class AbstractOne < Merb::Controller
+          abstract!
+          def index; "AbstractOne#index"; end
+        end
+      
+        class NotAbstract < AbstractOne
+          def index; "NotAbstract#index"; end
+        end
+        
+        class NormalController < Application
+          def index; "NormalController#index"; end
+        end
+      RUBY
+      class Application < Merb::Controller
+        def method_for_abstract_test; "method_for_abstract_test"; end
+      end
+    end
+    
+    after(:each) do
+      Object.class_eval do 
+        remove_const(:AbstractOne)
+        remove_const(:NotAbstract)
+      end
+      
+      class Application < Merb::Controller
+        undef method_for_abstract_test
+      end
+      
+      Merb::Router.prepare do |r|
+        r.default_routes
+      end      
+    end
+    
+    it "should return a NotFound for an Application#method" do
+      result = fake_request(:request_uri => "/application/method_for_abstract_test").handle
+      result.status.should == 404
+    end
+    
+    it "should have Application marked as abstract" do
+      Application.should be_abstract
+    end
+    
+    it "should have AbstractOne marked as abstract" do
+      AbstractOne.should be_abstract
+    end
+    
+    it "should return a NotFound for an abstract controllers method" do
+      result = fake_request(:request_uri => "/abstract_one/index").handle
+      result.status.should == 404
+    end
+    
+    
+    it "should return correctly for a normal controller" do
+      result = fake_request(:request_uri => "/normal_controller/index").handle
+      result.status.should == 200
+      result.body.should == "NormalController#index"
+    end
+    
+    it "should return correctly for a controller that is inherited from an abstract controller" do
+      result = fake_request(:request_uri => "/not_abstract/index").handle
+      result.status.should == 200
+      result.body.should == "NotAbstract#index"
+    end
+    
+    
+    
+  end
+  
 end

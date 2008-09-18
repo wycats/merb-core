@@ -207,9 +207,12 @@ module Merb
       # @public      
       def build_request(params = {}, env = {})
         params             = Merb::Request.params_to_query_string(params)
-        env[:query_string] = env["QUERY_STRING"] ? "#{env["QUERY_STRING"]}&#{params}" : params
+
+        query_string = env[:query_string] || env['QUERY_STRING']
+        env[:query_string] = query_string ? "#{query_string}&#{params}" : params
         
-        fake_request(env, { :post_body => env[:post_body], :req => env[:req] })
+        post_body = env[:post_body] || env['POST_BODY']
+        fake_request(env, { :post_body => post_body, :req => env[:req] })
       end
 
       # An HTTP GET request that operates through the router.
@@ -318,7 +321,7 @@ module Merb
         
         multipart = env.delete(:test_with_multipart)
 
-        request = fake_request(env)
+        request = build_request(params, env)
 
         opts = check_request_for_route(request) # Check that the request will be routed correctly
         controller_name = (opts[:namespace] ? opts.delete(:namespace) + '/' : '') + opts.delete(:controller)

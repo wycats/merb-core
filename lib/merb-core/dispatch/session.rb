@@ -101,7 +101,7 @@ module Merb
                                         :_session_expiry
 
         base._session_id_key        = Merb::Config[:session_id_key] || '_session_id'
-        base._session_expiry        = Merb::Config[:session_expiry] || Merb::Const::WEEK * 2
+        base._session_expiry        = Merb::Config[:session_expiry] || 0
         base._session_secret_key    = Merb::Config[:session_secret_key]
       end
 
@@ -199,7 +199,9 @@ module Merb
       # value<String>:: The value of the session cookie; either the session id or the actual encoded data.
       # options<Hash>:: Cookie options like domain, path and expired.
       def set_session_cookie_value(value, options = {})
-        cookies.set_cookie(_session_id_key, value, { :expires => Time.now + _session_expiry }.merge(options))
+        defaults = {}
+        defaults[:expires] = Time.now + _session_expiry if _session_expiry > 0
+        cookies.set_cookie(_session_id_key, value, defaults.merge(options))
       end
       alias :set_session_id_cookie :set_session_cookie_value
 

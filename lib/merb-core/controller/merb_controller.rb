@@ -228,6 +228,22 @@ class Merb::Controller < Merb::AbstractController
     [status, headers, body]
   end
 
+  # Sets a controller to be "abstract" 
+  # This controller will not be able to be routed to
+  # and is used for super classing only
+  def self.abstract!
+    @_abstract = true
+  end
+  
+  # Asks a controller if it is abstract
+  #
+  # === Returns
+  # Boolean
+  #  true if the controller has been set as abstract
+  def self.abstract?
+    !!@_abstract 
+  end
+
   # Hide any methods that may have been exposed as actions before.
   hide_action(*_callable_methods)
 

@@ -1,6 +1,21 @@
 #---
 # require 'merb' must happen after Merb::Config is instantiated
 require 'rubygems'
+
+# Add the local gems dir if found within the app root; any dependencies loaded
+# hereafter will try to load from the local gems before loading system gems.
+root_key = %w[-m --merb-root].detect { |o| ARGV.index(o) }
+root = ARGV[ARGV.index(root_key) + 1] if root_key
+root = root.to_a.empty? ? Dir.getwd : root
+if File.directory?(gems_dir = File.join(root, 'gems'))
+  $BUNDLE = true; Gem.clear_paths; Gem.path.unshift(gems_dir)
+  # Warn if local merb-core is available but not loaded.
+  if File.expand_path($0).index(root) != 0 && 
+    (local_mc = Dir[File.join(gems_dir, 'specifications', 'merb-core-*.gemspec')].last)
+    puts "Warning: please use bin/#{File.basename($0)} to load #{File.basename(local_mc, '.gemspec')} from ./gems"
+  end
+end
+
 require 'set'
 require 'fileutils'
 require 'socket'
@@ -306,7 +321,13 @@ module Merb
     # r<Merb::Router::Behavior>::
     #   The root behavior upon which new routes can be added.
     def flat!(framework = {})
-      Merb::Config[:framework] = framework
+      default = {
+        :framework => { :public => [Merb.root / "public", nil] },
+        :session_store => 'none',
+        :exception_details => true
+      }
+            
+      Merb::Config[:framework] = default.merge(framework)
 
       Merb::Router.prepare do |r|
         yield(r) if block_given?
@@ -356,12 +377,8 @@ module Merb
 
     Merb.klass_hashes = []
 
-    attr_accessor :frozen
-
     # ==== Returns
     # Boolean:: True if Merb is running as an application with bundled gems.
-    # Can only be disabled by --no-bundle option on startup (or for Rakefile
-    # use NO_BUNDLE=true to disable local gems).
     #
     # ==== Notes
     # Bundling required gems makes your application independent from the 
@@ -369,7 +386,7 @@ module Merb
     # framework and gems it uses and very useful when application is run in 
     # some sort of sandbox, for instance, shared hosting with preconfigured gems.
     def bundled?
-      ENV.key?("BUNDLE") || Merb::Config[:bundle] || ENV.key?("NO_BUNDLE")
+      $BUNDLE || ENV.key?("BUNDLE")
     end
 
     # Load configuration and assign logger.
