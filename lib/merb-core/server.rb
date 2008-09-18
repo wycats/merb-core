@@ -46,7 +46,13 @@ module Merb
           end
         else
           trap('TERM') { exit }
-          trap('INT') { puts "\nExiting"; exit }
+
+          if Merb::Config[:console_trap]
+            add_irb_trap
+          else
+            trap('INT') { puts "\nExiting"; exit }
+          end
+
           puts "Running bootloaders..." if Merb::Config[:verbose]
           BootLoader.run
           puts "Starting Rack adapter..." if Merb::Config[:verbose]
@@ -248,6 +254,30 @@ module Merb
         end
       rescue Errno::EPERM => e
         puts "Couldn't change user and group to #{user}:#{group}: #{e}"
+      end
+
+      def add_irb_trap
+        trap('INT') do
+          exit if @interrupted
+          @interrupted = true
+          puts "Interrupt a second time to quit"
+          Kernel.sleep 1.5
+          ARGV.clear # Avoid passing args to IRB
+
+          if @irb.nil?
+            require 'irb'
+            IRB.setup(nil)
+            @irb = IRB::Irb.new(nil)
+            IRB.conf[:MAIN_CONTEXT] = @irb.context
+          end
+
+          trap(:INT) { @irb.signal_handle }
+          catch(:IRB_EXIT) { @irb.eval_input }
+
+          puts "Exiting IRB mode, back in server mode"
+          @interrupted = false
+          add_irb_trap
+        end
       end
     end
   end
