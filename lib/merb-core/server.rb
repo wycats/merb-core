@@ -263,7 +263,18 @@ module Merb
           puts "Interrupt a second time to quit"
           Kernel.sleep 1.5
           ARGV.clear # Avoid passing args to IRB
-          IRB.start
+
+          unless defined?(IRB)
+            require 'irb'
+            IRB.setup(nil)
+          end
+
+          @irb = IRB::Irb.new
+          IRB.conf[:MAIN_CONTEXT] = @irb.context
+
+          trap(:INT) { @irb.signal_handle }
+          catch(:IRB_EXIT) { @irb.eval_input }
+
           puts "Exiting IRB mode, back in server mode"
           @interrupted = false
           add_irb_trap
