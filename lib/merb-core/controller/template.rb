@@ -57,7 +57,7 @@ module Merb::Template
     # template_stack<Array>:: The template stack. Not used.
     #
     # ==== Returns
-    # DOC
+    # <String>:: name of the method that inlines the template.
     #---
     # @semipublic
     def template_for(path, template_stack = [])
