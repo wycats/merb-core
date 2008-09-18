@@ -264,13 +264,12 @@ module Merb
           Kernel.sleep 1.5
           ARGV.clear # Avoid passing args to IRB
 
-          unless defined?(IRB)
+          if @irb.nil?
             require 'irb'
             IRB.setup(nil)
+            @irb = IRB::Irb.new(nil)
+            IRB.conf[:MAIN_CONTEXT] = @irb.context
           end
-
-          @irb = IRB::Irb.new
-          IRB.conf[:MAIN_CONTEXT] = @irb.context
 
           trap(:INT) { @irb.signal_handle }
           catch(:IRB_EXIT) { @irb.eval_input }
