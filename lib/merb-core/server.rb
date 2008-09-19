@@ -253,7 +253,7 @@ module Merb
       def add_irb_trap
         trap('INT') do
           if @interrupted
-            puts "Exiting"
+            puts "Exiting\n"
             exit
           end
           
