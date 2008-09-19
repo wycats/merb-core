@@ -47,12 +47,6 @@ module Merb
         else
           trap('TERM') { exit }
 
-          if Merb::Config[:console_trap]
-            add_irb_trap
-          else
-            trap('INT') { puts "\nExiting"; exit }
-          end
-
           puts "Running bootloaders..." if Merb::Config[:verbose]
           BootLoader.run
           puts "Starting Rack adapter..." if Merb::Config[:verbose]
@@ -86,7 +80,7 @@ module Merb
       # ==== Alternatives
       # If you pass "all" as the port, the signal will be sent to all Merb
       # processes.
-      def kill(port, sig=9)
+      def kill(port, sig="INT")
         Merb::BootLoader::BuildFramework.run
         begin
           pidfiles = port == "all" ?
@@ -258,7 +252,11 @@ module Merb
 
       def add_irb_trap
         trap('INT') do
-          exit if @interrupted
+          if @interrupted
+            puts "Exiting"
+            exit
+          end
+          
           @interrupted = true
           puts "Interrupt a second time to quit"
           Kernel.sleep 1.5
