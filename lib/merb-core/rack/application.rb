@@ -11,10 +11,10 @@ module Merb
         Merb.logger.info "\n\n"
         Merb.logger.flush
 
-        unless controller.headers[Merb::Const::DATE]
-          require "time"
-          controller.headers[Merb::Const::DATE] = Time.now.rfc2822.to_s
-        end
+        # unless controller.headers[Merb::Const::DATE]
+        #   require "time"
+        #   controller.headers[Merb::Const::DATE] = Time.now.rfc2822.to_s
+        # end
         controller.rack_response
       end
 
