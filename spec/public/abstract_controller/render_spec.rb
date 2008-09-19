@@ -6,8 +6,8 @@ describe Merb::AbstractController, " rendering plain strings" do
     Merb.push_path(:layout, File.dirname(__FILE__) / "controllers" / "views" / "layouts")
   end
 
-	it "should render two thrown_contents into same object" do
-    dispatch_should_make_body("RenderTwoThrowContents", "FooBar")		
+	it "should render two append_contents into same object" do
+    dispatch_should_make_body("RenderTwoAppendContents", "FooBar")		
 	end
 
   it "should support rendering plain strings with no layout" do
