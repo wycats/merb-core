@@ -131,7 +131,7 @@ describe Merb::Request, "#cookies" do
   
   it "should handle badly formatted cookies" do
     request = fake_request({:http_cookie => "merb=; ; also=hats"})
-    request.cookies.should == {"merb" => "", "also" => "hats", "" => nil}
+    request.cookies.should == {"merb" => "", "also" => "hats"}
   end
   
 end

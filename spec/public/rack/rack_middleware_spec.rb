@@ -26,10 +26,10 @@ describe Merb::Rack::Application do
 
   it_should_behave_like "rack application"
 
-  it 'sets Date header' do
+  it 'does not set Date header' do
     status, headers, body = @app.call(@env)
 
-    headers.should include(Merb::Const::DATE)
+    headers.should_not include(Merb::Const::DATE)
   end
   
   describe "#deferred?" do

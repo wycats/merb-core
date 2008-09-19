@@ -33,5 +33,5 @@ end
 
 def uninstall_command(gem_name, options = '')
   options << " -i #{ENV['GEM_DIR']}" if ENV['GEM_DIR']
-  %{#{sudo} gem uninstall #{gem_name} #{options}}
+  %{#{sudo} #{Gem.ruby} -S gem uninstall #{gem_name} #{options}}
 end

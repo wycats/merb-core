@@ -519,10 +519,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         # Stop processing if nothing loads or if everything has loaded
         if klasses.size == size_at_start && klasses.size != 0
           # Write all remaining failed classes and their exceptions to the log
-          error_map.only(*failed_classes).each do |klass, e|
-            Merb.logger.fatal! "Could not load #{klass}:\n\n#{e.message} - (#{e.class})\n\n#{(e.backtrace || []).join("\n")}"
+          messages = error_map.only(*failed_classes).map do |klass, e|
+            ["Could not load #{klass}:\n\n#{e.message} - (#{e.class})", "#{(e.backtrace || []).join("\n")}"]
           end
-          raise LoadError, "Could not load #{failed_classes.inspect} (see log for details)."
+          messages.each { |msg, trace| Merb.logger.fatal!("#{msg}\n\n#{trace}") }
+          raise LoadError, "#{messages[0][0]} (see log for details)"
         end
         break if(klasses.size == size_at_start || klasses.size == 0)
       end

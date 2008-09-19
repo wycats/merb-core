@@ -535,7 +535,12 @@ module Merb
         query = preserve_order ? Dictionary.new : {}
         for pair in (query_string || '').split(/[#{delimiter}] */n)
           key, value = unescape(pair).split('=',2)
-          normalize_params(query, key, value)
+          next if key.nil?
+          if key.include?('[')
+            normalize_params(query, key, value)
+          else        
+            query[key] = value
+          end
         end
         preserve_order ? query : query.to_mash
       end
