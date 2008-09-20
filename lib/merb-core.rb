@@ -268,15 +268,17 @@ module Merb
     # String::
     #   The path to the log file. If this Merb instance is running as a daemon
     #   this will return +STDOUT+.
-    def log_file
+    def log_file(port = nil)
       if Merb::Config[:log_file]
         Merb::Config[:log_file]
       elsif Merb.testing?
         log_path / "merb_test.log"
       elsif !(Merb::Config[:daemonize] || Merb::Config[:cluster])
         STDOUT
+      elsif port
+        log_path / "merb.#{port}.log"
       else
-        log_path / "merb.#{Merb::Config[:port]}.log"
+        log_path / "merb.main.log"
       end
     end
 
