@@ -41,7 +41,7 @@ module Merb
           "Route matched, but route did not specify a controller.\n" +
           "Did you forgot to add :controller => \"people\" or :controller " +
           "segment to route definition?\nHere is what's specified:\n" + 
-          request.route_params.inspect
+          route.inspect
       end
       path = [params[:namespace], params[:controller]].compact.join("/")
       controller = path.snake_case.to_const_string
@@ -95,7 +95,7 @@ module Merb
     # into request params hash.
     def find_route!
       @route, @route_params = Merb::Router.route_for(self)
-      @params.merge! @route_params
+      params.merge! @route_params
     end
 
     # Redirect status of route matched this request.

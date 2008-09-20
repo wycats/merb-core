@@ -205,6 +205,70 @@ describe Merb::Dispatcher do
     end
   end
   
+  describe "with a route that doesn't point to a Controller," do
+    
+    before(:each) do
+      Merb::Router.prepare do
+        match('/').register
+      end
+      
+      @controller = dispatch("/")
+    end
+    
+    describe "with exception details showing" do
+      it "raises a NotFound" do
+        @controller.should be_error(Merb::ControllerExceptions::NotFound)
+      end
+    
+      it "returns a 404 status" do
+        @controller.status.should == 404
+      end
+      
+      it "returns useful info in the body" do
+        @controller.body.should =~
+          %r{<h2>Route matched, but route did not specify a controller.</h2>}
+      end
+    end
+    
+    describe "when the action raises an Exception" do
+      before(:each) do
+        Object.class_eval <<-RUBY
+          class Exceptions < Application
+            def gone
+              "Gone"
+            end
+          end
+        RUBY
+      end
+      
+      after(:each) do
+        Object.send(:remove_const, :Exceptions)
+      end
+      
+      before(:each) do
+        Merb::Router.prepare do |r|
+          r.default_routes
+        end
+        @url = "/raise_gone/index"
+        @controller = dispatch(@url)
+      end
+      
+      it "remembers that the Exception is Gone" do
+        @controller.should be_error(Merb::ControllerExceptions::Gone)
+      end
+      
+      it "renders the action Exception#gone" do
+        @controller.body.should == "Gone"
+      end
+      
+      it "returns the status 410" do
+        @controller.status.should == 410
+      end
+    end
+    
+    
+  end
+  
   describe "when the action raises an Error that is not a ControllerError" do
     before(:each) do
       Object.class_eval <<-RUBY

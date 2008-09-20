@@ -1,348 +1,511 @@
-require 'merb-core/controller/mixins/responder'
 module Merb
 
   class Router
-    # Route instances incapsulate information about particular route
-    # definition. Route definition ties
-    # number of conditions (URL match, HTTP request method) with
-    # resulting hash of route parameters:
-    # controller, action, format and named parameters
-    # from the URL.
-    #
-    # The following routes definition:
-    #
-    # Merb::Router.prepare do |r|
-    #   r.match("api/:action/:token.:format").to(:controller => "dev").fixatable
-    # end
-    #
-    # maps URL matching pattern to controller named "dev"
-    # and specifies fixation for that route. Path and request method are
-    # route conditions, controller name, action name, format and
-    # value of segment we decided to call :token are route parameters.
-    #
-    # ==== How route definitions are used.
-    #
-    # When routes are compiled, each route produces
-    # a string with eval-able if/elsif condition statement.
-    # This statement together with others constructs body
-    # of Merb::Router.match method.
-    # Condition statements are Ruby code in form of string.
-    #
-    # ==== Segments.
-    #
-    # Route definitions use conventional syntax for named parameters.
-    # This splits route path into segments. Static (not changing) segments
-    # represented internally as strings, named parameters are stored
-    # as symbols and called symbol segments. Symbol segments
-    # map to groups in regular expression in resulting condition statement.
-    #
-    # ==== Route conditions.
-    #
-    # Because route conditions include path matching,
-    # regular expression is created from string that uses
-    # :segment format to fetch groups and assign them to
-    # named parameters. This regular expression is used
-    # to produce compiled statement mentioned above.
-    #
-    # Route conditions may also include
-    # user agent. Symbol segments
-    #
-    # Here is example of Route conditions:
-    # {
-    #   :path => /^\/continents\/?(\.([^\/.,;?]+))?$/,
-    #   :method => /^get$/
-    # }
-    #
-    #
-    # ==== Route parameters.
-    #
-    # Route parameters is a Hash with controller name,
-    # action name and parameters key/value pairs.
-    # It is then merged with request.params hash.
-    #
-    # Example of route parameters:
-    #
-    # {
-    #   :action => "\"index\"",
-    #   :format => "path2",
-    #   :controller => "\"continents\""
-    # }
-    #
-    # Router takes first matching route and uses it's parameters
-    # to dispatch request to certain controller and action.
-    #
-    # ==== Behavior
-    #
-    # Each route has utility collaborator called behavior
-    # that incapsulates additional information about route
-    # (like namespace or if route is deferred) and also
-    # provides utility methods.
-    #
-    # ==== Route registration.
-    #
-    # When route is added to set of routes, it is called route
-    # registration. Registred route knows it's index in routes set.
-    #
-    # ==== Fixation
-    # Fixatable routes allow setting of session key from GET params
-    # found in incoming request. This is very useful to allow certain
-    # URLs to be used by rich media applications and other kinds
-    # of clients that have no other way of passing session identifier.
-    #
-    # ==== Conditional block.
-    # Conditional block is anonymous function that is evaluated
-    # when deferred routes are processed. Unless route is deferred,
-    # it has no condition block.
-    class Route
-      attr_reader :conditions, :conditional_block
-      attr_reader :params, :behavior, :segments, :index, :symbol
+    # This entire class is private and should never be accessed outside of
+    # Merb::Router and Behavior
+    class Route #:nodoc:
+      SEGMENT_REGEXP               = /(:([a-z](_?[a-z0-9])*))/
+      OPTIONAL_SEGMENT_REGEX       = /^.*?([\(\)])/i
+      SEGMENT_REGEXP_WITH_BRACKETS = /(:[a-z_]+)(\[(\d+)\])?/
+      JUST_BRACKETS                = /\[(\d+)\]/
+      SEGMENT_CHARACTERS           = "[^\/.,;?]".freeze
 
-      # ==== Parameters
-      # conditions<Hash>:: Conditions for the route.
-      # params<Hash>:: Parameters for the route.
-      # behavior<Merb::Router::Behavior>::
-      #   The associated behavior. Defaults to nil.
-      # &conditional_block::
-      #   A block with the conditions to be met for the route to take effect.
-      def initialize(conditions, params, behavior = nil, &conditional_block)
-        @conditions, @params, @behavior = conditions, params, behavior
-        @conditional_block = conditional_block
-        @fixation=false
-        if @behavior && (path = @behavior.merged_original_conditions[:path])
-          @segments = segments_from_path(path)
+      attr_reader :conditions, :params, :segments
+      attr_reader :index, :variables, :name
+      attr_reader :redirect_status, :redirect_url
+      attr_accessor :fixation
+
+      def initialize(conditions, params, options = {}, &conditional_block)
+        @conditions, @params = conditions, params
+
+        if options[:redirects]
+          @redirects         = true
+          @redirect_status   = @params[:status]
+          @redirect_url      = @params[:url]
+          @defaults          = {}
+        else
+          @defaults          = options[:defaults] || {}
+          @conditional_block = conditional_block
         end
+
+        @identifiers       = options[:identifiers]
+        @segments          = []
+        @symbol_conditions = {}
+        @placeholders      = {}
+        compile
       end
 
-      # ==== Returns
-      # Boolean::
-      #   Does the router specify a redirect?
-      def redirects?
-        behavior.redirects?
+      def regexp?
+        @regexp
       end
-      
-      # ==== Returns
-      # Integer::
-      #   The status code to use if the route redirects
-      def redirect_status
-        behavior.redirect_status
-      end
-      
-      # ==== Returns
-      # String::
-      #   The URL to redirect to if the route redirects
-      def redirect_url
-        behavior.redirect_url
-      end
-      
-      # ==== Returns
-      # Boolean:: True if fixation is allowed.
+
       def allow_fixation?
         @fixation
       end
 
-      # ==== Parameters
-      # enabled<Boolean>:: True enables fixation on the route.
-      def fixatable(enable=true)
-        @fixation = enable
-        self
+      def redirects?
+        @redirects
       end
-
-      # Concatenates all route segments and returns result.
-      # Symbol segments have colon preserved.
-      #
-      # ==== Returns
-      # String:: The route as a string, e.g. "admin/:controller/:id".
+      
       def to_s
-        (segments || []).inject('') do |str,seg|
-          str << (seg.is_a?(Symbol) ? ":#{seg}" : seg)
-        end
+        regexp? ?
+          "/#{conditions[:path].source}/" :
+          segment_level_to_s(segments)
       end
+      
+      alias_method :inspect, :to_s
 
-      # Registers the route in the Router.routes array.
-      # After registration route has index.
       def register
-        @index = Router.routes.size
-        Router.routes << self
+        @index = Merb::Router.routes.size
+        Merb::Router.routes << self
         self
       end
-
-      # ==== Returns
-      # Array:: All the symbols in the segments array.
-      def symbol_segments
-        (segments || []).select{ |s| s.is_a?(Symbol) }
+      
+      def name=(name)
+        @name = name.to_sym
+        Router.named_routes[@name] = self
+        @name
+      end
+      
+      # === Compiled method ===
+      def generate(args = [], defaults = {})
+        raise GenerationError, "Cannot generate regexp Routes" if regexp?
+        
+        params = extract_options_from_args!(args) || { }
+        
+        # Support for anonymous params
+        unless args.empty?
+          raise GenerationError, "The route has #{@variables.length} variables: #{@variables.inspect}" if args.length > @variables.length
+          
+          args.each_with_index do |param, i|
+            params[@variables[i]] ||= param
+          end
+        end
+        
+        uri = @generator[params, defaults] or raise GenerationError, "Named route #{name} could not be generated with #{params.inspect}"
+        uri = Merb::Config[:path_prefix] + uri if Merb::Config[:path_prefix]
+        uri
       end
 
-      # Turn a path into string and symbol segments so it can be reconstructed,
-      # as in the case of a named route.
-      #
-      # ==== Parameters
-      # path<String>:: The path to split into segments.
-      #
-      # ==== Returns
-      # Array:: The Symbol and String segments for the path.
-      def segments_from_path(path)
-        # Remove leading ^ and trailing $ from each segment (left-overs from regexp joining)
-        strip = proc { |str| str.gsub(/^\^/, '').gsub(/\$$/, '') }
-        segments = []
-        while match = (path.match(SEGMENT_REGEXP))
-          segments << strip[match.pre_match] unless match.pre_match.empty?
-          segments << match[2].intern
-          path = strip[match.post_match]
+      def compiled_statement(first)
+        els_if = first ? '  if ' : '  elsif '
+
+        code = ""
+        code << els_if << condition_statements.join(" && ") << "\n"
+        if @conditional_block
+          code << "    [#{@index.inspect}, block_result]" << "\n"
+        else
+          code << "    [#{@index.inspect}, #{params_as_string}]" << "\n"
         end
-        segments << strip[path] unless path.empty?
+      end
+
+    private
+      
+    # === Compilation ===
+
+      def compile
+        compile_conditions
+        compile_params
+        @generator = Generator.new(@segments, @symbol_conditions, @identifiers).compiled
+      end
+      
+      # The Generator class handles compiling the route down to a lambda that
+      # can generate the URL from a params hash and a default params hash.
+      class Generator #:nodoc:
+        
+        def initialize(segments, symbol_conditions, identifiers)
+          @segments          = segments
+          @symbol_conditions = symbol_conditions
+          @identifiers       = identifiers
+          @stack             = []
+          @opt_segment_count = 0
+          @opt_segment_stack = [[]]
+        end
+        
+        def compiled
+          ruby  = ""
+          ruby << "lambda do |params, defaults|\n"
+          ruby << "  fragment     = params.delete(:fragment)\n"
+          ruby << "  query_params = params.dup\n"
+          
+          with(@segments) do
+            ruby << "  include_defaults = true\n"
+            ruby << "  return unless url = #{block_for_level}\n"
+          end
+          
+          ruby << "  query_params.delete_if { |key, value| value.nil? }\n"
+          ruby << "  unless query_params.empty?\n"
+          ruby << '    url << "?#{Merb::Request.params_to_query_string(query_params)}"' << "\n"
+          ruby << "  end\n"
+          ruby << '  url << "##{fragment}" if fragment' << "\n"
+          ruby << "  url\n"
+          ruby << "end\n"
+          
+          eval(ruby)
+        end
+        
+      private
+      
+        # Cleans up methods a bunch. We don't need to pass the current segment
+        # level around everywhere anymore. It's kept track for us in the stack.
+        def with(segments, &block)
+          @stack.push(segments)
+          retval = yield
+          @stack.pop
+          retval
+        end
+  
+        def segments
+          @stack.last || []
+        end
+        
+        def symbol_segments
+          segments.flatten.select { |s| s.is_a?(Symbol)  }
+        end
+        
+        def current_segments
+          segments.select { |s| s.is_a?(Symbol) }
+        end
+        
+        def nested_segments
+          segments.select { |s| s.is_a?(Array) }.flatten.select { |s| s.is_a?(Symbol) }
+        end
+      
+        def block_for_level
+          ruby  = ""
+          ruby << "if #{segment_level_matches_conditions}\n"
+          ruby << "  #{remove_used_segments_in_query_path}\n"
+          ruby << "  #{generate_optional_segments}\n"
+          ruby << %{ "#{combine_required_and_optional_segments}"\n}
+          ruby << "end"
+        end
+        
+        def check_if_defaults_should_be_included
+          ruby = ""
+          ruby << "include_defaults = "
+          symbol_segments.each { |s| ruby << "params[#{s.inspect}] || " }
+          ruby << "false"
+        end
+
+        # --- Not so pretty ---
+        def segment_level_matches_conditions
+          conditions = current_segments.map do |segment|
+            condition = "(cached_#{segment} = params[#{segment.inspect}] || include_defaults && defaults[#{segment.inspect}])"
+
+            if @symbol_conditions[segment] && @symbol_conditions[segment].is_a?(Regexp)
+              condition << " =~ #{@symbol_conditions[segment].inspect}"
+            elsif @symbol_conditions[segment]
+              condition << " == #{@symbol_conditions[segment].inspect}"
+            end
+
+            condition
+          end
+          
+          conditions << "true" if conditions.empty?
+          conditions.join(" && ")
+        end
+
+        def remove_used_segments_in_query_path
+          "#{current_segments.inspect}.each { |s| query_params.delete(s) }"
+        end
+
+        def generate_optional_segments
+          optionals = []
+
+          segments.each_with_index do |segment, i|
+            if segment.is_a?(Array) && segment.any? { |s| !s.is_a?(String) }
+              with(segment) do
+                @opt_segment_stack.last << (optional_name = "_optional_segments_#{@opt_segment_count += 1}")
+                @opt_segment_stack.push []
+                optionals << "#{check_if_defaults_should_be_included}\n"
+                optionals << "#{optional_name} = #{block_for_level}"
+                @opt_segment_stack.pop
+              end
+            end
+          end
+
+          optionals.join("\n")
+        end
+
+        def combine_required_and_optional_segments
+          bits = ""
+
+          segments.each_with_index do |segment, i|
+            bits << case
+              when segment.is_a?(String) then segment
+              when segment.is_a?(Symbol) then '#{param_for_route(cached_' + segment.to_s + ')}'
+              when segment.is_a?(Array) && segment.any? { |s| !s.is_a?(String) } then "\#{#{@opt_segment_stack.last.shift}}"
+              else ""
+            end
+          end
+
+          bits
+        end
+        
+        def param_for_route(param)
+          case param
+            when String, Symbol, Numeric, TrueClass, FalseClass, NilClass
+              param
+            else
+              _, identifier = @identifiers.find { |klass, _| param.is_a?(klass) }
+              identifier ? param.send(identifier) : param
+          end
+        end
+        
+      end
+
+    # === Conditions ===
+
+      def compile_conditions
+        @original_conditions = conditions.dup
+
+        if path = conditions[:path]
+          path = [path].flatten.compact
+          if path = compile_path(path)
+            conditions[:path] = Regexp.new("^#{path}$")
+          else
+            conditions.delete(:path)
+          end
+        end
+      end
+
+      # The path is passed in as an array of different parts. We basically have
+      # to concat all the parts together, then parse the path and extract the
+      # variables. However, if any of the parts are a regular expression, then
+      # we abort the parsing and just convert it to a regexp.
+      def compile_path(path)
+        @segments = []
+        compiled  = ""
+
+        return nil if path.nil? || path.empty?
+
+        path.each do |part|
+          case part
+          when Regexp
+            @regexp   = true
+            @segments = []
+            compiled << part.source.sub(/^\^/, '').sub(/\$$/, '')
+          when String
+            segments = segments_with_optionals_from_string(part.dup)
+            compile_path_segments(compiled, segments)
+            # Concat the segments
+            unless regexp?
+              if @segments[-1].is_a?(String) && segments[0].is_a?(String)
+                @segments[-1] << segments.shift
+              end
+              @segments.concat segments
+            end
+          else
+            raise ArgumentError.new("A route path can only be specified as a String or Regexp")
+          end
+        end
+        
+        @variables = @segments.flatten.select { |s| s.is_a?(Symbol)  }
+
+        compiled
+      end
+
+      # Simple nested parenthesis parser
+      def segments_with_optionals_from_string(path, nest_level = 0)
+        segments = []
+
+        # Extract all the segments at this parenthesis level
+        while segment = path.slice!(OPTIONAL_SEGMENT_REGEX)
+          # Append the segments that we came across so far
+          # at this level
+          segments.concat segments_from_string(segment[0..-2]) if segment.length > 1
+          # If the parenthesis that we came across is an opening
+          # then we need to jump to the higher level
+          if segment[-1,1] == '('
+            segments << segments_with_optionals_from_string(path, nest_level + 1)
+          else
+            # Throw an error if we can't actually go back down (aka syntax error)
+            raise "There are too many closing parentheses" if nest_level == 0
+            return segments
+          end
+        end
+
+        # Save any last bit of the string that didn't match the original regex
+        segments.concat segments_from_string(path) unless path.empty?
+
+        # Throw an error if the string should not actually be done (aka syntax error)
+        raise "You have too many opening parentheses" unless nest_level == 0
+
         segments
       end
 
-      # Names this route in Router. Name must be a Symbol.
-      #
-      # ==== Parameters
-      # symbol<Symbol>:: The name of the route.
-      #
-      # ==== Raises
-      # ArgumentError:: symbol is not a Symbol.
-      def name(symbol = nil)
-        raise ArgumentError unless (@symbol = symbol).is_a?(Symbol)
-        Router.named_routes[@symbol] = self
+      def segments_from_string(path)
+        segments = []
+
+        while match = (path.match(SEGMENT_REGEXP))
+          segments << match.pre_match unless match.pre_match.empty?
+          segments << match[2].intern
+          path = match.post_match
+        end
+
+        segments << path unless path.empty?
+        segments
       end
 
-      # ==== Returns
-      # Boolean::
-      #   True if this route is a regexp, i.e. its behavior or one of the
-      #   behavior's ancestors is a regexp.
-      def regexp?
-        @regexp ||= behavior.regexp? || behavior.ancestors.any? { |a| a.regexp? }
-      end
-
-      # Generates URL using route segments and given parameters.
-      # If parameter value responds to :to_param, it is called.
-      #
-      # ==== Parameters
-      # params<Hash>:: Optional parameters for the route.
-      # fallback<Hash>:: Optional parameters for the fallback route.
-      #
-      # ==== Returns
-      # String::
-      #   The URL corresponding to the params, using the stored route segments
-      #   for reconstruction of the URL.
-      def generate(params = {}, fallback = {})
-        raise "Cannot generate regexp Routes" if regexp?
-        query_params = params.dup if params.is_a? Hash
-        url = @segments.map do |segment|
-          value =
-            if segment.is_a? Symbol
-              if params.is_a? Hash
-                if segment.to_s =~ /_id/ && params[:id].respond_to?(segment)
-                  params[segment] = params[:id].send(segment)
-                end
-                query_params.delete segment
-                params[segment] || fallback[segment]
-              else
-                if segment == :id && params.respond_to?(:to_param)
-                  params.to_param
-                elsif segment == :id && params.is_a?(Fixnum)
-                  params
-                elsif params.respond_to?(segment)
-                  params.send(segment)
-                else
-                  fallback[segment]
-                end
-              end
-            elsif segment.respond_to? :to_s
-              segment
-            else
-              raise "Segment type '#{segment.class}' can't be converted to a string"
-            end
-          (value.respond_to?(:to_param) ? value.to_param : value).to_s.unescape_regexp
-        end.join
-        if query_params && format = query_params.delete(:format)
-          format = fallback[:format] if format == :current
-          url += ".#{format}"
-        end
-        if query_params
-          fragment = query_params.delete(:fragment)
-        end
-        if query_params && !query_params.empty?
-          url += "?" + Merb::Request.params_to_query_string(query_params)
-        end
-        if fragment
-          url += "##{fragment}"
-        end
-        url
-      end
-
-      # Generates and returns if statement used to
-      # construct final condition statement of the route.
-      #
-      # ==== Params
-      # params_as_string<String>::
-      #   The params hash as a string, e.g. ":foo => 'bar'".
-      #
-      # ==== Returns
-      # Array:: All the conditions as eval'able strings.
-      def if_conditions(params_as_string)
-        cond = []
-        condition_string = proc do |key, value, regexp_string|
-          max = Behavior.count_parens_up_to(value.source, value.source.size)
-          captures = max == 0 ? "" : (1..max).to_a.map{ |n| "#{key}#{n}" }.join(", ") + " = " +
-                                     (1..max).to_a.map{ |n| "$#{n}"}.join(", ")
-          " (#{value.inspect} =~ #{regexp_string}) #{" && (" + captures + ")" unless captures.empty?}"
-        end
-        @conditions.each_pair do |key, value|
-
-          # Note: =~ is slightly faster than .match
-          cond << case key
-          when :path then condition_string[key, value, "cached_path"]
-          when :method then condition_string[key, value, "cached_method"]
-          else condition_string[key, value, "request.#{key}.to_s"]
-          end
-        end
-        if @conditional_block
-          str = "  # #{@conditional_block.inspect.scan(/@([^>]+)/).flatten.first}\n"
-          str << "    (block_result = #{CachedProc.new(@conditional_block)}.call(request, params.merge({#{params_as_string}})))" if @conditional_block
-          cond << str
-        end
-        cond
-      end
-
-      # Compiles the route to a form used by Merb::Router. This form sometimes
-      # referred as condition statement of the route.
-      #
-      # ==== Parameters
-      # first<Boolean>::
-      #   True if this is the first route in set of routes. Defaults to false.
-      #
-      # ==== Returns
-      # String:: The code corresponding to the route in a form suited for eval.
-      def compile(first = false)
-        code = ""
-        default_params = { :action => "index" }
-        get_value = proc do |key|
-          if default_params.has_key?(key) && params[key][0] != ?"
-            "#{params[key]} || \"#{default_params[key]}\""
+      # --- Yeah, this could probably be refactored
+      def compile_path_segments(compiled, segments)
+        segments.each do |segment|
+          case segment
+          when String
+            compiled << Regexp.escape(segment)
+          when Symbol
+            condition = (@symbol_conditions[segment] ||= @conditions.delete(segment))
+            compiled << compile_segment_condition(condition)
+            # Create a param for the Symbol segment if none already exists
+            @params[segment] = "#{segment.inspect}" unless @params.has_key?(segment)
+            @placeholders[segment] ||= capturing_parentheses_count(compiled)
+          when Array
+            compiled << "(?:"
+            compile_path_segments(compiled, segment)
+            compiled << ")?"
           else
-            "#{params[key]}"
+            raise ArgumentError, "conditions[:path] segments can only be a Strings, Symbols, or Arrays"
           end
-        end
-        params_as_string = params.keys.map { |k| "#{k.inspect} => #{get_value[k]}" }.join(', ')
-        code << "  els" unless first
-        code << "if  # #{@behavior.merged_original_conditions.inspect}  \n"
-        code << if_conditions(params_as_string).join(" && ") << "\n"
-        code << "    # then\n"
-        if @conditional_block
-          code << "    [#{@index.inspect}, block_result]\n"
-        else
-          code << "    [#{@index.inspect}, {#{params_as_string}}]\n"
         end
       end
 
-      # Prints a trace of the behavior for this route.
-      def behavior_trace
-        if @behavior
-          puts @behavior.send(:ancestors).reverse.map{|a| a.inspect}.join("\n"); puts @behavior.inspect; puts
+      # Handles anchors in Regexp conditions
+      def compile_segment_condition(condition)
+        return "(#{SEGMENT_CHARACTERS}+)" unless condition
+        return "(#{condition})"           unless condition.is_a?(Regexp)
+
+        condition = condition.source
+        # Handle the start anchor
+        condition = if condition =~ /^\^/
+          condition[1..-1]
         else
-          puts "No behavior to trace #{self}"
+          "#{SEGMENT_CHARACTERS}*#{condition}"
+        end
+        # Handle the end anchor
+        condition = if condition =~ /\$$/
+          condition[0..-2]
+        else
+          "#{condition}#{SEGMENT_CHARACTERS}*"
+        end
+
+        "(#{condition})"
+      end
+
+      def compile_params
+        # Loop through each param and compile it
+        @defaults.merge(@params).each do |key, value|
+          if value.nil?
+            @params.delete(key)
+          elsif value.is_a?(String)
+            @params[key] = compile_param(value)
+          else
+            @params[key] = value.inspect
+          end
         end
       end
-    end # Route
-  end
+
+      # This was pretty much a copy / paste from the old router
+      def compile_param(value)
+        result = []
+        match  = true
+        while match
+          if match = SEGMENT_REGEXP_WITH_BRACKETS.match(value)
+            result << match.pre_match.inspect unless match.pre_match.empty?
+            placeholder_key = match[1][1..-1].intern
+            if match[2] # has brackets, e.g. :path[2]
+              result << "#{placeholder_key}#{match[3]}"
+            else # no brackets, e.g. a named placeholder such as :controller
+              if place = @placeholders[placeholder_key]
+                # result << "(path#{place} || )" # <- Defaults
+                with_defaults  = ["(path#{place}"]
+                with_defaults << " || #{@defaults[placeholder_key].inspect}" if @defaults[placeholder_key]
+                with_defaults << ")"
+                result << with_defaults.join
+              else
+                raise GenerationError, "Placeholder not found while compiling routes: #{placeholder_key.inspect}. Add it to the conditions part of the route."
+              end
+            end
+            value = match.post_match
+          elsif match = JUST_BRACKETS.match(value)
+            result << match.pre_match.inspect unless match.pre_match.empty?
+            result << "path#{match[1]}"
+            value = match.post_match
+          else
+            result << value.inspect unless value.empty?
+          end
+        end
+
+        result.join(' + ').gsub("\\_", "_")
+      end
+
+      def condition_statements
+        statements = []
+
+        conditions.each_pair do |key, value|
+          statements << case value
+          when Regexp
+            captures = ""
+
+            if (max = capturing_parentheses_count(value)) > 0
+              captures << (1..max).to_a.map { |n| "#{key}#{n}" }.join(", ")
+              captures << " = "
+              captures << (1..max).to_a.map { |n| "$#{n}" }.join(", ")
+            end
+
+            # Note: =~ is slightly faster than .match
+            %{(#{value.inspect} =~ cached_#{key} #{' && ((' + captures + ') || true)' unless captures.empty?})}
+          when Array
+            %{(#{arrays_to_regexps(value).inspect} =~ cached_#{key})}
+          else
+            %{(cached_#{key} == #{value.inspect})}
+          end
+        end
+
+        if @conditional_block
+          statements << "(block_result = #{CachedProc.new(@conditional_block)}.call(request, #{params_as_string}))"
+        end
+
+        statements
+      end
+
+      def params_as_string
+        elements = params.keys.map do |k|
+          "#{k.inspect} => #{params[k]}"
+        end
+        "{#{elements.join(', ')}}"
+      end
+
+    # ---------- Utilities ----------
+      
+      def arrays_to_regexps(condition)
+        return condition unless condition.is_a?(Array)
+        
+        source = condition.map do |value|
+          value = if value.is_a?(Regexp)
+            value.source
+          else
+            "^#{Regexp.escape(value.to_s)}$"
+          end
+          "(?:#{value})"
+        end
+        
+        Regexp.compile(source.join('|'))
+      end
+    
+      def segment_level_to_s(segments)
+        (segments || []).inject('') do |str, seg|
+          str << case seg
+            when String then seg
+            when Symbol then ":#{seg}"
+            when Array  then "(#{segment_level_to_s(seg)})"
+          end
+        end
+      end
+
+      def capturing_parentheses_count(regexp)
+        regexp = regexp.source if regexp.is_a?(Regexp)
+        regexp.scan(/(?!\\)[(](?!\?[#=:!>-imx])/).length
+      end
+    end
+  end  
 end

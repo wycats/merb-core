@@ -427,19 +427,21 @@ class Merb::AbstractController
   # ==== Alternatives
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
-  def url(name, rparams = {}, qparams = {})
-    unless rparams.is_a?(Hash) || qparams.empty?
-      rparams = qparams.merge(:id => rparams)
+  # ====
+  # TODO: Update this documentation
+  def url(name, *args)
+    unless Symbol === name
+      args.unshift(name)
+      name = :default
     end
-    uri = Merb::Router.generate(name, rparams,
-      { :controller => controller_name,
-        :action => action_name,
-        :format => params[:format]
-      }
-    ) 
-    uri = Merb::Config[:path_prefix] + uri if Merb::Config[:path_prefix]
-    uri
+    
+    unless route = Merb::Router.named_routes[name]
+      raise GenerationError, "Named route not found: #{name}"
+    end
+    
+    route.generate(args, params)
   end
+  
   alias_method :relative_url, :url
 
   # ==== Parameters

@@ -11,8 +11,14 @@ module Merb
       #
       # ==== Returns
       # String:: The generated URL.
-      def url(name, params={})
-        Merb::Router.generate(name, params)
+      def url(*args)
+        name = args.first.is_a?(Symbol) ? args.shift : :default
+        
+        unless route = Merb::Router.named_routes[name]
+          raise Merb::Router::GenerationError, "Named route not found: #{name}"
+        end
+
+        route.generate(args, @request_params || {})
       end
       
       # ==== Parameters

@@ -1,28 +1,17 @@
-require File.join(File.dirname(__FILE__), "spec_helper")
+require File.join(File.dirname(__FILE__), "..", "spec_helper")
 describe "namespaced resource(s) routes" do
 
   after :each do
     Merb::Router.named_routes = {}
     Merb::Router.routes = []
   end
-
-  it "should match a get to /admin/blogposts without setting namespace" do
-    Merb::Router.prepare do |r|
-      r.match('/admin') do |admin|
-        admin.resources :blogposts
-      end
-    end
-    route_to('/admin/blogposts', :method => :get).should have_route(:controller => 'blogposts', :action => 'index', :id => nil, :namespace=>nil)
-  end
-
-  it "should match a get to /admin/blogposts setting namespace manually" do
-    Merb::Router.prepare do |r|
-      r.match('/admin').to(:namespace => "my_admin") do |admin|
-        admin.resources :blogposts
-      end
-    end
-    route_to('/admin/blogposts', :method => :get).should have_route(:controller => 'blogposts', :action => 'index', :id => nil, :namespace=>"my_admin")
-  end
+  
+  # The following namespace specs fail because namespaces are not tracked with
+  # a "special" param anymore, but full controller names (including the namespace)
+  # are used.
+  # == Example:
+  # Old:    :controller => "posts", :namespace => "admin"
+  # New:    :controller => "admin/posts"
 
   it "should match a get to /admin/blogposts to the blogposts controller and index action" do
     Merb::Router.prepare do |r|

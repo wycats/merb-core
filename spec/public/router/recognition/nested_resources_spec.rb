@@ -1,23 +1,29 @@
-require File.join(File.dirname(__FILE__), "spec_helper")
+require File.join(File.dirname(__FILE__), "..", "spec_helper")
 
-Merb::Router.prepare do |r|
-  r.resources :blogposts do |b|
-    b.resources :comments do |c|
-      c.resources :versions
+describe "Recognizing requests for nested resources routes" do
+  
+  before(:each) do
+    Merb::Router.prepare do
+      
+      resources :blogposts do
+        resources :comments do
+          resources :versions
+        end
+      end
+      
+      resources :users do
+        resources :comments
+      end
+      
+      resource :foo do
+        resources :comments
+      end
+      
+      resources :domains, :keys => [:domain] do
+        resources :emails, :keys => [:username]
+      end
     end
   end
-  r.resources :users do |u|
-    u.resources :comments
-  end
-  r.resource :foo do |f|
-    f.resources :comments
-  end
-  r.resources :domains, :keys => [:domain] do |d|
-    d.resources :emails, :keys => [:username]
-  end
-end
-
-describe "nested resources routes" do
   
   it "should match a get to /blogposts/1/comments to the comments controller and index action with blogpost_id" do
     route_to('/blogposts/1/comments', :method => :get).should have_route(:controller => 'comments', :action => 'index', :id => nil, :blogpost_id => '1')

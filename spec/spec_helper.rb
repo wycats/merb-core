@@ -97,6 +97,7 @@ Spec::Runner.configure do |config|
   config.include Merb::Test::RspecMatchers
   config.include Merb::Test::Rspec::ViewMatchers
   config.include Merb::Test::RequestHelper
+  config.include Merb::Test::RouteHelper
 
   def with_level(level)
     Merb.logger = Merb::Logger.new(StringIO.new, level)
