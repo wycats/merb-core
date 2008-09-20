@@ -164,7 +164,7 @@ class Merb::BootLoader::DropPidFile <  Merb::BootLoader
 
     # Stores a PID file if Merb is running daemonized or clustered.
     def run
-      Merb::Server.store_pid(Merb::Config[:port]) if Merb::Config[:daemonize] || Merb::Config[:cluster]
+      Merb::Server.store_pid("main") if Merb::Config[:daemonize] || Merb::Config[:cluster]
     end
   end
 end
@@ -269,8 +269,10 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
 
   def self.enable_json_gem
+    gem "json"
     require "json/ext"
   rescue LoadError
+    gem "json_pure"
     require "json/pure"
   end
 
@@ -380,24 +382,37 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     end
     
     def start_transaction
+      Merb.logger.warn! "Parent pid: #{Process.pid}"
       loop do
         pid = Kernel.fork
+        
+        # pid means we're in the parent; only stay in the loop in that case
         break unless pid
         if Merb::Config[:console_trap]
           trap("INT") {}
         else
           trap("INT") { Process.kill("INT", pid); exit }
         end
-        trap("HUP") { Process.kill("HUP", pid) }
+        
+        trap("HUP") do 
+          Process.kill("HUP", pid)
+        end
         exit unless Process.wait2(pid)[1].exitstatus == 128
       end
 
+      # add traps to the child
       if Merb::Config[:console_trap]
         Merb::Server.add_irb_trap
       else
-        trap('INT') { puts "\nExiting"; exit }
-        trap('HUP') { puts "\nDoing a fast deploy"; exit(128) }
-      end      
+        trap('INT') do 
+          $CHILDREN.each {|p| Process.kill(9, p) } if $CHILDREN
+          puts "\nExiting"; exit 
+        end
+        trap('HUP') do
+          $CHILDREN.each {|p| Process.kill(9, p) } if $CHILDREN
+          Merb.logger.warn! "\nDoing a fast deploy"; exit(128)
+        end
+      end
     end
     
     # ==== Parameters

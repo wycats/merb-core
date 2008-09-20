@@ -1,5 +1,6 @@
 module Merb::Test::MultipartRequestHelper
   require 'rubygems'
+  gem "mime-types"
   require 'mime/types'
 
   class Param
