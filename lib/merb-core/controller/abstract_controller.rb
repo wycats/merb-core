@@ -436,7 +436,7 @@ class Merb::AbstractController
     end
     
     unless route = Merb::Router.named_routes[name]
-      raise GenerationError, "Named route not found: #{name}"
+      raise Merb::Router::GenerationError, "Named route not found: #{name}"
     end
     
     route.generate(args, params)

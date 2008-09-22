@@ -64,8 +64,12 @@ describe Merb::Controller, " url" do
       should eql("/monkeys/list/4.xml#half_way")
   end
 
-  it "should raise an error" do
-    lambda { @controller.url(:regexp) }.should raise_error
+  it "should raise an error when trying to generate a regexp route" do
+    lambda { @controller.url(:regexp) }.should raise_error(Merb::Router::GenerationError)
+  end
+  
+  it "should raise an error when trying to generate a route that doesn't exist" do
+    lambda { @controller.url(:lalalala) }.should raise_error(Merb::Router::GenerationError)
   end
 
   it "should match with a route param" do
