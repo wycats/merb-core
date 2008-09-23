@@ -265,8 +265,8 @@ module Kernel
     printer = RubyProf::GraphHtmlPrinter.new(result)
     path = File.join(Merb.root, 'log', "#{name}.html")
     File.open(path, 'w') do |file|
-     printer.print(file, {:min_percent => min,
-                          :print_file => true})
+      printer.print(file, {:min_percent => min,
+                      :print_file => true})
     end
     return_result
   end
@@ -304,9 +304,9 @@ module Kernel
     # Define debugger method so that code even works if debugger was not
     # requested. Drops a note to the logs that Debugger was not available.
     def debugger
-       Merb.logger.info! "\n***** Debugger requested, but was not " +
-                        "available: Start server with --debugger " +
-                        "to enable *****\n"
+      Merb.logger.info! "\n***** Debugger requested, but was not " +
+        "available: Start server with --debugger " +
+        "to enable *****\n"
     end
   end
 end
