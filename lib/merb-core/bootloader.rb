@@ -164,7 +164,7 @@ class Merb::BootLoader::DropPidFile <  Merb::BootLoader
 
     # Stores a PID file if Merb is running daemonized or clustered.
     def run
-      Merb::Server.store_pid("main") if Merb::Config[:daemonize] || Merb::Config[:cluster]
+      Merb::Server.store_pid("main") #if Merb::Config[:daemonize] || Merb::Config[:cluster]
     end
   end
 end
@@ -391,10 +391,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         if Merb::Config[:console_trap]
           trap("INT") {}
         else
-          trap("INT") { Process.kill("INT", pid); exit }
+          trap("INT") { puts "Killing children"; Process.kill("INT", pid); exit }
         end
         
         trap("HUP") do 
+          Merb.logger.warn! "\nDoing a fast deploy\n"          
           Process.kill("HUP", pid)
         end
         exit unless Process.wait2(pid)[1].exitstatus == 128
@@ -404,13 +405,13 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       if Merb::Config[:console_trap]
         Merb::Server.add_irb_trap
       else
-        trap('INT') do 
+        trap('INT') do
           $CHILDREN.each {|p| Process.kill(9, p) } if $CHILDREN
-          puts "\nExiting"; exit 
+          exit 
         end
         trap('HUP') do
           $CHILDREN.each {|p| Process.kill(9, p) } if $CHILDREN
-          Merb.logger.warn! "\nDoing a fast deploy"; exit(128)
+          exit(128)
         end
       end
     end
@@ -448,6 +449,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       if RUBY_PLATFORM == "java" || RUBY_PLATFORM == "windows"
         remove_classes_in_file(file) { |f| load_file(f) }
       else
+        $CHILDREN.each {|p| Process.kill(9, p) } if $CHILDREN        
         exit!(128)
       end
     end

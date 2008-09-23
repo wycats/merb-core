@@ -11,7 +11,8 @@ module Merb
         # ==== Returns.
         # Class:: The adapter class.
         def get(id)
-          Object.full_const_get(@adapters[id])
+          p @adapters[id.to_s]
+          Object.full_const_get(@adapters[id.to_s])
         end
 
         # Registers a new Rack adapter.
