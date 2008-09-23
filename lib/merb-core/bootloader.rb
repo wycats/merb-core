@@ -364,22 +364,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
 
       @ran = true
-      
-      start_transaction
 
-      # Load application file if it exists - for flat applications
-      load_file Merb.dir_for(:application) if File.file?(Merb.dir_for(:application))
-      
-      # Load classes and their requirements
-      Merb.load_paths.each do |component, path|
-        next unless path.last && component != :application
-        load_classes(path.first / path.last)
-      end
-
-      Merb::Controller.send :include, Merb::GlobalHelpers
-    end
-    
-    def start_transaction
       loop do
         pid = Kernel.fork
         break unless pid
@@ -397,7 +382,18 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       else
         trap('INT') { puts "\nExiting"; exit }
         trap('HUP') { puts "\nDoing a fast deploy"; exit(128) }
-      end      
+      end
+
+      # Load application file if it exists - for flat applications
+      load_file Merb.dir_for(:application) if File.file?(Merb.dir_for(:application))
+      
+      # Load classes and their requirements
+      Merb.load_paths.each do |component, path|
+        next unless path.last && component != :application
+        load_classes(path.first / path.last)
+      end
+
+      Merb::Controller.send :include, Merb::GlobalHelpers
     end
     
     # ==== Parameters

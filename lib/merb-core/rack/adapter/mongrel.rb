@@ -15,31 +15,12 @@ module Merb
       # :port<Fixnum>:: The port Mongrel should bind to.
       # :app<String>>:: The application name.
       def self.start(opts={})
-        pids = {}
-        port = opts[:port].to_i
-        
-        0.upto(3) do |i|
-          
-          pid = Kernel.fork do
-            start_at_port(port + i, opts)
-          end
-          
-          break unless pid
-          
-          pids[pid] = port
-        end
-        
-        finished_pid, status = Process.wait2 if pid
-        
+        Merb.logger.warn!("Using Mongrel adapter")
+        server = ::Mongrel::HttpServer.new(opts[:host], opts[:port].to_i)
+        Merb::Server.change_privilege
+        server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))
+        server.run.join
       end
-    end
-    
-    def self.start_at_port(port, opts)
-      Merb.logger.warn!("Using Mongrel adapter")
-      server = ::Mongrel::HttpServer.new(opts[:host], port)
-      Merb::Server.change_privilege
-      server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))
-      server.run.join
     end
   end
 end
