@@ -4,7 +4,7 @@ module Kernel
   # structure is defined.
   #
   # If that has already happened, the gem will be activated
-  # immediately.
+  # immediately, but it will still be registered.
   # 
   # ==== Parameters
   # @param name<String> The name of the gem to load.
@@ -15,10 +15,9 @@ module Kernel
   # Array[String, Array[Gem::Requirement, Gem::Version, Array, #to_str]]::
   #   The name and version information that was passed in.
   def dependency(name, *ver)
+    Merb::BootLoader::Dependencies.dependencies << [name, ver]
     if Merb::BootLoader.finished?(Merb::BootLoader::Dependencies)
       load_dependency(name, *ver)
-    else
-      Merb::BootLoader::Dependencies.dependencies << [name, ver]
     end
     [name, ver]
   end
