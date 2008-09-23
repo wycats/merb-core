@@ -356,33 +356,10 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # Load all classes from Merb's native load paths.
     def run
       # Add models, controllers, helpers and lib to the load path
-      unless @ran
-        $LOAD_PATH.unshift Merb.dir_for(:model)
-        $LOAD_PATH.unshift Merb.dir_for(:controller)
-        $LOAD_PATH.unshift Merb.dir_for(:lib)
-        $LOAD_PATH.unshift Merb.dir_for(:helper)
-      end
-
-      @ran = true
-
-      loop do
-        pid = Kernel.fork
-        break unless pid
-        if Merb::Config[:console_trap]
-          trap("INT") {}
-        else
-          trap("INT") { Process.kill("INT", pid); exit }
-        end
-        trap("HUP") { Process.kill("HUP", pid) }
-        exit unless Process.wait2(pid)[1].exitstatus == 128
-      end
-
-      if Merb::Config[:console_trap]
-        Merb::Server.add_irb_trap
-      else
-        trap('INT') { puts "\nExiting"; exit }
-        trap('HUP') { puts "\nDoing a fast deploy"; exit(128) }
-      end
+      $LOAD_PATH.unshift Merb.dir_for(:model)
+      $LOAD_PATH.unshift Merb.dir_for(:controller)
+      $LOAD_PATH.unshift Merb.dir_for(:lib)
+      $LOAD_PATH.unshift Merb.dir_for(:helper)
 
       # Load application file if it exists - for flat applications
       load_file Merb.dir_for(:application) if File.file?(Merb.dir_for(:application))
@@ -426,11 +403,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to reload.
     def reload(file)
-      if RUBY_PLATFORM == "java" || RUBY_PLATFORM == "windows"
-        remove_classes_in_file(file) { |f| load_file(f) }
-      else
-        exit!(128)
-      end
+      remove_classes_in_file(file) { |f| load_file(f) }
     end
     
     # Reload the router to regenerate all routes.

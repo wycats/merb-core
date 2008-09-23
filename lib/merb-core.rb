@@ -101,7 +101,7 @@ module Merb
       Merb.root = Merb::Config[:merb_root]
       case Merb::Config[:action]
       when :kill
-        Merb::Server.kill(Merb::Config[:port], 2)
+        Merb::Server.kill(Merb::Config[:port], 1)
       when :kill_9
         Merb::Server.kill(Merb::Config[:port], 9)
       else
