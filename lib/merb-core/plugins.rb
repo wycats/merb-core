@@ -14,8 +14,12 @@ module Merb
 
         if File.exists?(file)
           require 'yaml'
-          config_hash.merge(YAML.load_file(file))
+          to_merge = YAML.load_file(file)
+        else
+          to_merge = {}
         end
+        
+        config_hash.merge(to_merge)
       end
     end
 
