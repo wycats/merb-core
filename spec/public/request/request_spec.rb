@@ -248,3 +248,4 @@ describe Merb::Request, "#if_modified_since" do
     fake_request(Merb::Const::HTTP_IF_MODIFIED_SINCE => t).if_modified_since.should == Time.rfc2822(t)
   end
 end
+  
