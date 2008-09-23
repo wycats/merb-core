@@ -312,25 +312,22 @@ module Merb
     # If a hash is used as the first argument, a default route will be
     # generated based on it and rparams.
     def generate_absolute_url(name, rparams={})
-      # FIXME: arrgh, why request.protocol returns http://?
-      # :// is not part of protocol name
       if rparams.is_a?(Hash)
         tprotocol = rparams.delete(:protocol)
-        tprotocol << "://" if tprotocol
         thost = rparams.delete(:host)
       end
 
-      (tprotocol || protocol) +
+      (tprotocol || protocol) + "://" + 
         (thost || host) +
         generate_url(name, rparams)
     end
         
     # ==== Returns
     # String::
-    #   The protocol, i.e. either "https://" or "http://" depending on the
+    #   The protocol, i.e. either "https" or "http" depending on the
     #   HTTPS header.
     def protocol
-      ssl? ? 'https://' : 'http://'
+      ssl? ? 'https' : 'http'
     end
     
     # ==== Returns
