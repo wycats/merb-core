@@ -66,15 +66,19 @@ module Merb
       end
       
       def self.start_at_port(port, opts)
-        trap('INT') do
-          stop
-          puts "\nExiting\n"
-          exit
+        if Merb::Config[:daemonize]
+          trap('INT') do
+            stop
+            Merb.logger.warn! "Exiting port #{port}\n"
+            exit
+          end
+        else
+          trap('INT') { 1 }
         end
         
         trap('ABRT') do
           stop
-          puts "\nExiting\n"
+          Merb.logger.warn! "Exiting port #{port}\n"
           exit(128)
         end
         
@@ -86,7 +90,7 @@ module Merb
           begin
             @server = ::Mongrel::HttpServer.new(opts[:host], port)
           rescue Errno::EADDRINUSE
-            puts "\nPort #{port} was still in use. Trying again.\n"
+            puts "Port #{port} was still in use. Trying again.\n"
             sleep 0.25
             next
           end
