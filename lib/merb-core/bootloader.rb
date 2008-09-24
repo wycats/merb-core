@@ -265,7 +265,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
 
   def self.load_dependencies
-    dependencies.each { |name, ver| Kernel.load_dependency(name, *ver) }
+    dependencies.each { |dependency| Kernel.load_dependency(dependency) }
   end
 
   def self.enable_json_gem

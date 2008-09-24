@@ -1,4 +1,27 @@
+require 'rubygems/dependency'
+
 module Kernel
+  
+  # Keep track of all required dependencies. 
+  #
+  # @param name<String> The name of the gem to load.
+  # @param *ver<Gem::Requirement, Gem::Version, Array, #to_str>
+  #   Version requirements to be passed to Gem::Dependency.new.
+  #
+  # @return <Gem::Dependency> Dependency information
+  def track_dependency(name, *ver)
+    dep = Gem::Dependency.new(name, ver)
+    existing = Merb::BootLoader::Dependencies.dependencies.find { |d| d.name == dep.name }
+    if existing
+      index = Merb::BootLoader::Dependencies.dependencies.index(existing)
+      Merb::BootLoader::Dependencies.dependencies.delete(existing)
+      Merb::BootLoader::Dependencies.dependencies.insert(index, dep)
+    else
+      Merb::BootLoader::Dependencies.dependencies << dep
+    end
+    return dep
+  end
+  
   # Loads the given string as a gem. Execution is deferred until
   # after the logger has been instantiated and the framework directory
   # structure is defined.
@@ -6,20 +29,17 @@ module Kernel
   # If that has already happened, the gem will be activated
   # immediately, but it will still be registered.
   # 
-  # ==== Parameters
   # @param name<String> The name of the gem to load.
   # @param *ver<Gem::Requirement, Gem::Version, Array, #to_str>
-  #   Version requirements to be passed to Gem.activate.
+  #   Version requirements to be passed to Gem::Dependency.new.
   #
-  # ==== Returns
-  # Array[String, Array[Gem::Requirement, Gem::Version, Array, #to_str]]::
-  #   The name and version information that was passed in.
+  # @return <Gem::Dependency> The dependency information.
   def dependency(name, *ver)
-    Merb::BootLoader::Dependencies.dependencies << [name, ver]
     if Merb::BootLoader.finished?(Merb::BootLoader::Dependencies)
       load_dependency(name, *ver)
+    else
+      track_dependency(name, *ver)
     end
-    [name, ver]
   end
 
   # Loads the given string as a gem.
@@ -28,19 +48,24 @@ module Kernel
   # off to the system gems (so if you have a lower version of a gem in
   # ROOT/gems, it'll still get loaded).
   #
-  # @param name<String> The name of the gem to load.
+  # @param name<String,Gem::Dependency> 
+  #   The name or dependency object of the gem to load.
   # @param *ver<Gem::Requirement, Gem::Version, Array, #to_str>
   #   Version requirements to be passed to Gem.activate.
   #
   # @note
   #   If the gem cannot be found, the method will attempt to require the string
   #   as a library.
+  #
+  # @return <Gem::Dependency> The dependency information.
   def load_dependency(name, *ver)
-    ver.empty? ? gem(name) : gem(name, *ver)
+    dep = name.is_a?(Gem::Dependency) ? name : track_dependency(name, *ver)
+    gem(dep)
   rescue Gem::LoadError
   ensure
-    require name
-    Merb.logger.info!("loading gem '#{name}' ...")
+    require dep.name
+    Merb.logger.info!("loading gem '#{dep.name}' ...")
+    return dep # ensure needs explicit return
   end
 
   # Loads both gem and library dependencies that are passed in as arguments.
@@ -48,11 +73,11 @@ module Kernel
   #
   # @param *args<String, Hash, Array> The dependencies to load.
   def dependencies(*args)
-    args.each do |arg|
+    args.map do |arg|
       case arg
       when String then dependency(arg)
-      when Hash   then arg.each { |r,v| dependency(r, v) }
-      when Array  then arg.each { |r|   dependency(r)    }
+      when Hash   then arg.map { |r,v| dependency(r, v) }
+      when Array  then arg.map { |r|   dependency(r)    }
       end
     end
   end
@@ -72,11 +97,11 @@ module Kernel
   # @example dependencies "RedCloth", "merb_helpers" # Loads RedCloth and merb_helpers
   # @example dependencies "RedCloth" => "3.0"        # Loads RedCloth 3.0
   def load_dependencies(*args)
-    args.each do |arg|
+    args.map do |arg|
       case arg
       when String then load_dependency(arg)
-      when Hash   then arg.each { |r,v| load_dependency(r, v) }
-      when Array  then arg.each { |r|   load_dependency(r)    }
+      when Hash   then arg.map { |r,v| load_dependency(r, v) }
+      when Array  then arg.map { |r|   load_dependency(r)    }
       end
     end
   end
@@ -309,4 +334,5 @@ module Kernel
         "to enable *****\n"
     end
   end
+  
 end

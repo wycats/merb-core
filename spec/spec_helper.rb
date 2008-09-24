@@ -99,6 +99,14 @@ Spec::Runner.configure do |config|
   config.include Merb::Test::RequestHelper
   config.include Merb::Test::RouteHelper
 
+  def reset_dependency(name, const = nil)
+    Object.send(:remove_const, const) if const && Object.const_defined?(const)
+    Merb::BootLoader::Dependencies.dependencies.delete_if do |d|
+      d.name == name
+    end
+    $LOADED_FEATURES.delete("#{name}.rb")
+  end
+
   def with_level(level)
     Merb.logger = Merb::Logger.new(StringIO.new, level)
     yield
