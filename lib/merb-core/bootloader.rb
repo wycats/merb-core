@@ -386,12 +386,12 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       reader, writer = nil, nil
       
       loop do
-        reader, writer = IO.pipe
+        reader, @writer = IO.pipe
         pid = Kernel.fork
         
         # pid means we're in the parent; only stay in the loop in that case
         break unless pid
-        writer.close
+        @writer.close
         
         if Merb::Config[:console_trap]
           trap("INT") {}
@@ -407,13 +407,13 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
           Merb.logger.warn! "\nDoing a fast deploy\n"
           Process.kill("HUP", pid)
         end
-        
+
+        reader_ary = [reader]
         loop do
-          GC.start
           if exit_status = Process.wait2(pid, Process::WNOHANG)
             exit_status[1] == 128 ? break : exit
           end
-          if select([reader],nil,nil,0.25)
+          if select(reader_ary, nil, nil, 0.25)
             msg = reader.readline
             msg =~ /128/ ? break : exit
           end
@@ -428,13 +428,13 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       if Merb::Config[:console_trap]
         Merb::Server.add_irb_trap
       else
-        trap('INT') { kill_children(writer) }
-        trap('HUP') { kill_children(writer, 128) }
+        trap('INT') { kill_children }
+        trap('HUP') { kill_children(128) }
       end
     end
     
-    def kill_children(writer, status = 0)
-      writer.puts(status.to_s)
+    def kill_children(status = 0)
+      @writer.puts(status.to_s)
       threads = []
       
       ($CHILDREN || []).each do |p|
@@ -483,8 +483,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       if RUBY_PLATFORM == "java" || RUBY_PLATFORM == "windows"
         remove_classes_in_file(file) { |f| load_file(f) }
       else
-        $CHILDREN.each {|p| Process.kill(9, p) } if $CHILDREN        
-        exit!(128)
+        kill_children(128)
       end
     end
     
