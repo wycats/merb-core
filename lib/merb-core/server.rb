@@ -181,6 +181,10 @@ module Merb
         store_details(port)
       end
 
+      def remove_pid(port)
+        FileUtils.rm(pid_file(port)) if File.file?(pid_file(port))
+      end
+
       def store_gid
         store_details
       end

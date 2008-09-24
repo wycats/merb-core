@@ -381,6 +381,12 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb::Controller.send :include, Merb::GlobalHelpers
     end
     
+    def exit_gracefully
+      Process.waitall
+      Merb::Server.remove_pid("main")
+      exit
+    end
+    
     def start_transaction
       Merb.logger.warn! "Parent pid: #{Process.pid}"
       reader, writer = nil, nil
@@ -392,14 +398,16 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         # pid means we're in the parent; only stay in the loop in that case
         break unless pid
         @writer.close
+
+        Merb::Server.store_pid("main")
         
         if Merb::Config[:console_trap]
           trap("INT") {}
         else
           trap("INT") do 
             Merb.logger.warn! "Killing children"
-            Process.kill("INT", pid)
-            exit
+            Process.kill("ABRT", pid)
+            exit_gracefully
           end
         end
         
@@ -419,11 +427,10 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
               if msg =~ /128/
                 break
               else
-                Process.waitall
-                exit
+                exit_gracefully
               end
             rescue SystemCallError
-              exit
+              exit_gracefully
             end
           end
         end
@@ -434,14 +441,22 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       # add traps to the child
       if Merb::Config[:console_trap]
         Merb::Server.add_irb_trap
+        at_exit { kill_children }
       else
-        trap('INT') { kill_children }
+        trap('INT') {}
+        trap('ABRT') { kill_children }
         trap('HUP') { kill_children(128) }
       end
     end
     
     def kill_children(status = 0)
-      @writer.puts(status.to_s)
+      Merb.exiting = true unless status == 128
+      
+      begin
+        @writer.puts(status.to_s)
+      rescue SystemCallError
+      end
+      
       threads = []
       
       ($CHILDREN || []).each do |p|
