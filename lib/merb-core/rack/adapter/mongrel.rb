@@ -66,6 +66,10 @@ module Merb
       end
       
       def self.start_at_port(port, opts)
+        at_exit do
+          Merb::Server.remove_pid(port)
+        end
+        
         if Merb::Config[:daemonize]
           trap('INT') do
             stop
@@ -90,12 +94,13 @@ module Merb
           begin
             @server = ::Mongrel::HttpServer.new(opts[:host], port)
           rescue Errno::EADDRINUSE
-            puts "Port #{port} was still in use. Trying again.\n"
             sleep 0.25
             next
           end
           break
         end
+
+        Merb.logger.warn! "Successfully bound to port #{port}"
         
         Merb::Server.change_privilege
         @server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))
