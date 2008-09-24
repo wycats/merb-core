@@ -32,11 +32,15 @@ module Merb
         #   The hostname on which the app should run. Defaults to "0.0.0.0"
         # :Port<Fixnum>:: The port for the app. Defaults to 8080.
         def self.run(app, options={})
-          server = ::Mongrel::HttpServer.new(options[:Host] || '0.0.0.0',
+          @server = ::Mongrel::HttpServer.new(options[:Host] || '0.0.0.0',
                                              options[:Port] || 8080)
-          server.register('/', ::Merb::Rack::Handler::Mongrel.new(app))
-          yield server  if block_given?
-          server.run.join
+          @server.register('/', ::Merb::Rack::Handler::Mongrel.new(app))
+          yield @server  if block_given?
+          @server.run.join
+        end
+  
+        def self.stop(block = true)
+          @server.stop
         end
   
         # ==== Parameters

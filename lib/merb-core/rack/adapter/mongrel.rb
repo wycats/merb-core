@@ -41,7 +41,13 @@ module Merb
           Thread.new do
             loop do
               pid = pids[port + i]
-              _, status = Process.wait2(pid)
+              begin
+                _, status = Process.wait2(pid)
+              rescue SystemCallError
+              ensure
+                Thread.exit if !status || status.exitstatus == 128 || Merb.exiting
+              end
+              
               new_pid = Kernel.fork
               start_at_port(port + i, opts) unless new_pid
               break unless new_pid
@@ -55,18 +61,41 @@ module Merb
         
       end
       
+      def self.stop
+        @server.stop(true)
+      end
+      
       def self.start_at_port(port, opts)
-        trap('INT') do 
-          puts "\nExiting\n"; exit 
-        end        
+        trap('INT') do
+          stop
+          puts "\nExiting\n"
+          exit
+        end
+        
+        trap('ABRT') do
+          stop
+          puts "\nExiting\n"
+          exit(128)
+        end
         
         Merb::Server.store_pid(port)
         Merb.logger = Merb::Logger.new(Merb.log_file(port), Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush])
         Merb.logger.warn!("Starting mongrel at port #{port}")
-        server = ::Mongrel::HttpServer.new(opts[:host], port)
+        
+        loop do
+          begin
+            @server = ::Mongrel::HttpServer.new(opts[:host], port)
+          rescue Errno::EADDRINUSE
+            puts "\nPort #{port} was still in use. Trying again.\n"
+            sleep 0.25
+            next
+          end
+          break
+        end
+        
         Merb::Server.change_privilege
-        server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))
-        server.run.join
+        @server.register('/', ::Merb::Rack::Handler::Mongrel.new(opts[:app]))
+        @server.run.join
       end
       
     end
