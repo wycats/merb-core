@@ -114,7 +114,7 @@ module Merb
         fork do
           Process.setsid
           exit if fork
-          puts "In #{Process.pid}"
+          Merb.logger.warn! "In #{Process.pid}" if Merb.logger
           File.umask 0000
           STDIN.reopen "/dev/null"
           STDOUT.reopen "/dev/null", "a"

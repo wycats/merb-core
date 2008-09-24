@@ -404,7 +404,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         end
         
         trap("HUP") do 
-          Merb.logger.warn! "\nDoing a fast deploy\n"
+          Merb.logger.warn! "Doing a fast deploy\n"
           Process.kill("HUP", pid)
         end
 
@@ -414,12 +414,19 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
             exit_status[1] == 128 ? break : exit
           end
           if select(reader_ary, nil, nil, 0.25)
-            msg = reader.readline
-            msg =~ /128/ ? break : exit
+            begin
+              msg = reader.readline
+              if msg =~ /128/
+                break
+              else
+                Process.waitall
+                exit
+              end
+            rescue SystemCallError
+              exit
+            end
           end
         end
-        
-        puts "Broken out"
       end
  
       reader.close
@@ -762,7 +769,7 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
       Thread.new do
         loop do
           sleep( seconds )
-          block.call
+          yield
         end
         Thread.exit
       end
@@ -773,26 +780,33 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
   def self.run
     return unless Merb::Config[:reload_classes]
 
-    TimedExecutor.every(Merb::Config[:reload_time] || 0.5) do
-      reload
-    end
-    
-  end
-
-  # Reloads all files.
-  def self.reload
     paths = []
     Merb.load_paths.each do |path_name, file_info|
       path, glob = file_info
       next unless glob
       paths << Dir[path / glob]
     end
+  
+    if Merb.dir_for(:application) && File.file?(Merb.dir_for(:application))
+      paths << Merb.dir_for(:application)
+    end
 
-    paths << Merb.dir_for(:application) if Merb.dir_for(:application) && File.file?(Merb.dir_for(:application))
+    paths.flatten!
 
-    paths.flatten.each do |file|
-      next if Merb::BootLoader::LoadClasses::MTIMES[file] && Merb::BootLoader::LoadClasses::MTIMES[file] == File.mtime(file)
-      Merb::BootLoader::LoadClasses.reload(file)
+    TimedExecutor.every(Merb::Config[:reload_time] || 0.5) do
+      GC.start
+      reload(paths)
+    end
+    
+  end
+
+  # Reloads all files.
+  def self.reload(paths)
+    paths.each do |file|
+      next if LoadClasses::MTIMES[file] &&  
+        LoadClasses::MTIMES[file] == File.mtime(file)
+          
+      LoadClasses.reload(file)
     end
   end
 end

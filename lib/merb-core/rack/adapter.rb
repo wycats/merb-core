@@ -11,7 +11,6 @@ module Merb
         # ==== Returns.
         # Class:: The adapter class.
         def get(id)
-          p @adapters[id.to_s]
           Object.full_const_get(@adapters[id.to_s])
         end
 
