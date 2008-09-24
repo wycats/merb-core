@@ -36,6 +36,7 @@ module Merb
   module GlobalHelpers; end
   
   class << self
+    attr_accessor :exiting
 
     # Merge environment settings
     # Can allow you to have a "localdev" that runs like your "development"

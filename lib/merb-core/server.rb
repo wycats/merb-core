@@ -82,9 +82,8 @@ module Merb
           port = "gid" if port == "all"
           pid = File.read(pid_file(port)).chomp.to_i
           
-          if port == "gid"
-            kill_pid(sig, pid, pid_file(port))
-            kill_pid(sig, -pid, pid_file(port))
+          kill_pid(sig, pid, pid_file(port))
+          kill_pid(sig, -pid, pid_file(port))
         ensure
           Merb.started = false
           exit

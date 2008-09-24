@@ -383,37 +383,71 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     
     def start_transaction
       Merb.logger.warn! "Parent pid: #{Process.pid}"
+      reader, writer = nil, nil
+      
       loop do
+        reader, writer = IO.pipe
         pid = Kernel.fork
         
         # pid means we're in the parent; only stay in the loop in that case
         break unless pid
+        writer.close
+        
         if Merb::Config[:console_trap]
           trap("INT") {}
         else
-          trap("INT") { puts "Killing children"; Process.kill("INT", pid); exit }
+          trap("INT") do 
+            Merb.logger.warn! "Killing children"
+            Process.kill("INT", pid)
+            exit
+          end
         end
         
         trap("HUP") do 
-          Merb.logger.warn! "\nDoing a fast deploy\n"          
+          Merb.logger.warn! "\nDoing a fast deploy\n"
           Process.kill("HUP", pid)
         end
-        exit unless Process.wait2(pid)[1].exitstatus == 128
+        
+        loop do
+          GC.start
+          if exit_status = Process.wait2(pid, Process::WNOHANG)
+            exit_status[1] == 128 ? break : exit
+          end
+          if select([reader],nil,nil,0.25)
+            msg = reader.readline
+            msg =~ /128/ ? break : exit
+          end
+        end
+        
+        puts "Broken out"
       end
-
+ 
+      reader.close
+ 
       # add traps to the child
       if Merb::Config[:console_trap]
         Merb::Server.add_irb_trap
       else
-        trap('INT') do
-          $CHILDREN.each {|p| Process.kill(9, p) } if $CHILDREN
-          exit 
-        end
-        trap('HUP') do
-          $CHILDREN.each {|p| Process.kill(9, p) } if $CHILDREN
-          exit(128)
+        trap('INT') { kill_children(writer) }
+        trap('HUP') { kill_children(writer, 128) }
+      end
+    end
+    
+    def kill_children(writer, status = 0)
+      writer.puts(status.to_s)
+      threads = []
+      
+      ($CHILDREN || []).each do |p|
+        threads << Thread.new do
+          Process.kill("ABRT", p)
+          begin
+            Process.wait2(p)
+          rescue SystemCallError
+          end
         end
       end
+      threads.each {|t| t.join }
+      exit(status)
     end
     
     # ==== Parameters
