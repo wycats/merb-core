@@ -9,6 +9,8 @@ module Kernel
   #   Version requirements to be passed to Gem::Dependency.new.
   #
   # @return <Gem::Dependency> Dependency information
+  #
+  # @api private
   def track_dependency(name, *ver)
     dep = Gem::Dependency.new(name, ver)
     existing = Merb::BootLoader::Dependencies.dependencies.find { |d| d.name == dep.name }
