@@ -715,13 +715,3 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
     end
   end
 end
-
-class Merb::BootLoader::ReloadTemplates < Merb::BootLoader
-
-  # Reloads all templates if the reload_templates key has been set in config.
-  def self.run
-    unless Merb::Config.key?(:reload_templates)
-      Merb::Config[:reload_templates] = (Merb.environment == "development")
-    end
-  end
-end

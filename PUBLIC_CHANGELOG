@@ -1,3 +1,9 @@
+9/25/2008:
+* Merb::Config[:reload_templates] needs to be set explicitly in 
+  config/environments/development.rb - which is true for newly generated apps.
+  Previously Merb.env?(:development) meant that reload_templates was enabled.
+  Since we don't want to depend on Merb.env like that, we're using Merb::Config.
+
 9/24/2008:
 * Kernel#dependency and Kernel#load_dependency will now register the requested
   dependency on Merb::BootLoader::Dependencies.dependencies. Doing so creates a
