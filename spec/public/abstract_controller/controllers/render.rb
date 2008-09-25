@@ -8,7 +8,7 @@ module Merb::Test::Fixtures
       self._template_root = File.dirname(__FILE__) / "views"
     end
 
-		class RenderTwoThrowContents < Testing
+		class RenderTwoAppendContents < Testing
 			
 			def index
 				render

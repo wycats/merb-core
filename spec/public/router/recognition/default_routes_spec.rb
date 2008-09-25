@@ -1,9 +1,11 @@
-require File.join(File.dirname(__FILE__), "spec_helper")
+require File.join(File.dirname(__FILE__), "..", "spec_helper")
 
-describe "The default routes" do
+describe "Recognizing requests for the default routes" do
   
   before :each do
-    Merb::Router.prepare {|r| r.default_routes}
+    Merb::Router.prepare do
+      default_routes
+    end
   end
     
   it "should match /foo to the Foo controller and index action" do

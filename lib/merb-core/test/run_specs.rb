@@ -23,7 +23,7 @@ def run_specs(globs, spec_cmd='spec', run_opts = "-c", except = [])
         response = Open3.popen3("#{spec_cmd} #{File.expand_path(spec)} #{run_opts}") do |i,o,e|
           while out = o.gets
             STDOUT.puts out
-            STDOUT.flush
+            #STDOUT.flush
             if out =~ /\d+ example/
               e, f, p = out.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) pending?)?/)[1..-1]
               examples += e.to_i; failures += f.to_i; pending += p.to_i

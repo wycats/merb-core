@@ -11,7 +11,15 @@ module Merb
         # this is so you can do Merb.plugins.config[:helpers][:awesome] = "bar"
         config_hash = Hash.new {|h,k| h[k] = {}}
         file = Merb.root / "config" / "plugins.yml"
-        config_hash.merge((File.exists?(file) && YAML.load_file(file)) || {})
+
+        if File.exists?(file)
+          require 'yaml'
+          to_merge = YAML.load_file(file)
+        else
+          to_merge = {}
+        end
+        
+        config_hash.merge(to_merge)
       end
     end
 

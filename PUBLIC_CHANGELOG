@@ -1,3 +1,11 @@
+9/24/2008:
+* Kernel#dependency and Kernel#load_dependency will now register the requested
+  dependency on Merb::BootLoader::Dependencies.dependencies. Doing so creates a
+  Gem::Dependency instance, which will be returned from these methods. 
+  Before, an Array of [name, ver] was returned. Working with Gem::Dependency 
+  makes the dependency information more uniform, regardless of the original 
+  version requirements.
+
 9/13/2008:
 * Merb apps will always give priority to gems that are available locally in
   Merb.root / gems. Because of the specific load order, you will need to use

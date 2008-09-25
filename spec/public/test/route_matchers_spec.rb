@@ -24,7 +24,9 @@ describe Merb::Test::Rspec::RouteMatchers do
       r.match(%r"/v(\d+\.\d+)", :method => :post).to(:controller => "test_controller", :action => "post", :version => "[1]")
       r.match("/", :method => :get).to(:controller => "test_controller", :action => "get").name(:getter)
       r.match("/", :method => :post).to(:controller => "test_controller", :action => "post")
-      r.match("/:id").to(:controller => "test_controller", :action => "get").name(:with_id)
+      identify :id do
+        r.match("/:id").to(:controller => "test_controller", :action => "get").name(:with_id)
+      end
     end
   end
 

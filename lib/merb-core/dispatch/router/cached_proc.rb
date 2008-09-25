@@ -5,7 +5,7 @@ module Merb
     class CachedProc
       @@index = 0
       @@list = []
-      
+
       attr_accessor :cache, :index
 
       # ==== Parameters
@@ -13,13 +13,13 @@ module Merb
       def initialize(cache)
         @cache, @index = cache, CachedProc.register(self)
       end
-      
+
       # ==== Returns
       # String:: The CachedProc object in a format embeddable within a string.
       def to_s
         "CachedProc[#{@index}].cache"
       end
-      
+
       class << self
 
         # ==== Parameters

@@ -5,13 +5,30 @@ require 'stringio'
 
 describe Merb::Dispatcher, "route params" do
   before(:each) do
-    env = Rack::MockRequest.env_for("/foo/bar/54")
-    env['REQUEST_URI'] = "/foo/bar/54"  # MockRequest doesn't set this
-    @controller = Merb::Dispatcher.handle(Merb::Request.new(env))
+    Merb::Router.prepare do |r|
+      r.default_routes
+    end
+
+    @controller = Merb::Dispatcher.handle(Merb::Request.new(env_for("/tickets/book/milan")))    
   end
 
-  it "should properly set the route params" do
+  def env_for(path)
+    env = Rack::MockRequest.env_for(path)
+    env['REQUEST_URI'] = path  # MockRequest doesn't set this
+
+    env
+  end
+
+  it "should properly set the route parameters" do
+    @controller.request.route_params[:id].should == 'milan'
+    @controller.request.route_params[:action].should == 'book'
+    @controller.request.route_params[:controller].should == 'tickets'
+
+    @controller = Merb::Dispatcher.handle(Merb::Request.new(env_for("/products/show/54")))
+    
     @controller.request.route_params[:id].should == '54'
+    @controller.request.route_params[:action].should == 'show'
+    @controller.request.route_params[:controller].should == 'products'
   end
 
   it "should properly add route_params to params" do

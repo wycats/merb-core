@@ -188,21 +188,34 @@ desc "Run :specs, :rcov"
 task :aok => [:specs, :rcov]
 
 def setup_specs(name, spec_cmd='spec', run_opts = "-c")
+  except = []
+  except += Dir["spec/**/memcache*_spec.rb"] if ENV['MEMCACHED'] == 'no'
+  
+  public_globs = ["abstract_controller", "boot_loader",
+                  "controller/*_spec.rb", "core",
+                 "core_ext", "directory_structure", "logger", "rack/*_spec.rb", "reloading",
+                 "request", "router/*_spec.rb", "session/*_spec.rb", "template", "test"].map do |glob|
+    "spec/public/#{glob}"
+  end
+
+  private_globs = ["boot_loader", "config", "core_ext", "dispatch/**/*_spec.rb", "router/*_spec.rb", "vendor"].map do |glob|
+    "spec/private/#{glob}"
+  end
+
   desc "Run all specs (#{name})"
   task "specs:#{name}" do
-    except = []
-    except += Dir["spec/**/memcache*_spec.rb"] if ENV['MEMCACHED'] == 'no'
-    run_specs("spec/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts, except)
+    globs = public_globs + private_globs
+    run_specs(globs, spec_cmd, ENV['RSPEC_OPTS'] || run_opts, except)
   end
   
   desc "Run private specs (#{name})"
   task "specs:#{name}:private" do
-    run_specs("spec/private/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
+    run_specs(private_globs, spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
 
   desc "Run public specs (#{name})"
   task "specs:#{name}:public" do
-    run_specs("spec/public/**/*_spec.rb", spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
+    run_specs(public_globs, spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
   
   # With profiling formatter

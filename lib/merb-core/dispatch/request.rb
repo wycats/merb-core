@@ -41,7 +41,7 @@ module Merb
           "Route matched, but route did not specify a controller.\n" +
           "Did you forgot to add :controller => \"people\" or :controller " +
           "segment to route definition?\nHere is what's specified:\n" + 
-          request.route_params.inspect
+          route.inspect
       end
       path = [params[:namespace], params[:controller]].compact.join("/")
       controller = path.snake_case.to_const_string
@@ -95,7 +95,7 @@ module Merb
     # into request params hash.
     def find_route!
       @route, @route_params = Merb::Router.route_for(self)
-      @params.merge! @route_params
+      params.merge! @route_params
     end
 
     # Redirect status of route matched this request.
@@ -269,12 +269,65 @@ module Merb
       return @env[Merb::Const::REMOTE_ADDR]
     end
     
+    # ==== Parameters
+    # name<~to_sym, Hash>:: The name of the URL to generate.
+    # rparams<Hash>:: Parameters for the route generation.
+    #
+    # ==== Returns
+    # String:: The generated URL.
+    #
+    # ==== Alternatives
+    # If a hash is used as the first argument, a default route will be
+    # generated based on it and rparams.
+    # ====
+    # TODO: Update this documentation
+    def generate_url(name, *args)
+      unless Symbol === name
+        args.unshift(name)
+        name = :default
+      end
+
+      unless route = Merb::Router.named_routes[name]
+        raise Merb::Router::GenerationError, "Named route not found: #{name}"
+      end
+
+      route.generate(args, params)
+    end
+    
+    
+    # ==== Parameters
+    # name<~to_sym, Hash>:: The name of the URL to generate.
+    # rparams<Hash>:: Parameters for the route generation.
+    #
+    # ==== Returns
+    # String:: The generated url with protocol + hostname + URL.
+    #
+    # ==== Options
+    #
+    # :protocol and :host options are special: use them to explicitly
+    # specify protocol and host of resulting url. If you omit them,
+    # protocol and host of request are used.
+    #
+    # ==== Alternatives
+    # If a hash is used as the first argument, a default route will be
+    # generated based on it and rparams.
+    def generate_absolute_url(name, rparams={})
+      if rparams.is_a?(Hash)
+        tprotocol = rparams.delete(:protocol)
+        thost = rparams.delete(:host)
+      end
+
+      (tprotocol || protocol) + "://" + 
+        (thost || host) +
+        generate_url(name, rparams)
+    end
+        
     # ==== Returns
     # String::
-    #   The protocol, i.e. either "https://" or "http://" depending on the
+    #   The protocol, i.e. either "https" or "http" depending on the
     #   HTTPS header.
     def protocol
-      ssl? ? 'https://' : 'http://'
+      ssl? ? 'https' : 'http'
     end
     
     # ==== Returns

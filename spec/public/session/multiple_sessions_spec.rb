@@ -7,6 +7,12 @@ require File.join(File.dirname(__FILE__), "controllers", "sessions")
 require 'memcache'
 Merb::MemcacheSession.store = MemCache.new('127.0.0.1:11211', { :namespace => 'my_app' })
 
+begin
+  Merb::MemcacheSession.store.stats  
+rescue MemCache::MemCacheError
+  puts "\nWarning: no connection to MemCache server at 127.0.0.1:11211 - some specs will fail!\n\n"
+end
+
 describe "An app with multiple session stores configured" do
   
   before(:all) { @controller_klass = Merb::Test::Fixtures::Controllers::MultipleSessionsController }
@@ -42,6 +48,8 @@ describe "An app with multiple session stores configured" do
       controller.request.session(:memory)[:foo].should == "memory-bar"
     end
   end
+  
+
   
   it "should store memcache-based session data" do
     with_cookies(@controller_klass) do

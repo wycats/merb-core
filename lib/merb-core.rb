@@ -16,6 +16,7 @@ if File.directory?(gems_dir = File.join(root, 'gems'))
   end
 end
 
+require 'thread'
 require 'set'
 require 'fileutils'
 require 'socket'

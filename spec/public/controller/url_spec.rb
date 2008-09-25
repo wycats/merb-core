@@ -14,28 +14,29 @@ class Pink
   def monkey_id ; blue_id.monkey_id ; end
 end
 
-Merb::Router.prepare do |r|
-  r.default_routes
-  r.resources :monkeys do |m|
-    m.resources :blues do |b|
-      b.resources :pinks
-    end
-  end
-  r.resources :donkeys do |d|
-    d.resources :blues
-  end
-  r.resource :red do |red|
-    red.resources :blues
-  end
-  r.match(%r{/foo/(\d+)/}).to(:controller => 'asdf').name(:regexp)
-  r.match('/people/:name').
-    to(:controller => 'people', :action => 'show').name(:person)
-  r.match('/argstrs').to(:controller => "args").name(:args)
-end
-
 describe Merb::Controller, " url" do
   
-  before do
+  before(:each) do
+    Merb::Router.prepare do |r|
+      identify :to_param do
+        r.resources :monkeys do |m|
+          m.resources :blues do |b|
+            b.resources :pinks
+          end
+        end
+        r.resources :donkeys do |d|
+          d.resources :blues
+        end
+        r.resource :red do |red|
+          red.resources :blues
+        end
+        r.match(%r{/foo/(\d+)/}).to(:controller => 'asdf').name(:regexp)
+        r.match('/people(/:name)(.:format)').to(:controller => 'people', :action => 'show').name(:person)
+        r.match('/argstrs').to(:controller => "args").name(:args)
+        r.default_routes
+      end
+    end
+    
     @controller = dispatch_to(Merb::Test::Fixtures::Controllers::Url, :index)
   end
   
@@ -63,8 +64,12 @@ describe Merb::Controller, " url" do
       should eql("/monkeys/list/4.xml#half_way")
   end
 
-  it "should raise an error" do
-    lambda { @controller.url(:regexp) }.should raise_error
+  it "should raise an error when trying to generate a regexp route" do
+    lambda { @controller.url(:regexp) }.should raise_error(Merb::Router::GenerationError)
+  end
+  
+  it "should raise an error when trying to generate a route that doesn't exist" do
+    lambda { @controller.url(:lalalala) }.should raise_error(Merb::Router::GenerationError)
   end
 
   it "should match with a route param" do
@@ -72,7 +77,7 @@ describe Merb::Controller, " url" do
   end
 
   it "should match without a route param" do
-    @controller.url(:person).should eql("/people/")
+    @controller.url(:person).should eql("/people")
   end
 
   it "should match with an additional param" do
@@ -151,7 +156,7 @@ describe Merb::Controller, " url" do
  
   it "should match a nested resources show action" do
     @blue = Blue.new
-    @controller.url(:monkey_blue, @blue).should == "/monkeys/45/blues/13"
+    @controller.url(:monkey_blue, @blue.monkey_id, @blue).should == "/monkeys/45/blues/13"
   end
   
   it "should match the index action of nested resource with parent object" do
@@ -167,7 +172,7 @@ describe Merb::Controller, " url" do
   
   it "should match the edit action of nested resource" do
     @blue = Blue.new
-    @controller.url(:edit_monkey_blue, @blue).should == "/monkeys/45/blues/13/edit"
+    @controller.url(:edit_monkey_blue, @blue.monkey_id, @blue).should == "/monkeys/45/blues/13/edit"
   end
   
   it "should match the index action of resources nested under a resource" do
@@ -177,13 +182,13 @@ describe Merb::Controller, " url" do
   
   it "should match resource that has been nested multiple times" do
     @blue = Blue.new
-    @controller.url(:donkey_blue, @blue).should == "/donkeys/19/blues/13"
-    @controller.url(:monkey_blue, @blue).should == "/monkeys/45/blues/13"
+    @controller.url(:donkey_blue, @blue.donkey_id, @blue).should == "/donkeys/19/blues/13"
+    @controller.url(:monkey_blue, @blue.monkey_id, @blue).should == "/monkeys/45/blues/13"
   end
   
   it "should match resources nested more than one level deep" do
     @pink = Pink.new
-    @controller.url(:monkey_blue_pink, @pink).should == "/monkeys/45/blues/13/pinks/22"
+    @controller.url(:monkey_blue_pink, @pink.blue_id.monkey_id, @pink.blue_id, @pink).should == "/monkeys/45/blues/13/pinks/22"
   end
 
   it "should match resource with additional params" do
@@ -197,12 +202,12 @@ describe Merb::Controller, " url" do
 
   it "should match a nested resource with additional params" do
     @blue = Blue.new
-    @controller.url(:monkey_blue, @blue, :foo => "bar").should == "/monkeys/45/blues/13?foo=bar"
+    @controller.url(:monkey_blue, @blue.monkey_id, @blue, :foo => "bar").should == "/monkeys/45/blues/13?foo=bar"
   end
   
   it "should match a nested resource with additional params and fragment" do
     @blue = Blue.new
-    @controller.url(:monkey_blue, @blue, :foo => "bar", :fragment => :half_way).should == "/monkeys/45/blues/13?foo=bar#half_way"
+    @controller.url(:monkey_blue, @blue.monkey_id, @blue, :foo => "bar", :fragment => :half_way).should == "/monkeys/45/blues/13?foo=bar#half_way"
   end
 
 end

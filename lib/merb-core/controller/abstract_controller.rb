@@ -427,19 +427,12 @@ class Merb::AbstractController
   # ==== Alternatives
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
-  def url(name, rparams = {}, qparams = {})
-    unless rparams.is_a?(Hash) || qparams.empty?
-      rparams = qparams.merge(:id => rparams)
-    end
-    uri = Merb::Router.generate(name, rparams,
-      { :controller => controller_name,
-        :action => action_name,
-        :format => params[:format]
-      }
-    ) 
-    uri = Merb::Config[:path_prefix] + uri if Merb::Config[:path_prefix]
-    uri
+  # ====
+  # TODO: Update this documentation
+  def url(name, *args)
+    request.generate_url(name, *args)
   end
+  
   alias_method :relative_url, :url
 
   # ==== Parameters
@@ -459,17 +452,7 @@ class Merb::AbstractController
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
   def absolute_url(name, rparams={})
-    # FIXME: arrgh, why request.protocol returns http://?
-    # :// is not part of protocol name
-    if rparams.is_a?(Hash)
-      protocol = rparams.delete(:protocol)
-      protocol << "://" if protocol
-      host = rparams.delete(:host)
-    end
-    
-    (protocol || request.protocol) +
-      (host || request.host) +
-      url(name, rparams)
+    request.generate_absolute_url(name,rparams)
   end
 
   # Calls the capture method for the selected template engine.

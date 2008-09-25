@@ -2,10 +2,59 @@ require File.join(File.dirname(__FILE__), "spec_helper")
 $:.push File.join(File.dirname(__FILE__), "fixtures")
 
 describe Kernel, "#dependency" do
+  
+  before { reset_dependency('core_ext_dependency', :CoreExtDependency) }
+  
   it "works even when the BootLoader has already finished" do
     dependency "core_ext_dependency"
     defined?(CoreExtDependency).should_not be_nil
   end
+  
+  it "returns a Gem::Dependency" do
+    dep = dependency "core_ext_dependency", ">= 1.1.2"
+    dep.name.should == "core_ext_dependency"
+    dep.version_requirements.to_s.should == ">= 1.1.2"
+  end
+  
+  it "adds a Gem::Dependency item to Merb::BootLoader::Dependencies.dependencies" do
+    dep = dependency "core_ext_dependency", ">= 1.1.2"
+    dep.name.should == "core_ext_dependency"
+    dep.version_requirements.to_s.should == ">= 1.1.2"
+    Merb::BootLoader::Dependencies.dependencies.should include(dep)
+  end
+  
+  it "will replace any previously registered dependencies with the same name" do
+    dep = dependency "core_ext_dependency", ">= 1.1.0"
+    dep.version_requirements.to_s.should == ">= 1.1.0"
+    dep = dependency "core_ext_dependency", ">= 1.1.2"
+    dep.version_requirements.to_s.should == ">= 1.1.2"
+    entries = Merb::BootLoader::Dependencies.dependencies.select { |d| d.name == dep.name }
+    entries.first.version_requirements.to_s.should == ">= 1.1.2"
+    entries.length.should == 1
+  end
+  
+end
+
+describe Kernel, "#load_dependency" do
+  
+  before { reset_dependency('core_ext_dependency', :CoreExtDependency) }
+  
+  it "requires a dependency immediately" do
+    load_dependency "core_ext_dependency"
+    defined?(CoreExtDependency).should_not be_nil
+  end
+  
+  it "returns a Gem::Dependency" do
+    dep = load_dependency "core_ext_dependency"
+    dep.name.should == "core_ext_dependency"
+    dep.version_requirements.to_s.should == ""
+  end
+  
+  it "adds a Gem::Dependency item to Merb::BootLoader::Dependencies.dependencies" do
+    dep = load_dependency "core_ext_dependency"
+    Merb::BootLoader::Dependencies.dependencies.should include(dep)
+  end
+  
 end
 
 describe Kernel, "#use_orm" do
