@@ -391,6 +391,10 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb.logger.warn! "Parent pid: #{Process.pid}"
       reader, writer = nil, nil
       
+      if GC.respond_to?(:copy_on_write_friendly=)
+        GC.copy_on_write_friendly = true
+      end      
+      
       loop do
         reader, @writer = IO.pipe
         pid = Kernel.fork
