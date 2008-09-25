@@ -13,6 +13,8 @@ module Merb
         
         Merb.logger.warn! "Cluster: #{max_port}"
         
+        $0 = "merb: spawner"
+        
         0.upto(max_port) do |i|          
           pid = Kernel.fork
           start_at_port(port + i, opts) unless pid
@@ -59,19 +61,22 @@ module Merb
         
         if Merb::Config[:daemonize]
           trap('INT') do
+            puts "INT"
             stop
             Merb.logger.warn! "Exiting port #{port}\n"
-            exit
+            exit_process
           end
         else
           trap('INT') { 1 }
         end
         
         trap('ABRT') do
-          stop
+          stop(128)
           Merb.logger.warn! "Exiting port #{port}\n"
-          exit(128)
+          exit_process(128)
         end
+        
+        $0 = "merb: worker (port #{port})"
         
         Merb::Server.store_pid(port)
         Merb.logger = Merb::Logger.new(Merb.log_file(port), Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush])
@@ -91,6 +96,10 @@ module Merb
         
         Merb::Server.change_privilege
         start_server
+      end
+      
+      def self.exit_process(status = 0)
+        exit(status)
       end
       
     end
