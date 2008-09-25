@@ -200,10 +200,10 @@ module Merb
 
           adapters = [:mongrel, :emongrel, :thin, :ebb, :fastcgi, :webrick]
 
-          opts.on("-a", "--adapter mongrel", adapters,
+          opts.on("-a", "--adapter ADAPTER",
                   "The rack adapter to use to run merb (default is mongrel)" \
                   "[#{adapters.join(', ')}]") do |adapter|
-            options[:adapter] = adapter
+            options[:adapter] ||= adapter
           end
 
           opts.on("-R", "--rackup FILE", "Load an alternate Rack config " \

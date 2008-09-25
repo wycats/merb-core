@@ -36,9 +36,8 @@ module Merb
     Adapter.register %w{runner},         :Runner
     Adapter.register %w{smongrel swift}, :SwiftipliedMongrel
     Adapter.register %w{thin},           :Thin
-    Adapter.register %w{thin-turbo},     :ThinTurbo
+    Adapter.register %w{thin-turbo tt},  :ThinTurbo
     Adapter.register %w{webrick},        :WEBrick
     
   end # Rack
 end # Merb
-
