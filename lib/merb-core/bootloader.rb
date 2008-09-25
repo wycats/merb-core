@@ -461,8 +461,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       
       ($CHILDREN || []).each do |p|
         threads << Thread.new do
-          Process.kill("ABRT", p)
           begin
+            Process.kill("ABRT", p)
             Process.wait2(p)
           rescue SystemCallError
           end
