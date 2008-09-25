@@ -488,11 +488,8 @@ class Merb::AbstractController
       ret = yield *args
     end
 
-    if captured.empty?
-      ret.to_s
-    else
-      captured
-    end
+    # return captured value only if it is not empty
+    captured.empty? ? ret.to_s : captured
   end
 
   # Calls the concatenate method for the selected template engine.
