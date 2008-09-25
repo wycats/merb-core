@@ -477,12 +477,22 @@ class Merb::AbstractController
   #
   # ==== Parameters
   # *args:: Arguments to pass to the block.
-  # &block:: The template block to call.
+  # &block:: The block to call.
   #
   # ==== Returns
-  # String:: The output of the block.
+  # String:: The output of a template block or the return value of a non-template block converted to a string.
   def capture(*args, &block)
-    send("capture_#{@_engine}", *args, &block)
+    ret = nil
+
+    captured = send("capture_#{@_engine}", *args) do |*args|
+      ret = yield *args
+    end
+
+    if captured.empty?
+      ret.to_s
+    else
+      captured
+    end
   end
 
   # Calls the concatenate method for the selected template engine.
