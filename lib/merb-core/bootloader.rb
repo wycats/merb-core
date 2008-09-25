@@ -395,6 +395,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         GC.copy_on_write_friendly = true
       end      
       
+      $0 = "merb: master"
+      
       loop do
         reader, @writer = IO.pipe
         pid = Kernel.fork
