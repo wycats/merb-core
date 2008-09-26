@@ -11,7 +11,11 @@ module Merb
         # ==== Returns.
         # Class:: The adapter class.
         def get(id)
-          Object.full_const_get(@adapters[id.to_s])
+          if @adapters[id.to_s]
+            Object.full_const_get(@adapters[id.to_s])
+          else
+            Merb.fatal! "The adapter #{id} did not exist"
+          end
         end
 
         # Registers a new Rack adapter.

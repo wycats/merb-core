@@ -29,7 +29,7 @@ module Merb
         @server.start
       end
       
-      def self.stop
+      def self.stop(status = 0)
         @server.stop
       end
     end

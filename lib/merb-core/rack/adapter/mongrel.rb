@@ -6,8 +6,11 @@ module Merb
 
     class Mongrel < Merb::Rack::AbstractAdapter
 
-      def self.stop
-        @server.stop(true)
+      def self.stop(status = 0)
+        if @server
+          @server.stop(true)
+          true
+        end
       end
       
       def self.new_server(port)

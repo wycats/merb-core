@@ -94,6 +94,7 @@ module Merb
     # argv<String, Hash>::
     #   The config arguments to start Merb with. Defaults to +ARGV+.
     def start(argv=ARGV)
+      Merb.logger = Merb::Logger.new(STDOUT, :warn)
       if Hash === argv
         Merb::Config.setup(argv)
       else
@@ -337,6 +338,28 @@ module Merb
         yield(r) if block_given?
         r.default_routes
       end
+    end
+    
+    def fatal!(str, e = nil)
+      Merb.logger.fatal!
+      Merb.logger.fatal!("\e[1;31;47mFATAL: #{str}\e[0m")
+      Merb.logger.fatal!
+
+      print_colorized_backtrace(e) if e && Merb::Config[:verbose]
+      exit(1)
+    end
+    
+    def print_colorized_backtrace(e)
+      e.backtrace.map! do |line|
+        line.gsub!(/^#{Merb.framework_root}/, "\e[34mFRAMEWORK_ROOT\e[31m")
+      end
+      
+      Merb.logger.fatal! "\e[34mFRAMEWORK_ROOT\e[0m = #{Merb.framework_root}"
+      Merb.logger.fatal!
+      Merb.logger.fatal! "\e[31m#{e.class}: \e[1;31;47m#{e.message}\e[0m"
+      e.backtrace.each do |line|
+        Merb.logger.fatal! "\e[31m#{line}\e[0m"
+      end      
     end
 
     # Set up default variables under Merb

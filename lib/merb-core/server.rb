@@ -1,4 +1,5 @@
 require 'etc'
+
 module Merb
 
   # Server encapsulates the management of Merb daemons.
@@ -21,30 +22,19 @@ module Merb
         
         @port = port
         @cluster = cluster        
-        # if @cluster
-        #   @port.to_i.upto(@port.to_i + @cluster.to_i-1) do |port|
-        #     pidfile = pid_file(port)
-        #     pid = IO.read(pidfile).chomp.to_i if File.exist?(pidfile)
-        # 
-        #     unless alive?(port)
-        #       remove_pid_file(port)
-        #       puts "Starting merb server on port #{port}, pid file: #{pidfile} and process id is #{pid}" if Merb::Config[:verbose]
-        #       daemonize(port)
-        #     else
-        #       raise "Merb is already running: port is #{port}, pid file: #{pidfile}, process id is #{pid}"
-        #     end
-        #   end
+
         if Merb::Config[:daemonize]
           pidfile = pid_file(port)
-          pid = IO.read(pidfile).chomp.to_i if File.exist?(pidfile)
+          pid = File.read(pidfile).chomp.to_i if File.exist?(pidfile)
 
           unless alive?(@port)
             remove_pid_file(@port)
             puts "Daemonizing..." if Merb::Config[:verbose]
             daemonize(@port)
           else
-            raise "Merb is already running: port is #{port}, pid " \
-            "file: #{pidfile}, process id is #{pid}"
+            Merb.fatal! "Merb is already running on port #{port}.\n" \
+              "\e[0m   \e[1;31;47mpid file: \e[34;47m#{pidfile}" \
+              "\e[1;31;47m, process id is \e[34;47m#{pid}."
           end
         else
           bootup
@@ -61,12 +51,14 @@ module Merb
         puts "About to check if port #{port} is alive..." if Merb::Config[:verbose]
         pidfile = pid_file(port)
         puts "Pidfile is #{pidfile}..." if Merb::Config[:verbose]
-        pid = IO.read(pidfile).chomp.to_i
+        pid = File.read(pidfile).chomp.to_i
         puts "Process id is #{pid}" if Merb::Config[:verbose]
         Process.kill(0, pid)
         true
-      rescue
+      rescue Errno::ESRCH, Errno::ENOENT
         false
+      rescue Errno::EACCES => e
+        Merb.fatal!("You don't have access to the PID file at #{pidfile}.", e)
       end
 
       # ==== Parameters
@@ -119,16 +111,21 @@ module Merb
           STDIN.reopen "/dev/null"
           STDOUT.reopen "/dev/null", "a"
           STDERR.reopen STDOUT
-          Dir.chdir Merb::Config[:merb_root]
+          begin
+            Dir.chdir Merb::Config[:merb_root]
+          rescue Errno::EACCES => e
+            Merb.fatal! "You specified #{Merb::Config[:merb_root]} " \
+              "as the Merb root, but you did not have access to it.", e
+          end
           at_exit { remove_pid_file(port) }
           Merb::Config[:port] = port
           bootup
         end
+      rescue NotImplementedError => e
+        Merb.fatal! "Daemonized mode is not supported on your platform", e
       end
       
       def bootup
-        store_gid
-        
         trap('TERM') { exit }
 
         puts "Running bootloaders..." if Merb::Config[:verbose]
@@ -138,14 +135,16 @@ module Merb
       end
 
       def change_privilege
-        if Merb::Config[:user]
-          if Merb::Config[:group]
-            puts "About to change privilege to group #{Merb::Config[:group]} and user #{Merb::Config[:user]}" if Merb::Config[:verbose]
-            _change_privilege(Merb::Config[:user], Merb::Config[:group])
-          else
-            puts "About to change privilege to user #{Merb::Config[:user]}" if Merb::Config[:verbose]
-            _change_privilege(Merb::Config[:user])
-          end
+        if Merb::Config[:user] && Merb::Config[:group]
+          Merb.logger.verbose! "About to change privilege to group " \
+            "#{Merb::Config[:group]} and user #{Merb::Config[:user]}"
+          _change_privilege(Merb::Config[:user], Merb::Config[:group])
+        elsif Merb::Config[:user]
+          Merb.logger.verbose! "About to change privilege to user " \
+            "#{Merb::Config[:user]}"
+          _change_privilege(Merb::Config[:user])
+        else
+          return true
         end
       end
 
@@ -162,8 +161,10 @@ module Merb
       # instead of the port based PID file.
       def remove_pid_file(port)
         pidfile = pid_file(port)
-        puts "Removing pid file #{pidfile} (port is #{port})..."
-        FileUtils.rm(pidfile) if File.exist?(pidfile)
+        if File.exist?(pidfile)
+          puts "Removing pid file #{pidfile} (port is #{port})..."
+          FileUtils.rm(pidfile)
+        end
       end
 
       # Stores a PID file on the filesystem.
@@ -191,7 +192,12 @@ module Merb
       
       def store_details(port = nil, type = port ? "pid" : "gid")
         file = pid_file(port || type)
-        FileUtils.mkdir_p(File.dirname(file)) #unless File.directory?(File.dirname(pidfile))
+        begin
+          FileUtils.mkdir_p(File.dirname(file))
+        rescue Errno::EACCES => e
+          Merb.fatal! "You tried to store Merb logs in #{File.dirname(file)}, " \
+            "but you did not have access.", e
+        end
         Merb.logger.warn! "Storing #{type} file to #{file}..." if Merb::Config[:verbose]
         File.open(file, 'w'){ |f| f.write(Process.pid.to_s) }        
       end
@@ -241,11 +247,25 @@ module Merb
       # If group is left out, the user will be used as the group.
       def _change_privilege(user, group=user)
 
-        puts "Changing privileges to #{user}:#{group}"
+        Merb.logger.warn! "Changing privileges to #{user}:#{group}"
 
         uid, gid = Process.euid, Process.egid
-        target_uid = Etc.getpwnam(user).uid
-        target_gid = Etc.getgrnam(group).gid
+        
+        begin
+          target_uid = Etc.getpwnam(user).uid
+        rescue ArgumentError => e
+          Merb.fatal!(
+            "You tried to use user #{user}, but no such user was found", e)
+          return false
+        end
+        
+        begin
+          target_gid = Etc.getgrnam(group).gid
+        rescue ArgumentError => e
+          Merb.fatal!(
+            "You tried to use group #{group}, but no such group was found", e)
+          return false
+        end
 
         if uid != target_uid || gid != target_gid
           # Change process ownership
@@ -253,8 +273,10 @@ module Merb
           Process::GID.change_privilege(target_gid)
           Process::UID.change_privilege(target_uid)
         end
+        true
       rescue Errno::EPERM => e
-        puts "Couldn't change user and group to #{user}:#{group}: #{e}"
+        Merb.fatal! "Couldn't change user and group to #{user}:#{group}", e
+        false
       end
 
       def add_irb_trap

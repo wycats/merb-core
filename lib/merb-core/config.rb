@@ -304,7 +304,11 @@ module Merb
         end
 
         # Parse what we have on the command line
-        opts.parse!(argv)
+        begin
+          opts.parse!(argv)
+        rescue OptionParser::InvalidOption => e
+          Merb.fatal! e.message, e
+        end
         Merb::Config.setup(options)
       end
 
