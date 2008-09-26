@@ -81,28 +81,18 @@ Rake::GemPackageTask.new(spec) do |package|
 end
 
 desc "Run :package and install the resulting .gem"
-task :install => [:clean, :package] do
-  sh install_command(GEM_NAME, GEM_VERSION)
+task :install => :clean do
+  Merb::RakeHelper.install(GEM_NAME, :version => GEM_VERSION)
 end
 
 desc "Install Merb with development dependencies"
-task :dev_install => [:clean, :package] do
-  sh dev_install_command(GEM_NAME, GEM_VERSION)  
-end
-
-desc "Run :package and install the resulting .gem with jruby"
-task :jinstall => [:clean, :package] do
-  sh jinstall_command(GEM_NAME, GEM_VERSION)
-end
-
-desc "Run :package and install the resulting .gem with jruby (development dependencies)"
-task :jinstall => [:clean, :package] do
-  sh dev_jinstall_command(GEM_NAME, GEM_VERSION)
+task :dev_install => :clean do
+  Merb::RakeHelper.install(GEM_NAME, :version => GEM_VERSION, :development => true)
 end
 
 desc "Run :clean and uninstall the .gem"
 task :uninstall => :clean do
-  sh uninstall_command(GEM_NAME)
+  Merb::RakeHelper.uninstall(GEM_NAME, :version => GEM_VERSION)
 end
 
 CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "lib/*.so", "*.gem", "doc/rdoc", ".config", "coverage", "cache", "spec/**/*.log"]
@@ -235,9 +225,9 @@ end
 setup_specs("mri", "spec")
 setup_specs("jruby", "jruby -S spec")
 
-task "specs" => ["dev_install", "specs:mri"]
-task "specs:private" => ["dev_install", "specs:mri:private"]
-task "specs:public" => ["dev_install", "specs:mri:public"]
+task "specs"          => ["specs:mri"]
+task "specs:private"  => ["specs:mri:private"]
+task "specs:public"   => ["specs:mri:public"]
 
 desc "Run coverage suite"
 task :rcov do
@@ -294,7 +284,7 @@ task :check_syntax do
 end
 
 ##############################################################################
-# SVN
+# Git and SVN
 ##############################################################################
 namespace :repo do
 
