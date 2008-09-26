@@ -193,7 +193,8 @@ rescue LoadError
   require 'rubygems'
 end
 
-if File.directory?(gems_dir = File.join(Dir.pwd, 'gems'))
+if File.directory?(gems_dir = File.join(Dir.pwd, 'gems')) ||
+   File.directory?(gems_dir = File.join(File.dirname(__FILE__), '..', 'gems'))
   $BUNDLE = true; Gem.clear_paths; Gem.path.unshift(gems_dir)
 end
 
