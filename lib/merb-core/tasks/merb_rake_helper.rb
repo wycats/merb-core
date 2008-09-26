@@ -1,3 +1,27 @@
+require File.join(File.dirname(__FILE__), 'gem_management')
+
+module Merb
+  module RakeHelper
+    
+    extend GemManagement
+    
+    def self.install(name, options = {})
+      defaults = { :cache => false }
+      defaults[:install_dir] = ENV['GEM_DIR'] if ENV['GEM_DIR']
+      opts = defaults.merge(options)
+      install_gem_from_src(Dir.pwd, opts)
+      ensure_bin_wrapper_for(opts[:install_dir] || Gem.default_dir, Gem.bindir, name)
+    end
+    
+    def self.uninstall(name, options = {})
+      defaults = { :ignore => true, :executables => true }
+      defaults[:install_dir] = ENV['GEM_DIR'] if ENV['GEM_DIR']
+      uninstall_gem(name, defaults.merge(options))
+    end
+    
+  end
+end
+
 def sudo
   ENV['MERB_SUDO'] ||= "sudo"
   sudo = windows? ? "" : ENV['MERB_SUDO']
