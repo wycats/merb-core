@@ -95,6 +95,13 @@ task :uninstall => :clean do
   Merb::RakeHelper.uninstall(GEM_NAME, :version => GEM_VERSION)
 end
 
+desc "Create a gemspec file"
+task :gemspec do
+  File.open("#{GEM_NAME}.gemspec", "w") do |file|
+    file.puts spec.to_ruby
+  end
+end
+
 CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "lib/*.so", "*.gem", "doc/rdoc", ".config", "coverage", "cache", "spec/**/*.log"]
 
 desc "Run the specs."
