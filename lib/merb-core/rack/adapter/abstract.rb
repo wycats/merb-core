@@ -66,7 +66,13 @@ module Merb
                   # (we send back a status of 128 when ABRT is called on a 
                   # child, and Merb.fatal! exits with a status of 1), or if
                   # Merb is in the process of exiting, *then* don't respawn.
-                  Thread.exit if !status || status.exitstatus != 0 || Merb.exiting
+                  # Note that processes killed with kill -9 will return no
+                  # exitstatus, and we respawn them.
+                  if !status || 
+                    (status.exitstatus && status.exitstatus != 0) || 
+                    Merb.exiting then
+                    Thread.exit
+                  end
                 end
               
                 # Otherwise, respawn the worker, and watch it again.
