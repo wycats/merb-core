@@ -392,12 +392,16 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb::Controller.send :include, Merb::GlobalHelpers
     end
     
+    # Wait for any children to exit, remove the "main" PID, and
+    # exit.
     def exit_gracefully
       Process.waitall
       Merb::Server.remove_pid("main")
       exit
     end
     
+    # If using fork-based code reloading, set up the BEGIN
+    # point and set up any signals in the parent and child.
     def start_transaction
       Merb.logger.warn! "Parent pid: #{Process.pid}"
       reader, writer = nil, nil
@@ -421,7 +425,10 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         else
           trap("INT") do 
             Merb.logger.warn! "Killing children"
-            Process.kill("ABRT", pid)
+            begin
+              Process.kill("ABRT", pid)
+            rescue SystemCallError
+            end
             exit_gracefully
           end
         end
@@ -465,6 +472,14 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
     end
     
+    # Kill any children of the spawner process and exit with
+    # an appropriate status code.
+    #
+    # Note that exiting the spawner process with a status code
+    # of 128 when a master process exists will cause the
+    # spawner process to be recreated, and the app code reloaded.
+    #
+    # @param status<Integer> The status code to exit with
     def kill_children(status = 0)
       Merb.exiting = true unless status == 128
       
@@ -491,10 +506,27 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to load.
     def load_file(file)
-      klasses = ObjectSpace.classes.dup
-      load file
-      LOADED_CLASSES[file] = ObjectSpace.classes - klasses
-      MTIMES[file] = File.mtime(file)
+      # Don't do this expensive operation unless we need to
+      unless Merb::Config[:fork_for_class_load]
+        klasses = ObjectSpace.classes.dup
+      end
+      
+      # Ignore the file for syntax errors. The next time
+      # the file is changed, it'll be reloaded again
+      begin
+        load file
+      rescue SyntaxError
+        return
+      ensure
+        if Merb::Config[:reload_classes]
+          MTIMES[file] = File.mtime(file)
+        end
+      end
+      
+      # Don't do this expensive operation unless we need to
+      unless Merb::Config[:fork_for_class_load]
+        LOADED_CLASSES[file] = ObjectSpace.classes - klasses
+      end
     end
     
     # Load classes from given paths - using path/glob pattern.
@@ -518,7 +550,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to reload.
     def reload(file)
-      if Merb::Config[:fork_for_class_load]
+      if !Merb::Config[:fork_for_class_load]
         remove_classes_in_file(file) { |f| load_file(f) }
       else
         kill_children(128)

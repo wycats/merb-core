@@ -2,17 +2,19 @@ module Merb
   module Rack
     class AbstractAdapter
     
+      # Spawn a new worker process at a port.
       def self.spawn_worker(port)
-        pid = Kernel.fork
-        start_at_port(port, @opts) unless pid
+        child_pid = Kernel.fork
+        start_at_port(port, @opts) unless child_pid
 
-        # pid means we're in the parent, which means continue the loop
-        throw(:new_worker) unless pid
+        # If we have a child_pid, we're in the parent. If we're
+        throw(:new_worker) unless child_pid
         
-        @pids[port] = pid
+        @pids[port] = child_pid
         $CHILDREN = @pids.values
       end
     
+      # The main start method for bootloaders that support forking.
       def self.start(opts={})
         @opts = opts
         $CHILDREN ||= []
@@ -24,6 +26,8 @@ module Merb
         
         Merb.logger.warn! "Cluster: #{max_port}"
         
+        # If we only have a single merb, just start it up and dispense with
+        # the spawner/worker setup.
         if max_port == 0
           start_at_port(port)
           return
@@ -31,34 +35,49 @@ module Merb
         
         $0 = "merb: spawner"
 
+        # For each port, spawn a new worker. The parent will continue in
+        # the loop, while the child will throw :new_worker and be booted
+        # out of the loop.
         catch(:new_worker) do
           0.upto(max_port) do |i|
             parent = spawn_worker(port + i)
           end
         end
 
-        # pid means we're in the parent, so start watching the children
-        # no pid means we're in a child, so just move on
+        # If we're in a worker, we're done. Otherwise, we've completed
+        # setting up workers and now need to watch them.
         return unless parent
 
+        # For each worker, set up a thread in the spawner to watch it
         0.upto(max_port) do |i|
           Thread.new do
             catch(:new_worker) do
               loop do
                 pid = @pids[port + i]
                 begin
+                  # Watch for the pid to exit.
                   _, status = Process.wait2(pid)
+                
+                # If the pid doesn't exist, we want to silently exit instead of
+                # raising here.
                 rescue SystemCallError => e
                 ensure
+                  # If there was no worker with that PID, the status was non-0
+                  # (we send back a status of 128 when ABRT is called on a 
+                  # child, and Merb.fatal! exits with a status of 1), or if
+                  # Merb is in the process of exiting, *then* don't respawn.
                   Thread.exit if !status || status.exitstatus != 0 || Merb.exiting
                 end
               
+                # Otherwise, respawn the worker, and watch it again.
                 spawn_worker(port + i)
               end
             end
           end
         end
 
+        # The spawner process will make it here, and when it does, it should just 
+        # sleep so it can pick up ctrl-c if it's in console mode.
         sleep
         
       end
@@ -68,37 +87,56 @@ module Merb
           Merb::Server.remove_pid(port)
         end
         
+        # If Merb is daemonized, trap INT. If it's not daemonized,
+        # we let the master process' ctrl-c control the cluster
+        # of workers.
         if Merb::Config[:daemonize]
           trap('INT') do
             stop
             Merb.logger.warn! "Exiting port #{port}\n"
             exit_process
           end
+        # If it was not fork_for_class_load, we already set up
+        # ctrl-c handlers in the master thread.
         elsif Merb::Config[:fork_for_class_load]
           trap('INT') { 1 }
         end
         
+        # In daemonized mode or not, support HUPing the process to
+        # restart it.
         trap('HUP') do
           stop
           Merb.logger.warn! "Exiting port #{port} on #{Process.pid}\n"
           exit_process
         end
         
+        # ABRTing the process will kill it, and it will not be respawned.
         trap('ABRT') do
           stopped = stop(128)
           Merb.logger.warn! "Exiting port #{port}\n" if stopped
           exit_process(128)
         end
         
+        # Each worker gets its own `ps' name.
         $0 = "merb: worker (port #{port})"
         
+        # Store the PID for this worker
         Merb::Server.store_pid(port)
-        Merb.logger = Merb::Logger.new(Merb.log_file(port), Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush])
+        
+        # Set up the logger for this worker to point to its process.
+        Merb.logger = Merb::Logger.new(Merb.log_file(port), 
+          Merb::Config[:log_level], Merb::Config[:log_delimiter], 
+          Merb::Config[:log_auto_flush])
+          
         Merb.logger.warn!("Starting #{self.name.split("::").last} at port #{port}")
         
+        # If we can't connect to the port, keep trying until we can. Print
+        # a warning about this once. Try every 0.25s.
         printed_warning = false
         loop do
           begin
+            # Call the adapter's new_server method, which should attempt
+            # to bind to a port.
             new_server(port)
           rescue Errno::EADDRINUSE
             unless printed_warning
@@ -117,9 +155,11 @@ module Merb
         
         Merb::Server.change_privilege
         
+        # Call the adapter's start_server method.
         start_server
       end
       
+      # This can be overridden in adapters, but shouldn't need to be.
       def self.exit_process(status = 0)
         exit(status)
       end
