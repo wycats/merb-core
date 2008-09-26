@@ -103,6 +103,12 @@ module Merb
       #   Configuration settings to use. These are merged with the defaults.
       def setup(settings = {})
         @configuration = defaults.merge(settings)
+        
+        unless @configuration[:reload_classes]
+          @configuration[:fork_for_class_load] = false
+        end
+        
+        @configuration
       end
 
       # Parses the command line arguments and stores them in the config.
