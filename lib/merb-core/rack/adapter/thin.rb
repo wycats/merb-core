@@ -30,7 +30,10 @@ module Merb
       end
       
       def self.stop(status = 0)
-        @server.stop
+        if @server
+          @server.stop
+          true
+        end
       end
     end
   end
