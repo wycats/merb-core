@@ -8,7 +8,12 @@ module Merb
 
       def self.stop(status = 0)
         if @server
-          @server.stop(true)
+          begin
+            @server.stop(true)
+          rescue Mongrel::TimeoutError
+            Merb.logger.fatal! "Your process took too long to shut " \
+              "down, so mongrel killed it."
+          end
           true
         end
       end
