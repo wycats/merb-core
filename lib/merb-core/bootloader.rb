@@ -369,8 +369,16 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
 
       @ran = true
+      $0 = "merb: master"
       
-      start_transaction
+      if Merb::Config[:fork_for_class_load]
+        start_transaction
+      else
+        trap('INT') do 
+          Merb.logger.warn! "Killing children"
+          kill_children
+        end
+      end
 
       # Load application file if it exists - for flat applications
       load_file Merb.dir_for(:application) if File.file?(Merb.dir_for(:application))
@@ -397,9 +405,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       if GC.respond_to?(:copy_on_write_friendly=)
         GC.copy_on_write_friendly = true
       end      
-      
-      $0 = "merb: master"
-      
+            
       loop do
         reader, @writer = IO.pipe
         pid = Kernel.fork
@@ -463,7 +469,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb.exiting = true unless status == 128
       
       begin
-        @writer.puts(status.to_s)
+        @writer.puts(status.to_s) if @writer
       rescue SystemCallError
       end
       
@@ -512,7 +518,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to reload.
     def reload(file)
-      if RUBY_PLATFORM == "java" || RUBY_PLATFORM == "windows"
+      if Merb::Config[:fork_for_class_load]
         remove_classes_in_file(file) { |f| load_file(f) }
       else
         kill_children(128)
