@@ -10,7 +10,10 @@ module Merb
       defaults[:install_dir] = ENV['GEM_DIR'] if ENV['GEM_DIR']
       opts = defaults.merge(options)
       install_gem_from_src(Dir.pwd, opts)
-      ensure_bin_wrapper_for(opts[:install_dir] || Gem.default_dir, Gem.bindir, name)
+      gemdir = opts[:install_dir] || Gem.default_dir
+      bindir = File.expand_path(File.join(gemdir, '..', 'bin'))
+      bindir = Gem.bindir unless File.directory?(bindir)
+      ensure_bin_wrapper_for(gemdir, bindir, name)
     end
     
     def self.uninstall(name, options = {})

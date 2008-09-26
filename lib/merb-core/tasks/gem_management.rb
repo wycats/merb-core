@@ -103,7 +103,9 @@ module GemManagement
     else
       # Clean and regenerate any subgems for meta gems.
       Dir[File.join(gem_src_dir, '*', 'Rakefile')].each do |rakefile|
-        FileUtils.cd(File.dirname(rakefile)) { system("#{rake} clobber_package; #{rake} package") }
+        FileUtils.cd(File.dirname(rakefile)) do 
+          system("#{rake} clobber_package; #{rake} package")
+        end
       end
 
       # Handle the main gem install.
@@ -113,9 +115,9 @@ module GemManagement
         # Create the main gem pkg dir if it doesn't exist.
         FileUtils.mkdir_p(gem_pkg_dir) unless File.directory?(gem_pkg_dir)
         # Copy any subgems to the main gem pkg dir.
-        Dir[File.join(gem_src_dir, '**', 'pkg', '*.gem')].each do |subgem_pkg|
+        Dir[File.join(gem_src_dir, '*', 'pkg', '*.gem')].each do |subgem_pkg|
           dest = File.join(gem_pkg_dir, File.basename(subgem_pkg))
-          FileUtils.copy_entry(subgem_pkg, dest, false, false, true)
+          FileUtils.copy_entry(subgem_pkg, dest, true, false, true)          
         end
 
         # Finally generate the main package and install it; subgems
