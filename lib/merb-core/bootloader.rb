@@ -6,7 +6,8 @@ module Merb
     #---
     # @semipublic
     cattr_accessor :subclasses, :after_load_callbacks, :before_load_callbacks, :finished
-    self.subclasses, self.after_load_callbacks, self.before_load_callbacks, self.finished = [], [], [], []
+    self.subclasses, self.after_load_callbacks, 
+      self.before_load_callbacks, self.finished = [], [], [], []
 
     class << self
 
@@ -144,13 +145,15 @@ class Merb::BootLoader::Logger < Merb::BootLoader
 
   # Sets Merb.logger to a new logger created based on the config settings.
   def self.run
-    Merb.logger = Merb::Logger.new(Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush])
+    Merb.logger = Merb::Logger.new(Merb.log_file, Merb::Config[:log_level], 
+      Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush])
     print_warnings
   end
   
   def self.print_warnings
     if Gem::Version.new(Gem::RubyGemsVersion) < Gem::Version.new("1.1")
-      Merb.logger.warn! "Merb requires Rubygems 1.1 and later. Please upgrade RubyGems with gem update --system."
+      Merb.fatal! "Merb requires Rubygems 1.1 and later. " \
+        "Please upgrade RubyGems with gem update --system."
     end
   end
 end
@@ -429,6 +432,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
           end
           if select(reader_ary, nil, nil, 0.25)
             begin
+              next if reader.eof?
               msg = reader.readline
               if msg =~ /128/
                 break
@@ -598,10 +602,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         if klasses.size == size_at_start && klasses.size != 0
           # Write all remaining failed classes and their exceptions to the log
           messages = error_map.only(*failed_classes).map do |klass, e|
-            ["Could not load #{klass}:\n\n#{e.message} - (#{e.class})", "#{(e.backtrace || []).join("\n")}"]
+            ["Could not load #{klass}:\n\n#{e.message} - (#{e.class})", 
+              "#{(e.backtrace || []).join("\n")}"]
           end
           messages.each { |msg, trace| Merb.logger.fatal!("#{msg}\n\n#{trace}") }
-          raise LoadError, "#{messages[0][0]} (see log for details)"
+          Merb.fatal! "#{failed_classes.join(", ")} failed to load."
         end
         break if(klasses.size == size_at_start || klasses.size == 0)
       end

@@ -16,7 +16,7 @@ module Merb
         @th.join
       end
       
-      def self.stop
+      def self.stop(status = 0)
         ::Ebb.stop_server
       end
     end

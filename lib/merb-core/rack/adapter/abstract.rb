@@ -38,7 +38,7 @@ module Merb
                 _, status = Process.wait2(pid)
               rescue SystemCallError
               ensure
-                Thread.exit if !status || status.exitstatus == 128 || Merb.exiting
+                Thread.exit if !status || status.exitstatus != 0 || Merb.exiting
               end
               
               new_pid = Kernel.fork
@@ -50,7 +50,7 @@ module Merb
           end
         end
 
-        sleep
+        Process.waitall
         
       end
       
@@ -71,8 +71,8 @@ module Merb
         end
         
         trap('ABRT') do
-          stop(128)
-          Merb.logger.warn! "Exiting port #{port}\n"
+          stopped = stop(128)
+          Merb.logger.warn! "Exiting port #{port}\n" if stopped
           exit_process(128)
         end
         
@@ -82,10 +82,17 @@ module Merb
         Merb.logger = Merb::Logger.new(Merb.log_file(port), Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush])
         Merb.logger.warn!("Starting #{self.name.split("::").last} at port #{port}")
         
+        printed_warning = false
         loop do
           begin
             new_server(port)
           rescue Errno::EADDRINUSE
+            unless printed_warning
+              Merb.logger.warn! "Couldn't bind to port #{port}."
+              Merb.logger.warn! "Waiting for it to become available"
+              printed_warning = true
+            end
+            
             sleep 0.25
             next
           end
@@ -95,6 +102,7 @@ module Merb
         Merb.logger.warn! "Successfully bound to port #{port}"
         
         Merb::Server.change_privilege
+        
         start_server
       end
       

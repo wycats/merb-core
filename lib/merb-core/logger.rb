@@ -1,4 +1,15 @@
-Merb::Logger = Extlib::Logger
+# Merb::Logger = Extlib::Logger
+
+class Merb::Logger < Extlib::Logger
+  def verbose!(message, level = :warn)
+    send("#{level}!", message) if Merb::Config[:verbose]
+  end
+
+  def verbose(message, level = :warn)
+    send(level, message) if Merb::Config[:verbose]
+  end
+end
+
 # require "time" # httpdate
 # # ==== Public Merb Logger API
 # #
