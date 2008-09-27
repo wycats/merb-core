@@ -169,7 +169,7 @@ namespace :doc do
 
   desc "rdoc to rubyforge"
   task :rubyforge do
-    sh %{#{sudo} chmod -R 755 doc} unless windows?
+    sh %{#{Merb::RakeHelper.sudo} chmod -R 755 doc} unless Merb::RakeHelper.windows?
     sh %{/usr/bin/scp -r -p doc/rdoc/* ezmobius@rubyforge.org:/var/www/gforge-projects/merb}
   end
 
