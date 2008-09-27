@@ -260,6 +260,7 @@ module Merb
                   "merb proceses by port number.  Use merb -K all to " \
                   "gracefully kill all merbs.") do |ports|
             options[:action] = :kill
+            ports = "main" if ports == "all"
             options[:port] = ports
           end
 
@@ -267,6 +268,7 @@ module Merb
                   "by port number. This will cause the worker to" \
                   "be respawned. If you want to kill ") do |port|
             options[:action] = :kill_9
+            port = "main" if port == "all"
             options[:port] = port
           end
 
