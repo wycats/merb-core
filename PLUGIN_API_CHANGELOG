@@ -1,3 +1,8 @@
+9/27/2008:
+* The Plugin and Slice Rakefile templates have been updated to use merb-core's
+  Merb::RakeHelper. Be sure to regenerate/manually update your Rakefile to
+  use this. The old helper methods 'sudo' and 'windows?' have been removed.
+
 8/20/2008:
 * Plugins that implement custom session stores should now conform to the base
   class Merb::SessionStore and implement the stub methods defined there.
