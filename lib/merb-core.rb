@@ -300,8 +300,8 @@ module Merb
         else
           FileUtils.mkdir_p(File.dirname(log))
           stream = File.open(log, (File::WRONLY | File::APPEND | File::CREAT))
-          stream.write("#{Time.now.httpdate} #{delimiter} " \
-            "info #{delimiter} Logfile created\n")
+          stream.write("#{Time.now.httpdate} #{Merb::Config[:log_delimiter]} " \
+            "info #{Merb::Config[:log_delimiter]} Logfile created\n")
         end
         stream.sync = true
         stream
