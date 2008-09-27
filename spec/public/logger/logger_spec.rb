@@ -31,149 +31,164 @@ describe Merb::Logger do
   describe "#set_log" do
 
     before(:each) do
-      @logger = Merb::Logger.new(Merb.log_file)
+      # @logger = Merb::Logger.new(Merb.log_file)
     end
 
     it "should set the log level to :warn (4) when second parameter is :warn" do
-      Merb::Logger.new(Merb.log_file, :warn).level.should eql(4)
+      Merb::Config[:log_level] = :warn
+      Merb.logger = nil
+      Merb.logger.level.should == 4
     end
 
     it "should set the log level to :debug (0) when Merb.environment is development" do
-      Merb.should_receive(:environment).and_return("development")
-      @logger.set_log(Merb.log_path / "development.log")
-      @logger.level.should eql(0)
+      Merb.environment = "development"
+      Merb::Config.delete(:log_level)
+      Merb.logger = nil
+      Merb::BootLoader::Logger.run
+      Merb.logger.level.should == 0
     end
     
     it "should set the log level to :error (6) when Merb.environment is production" do
-      Merb.should_receive(:environment).and_return("production")
-      @logger.set_log(Merb.log_path / "production.log")
-      @logger.level.should eql(4)
+      Merb.environment = "production"
+      Merb::Config.delete(:log_level)
+      Merb.logger = nil
+      Merb::BootLoader::Logger.run
+      Merb.logger.level.should == 4
     end
     
-    it "should initialize the buffer to an empty array" do
-      @logger.buffer.should eql([])
-    end
-
     it "should default the delimiter to ' ~ '" do
-      @logger.delimiter.should eql(" ~ ")
-    end
-    
-    it "should assign the newly created object to Merb.logger" do
-      @logger = Merb::Logger.new(Merb.log_file)
-      Merb.logger.should eql(@logger)
-    end
+      Merb.logger.delimiter.should eql(" ~ ")
+    end    
     
   end
   
   describe "#flush" do
 
-    before(:each) do
-      @logger = Merb::Logger.new(Merb.log_file)
-    end
-    
     it "should immediately return if the buffer is empty" do
-      @logger.should_not_receive(:write)
-      @logger.flush
+      Merb::Config[:log_stream] = StringIO.new
+      Merb.logger = nil
+      
+      Merb.logger.flush
+      Merb::Config[:log_stream].string.should == ""
     end
 
     it "should call the write_method with the stringified contents of the buffer if the buffer is non-empty" do
-      @logger.send(:<<, "a message")
-      @logger.send(:<<, "another message")
-      @logger.log.should_receive(:write).with(" ~ a message\n ~ another message\n")
-      @logger.flush
+      Merb::Config[:log_stream] = StringIO.new
+      Merb.logger = nil
+      
+      Merb.logger << "a message"
+      Merb.logger << "another message"
+      Merb.logger.flush
+      
+      Merb::Config[:log_stream].string.should == " ~ a message\n ~ another message\n"
     end
 
   end
   
-  describe "#close" do
-    before(:each) do
-      @logger = Merb::Logger.new(Merb.log_file)
-    end
-
-    it "should flush the buffer before closing" do
-      # TODO: how to specify order? eg. flush then close
-      @logger.should_receive(:flush)
-      @logger.log.should_receive(:close)
-      @logger.close
-    end
-
-    it "should call the close method if the log responds to close" do
-      @logger.log.should_receive(:close)
-      @logger.close
-    end
-
-    it "shouldn't call the close method if the log is a terminal" do
-      @logger.log.should_receive(:tty?).and_return(true)
-      @logger.log.should_not_receive(:close)
-      @logger.close
-    end
-
-    it "should set the stored log attribute to nil" do
-      @logger.close
-      @logger.log.should eql(nil)
-    end
-
-  end
-
-  describe "<<" do
-    
-  end
+  # There were close specs here, but the logger isn't an IO anymore, and
+  # shares a stream with other loggers, so it shouldn't be closing the
+  # stream.
 
   describe "level methods" do
 
-    before(:all) do
-      @logger = Merb::Logger.new(Merb.log_file)
+    def set_level(level)
+      Merb::Config[:log_level] = level
+      Merb.logger = nil
     end
 
-    it "should provide a #debug method which can be used to log" do
-      @logger.should respond_to(:debug)
-      @logger.should_receive(:<<).with("message").and_return(true)
-      @logger.debug("message")
+    before(:each) do
+      @stream = Merb::Config[:log_stream] = StringIO.new
     end
 
-    it "should provide a #info method which can be used to log" do
-      @logger.should respond_to(:info)
-      @logger.should_receive(:<<).with("message").and_return(true)
-      @logger.info("message")
+    it "should provide a #debug method which adds to the buffer in level :debug" do
+      set_level(:debug)
+      Merb.logger.debug("message")
+      Merb.logger.flush
+      @stream.string.should == " ~ message\n"
     end
 
-    it "should provide a #warn method which can be used to log" do
-      @logger.should respond_to(:warn)
-      @logger.should_receive(:<<).with("message").and_return(true)
-      @logger.warn("message")
+    it "should provide a #debug method which does not add to the buffer " \
+      "in level :info or higher" do
+      set_level(:info)
+      Merb.logger.debug("message")
+      Merb.logger.flush
+      @stream.string.should == ""
+    end
+    
+    it "should provide an #info method which adds to the buffer in " \
+      "level :info or below" do
+      set_level(:info)
+      Merb.logger.info("message")
+      Merb.logger.flush
+      @stream.string.should == " ~ message\n"
     end
 
-    it "should provide a #error method which can be used to log" do
-      @logger.should respond_to(:error)
-      @logger.should_receive(:<<).with("message").and_return(true)
-      @logger.error("message")
+    it "should provide a #info method which does not add to the buffer " \
+      "in level :warn or higher" do
+      set_level(:warn)
+      Merb.logger.info("message")
+      Merb.logger.flush
+      @stream.string.should == ""
     end
 
-    it "should provide a #fatal method which can be used to log" do
-      @logger.should respond_to(:fatal)
-      @logger.should_receive(:<<).with("message").and_return(true)
-      @logger.fatal("message")
+    it "should provide a #warn method which adds to the buffer in " \
+      "level :warn or below" do
+      set_level(:warn)
+      Merb.logger.warn("message")
+      Merb.logger.flush
+      @stream.string.should == " ~ message\n"
+    end
+
+    it "should provide a #warn method which does not add to the buffer " \
+      "in level :error or higher" do
+      set_level(:error)
+      Merb.logger.warn("message")
+      Merb.logger.flush
+      @stream.string.should == ""
+    end
+
+    it "should provide a #error method which adds to the buffer in " \
+      "level :error or below" do
+      set_level(:error)
+      Merb.logger.error("message")
+      Merb.logger.flush
+      @stream.string.should == " ~ message\n"
+    end
+
+    it "should provide a #error method which does not add to the buffer " \
+      "in level :fatal or higher" do
+      set_level(:fatal)
+      Merb.logger.error("message")
+      Merb.logger.flush
+      @stream.string.should == ""
+    end
+
+    it "should provide a #fatal method which always logs" do
+      set_level(:fatal)
+      Merb.logger.fatal("message")
+      Merb.logger.flush
+      @stream.string.should == " ~ message\n"
     end
     
     # TODO: add positive and negative tests for each of the methods below:
     it "should provide a #debug? method" do
-      @logger.should respond_to(:debug?)
+      Merb.logger.should respond_to(:debug?)
     end
 
     it "should provide a #info? method" do
-      @logger.should respond_to(:info?)
+      Merb.logger.should respond_to(:info?)
     end
 
     it "should provide a #warn? method" do
-      @logger.should respond_to(:warn?)
+      Merb.logger.should respond_to(:warn?)
     end
 
     it "should provide a #error? method" do
-      @logger.should respond_to(:error?)
+      Merb.logger.should respond_to(:error?)
     end
 
     it "should provide a #fatal? method" do
-      @logger.should respond_to(:fatal?)
+      Merb.logger.should respond_to(:fatal?)
     end
 
   end
