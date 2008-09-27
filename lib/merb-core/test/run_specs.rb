@@ -41,7 +41,7 @@ module Merb
         STDOUT.flush
         match = out.match(/(\d+) examples?, (\d+) failures?(?:, (\d+) errors?)?(?:, (\d+) pending?)?/m)
         time = out.match(/Finished in (\d+\.\d+) seconds/)
-        @total_time += time[1].to_f
+        @total_time += time[1].to_f if time
         if match
           e, f, errors, pending = match[1..-1]
           @examples += e.to_i

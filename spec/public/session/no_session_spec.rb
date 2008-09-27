@@ -1,4 +1,6 @@
-require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
+require File.join(File.dirname(__FILE__), "spec_helper")
+startup_merb
+
 require File.join(File.dirname(__FILE__), "controllers", "sessions")
 
 describe "An app without sessions enabled" do

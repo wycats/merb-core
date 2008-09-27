@@ -101,4 +101,3 @@
 #     MockTimedExecutor.run_task
 #   end
 # end
->>>>>>> forking_bootloader:spec/public/reloading/reload_spec.rb

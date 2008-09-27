@@ -12,7 +12,7 @@
 # * path<String>:: the full path to the template being compiled
 # * name<String>:: the name of the method that will be inlined
 # * mod<Module>:: the module that the method will be inlined into
-require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "spec_helper"))
 
 # A small structure to hold the templates so we can test the templating system in isolation
 # from the framework

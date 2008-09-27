@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "spec_helper"))
 
 class Monkey ; def to_param ; 45 ; end ; end
 class Donkey ; def to_param ; 19 ; end ; end

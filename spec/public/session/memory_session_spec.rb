@@ -1,6 +1,5 @@
-$START_OPTIONS = { :session_store => "memory" }
-
-require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
+require File.join(File.dirname(__FILE__), "spec_helper")
+startup_merb(:session_store => "memory")
 require File.join(File.dirname(__FILE__), "session_spec")
 require File.join(File.dirname(__FILE__), "controllers", "sessions")
 

@@ -1,4 +1,5 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
+startup_merb
 
 describe Merb::AbstractController, " displaying objects with templates" do
 
