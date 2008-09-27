@@ -14,6 +14,7 @@ module Merb
           :port                   => "4000",
           :adapter                => "runner",
           :reload_classes         => true,
+          :fork_for_class_load    => !RUBY_PLATFORM.in?("windows", "java"),
           :environment            => "development",
           :merb_root              => Dir.pwd,
           :use_mutex              => true,
@@ -102,6 +103,12 @@ module Merb
       #   Configuration settings to use. These are merged with the defaults.
       def setup(settings = {})
         @configuration = defaults.merge(settings)
+        
+        unless @configuration[:reload_classes]
+          @configuration[:fork_for_class_load] = false
+        end
+        
+        @configuration
       end
 
       # Parses the command line arguments and stores them in the config.
@@ -122,99 +129,153 @@ module Merb
 
           opts.banner = "Usage: merb [uGdcIpPhmailLerkKX] [argument]"
           opts.define_head "Merb. Pocket rocket web framework"
-          opts.separator '*'*80
-          opts.separator 'If no flags are given, Merb starts in the foreground on port 4000.'
-          opts.separator '*'*80
+          opts.separator '*' * 80
+          opts.separator "If no flags are given, Merb starts in the " \
+            "foreground on port 4000."
+          opts.separator '*' * 80
 
-          opts.on("-u", "--user USER", "This flag is for having merb run as a user other than the one currently logged in. Note: if you set this you must also provide a --group option for it to take effect.") do |user|
+          opts.on("-u", "--user USER", "This flag is for having merb run " \
+                  "as a user other than the one currently logged in. Note: " \
+                  "if you set this you must also provide a --group option " \
+                  "for it to take effect.") do |user|
             options[:user] = user
           end
 
-          opts.on("-G", "--group GROUP", "This flag is for having merb run as a group other than the one currently logged in. Note: if you set this you must also provide a --user option for it to take effect.") do |group|
+          opts.on("-G", "--group GROUP", "This flag is for having merb run " \
+                  "as a group other than the one currently logged in. Note: " \
+                  "if you set this you must also provide a --user option " \
+                  "for it to take effect.") do |group|
             options[:group] = group
           end
 
-          opts.on("-d", "--daemonize", "This will run a single merb in the background.") do |daemon|
+          opts.on("-d", "--daemonize", "This will run a single merb in the " \
+                  "background.") do |daemon|
             options[:daemonize] = true
           end
+          
+          opts.on("-N", "--no-daemonize", "This will allow you to run a " \
+                  "cluster in console mode") do |no_daemon|
+            options[:daemonize] = false
+          end
 
-          opts.on("-c", "--cluster-nodes NUM_MERBS", "Number of merb daemons to run.") do |nodes|
+          opts.on("-c", "--cluster-nodes NUM_MERBS", Integer, 
+                  "Number of merb daemons to run.") do |nodes|
+            options[:daemonize] = true unless options.key?(:daemonize)
             options[:cluster] = nodes
           end
 
-          opts.on("-I", "--init-file FILE", "File to use for initialization on load, defaults to config/init.rb") do |init_file|
+          opts.on("-I", "--init-file FILE", "File to use for initialization " \
+                  "on load, defaults to config/init.rb") do |init_file|
             options[:init_file] = init_file
           end
 
-          opts.on("-p", "--port PORTNUM", "Port to run merb on, defaults to 4000.") do |port|
+          opts.on("-p", "--port PORTNUM", Integer, "Port to run merb on, " \
+                  "defaults to 4000.") do |port|
             options[:port] = port
           end
 
-          opts.on("-o", "--socket-file FILE", "Socket file to run merb on, defaults to [Merb.root]/log/merb.sock") do |port|
+          opts.on("-o", "--socket-file FILE", "Socket file to run merb on, " \
+                  "defaults to [Merb.root]/log/merb.sock. This is for " \
+                  "web servers, like thin, that use sockets.") do |port|
             options[:socket_file] = port
           end
 
-          opts.on("-s", "--socket SOCKNUM", "Socket number to run merb on, defaults to 0.") do |port|
+          opts.on("-s", "--socket SOCKNUM", Integer, "Socket number to run " \
+                  "merb on, defaults to 0.") do |port|
             options[:socket] = port
           end
 
-          opts.on("-P", "--pid PIDFILE", "PID file, defaults to [Merb.root]/log/merb.[port_number].pid") do |pid_file|
+          opts.on("-P", "--pid PIDFILE", "PID file, defaults to " \
+                  "[Merb.root]/log/merb.main.pid for the master process and" \
+                  "[Merb.root]/log/merb.[port number].pid for worker " \
+                  "processes. For clusters, use %s to specify where " \
+                  "in the file merb should place the port number. For " \
+                  "instance: -P myapp.%s.pid") do |pid_file|
             options[:pid_file] = pid_file
           end
 
-          opts.on("-h", "--host HOSTNAME", "Host to bind to (default is 0.0.0.0).") do |host|
+          opts.on("-h", "--host HOSTNAME", "Host to bind to " \
+                  "(default is 0.0.0.0).") do |host|
             options[:host] = host
           end
 
-          opts.on("-m", "--merb-root /path/to/approot", "The path to the Merb.root for the app you want to run (default is current working dir).") do |root|
+          opts.on("-m", "--merb-root /path/to/approot", "The path to the " \
+                  "Merb.root for the app you want to run " \
+                  "(default is current working directory).") do |root|
             options[:merb_root] = File.expand_path(root)
           end
 
-          opts.on("-a", "--adapter mongrel", "The rack adapter to use to run merb[mongrel, emongrel, thin, ebb, fastcgi, webrick, runner, irb]") do |adapter|
-            options[:adapter] = adapter
+          adapters = [:mongrel, :emongrel, :thin, :ebb, :fastcgi, :webrick]
+
+          opts.on("-a", "--adapter ADAPTER",
+                  "The rack adapter to use to run merb (default is mongrel)" \
+                  "[#{adapters.join(', ')}]") do |adapter|
+            options[:adapter] ||= adapter
           end
 
-          opts.on("-R", "--rackup FILE", "Load an alternate Rack config file (default is config/rack.rb)") do |rackup|
+          opts.on("-R", "--rackup FILE", "Load an alternate Rack config " \
+                  "file (default is config/rack.rb)") do |rackup|
             options[:rackup] = rackup
           end
 
-          opts.on("-i", "--irb-console", "This flag will start merb in irb console mode. All your models and other classes will be available for you in an irb session.") do |console|
+          opts.on("-i", "--irb-console", "This flag will start merb in " \
+                  "irb console mode. All your models and other classes will " \
+                  "be available for you in an irb session.") do |console|
             options[:adapter] = 'irb'
           end
 
-          opts.on("-S", "--sandbox", "This flag will enable a sandboxed irb console. If your ORM supports transactions, all edits will be rolled back on exit.") do |sandbox|
+          opts.on("-S", "--sandbox", "This flag will enable a sandboxed irb " \
+                  "console. If your ORM supports transactions, all edits will " \
+                  "be rolled back on exit.") do |sandbox|
             options[:sandbox] = true
           end
 
-          opts.on("-l", "--log-level LEVEL", "Log levels can be set to any of these options: debug < info < warn < error < fatal") do |log_level|
+          opts.on("-l", "--log-level LEVEL", "Log levels can be set to any of " \
+                  "these options: debug < info < warn < error < " \
+                  "fatal (default is info)") do |log_level|
             options[:log_level] = log_level.to_sym
           end
 
-          opts.on("-L", "--log LOGFILE", "A string representing the logfile to use.") do |log_file|
+          opts.on("-L", "--log LOGFILE", "A string representing the logfile to " \
+                  "use. Defaults to [Merb.root]/log/merb.[main].log for the " \
+                  "master process and [Merb.root]/log/merb[port number].log" \
+                  "for worker processes") do |log_file|
             options[:log_file] = log_file
           end
 
-          opts.on("-e", "--environment STRING", "Run merb in the correct mode(development, production, testing)") do |env|
+          opts.on("-e", "--environment STRING", "Environment to run Merb " \
+                  "under [development, production, testing] " \
+                  "(default is development)") do |env|
             options[:environment] = env
           end
 
           opts.on("-r", "--script-runner ['RUBY CODE'| FULL_SCRIPT_PATH]",
-          "Command-line option to run scripts and/or code in the merb app.") do |code_or_file|
+                  "Command-line option to run scripts and/or code in the " \
+                  "merb app.") do |code_or_file|
             options[:runner_code] = code_or_file
             options[:adapter] = 'runner'
           end
 
-          opts.on("-K", "--graceful PORT or all", "Gracefully kill one merb proceses by port number.  Use merb -K all to gracefully kill all merbs.") do |ports|
+          opts.on("-K", "--graceful PORT or all", "Gracefully kill one " \
+                  "merb proceses by port number.  Use merb -K all to " \
+                  "gracefully kill all merbs.") do |ports|
             options[:action] = :kill
+            ports = "main" if ports == "all"
             options[:port] = ports
           end
 
-          opts.on("-k", "--kill PORT or all", "Kill one merb proceses by port number.  Use merb -k all to kill all merbs.") do |port|
+          opts.on("-k", "--kill PORT", "Force kill one merb worker " \
+                  "by port number. This will cause the worker to" \
+                  "be respawned. If you want to kill ") do |port|
             options[:action] = :kill_9
+            port = "main" if port == "all"
             options[:port] = port
           end
 
-          opts.on("-X", "--mutex on/off", "This flag is for turning the mutex lock on and off.") do |mutex|
+          # @todo Do we really need this flag? It seems unlikely to want to
+          #   change the mutex from the command-line.
+          opts.on("-X", "--mutex on/off", "This flag is for turning the " \
+                  "mutex lock on and off.") do |mutex|
             if mutex == "off"
               options[:use_mutex] = false
             else
@@ -226,10 +287,13 @@ module Merb
             begin
               require "ruby-debug"
               Debugger.start
-              Debugger.settings[:autoeval] = true if Debugger.respond_to?(:settings)
+              if Debugger.respond_to?(:settings)
+                Debugger.settings[:autoeval] = true
+              end
               puts "Debugger enabled"
             rescue LoadError
-              puts "You need to install ruby-debug to run the server in debugging mode. With gems, use 'gem install ruby-debug'"
+              puts "You need to install ruby-debug to run the server in " \
+                "debugging mode. With gems, use `gem install ruby-debug'"
               exit
             end
           end
@@ -249,7 +313,11 @@ module Merb
         end
 
         # Parse what we have on the command line
-        opts.parse!(argv)
+        begin
+          opts.parse!(argv)
+        rescue OptionParser::InvalidOption => e
+          Merb.fatal! e.message, e
+        end
         Merb::Config.setup(options)
       end
 

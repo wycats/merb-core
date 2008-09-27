@@ -36,6 +36,7 @@ module Merb
   module GlobalHelpers; end
   
   class << self
+    attr_accessor :exiting
 
     # Merge environment settings
     # Can allow you to have a "localdev" that runs like your "development"
@@ -93,16 +94,20 @@ module Merb
     # argv<String, Hash>::
     #   The config arguments to start Merb with. Defaults to +ARGV+.
     def start(argv=ARGV)
+      # Hardcode the log stream to STDOUT
+      Merb::Config[:log_stream] = STDOUT
       if Hash === argv
         Merb::Config.setup(argv)
       else
         Merb::Config.parse_args(argv)
       end
+      Merb::Config[:log_stream] = STDOUT
+      
       Merb.environment = Merb::Config[:environment]
       Merb.root = Merb::Config[:merb_root]
       case Merb::Config[:action]
       when :kill
-        Merb::Server.kill(Merb::Config[:port], 1)
+        Merb::Server.kill(Merb::Config[:port], 2)
       when :kill_9
         Merb::Server.kill(Merb::Config[:port], 9)
       else
@@ -263,21 +268,43 @@ module Merb
     end
 
     # Logger settings
-    attr_accessor :logger
+    def logger
+      Thread.current[:merb_logger] ||= Merb::Logger.new
+    end
+
+    def logger=(obj)
+      unless obj
+        Thread.current[:merb_logger] = nil
+      end
+    end
 
     # ==== Returns
     # String::
     #   The path to the log file. If this Merb instance is running as a daemon
     #   this will return +STDOUT+.
-    def log_file
-      if Merb::Config[:log_file]
-        Merb::Config[:log_file]
-      elsif Merb.testing?
-        log_path / "merb_test.log"
-      elsif !(Merb::Config[:daemonize] || Merb::Config[:cluster])
-        STDOUT
-      else
-        log_path / "merb.#{Merb::Config[:port]}.log"
+    def log_stream(port = "main")
+      @streams ||= {}
+      @streams[port] ||= begin
+        log = if Merb.testing?
+          log_path / "merb_test.log"
+        elsif !Merb::Config[:daemonize]
+          STDOUT
+        else
+          log_path / "merb.#{port}.log"
+        end        
+        
+        if log.is_a?(IO)
+          stream = log
+        elsif File.exist?(log)
+          stream = File.open(log, (File::WRONLY | File::APPEND))
+        else
+          FileUtils.mkdir_p(File.dirname(log))
+          stream = File.open(log, (File::WRONLY | File::APPEND | File::CREAT))
+          stream.write("#{Time.now.httpdate} #{Merb::Config[:log_delimiter]} " \
+            "info #{Merb::Config[:log_delimiter]} Logfile created\n")
+        end
+        stream.sync = true
+        stream
       end
     end
 
@@ -334,6 +361,28 @@ module Merb
         yield(r) if block_given?
         r.default_routes
       end
+    end
+    
+    def fatal!(str, e = nil)
+      Merb.logger.fatal!
+      Merb.logger.fatal!("\e[1;31;47mFATAL: #{str}\e[0m")
+      Merb.logger.fatal!
+
+      print_colorized_backtrace(e) if e && Merb::Config[:verbose]
+      exit(1)
+    end
+    
+    def print_colorized_backtrace(e)
+      e.backtrace.map! do |line|
+        line.gsub!(/^#{Merb.framework_root}/, "\e[34mFRAMEWORK_ROOT\e[31m")
+      end
+      
+      Merb.logger.fatal! "\e[34mFRAMEWORK_ROOT\e[0m = #{Merb.framework_root}"
+      Merb.logger.fatal!
+      Merb.logger.fatal! "\e[31m#{e.class}: \e[1;31;47m#{e.message}\e[0m"
+      e.backtrace.each do |line|
+        Merb.logger.fatal! "\e[31m#{line}\e[0m"
+      end      
     end
 
     # Set up default variables under Merb
