@@ -56,12 +56,12 @@ describe Merb::Config do
 
   it "should support -c to set the number of cluster nodes" do
     Merb::Config.parse_args(["-c", "4"])
-    Merb::Config[:cluster].should == "4"
+    Merb::Config[:cluster].should == 4
   end
 
   it "should support -p to set the port number" do
     Merb::Config.parse_args(["-p", "6000"])
-    Merb::Config[:port].should == "6000"
+    Merb::Config[:port].should == 6000
   end
 
   it "should support -o to set the socket filename" do
@@ -76,12 +76,12 @@ describe Merb::Config do
 
   it "should support -s to set the socket number" do
     Merb::Config.parse_args(["-s", "0"])
-    Merb::Config[:socket].should == "0"
+    Merb::Config[:socket].should == 0
   end
 
   it "should support --socket to set the socket number" do
     Merb::Config.parse_args(["--socket", "3"])
-    Merb::Config[:socket].should == "3"
+    Merb::Config[:socket].should == 3
   end
 
   it "should support -P to set the PIDfile" do
@@ -96,7 +96,7 @@ describe Merb::Config do
   end
 
   it "should support setting of PIDfile with cluster nodes" do
-    Merb::Config.parse_args(["-P", "/tmp/merb.pidfile", "-c", "2", "-p", "6000"])
+    Merb::Config.parse_args(["-P", "/tmp/merb.%s.pidfile", "-c", "2", "-p", "6000"])
     Merb::Server.pid_file(6000).should == "/tmp/merb.6000.pidfile"
     Merb::Server.pid_file(6001).should == "/tmp/merb.6001.pidfile"
 
@@ -144,12 +144,12 @@ describe Merb::Config do
   end
 
   it "should support -K for a graceful kill" do
-    Merb::Server.should_receive(:kill).with("all", 1)
+    Merb::Server.should_receive(:kill).with("main", 2)
     Merb.start(["-K", "all"])
   end
 
   it "should support -k for a hard kill" do
-    Merb::Server.should_receive(:kill).with("all", 9)
+    Merb::Server.should_receive(:kill).with("main", 9)
     Merb.start(["-k", "all"])
   end
 

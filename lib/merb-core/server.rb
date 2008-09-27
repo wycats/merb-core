@@ -82,7 +82,7 @@ module Merb
         rescue Errno::EACCES => e
           Merb.fatal! e.message, e
         rescue Errno::ENOENT => e
-          Merb.fatal! "Could not find a PID file at #{pid_file(port)}", e
+          Merb.fatal! "Could not find a PID file at #{pid_file(port)}", e           
         end
         if sig.is_a?(Integer)
           sig = Signal.list.invert[sig]
@@ -236,10 +236,7 @@ module Merb
       def pid_files
         if Merb::Config[:pid_file]
           if Merb::Config[:cluster]
-            ext = File.extname(Merb::Config[:pid_file])
-            base = File.basename(Merb::Config[:pid_file], ext)
-            dir = File.dirname(Merb::Config[:pid_file])
-            Dir[dir / "#{base}.*#{ext}"]
+            Dir[Merb::Config[:pid_file] % "*"]
           else
             [ Merb::Config[:pid_file] ]
           end
