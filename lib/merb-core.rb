@@ -94,12 +94,15 @@ module Merb
     # argv<String, Hash>::
     #   The config arguments to start Merb with. Defaults to +ARGV+.
     def start(argv=ARGV)
-      Merb.logger = Merb::Logger.new(STDOUT, :warn)
+      # Hardcode the log stream to STDOUT
+      Merb::Config[:log_stream] = STDOUT
       if Hash === argv
         Merb::Config.setup(argv)
       else
         Merb::Config.parse_args(argv)
       end
+      Merb::Config[:log_stream] = STDOUT
+      
       Merb.environment = Merb::Config[:environment]
       Merb.root = Merb::Config[:merb_root]
       case Merb::Config[:action]
@@ -265,23 +268,43 @@ module Merb
     end
 
     # Logger settings
-    attr_accessor :logger
+    def logger
+      Thread.current[:merb_logger] ||= Merb::Logger.new
+    end
+
+    def logger=(obj)
+      unless obj
+        Thread.current[:merb_logger] = nil
+      end
+    end
 
     # ==== Returns
     # String::
     #   The path to the log file. If this Merb instance is running as a daemon
     #   this will return +STDOUT+.
-    def log_file(port = nil)
-      # if Merb::Config[:log_file]
-      #   Merb::Config[:log_file]
-      if Merb.testing?
-        log_path / "merb_test.log"
-      elsif !Merb::Config[:daemonize]
-        STDOUT
-      elsif port
-        log_path / "merb.#{port}.log"
-      else
-        log_path / "merb.main.log"
+    def log_stream(port = "main")
+      @streams ||= {}
+      @streams[port] ||= begin
+        log = if Merb.testing?
+          log_path / "merb_test.log"
+        elsif !Merb::Config[:daemonize]
+          STDOUT
+        else
+          log_path / "merb.#{port}.log"
+        end        
+        
+        if log.is_a?(IO)
+          stream = log
+        elsif File.exist?(log)
+          stream = File.open(log, (File::WRONLY | File::APPEND))
+        else
+          FileUtils.mkdir_p(File.dirname(log))
+          stream = File.open(log, (File::WRONLY | File::APPEND | File::CREAT))
+          stream.write("#{Time.now.httpdate} #{delimiter} " \
+            "info #{delimiter} Logfile created\n")
+        end
+        stream.sync = true
+        stream
       end
     end
 

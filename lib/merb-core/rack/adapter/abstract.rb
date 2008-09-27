@@ -128,11 +128,9 @@ module Merb
         
         # Store the PID for this worker
         Merb::Server.store_pid(port)
-        
+
         # Set up the logger for this worker to point to its process.
-        Merb.logger = Merb::Logger.new(Merb.log_file(port), 
-          Merb::Config[:log_level], Merb::Config[:log_delimiter], 
-          Merb::Config[:log_auto_flush])
+        Merb::Config[:log_stream] = Merb.log_stream(port)
           
         Merb.logger.warn!("Starting #{self.name.split("::").last} at port #{port}")
         
