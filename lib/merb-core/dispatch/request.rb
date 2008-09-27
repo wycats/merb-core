@@ -345,7 +345,7 @@ module Merb
     # ==== Returns
     # String:: The full URI, including protocol and host
     def full_uri
-      protocol + host + uri
+      protocol + "://" + host + uri
     end
     
     # ==== Returns
