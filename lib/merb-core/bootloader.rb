@@ -145,8 +145,16 @@ class Merb::BootLoader::Logger < Merb::BootLoader
 
   # Sets Merb.logger to a new logger created based on the config settings.
   def self.run
-    Merb.logger = Merb::Logger.new(Merb.log_file, Merb::Config[:log_level], 
-      Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush])
+    Merb::Config[:log_level] ||= begin
+      if Merb.environment == "production"
+        Merb::Logger::Levels[:warn]
+      else
+        Merb::Logger::Levels[:debug]
+      end          
+    end
+    
+    Merb::Config[:log_stream] = Merb.log_stream
+    
     print_warnings
   end
   
@@ -280,8 +288,9 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
 
   def self.update_logger
-    updated_logger_options = [ Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush] ]
-    Merb::BootLoader::Logger.run if updated_logger_options != Merb.logger.init_args
+    # Clear out the logger so that any changes in init.rb will be
+    # picked up
+    Merb.logger = nil
   end
 
   private
