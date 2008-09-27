@@ -94,7 +94,7 @@ module GemManagement
       if package = Dir[File.join(gem_pkg_dir, "#{gem_name}-*.gem")].last
         FileUtils.cd(File.dirname(package)) do
           install_gem(File.basename(package), options.dup)
-          return
+          return true
         end
       else
         raise Gem::InstallError, "No package found for #{gem_name}"
@@ -133,7 +133,7 @@ module GemManagement
               Dir["*.gem"].each { |gem| install_gem(gem, options.dup) }
             end
           end
-          return
+          return true
         end
       end
     end
