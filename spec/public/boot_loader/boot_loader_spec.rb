@@ -3,6 +3,7 @@
 # However, Merb::BootLoader.subclasses is not considered public API and should not be used in plugins.
 
 require File.join(File.dirname(__FILE__), "spec_helper")
+startup_merb
 
 class Merb::BootLoader::AfterTest < Merb::BootLoader
   after Merb::BootLoader::BeforeAppLoads

@@ -1,8 +1,9 @@
-require 'rubygems'
+require 'minigems'
 require 'benchmark'
 require 'drb'
 require 'spec'
 require 'spec/runner/formatter/base_text_formatter'
+require 'spec/spec_helper.rb'
 
 module Spec
   module Runner

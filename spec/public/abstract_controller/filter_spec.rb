@@ -9,6 +9,8 @@
 # Merb::AbstractController#_dispatch(action<~to_s>)
 
 require File.join(File.dirname(__FILE__), "spec_helper")
+startup_merb
+
 AbstractControllers = Merb::Test::Fixtures::Abstract
 
 describe Merb::AbstractController, " should support before and after filters" do

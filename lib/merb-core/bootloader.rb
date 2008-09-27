@@ -269,8 +269,10 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
 
   def self.enable_json_gem
+    gem "json"
     require "json/ext"
   rescue LoadError
+    gem "json_pure"
     require "json/pure"
   end
 

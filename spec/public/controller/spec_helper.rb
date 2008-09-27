@@ -1,6 +1,7 @@
 __DIR__ = File.dirname(__FILE__)
 
 require File.join(__DIR__, "..", "..", "spec_helper")
+startup_merb
 
 require File.join(__DIR__, "controllers", "base")
 require File.join(__DIR__, "controllers", "responder")

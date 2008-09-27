@@ -1,4 +1,5 @@
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
+startup_merb
 
 class MockTimedExecutor
   def self.every(seconds, &block)

@@ -1,5 +1,5 @@
-$START_OPTIONS = {:merb_root => File.join(File.dirname(__FILE__), "directory")}
 require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
+startup_merb(:merb_root => File.join(File.dirname(__FILE__), "directory"))
 
 describe "The default Merb directory structure" do
 
