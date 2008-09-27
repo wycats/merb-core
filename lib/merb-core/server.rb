@@ -71,31 +71,46 @@ module Merb
       def kill(port, sig="INT")
         Merb::BootLoader::BuildFramework.run
         begin
-          port = "gid" if port == "all"
-          pid = File.read(pid_file(port)).chomp.to_i
-          
-          kill_pid(sig, pid, pid_file(port))
-          kill_pid(sig, -pid, pid_file(port))
-        ensure
-          Merb.started = false
-          exit
+          if sig == 9 && port == "main"
+            Dir["#{Merb.log_path}" / "*.pid"].each do |file|
+              kill_pid(9, File.read(file).chomp.to_i, file)
+            end
+          else
+            pid = File.read(pid_file(port)).chomp.to_i
+            kill_pid(sig, pid, pid_file(port))
+          end
+        rescue Errno::EACCES => e
+          Merb.fatal! e.message, e
+        rescue Errno::ENOENT => e
+          Merb.fatal! "Could not find a PID file at #{pid_file(port)}", e
+        end
+        if sig.is_a?(Integer)
+          sig = Signal.list.invert[sig]
+        end
+        if sig == "KILL" && port == "main"
+          Merb.fatal! "Killed all PIDs with signal KILL"
+        else
+          Merb.fatal! "Killed #{port} with signal #{sig}"
         end
       end
       
-      def kill_pid(sig, pid)
+      def kill_pid(sig, pid, file)
         begin
           Process.kill(sig, pid)
-          FileUtils.rm(f) if File.exist?(f)
-          puts "killed PID #{pid} with signal #{sig}"
+          FileUtils.rm(file) if File.exist?(file)
         rescue Errno::EINVAL
-          puts "Failed to kill PID #{pid}: '#{sig}' is an invalid or unsupported signal number."
+          Merb.fatal! "Failed to kill PID #{pid}: '#{sig}' is an invalid " \
+            "or unsupported signal number."
         rescue Errno::EPERM
-          puts "Failed to kill PID #{pid}: Insufficient permissions."
+          Merb.fatal! "Failed to kill PID #{pid}: Insufficient permissions."
         rescue Errno::ESRCH
-          puts "Failed to kill PID #{pid}: Process is deceased or zombie."
-          FileUtils.rm f
+          FileUtils.rm file
+          Merb.fatal! "Failed to kill PID #{pid}: Process is " \
+            "deceased or zombie."
         rescue Exception => e
-          puts "Failed to kill PID #{pid}: #{e.message}"
+          if !e.is_a?(SystemExit)
+            Merb.fatal! "Failed to kill PID #{pid}", e
+          end
         end        
       end
 
@@ -186,12 +201,8 @@ module Merb
         FileUtils.rm(pid_file(port)) if File.file?(pid_file(port))
       end
 
-      def store_gid
-        store_details
-      end
-      
-      def store_details(port = nil, type = port ? "pid" : "gid")
-        file = pid_file(port || type)
+      def store_details(port = nil)
+        file = pid_file(port)
         begin
           FileUtils.mkdir_p(File.dirname(file))
         rescue Errno::EACCES => e
@@ -199,7 +210,7 @@ module Merb
             "but you did not have access.", e
         end
         Merb.logger.warn! "Storing #{type} file to #{file}..." if Merb::Config[:verbose]
-        File.open(file, 'w'){ |f| f.write(Process.pid.to_s) }        
+        File.open(file, 'w'){ |f| f.write(Process.pid.to_s) }
       end
 
       # Gets the pid file for the specified port.
