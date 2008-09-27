@@ -28,8 +28,8 @@ module Merb
         end
         
         def matches?(target)
-          target.log.rewind
-          @text = target.log.read
+          target.rewind
+          @text = target.read
           @text =~ (String === @expected ? /#{Regexp.escape @expected}/ : @expected)
         end
         
@@ -108,9 +108,11 @@ Spec::Runner.configure do |config|
   end
 
   def with_level(level)
-    Merb.logger = Merb::Logger.new(StringIO.new, level)
+    Merb::Config[:log_stream] = StringIO.new
+    Merb::Config[:log_level] = level
+    Merb.logger = nil
     yield
-    Merb.logger
+    Merb::Config[:log_stream]
   end
 
   def capture(stream)
