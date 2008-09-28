@@ -5,6 +5,23 @@ require 'spec'
 require 'spec/runner/formatter/base_text_formatter'
 require 'spec/spec_helper.rb'
 
+# Load this stuff so it only has to be loaded once for the entire suite
+require 'spec/mocks'
+require 'spec/mocks/extensions'
+require 'spec/runner/formatter/specdoc_formatter'
+require 'base64'
+require 'nkf'
+require 'kconv'
+require 'rack'
+
+begin
+  require 'json'
+rescue
+  require 'json/pure'
+end
+
+Merb::Dispatcher
+
 module Spec
   module Runner
     module Formatter

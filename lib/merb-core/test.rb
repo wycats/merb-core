@@ -1,6 +1,6 @@
-require "hpricot"
+# require "hpricot"
 
-require 'merb-core/test/test_ext/hpricot'
+# require 'merb-core/test/test_ext/hpricot'
 require 'merb-core/test/test_ext/object'
 require 'merb-core/test/test_ext/string'
 
