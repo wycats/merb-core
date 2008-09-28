@@ -1,4 +1,4 @@
-require 'minigems'
+require 'rubygems'
 require 'benchmark'
 require 'drb'
 require 'spec'

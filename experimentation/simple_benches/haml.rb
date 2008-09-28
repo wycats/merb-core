@@ -1,4 +1,4 @@
-require "minigems"
+require "rubygems"
 require "rbench"
 
 class Option1A
