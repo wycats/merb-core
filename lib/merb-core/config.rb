@@ -271,6 +271,11 @@ module Merb
             port = "main" if port == "all"
             options[:port] = port
           end
+          
+          opts.on("--fast-deploy", "Reload the code, but not your" \
+            "init.rb or gems") do
+              options[:action] = :fast_deploy
+          end
 
           # @todo Do we really need this flag? It seems unlikely to want to
           #   change the mutex from the command-line.
