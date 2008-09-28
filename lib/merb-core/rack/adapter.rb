@@ -11,7 +11,11 @@ module Merb
         # ==== Returns.
         # Class:: The adapter class.
         def get(id)
-          Object.full_const_get(@adapters[id])
+          if @adapters[id.to_s]
+            Object.full_const_get(@adapters[id.to_s])
+          else
+            Merb.fatal! "The adapter #{id} did not exist"
+          end
         end
 
         # Registers a new Rack adapter.
@@ -36,9 +40,8 @@ module Merb
     Adapter.register %w{runner},         :Runner
     Adapter.register %w{smongrel swift}, :SwiftipliedMongrel
     Adapter.register %w{thin},           :Thin
-    Adapter.register %w{thin-turbo},     :ThinTurbo
+    Adapter.register %w{thin-turbo tt},  :ThinTurbo
     Adapter.register %w{webrick},        :WEBrick
     
   end # Rack
 end # Merb
-

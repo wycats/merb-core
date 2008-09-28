@@ -6,7 +6,8 @@ module Merb
     #---
     # @semipublic
     cattr_accessor :subclasses, :after_load_callbacks, :before_load_callbacks, :finished
-    self.subclasses, self.after_load_callbacks, self.before_load_callbacks, self.finished = [], [], [], []
+    self.subclasses, self.after_load_callbacks, 
+      self.before_load_callbacks, self.finished = [], [], [], []
 
     class << self
 
@@ -144,13 +145,23 @@ class Merb::BootLoader::Logger < Merb::BootLoader
 
   # Sets Merb.logger to a new logger created based on the config settings.
   def self.run
-    Merb.logger = Merb::Logger.new(Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush])
+    Merb::Config[:log_level] ||= begin
+      if Merb.environment == "production"
+        Merb::Logger::Levels[:warn]
+      else
+        Merb::Logger::Levels[:debug]
+      end          
+    end
+    
+    Merb::Config[:log_stream] = Merb.log_stream
+    
     print_warnings
   end
   
   def self.print_warnings
     if Gem::Version.new(Gem::RubyGemsVersion) < Gem::Version.new("1.1")
-      Merb.logger.warn! "Merb requires Rubygems 1.1 and later. Please upgrade RubyGems with gem update --system."
+      Merb.fatal! "Merb requires Rubygems 1.1 and later. " \
+        "Please upgrade RubyGems with gem update --system."
     end
   end
 end
@@ -164,7 +175,7 @@ class Merb::BootLoader::DropPidFile <  Merb::BootLoader
 
     # Stores a PID file if Merb is running daemonized or clustered.
     def run
-      Merb::Server.store_pid(Merb::Config[:port]) if Merb::Config[:daemonize] || Merb::Config[:cluster]
+      Merb::Server.store_pid("main") #if Merb::Config[:daemonize] || Merb::Config[:cluster]
     end
   end
 end
@@ -269,14 +280,17 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
 
   def self.enable_json_gem
+    gem "json"
     require "json/ext"
   rescue LoadError
+    gem "json_pure"
     require "json/pure"
   end
 
   def self.update_logger
-    updated_logger_options = [ Merb.log_file, Merb::Config[:log_level], Merb::Config[:log_delimiter], Merb::Config[:log_auto_flush] ]
-    Merb::BootLoader::Logger.run if updated_logger_options != Merb.logger.init_args
+    # Clear out the logger so that any changes in init.rb will be
+    # picked up
+    Merb.logger = nil
   end
 
   private
@@ -356,10 +370,24 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # Load all classes from Merb's native load paths.
     def run
       # Add models, controllers, helpers and lib to the load path
-      $LOAD_PATH.unshift Merb.dir_for(:model)
-      $LOAD_PATH.unshift Merb.dir_for(:controller)
-      $LOAD_PATH.unshift Merb.dir_for(:lib)
-      $LOAD_PATH.unshift Merb.dir_for(:helper)
+      unless @ran
+        $LOAD_PATH.unshift Merb.dir_for(:model)
+        $LOAD_PATH.unshift Merb.dir_for(:controller)
+        $LOAD_PATH.unshift Merb.dir_for(:lib)
+        $LOAD_PATH.unshift Merb.dir_for(:helper)
+      end
+
+      @ran = true
+      $0 = "merb: master"
+      
+      if Merb::Config[:fork_for_class_load] && Merb.env != "test"
+        start_transaction
+      else
+        trap('INT') do 
+          Merb.logger.warn! "Killing children"
+          kill_children
+        end
+      end
 
       # Load application file if it exists - for flat applications
       load_file Merb.dir_for(:application) if File.file?(Merb.dir_for(:application))
@@ -373,13 +401,141 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb::Controller.send :include, Merb::GlobalHelpers
     end
     
+    # Wait for any children to exit, remove the "main" PID, and
+    # exit.
+    def exit_gracefully
+      Process.waitall
+      Merb::Server.remove_pid("main")
+      exit
+    end
+    
+    # If using fork-based code reloading, set up the BEGIN
+    # point and set up any signals in the parent and child.
+    def start_transaction
+      Merb.logger.warn! "Parent pid: #{Process.pid}"
+      reader, writer = nil, nil
+      
+      if GC.respond_to?(:copy_on_write_friendly=)
+        GC.copy_on_write_friendly = true
+      end      
+            
+      loop do
+        reader, @writer = IO.pipe
+        pid = Kernel.fork
+        
+        # pid means we're in the parent; only stay in the loop in that case
+        break unless pid
+        @writer.close
+
+        Merb::Server.store_pid("main")
+        
+        if Merb::Config[:console_trap]
+          trap("INT") {}
+        else
+          trap("INT") do 
+            Merb.logger.warn! "Killing children"
+            begin
+              Process.kill("ABRT", pid)
+            rescue SystemCallError
+            end
+            exit_gracefully
+          end
+        end
+        
+        trap("HUP") do 
+          Merb.logger.warn! "Doing a fast deploy\n"
+          Process.kill("HUP", pid)
+        end
+
+        reader_ary = [reader]
+        loop do
+          if exit_status = Process.wait2(pid, Process::WNOHANG)
+            exit_status[1] == 128 ? break : exit
+          end
+          if select(reader_ary, nil, nil, 0.25)
+            begin
+              next if reader.eof?
+              msg = reader.readline
+              if msg =~ /128/
+                break
+              else
+                exit_gracefully
+              end
+            rescue SystemCallError
+              exit_gracefully
+            end
+          end
+        end
+      end
+ 
+      reader.close
+ 
+      # add traps to the child
+      if Merb::Config[:console_trap]
+        Merb::Server.add_irb_trap
+        at_exit { kill_children }
+      else
+        trap('INT') {}
+        trap('ABRT') { kill_children }
+        trap('HUP') { kill_children(128) }
+      end
+    end
+    
+    # Kill any children of the spawner process and exit with
+    # an appropriate status code.
+    #
+    # Note that exiting the spawner process with a status code
+    # of 128 when a master process exists will cause the
+    # spawner process to be recreated, and the app code reloaded.
+    #
+    # @param status<Integer> The status code to exit with
+    def kill_children(status = 0)
+      Merb.exiting = true unless status == 128
+      
+      begin
+        @writer.puts(status.to_s) if @writer
+      rescue SystemCallError
+      end
+      
+      threads = []
+      
+      ($CHILDREN || []).each do |p|
+        threads << Thread.new do
+          begin
+            Process.kill("ABRT", p)
+            Process.wait2(p)
+          rescue SystemCallError
+          end
+        end
+      end
+      threads.each {|t| t.join }
+      exit(status)
+    end
+    
     # ==== Parameters
     # file<String>:: The file to load.
     def load_file(file)
-      klasses = ObjectSpace.classes.dup
-      load file
-      LOADED_CLASSES[file] = ObjectSpace.classes - klasses
-      MTIMES[file] = File.mtime(file)
+      # Don't do this expensive operation unless we need to
+      unless Merb::Config[:fork_for_class_load]
+        klasses = ObjectSpace.classes.dup
+      end
+      
+      # Ignore the file for syntax errors. The next time
+      # the file is changed, it'll be reloaded again
+      begin
+        load file
+      rescue SyntaxError
+        return
+      ensure
+        if Merb::Config[:reload_classes]
+          MTIMES[file] = File.mtime(file)
+        end
+      end
+      
+      # Don't do this expensive operation unless we need to
+      unless Merb::Config[:fork_for_class_load]
+        LOADED_CLASSES[file] = ObjectSpace.classes - klasses
+      end
     end
     
     # Load classes from given paths - using path/glob pattern.
@@ -403,7 +559,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to reload.
     def reload(file)
-      remove_classes_in_file(file) { |f| load_file(f) }
+      if !Merb::Config[:fork_for_class_load]
+        remove_classes_in_file(file) { |f| load_file(f) }
+      else
+        kill_children(128)
+      end
     end
     
     # Reload the router to regenerate all routes.
@@ -489,10 +649,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         if klasses.size == size_at_start && klasses.size != 0
           # Write all remaining failed classes and their exceptions to the log
           messages = error_map.only(*failed_classes).map do |klass, e|
-            ["Could not load #{klass}:\n\n#{e.message} - (#{e.class})", "#{(e.backtrace || []).join("\n")}"]
+            ["Could not load #{klass}:\n\n#{e.message} - (#{e.class})", 
+              "#{(e.backtrace || []).join("\n")}"]
           end
           messages.each { |msg, trace| Merb.logger.fatal!("#{msg}\n\n#{trace}") }
-          raise LoadError, "#{messages[0][0]} (see log for details)"
+          Merb.fatal! "#{failed_classes.join(", ")} failed to load."
         end
         break if(klasses.size == size_at_start || klasses.size == 0)
       end
@@ -681,7 +842,7 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
       Thread.new do
         loop do
           sleep( seconds )
-          block.call
+          yield
         end
         Thread.exit
       end
@@ -692,26 +853,33 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
   def self.run
     return unless Merb::Config[:reload_classes]
 
-    TimedExecutor.every(Merb::Config[:reload_time] || 0.5) do
-      reload
-    end
-    
-  end
-
-  # Reloads all files.
-  def self.reload
     paths = []
     Merb.load_paths.each do |path_name, file_info|
       path, glob = file_info
       next unless glob
       paths << Dir[path / glob]
     end
+  
+    if Merb.dir_for(:application) && File.file?(Merb.dir_for(:application))
+      paths << Merb.dir_for(:application)
+    end
 
-    paths << Merb.dir_for(:application) if Merb.dir_for(:application) && File.file?(Merb.dir_for(:application))
+    paths.flatten!
 
-    paths.flatten.each do |file|
-      next if Merb::BootLoader::LoadClasses::MTIMES[file] && Merb::BootLoader::LoadClasses::MTIMES[file] == File.mtime(file)
-      Merb::BootLoader::LoadClasses.reload(file)
+    TimedExecutor.every(Merb::Config[:reload_time] || 0.5) do
+      GC.start
+      reload(paths)
+    end
+    
+  end
+
+  # Reloads all files.
+  def self.reload(paths)
+    paths.each do |file|
+      next if LoadClasses::MTIMES[file] &&  
+        LoadClasses::MTIMES[file] == File.mtime(file)
+          
+      LoadClasses.reload(file)
     end
   end
 end

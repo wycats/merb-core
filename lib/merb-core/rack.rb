@@ -3,6 +3,7 @@ module Merb
   module Rack
     autoload :Application,         'merb-core/rack/application'
     autoload :Adapter,             'merb-core/rack/adapter'
+    autoload :AbstractAdapter,     'merb-core/rack/adapter/abstract'
     autoload :Ebb,                 'merb-core/rack/adapter/ebb'
     autoload :EventedMongrel,      'merb-core/rack/adapter/evented_mongrel'    
     autoload :FastCGI,             'merb-core/rack/adapter/fcgi'
