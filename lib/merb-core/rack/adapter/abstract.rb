@@ -129,9 +129,9 @@ module Merb
         # Store the PID for this worker
         Merb::Server.store_pid(port)
 
-        # Set up the logger for this worker to point to its process.
-        Merb::Config[:log_stream] = Merb.log_stream(port)
-          
+        Merb::Config[:log_delimiter] = "#{$0} ~ "
+        Merb.logger = nil
+
         Merb.logger.warn!("Starting #{self.name.split("::").last} at port #{port}")
         
         # If we can't connect to the port, keep trying until we can. Print
