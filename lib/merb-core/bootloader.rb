@@ -380,7 +380,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       @ran = true
       $0 = "merb: master"
       
-      if Merb::Config[:fork_for_class_load] && !Merb.env == "test"
+      if Merb::Config[:fork_for_class_load] && Merb.env != "test"
         start_transaction
       else
         trap('INT') do 
