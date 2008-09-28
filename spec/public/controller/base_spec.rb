@@ -1,4 +1,5 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
+
 Controllers = Merb::Test::Fixtures::Controllers
 
 describe Merb::Controller, "callable actions" do

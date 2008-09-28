@@ -1,4 +1,5 @@
-require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "spec_helper"))
+startup_merb
 
 describe "Merb.env helpers" do
   before(:all) do

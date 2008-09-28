@@ -230,9 +230,11 @@ module Kernel
     else
       lines = File.read(file).split("\n")
       first_line = (f = line - size - 1) < 0 ? 0 : f
-      lines = lines[first_line, size * 2 + 1]
       
-      lines.each_with_index do |str, index|
+      old_lines = lines
+      lines = lines[first_line, size * 2 + 1]
+
+      lines && lines.each_with_index do |str, index|
         yield index + line - size, str.chomp
       end
     end

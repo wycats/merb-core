@@ -1,4 +1,5 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
+
 require File.join(File.dirname(__FILE__), "controllers", "url")
 
 class Monkey ; def to_param ; 45 ; end ; end

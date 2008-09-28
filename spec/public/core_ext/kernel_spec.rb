@@ -1,4 +1,6 @@
 require File.join(File.dirname(__FILE__), "spec_helper")
+startup_merb
+
 $:.push File.join(File.dirname(__FILE__), "fixtures")
 
 describe Kernel, "#dependency" do

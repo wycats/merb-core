@@ -1,6 +1,6 @@
-$START_OPTIONS = { :session_stores => ["cookie", "memory", "memcache"], :session_secret_key => "session-secret-key-here" }
+require File.join(File.dirname(__FILE__), "spec_helper")
+startup_merb(:session_stores => ["cookie", "memory", "memcache"], :session_secret_key => "session-secret-key-here")
 
-require File.join(File.dirname(__FILE__), "..", "..", "spec_helper")
 require File.join(File.dirname(__FILE__), "session_spec")
 require File.join(File.dirname(__FILE__), "controllers", "sessions")
 

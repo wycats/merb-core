@@ -1,10 +1,26 @@
 module Merb::Test::Rspec::ViewMatchers
   class HaveXpath
-    def initialize(expected)
-      @expected = expected
+    def initialize(expected, type)
+      @expected, @type = expected, type
     end
     
     def matches?(stringlike)
+      send("matches_#{@type}?", stringlike)
+    end
+    
+    def matches_rexml?(stringlike)
+      @document = case stringlike
+      when REXML::Document
+        stringlike.root
+      when REXML::Node
+        stringlike
+      when StringIO, String
+        REXML::Document.new(stringlike).root
+      end
+      !REXML::XPath.match(@document, @expected).empty?
+    end
+    
+    def matches_libxml?(stringlike)
       @document = case stringlike
       when LibXML::XML::Document, LibXML::XML::Node
         stringlike
@@ -335,10 +351,12 @@ module Merb::Test::Rspec::ViewMatchers
   def have_xpath(expected)
     begin
       require "libxml"
+      type = "libxml"
     rescue LoadError => e
-      puts "To use have_xpath helper you need to install libxml-ruby gem"
+      require "rexml/document"
+      type = "rexml"
     end
-    HaveXpath.new(expected)
+    HaveXpath.new(expected, type)
   end
   alias_method :match_xpath, :have_xpath
 

@@ -41,7 +41,7 @@ module Merb
         ret   << "  <tbody>"
         (arr || []).each_with_index do |(key, val), i|
           klass = i % 2 == 0 ? "even" : "odd"
-          ret << "    <tr class=#{klass}><td>#{key}</td><td>#{val.inspect}</td></tr>"
+          ret << "    <tr class=\"#{klass}\"><td>#{key}</td><td>#{val.inspect}</td></tr>"
         end
         if arr.blank?
           ret << "    <tr class='odd'><td colspan='2'>None</td></tr>"
