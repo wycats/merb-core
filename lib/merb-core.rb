@@ -110,6 +110,8 @@ module Merb
         Merb::Server.kill(Merb::Config[:port], 2)
       when :kill_9
         Merb::Server.kill(Merb::Config[:port], 9)
+      when :fast_deploy
+        Merb::Server.kill("main", "HUP")
       else
         Merb::Server.start(Merb::Config[:port], Merb::Config[:cluster])
       end
