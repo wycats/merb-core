@@ -430,7 +430,16 @@ class Merb::AbstractController
   # ====
   # TODO: Update this documentation
   def url(name, *args)
-    request.generate_url(name, *args)
+    unless Symbol === name
+      args.unshift(name)
+      name = :default
+    end
+    
+    unless route = Merb::Router.named_routes[name]
+      raise Merb::Router::GenerationError, "Named route not found: #{name}"
+    end
+    
+    route.generate(args, params)
   end
   
   alias_method :relative_url, :url
@@ -452,7 +461,16 @@ class Merb::AbstractController
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
   def absolute_url(name, rparams={})
-    request.generate_absolute_url(name,rparams)
+    # FIXME: arrgh, why request.protocol returns http://?
+    # :// is not part of protocol name
+    if rparams.is_a?(Hash)
+      protocol = rparams.delete(:protocol)
+      host = rparams.delete(:host)
+    end
+    
+    (protocol || request.protocol) + "://" +
+      (host || request.host) +
+      url(name, rparams)
   end
 
   # Calls the capture method for the selected template engine.

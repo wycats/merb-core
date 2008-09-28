@@ -111,7 +111,7 @@ module Merb
           if !e.is_a?(SystemExit)
             Merb.fatal! "Failed to kill PID #{pid}", e
           end
-        end        
+        end
       end
 
       # ==== Parameters

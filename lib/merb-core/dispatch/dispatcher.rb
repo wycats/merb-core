@@ -83,18 +83,14 @@ module Merb
     # ==== Returns
     # Merb::Controller::
     #   Merb::Controller set with redirect headers and a 301/302 status
-    def redirect(url = nil, opts = {})
-      controller = Merb::Controller.new(self)
-      
-      unless url
-        status, url = redirect_status, redirect_url
-      end
-      
+    def redirect
+      status, url = redirect_status, redirect_url
+      controller = Merb::Controller.new(self, status)
+    
       Merb.logger.info("Dispatcher redirecting to: #{url} (#{status})")
       Merb.logger.flush
       
-      controller.redirect(url, opts)
-      controller.status = status if status
+      controller.headers['Location'] = url
       controller.body = "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
       controller
     end
