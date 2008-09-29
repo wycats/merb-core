@@ -278,6 +278,8 @@ module Merb
 
     class ServerError                   < Merb::ControllerExceptions::Base; end
 
+      class InternalServerError         < Merb::ControllerExceptions::ServerError; self.status = 500; end
+
       class NotImplemented              < Merb::ControllerExceptions::ServerError; self.status = 501; end
 
       class BadGateway                  < Merb::ControllerExceptions::ServerError; self.status = 502; end
@@ -287,21 +289,6 @@ module Merb
       class GatewayTimeout              < Merb::ControllerExceptions::ServerError; self.status = 504; end
 
       class HTTPVersionNotSupported     < Merb::ControllerExceptions::ServerError; self.status = 505; end
-
-      class InternalServerError         < Merb::ControllerExceptions::ServerError #:doc: 
-        self.status = 500;
-        def initialize(exception = nil)
-          @exception = exception
-        end
-
-        def backtrace
-          @exception ? @exception.backtrace : backtrace
-        end
-
-        def message
-          @exception ? @exception.message : message
-        end
-      end
   end
   
   # Required to show exceptions in the log file
