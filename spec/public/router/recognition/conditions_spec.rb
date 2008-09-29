@@ -17,6 +17,24 @@ describe "When recognizing requests," do
     it "should not match a different path" do
       lambda { route_to("/notinfo") }.should raise_not_found
     end
+    
+    it "should ignore trailing slashes" do
+      Merb::Router.prepare do
+        match("/hello/").to(:controller => "world")
+      end
+      
+      route_to("/hello").should have_route(:controller => "world")
+    end
+    
+    it "should ignore repeated slashes" do
+      Merb::Router.prepare do
+        match("/foo///bar").to(:controller => "fubar")
+        match("/hello//world").to(:controller => "greetings")
+      end
+      
+      route_to("/foo/bar").should have_route(:controller => "fubar")
+      route_to("/hello/world").should have_route(:controller => "greetings")
+    end
   end
   
   describe "a route with a Request method condition" do
@@ -230,6 +248,26 @@ describe "When recognizing requests," do
       
       route_to("/one/two").should have_route(:first => "one", :second => "two")
       lambda { route_to("/one") }.should raise_not_found
+    end
+    
+    it "should ignore trailing slashes" do
+      Merb::Router.prepare do
+        match("/hello") do
+          match("/").to(:controller => "greetings")
+        end
+      end
+      
+      route_to("/hello").should have_route(:controller => "greetings")
+    end
+    
+    it "should ignore double slashes" do
+      Merb::Router.prepare do
+        match("/hello/") do
+          match("/world").to(:controller => "greetings")
+        end
+      end
+      
+      route_to("/hello/world").should have_route(:controller => "greetings")
     end
     
     it "should be able to define a route and still use the context for more route definition" do

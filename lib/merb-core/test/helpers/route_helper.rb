@@ -12,7 +12,7 @@ module Merb
       # ==== Returns
       # String:: The generated URL.
       def url(*args)
-        args << @request_params || {}
+        args << (@request_params || {})
         Merb::Router.url(*args)
       end
       

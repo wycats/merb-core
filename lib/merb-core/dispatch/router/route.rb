@@ -310,7 +310,11 @@ module Merb
           end
         end
         
-        @variables = @segments.flatten.select { |s| s.is_a?(Symbol)  }
+        unless regexp?
+          @variables = @segments.flatten.select { |s| s.is_a?(Symbol)  }
+          compiled.gsub!(%r[/+], '/')
+          compiled.gsub!(%r[(.+)/$], '\1')
+        end
 
         compiled
       end
