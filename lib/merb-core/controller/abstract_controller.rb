@@ -430,16 +430,8 @@ class Merb::AbstractController
   # ====
   # TODO: Update this documentation
   def url(name, *args)
-    unless Symbol === name
-      args.unshift(name)
-      name = :default
-    end
-    
-    unless route = Merb::Router.named_routes[name]
-      raise Merb::Router::GenerationError, "Named route not found: #{name}"
-    end
-    
-    route.generate(args, params)
+    args << params
+    Merb::Router.url(name, *args)
   end
   
   alias_method :relative_url, :url
@@ -471,6 +463,39 @@ class Merb::AbstractController
     (protocol || request.protocol) + "://" +
       (host || request.host) +
       url(name, rparams)
+  end
+  
+  # Generates a URL for a single or nested resource.
+  #
+  # ==== Parameters
+  # resources<Symbol,Object>:: The resources for which the URL
+  #   should be generated. These resources should be specified
+  #   in the router.rb file using #resources and #resource.
+  #
+  # options<Hash>:: Any extra parameters that are needed to
+  #   generate the URL.
+  #
+  # ==== Returns
+  # String:: The generated URL.
+  #
+  # ==== Examples
+  #
+  # Merb::Router.prepare do
+  #   resources :users do
+  #     resources :comments
+  #   end
+  # end
+  #
+  # resource(:users)            # => /users
+  # resource(@user)             # => /users/10
+  # resource(@user, :comments)  # => /users/10/comments
+  # resource(@user, @comment)   # => /users/10/comments/15
+  # resource(:users, :new)      # => /users/new
+  # resource(:@user, :edit)     # => /users/10/edit
+  #
+  def resource(*args)
+    args << params
+    Merb::Router.resource(*args)
   end
 
   # Calls the capture method for the selected template engine.

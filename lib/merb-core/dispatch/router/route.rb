@@ -61,6 +61,13 @@ module Merb
         self
       end
       
+      # Sets the route as a resource route with the given key as the 
+      # lookup key.
+      def resource=(key)
+        Router.resource_routes[key] = self
+        key
+      end
+      
       def name=(name)
         @name = name.to_sym
         Router.named_routes[@name] = self
@@ -75,10 +82,13 @@ module Merb
         
         # Support for anonymous params
         unless args.empty?
-          raise GenerationError, "The route has #{@variables.length} variables: #{@variables.inspect}" if args.length > @variables.length
+          # First, let's determine which variables are missing
+          variables = @variables - params.keys
+          
+          raise GenerationError, "The route has #{@variables.length} variables: #{@variables.inspect}" if args.length > variables.length
           
           args.each_with_index do |param, i|
-            params[@variables[i]] ||= param
+            params[variables[i]] ||= param
           end
         end
         
