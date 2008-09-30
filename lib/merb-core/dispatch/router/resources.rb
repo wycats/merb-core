@@ -23,6 +23,7 @@ module Merb
         #   resource.
         # :keys<Array>:
         #   A list of the keys to be used instead of :id with the resource in the order of the url.
+        # :singular<Symbol>
         #
         # ==== Block parameters
         # next_level<Behavior>:: The child behavior.
@@ -68,7 +69,7 @@ module Merb
         def resources(name, *args, &block)
           name       = name.to_s
           options    = extract_options_from_args!(args) || {}
-          singular   = Extlib::Inflection.singularize(name)
+          singular   = options[:singular] ? options[:singular].to_s : Extlib::Inflection.singularize(name)
           klass      = args.first ? args.first.to_s : Extlib::Inflection.classify(singular)
           keys       = [ options.delete(:keys) || :id ].flatten
           params     = { :controller => options.delete(:controller) || name }
