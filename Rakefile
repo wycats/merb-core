@@ -184,19 +184,10 @@ task :aok => [:specs, :rcov]
 def setup_specs(name, spec_cmd='spec', run_opts = "-c")
   except = []
   except += Dir["spec/**/memcache*_spec.rb"] if ENV['MEMCACHED'] == 'no'
-  
-  public_globs = ["abstract_controller/*_spec.rb", "boot_loader/*_spec.rb",
-                  "controller/*_spec.rb", "core/*_spec.rb",
-                 "core_ext/*_spec.rb", "directory_structure/*_spec.rb", 
-                 "logger/*_spec.rb", "rack/*_spec.rb", "reloading/*_spec.rb",
-                 "request/*_spec.rb", "router/*_spec.rb", "session/*_spec.rb", 
-                 "template/*_spec.rb", "test/*_spec.rb"].map do |glob|
-    "spec/public/#{glob}"
-  end
 
-  private_globs = ["boot_loader", "config", "core_ext", "dispatch/**/*_spec.rb", "router/*_spec.rb", "vendor"].map do |glob|
-    "spec/private/#{glob}"
-  end
+  public_globs = Dir["#{Dir.pwd}/spec/public/**/*_spec.rb"]
+
+  private_globs = Dir["#{Dir.pwd}/spec/private/**/*_spec.rb"]
 
   desc "Run all specs (#{name})"
   task "specs:#{name}" do
