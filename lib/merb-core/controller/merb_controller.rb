@@ -218,6 +218,33 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Hash:: The parameters from the request object
   def params()  request.params  end
+    
+  # ==== Parameters
+  # name<~to_sym, Hash>:: The name of the URL to generate.
+  # rparams<Hash>:: Parameters for the route generation.
+  #
+  # ==== Returns
+  # String:: The generated URL.
+  #
+  # ==== Alternatives
+  # If a hash is used as the first argument, a default route will be
+  # generated based on it and rparams.
+  # ====
+  # TODO: Update this documentation
+  def url(name, *args)
+    args << params
+    Merb::Router.url(name, *args)
+  end
+
+  alias_method :relative_url, :url
+  
+  def absolute_url(*args)
+    options  = extract_options_from_args!(args) || {}
+    options[:protocol] ||= request.protocol
+    options[:host] ||= request.host
+    args << options
+    super(args.first, *args[1..-1])
+  end
 
   # The results of the controller's render, to be returned to Rack.
   #

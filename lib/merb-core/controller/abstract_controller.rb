@@ -430,7 +430,7 @@ class Merb::AbstractController
   # ====
   # TODO: Update this documentation
   def url(name, *args)
-    args << params
+    args << {}
     Merb::Router.url(name, *args)
   end
   
@@ -452,17 +452,19 @@ class Merb::AbstractController
   # ==== Alternatives
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
-  def absolute_url(name, rparams={})
+  def absolute_url(name, *args)
     # FIXME: arrgh, why request.protocol returns http://?
     # :// is not part of protocol name
-    if rparams.is_a?(Hash)
-      protocol = rparams.delete(:protocol)
-      host = rparams.delete(:host)
-    end
+    options  = extract_options_from_args!(args) || {}
+    protocol = options.delete(:protocol)
+    host     = options.delete(:host)
     
-    (protocol || request.protocol) + "://" +
-      (host || request.host) +
-      url(name, rparams)
+    raise ArgumentError, "The :protocol option must be specified" unless protocol
+    raise ArgumentError, "The :host option must be specified"     unless host
+    
+    args << options
+    
+    protocol + "://" + host + url(name, *args)
   end
   
   # Generates a URL for a single or nested resource.
