@@ -70,23 +70,19 @@ module Merb
       # processes.
       def kill(port, sig="INT")
         Merb::BootLoader::BuildFramework.run
-        begin
-          if sig == 9 && port == "main"
-            Dir["#{Merb.log_path}" / "*.pid"].each do |file|
-              kill_pid(9, File.read(file).chomp.to_i, file)
-            end
-          else
-            pid = File.read(pid_file(port)).chomp.to_i
-            kill_pid(sig, pid, pid_file(port))
+        if sig == 9 && port == "main"
+          kill_pid("INT", pid_file("main"))
+          Dir["#{Merb.log_path}" / "*.pid"].each do |file|
+            kill_pid(9, file)
           end
-        rescue Errno::EACCES => e
-          Merb.fatal! e.message, e
-        rescue Errno::ENOENT => e
-          Merb.fatal! "Could not find a PID file at #{pid_file(port)}", e           
+        else
+          kill_pid(sig, pid_file(port))
         end
+
         if sig.is_a?(Integer)
           sig = Signal.list.invert[sig]
         end
+
         if sig == "KILL" && port == "main"
           Merb.fatal! "Killed all PIDs with signal KILL"
         else
@@ -94,8 +90,10 @@ module Merb
         end
       end
       
-      def kill_pid(sig, pid, file)
+      def kill_pid(sig, file)
         begin
+          pid = File.read(file).chomp.to_i
+          Merb.logger.warn! "Killing pid #{pid}"
           Process.kill(sig, pid)
           FileUtils.rm(file) if File.exist?(file)
         rescue Errno::EINVAL
@@ -107,6 +105,10 @@ module Merb
           FileUtils.rm file
           Merb.fatal! "Failed to kill PID #{pid}: Process is " \
             "deceased or zombie."
+        rescue Errno::EACCES => e
+          Merb.fatal! e.message, e
+        rescue Errno::ENOENT => e
+          Merb.fatal! "Could not find a PID file at #{file}", e
         rescue Exception => e
           if !e.is_a?(SystemExit)
             Merb.fatal! "Failed to kill PID #{pid}", e
