@@ -268,6 +268,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   # haven't been loaded up until this point.
 
   def self.run
+    set_encoding
     load_initfile
     load_env_config
     enable_json_gem unless Merb::disabled?(:json)
@@ -291,6 +292,10 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     # Clear out the logger so that any changes in init.rb will be
     # picked up
     Merb.logger = nil
+  end
+  
+  def self.set_encoding
+    $KCODE = 'UTF8' if $KCODE == 'NONE' || $KCODE.blank?
   end
 
   private
