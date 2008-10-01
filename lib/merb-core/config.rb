@@ -56,14 +56,14 @@ module Merb
       # ==== Returns
       # Object:: The value of the configuration parameter.
       def [](key)
-        (@configuration||={})[key]
+        (@configuration ||= setup)[key]
       end
 
       # ==== Parameters
       # key<Object>:: The key to set the parameter for.
       # val<Object>:: The value of the parameter.
-      def []=(key,val)
-        @configuration[key] = val
+      def []=(key, val)
+        (@configuration ||= setup)[key] = val
       end
 
       # ==== Parameters

@@ -1,10 +1,21 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
-describe Merb::Config do
+describe "Merb::Config without .setup" do
+  it "should be able to try to get a non-existing key" do
+    Merb::Config[:does_not_exist].should == nil
+  end
+
+  it "should be able to set a configuration key" do
+    Merb::Config[:arbitrary_key] = "arbitrary_value"
+    Merb::Config[:arbitrary_key].should == "arbitrary_value"
+  end
+end
+
+describe "Merb::Config with .setup" do
   before do
     Merb::Config.setup
   end
-
+  
   it "should be able to yield the configuration via #use" do
     res = nil
     Merb::Config.use {|c| res = c}
