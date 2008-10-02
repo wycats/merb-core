@@ -7,7 +7,7 @@ module Merb
        end
             
        def each(&callback)
-         if @body.respond_to?(:call)
+         if Proc === @body
            @writer = lambda { |x| callback.call(x) }
            @body.call(self)
          elsif @body.is_a?(String)
