@@ -22,6 +22,9 @@ module Merb
          str
        end
        
+       def to_s
+         @body.to_s
+       end
     end   
   
   end
