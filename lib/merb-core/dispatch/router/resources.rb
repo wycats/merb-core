@@ -23,6 +23,7 @@ module Merb
         #   resource.
         # :keys<Array>:
         #   A list of the keys to be used instead of :id with the resource in the order of the url.
+        # :singular<Symbol>
         #
         # ==== Block parameters
         # next_level<Behavior>:: The child behavior.
@@ -65,47 +66,64 @@ module Merb
         #  end
         #---
         # @public
-        def resources(name, options = {}, &block)
-          singular   = name.to_s.singularize
-          keys       = options.delete(:keys) || [:id]
-          params     = { :controller => options.delete(:controller) || name.to_s }
+        def resources(name, *args, &block)
+          name       = name.to_s
+          options    = extract_options_from_args!(args) || {}
+          singular   = options[:singular] ? options[:singular].to_s : Extlib::Inflection.singularize(name)
+          klass      = args.first ? args.first.to_s : Extlib::Inflection.classify(singular)
+          keys       = [ options.delete(:keys) || :id ].flatten
+          params     = { :controller => options.delete(:controller) || name }
           collection = options.delete(:collection) || {}
           member     = { :edit => :get, :delete => :get }.merge(options.delete(:member) || {})
 
           # Try pulling :namespace out of options for backwards compatibility
           options[:name_prefix]       ||= nil # Don't use a name_prefix if not needed
+          options[:resource_prefix]   ||= nil # Don't use a resource_prefix if not needed
           options[:controller_prefix] ||= options.delete(:namespace)
 
           self.namespace(name, options).to(params) do |resource|
             root_keys = keys.map { |k| ":#{k}" }.join("/")
+            
             # => index
-            resource.match("(/index)(.:format)", :method => :get).to(:action => "index").name(name)
+            resource.match("(/index)(.:format)", :method => :get).to(:action => "index").
+              name(name).register_resource(name)
+              
             # => create
             resource.match("(.:format)", :method => :post).to(:action => "create")
+            
             # => new
-            resource.match("/new(.:format)", :method => :get).to(:action => "new").name(:new, singular)
+            resource.match("/new(.:format)", :method => :get).to(:action => "new").
+              name("new", singular).register_resource(name, "new")
 
             # => user defined collection routes
             collection.each_pair do |action, method|
-              resource.match("/#{action}(.:format)", :method => method).to(:action => "#{action}").name(action, name)
+              action = action.to_s
+              resource.match("/#{action}(.:format)", :method => method).to(:action => "#{action}").
+                name(action, name).register_resource(name, action)
             end
 
             # => show
-            resource.match("/#{root_keys}(.:format)", :method => :get).to(:action => "show").name(singular)
+            resource.match("/#{root_keys}(.:format)", :method => :get).to(:action => "show").
+              name(singular).register_resource(klass)
 
             # => user defined member routes
             member.each_pair do |action, method|
-              resource.match("/#{root_keys}/#{action}(.:format)", :method => method).to(:action => "#{action}").name(action, singular)
+              action = action.to_s
+              resource.match("/#{root_keys}/#{action}(.:format)", :method => method).
+                to(:action => "#{action}").name(action, singular).register_resource(klass, action)
             end
 
             # => update
-            resource.match("/#{root_keys}(.:format)", :method => :put).to(:action => "update")
+            resource.match("/#{root_keys}(.:format)", :method => :put).
+              to(:action => "update")
+              
             # => destroy
-            resource.match("/#{root_keys}(.:format)", :method => :delete).to(:action => "destroy")
+            resource.match("/#{root_keys}(.:format)", :method => :delete).
+              to(:action => "destroy")
 
             if block_given?
               nested_keys = keys.map { |k| k.to_s == "id" ? ":#{singular}_id" : ":#{k}" }.join("/")
-              resource.options(:name_prefix => singular).match("/#{nested_keys}", &block)
+              resource.options(:name_prefix => singular, :resource_prefix => klass).match("/#{nested_keys}", &block)
             end
 
           end
@@ -164,23 +182,34 @@ module Merb
         #   end
         # ---
         # @public
-        def resource(name, options = {}, &block)
-          params = { :controller => options.delete(:controller) || name.to_s.pluralize }
+        def resource(name, *args, &block)
+          name    = name.to_s
+          options = extract_options_from_args!(args) || {}
+          params  = { :controller => options.delete(:controller) || name.pluralize }
 
           options[:name_prefix]       ||= nil # Don't use a name_prefix if not needed
+          options[:resource_prefix]   ||= nil # Don't use a resource_prefix if not needed
           options[:controller_prefix] ||= options.delete(:namespace)
 
           self.namespace(name, options).to(params) do |resource|
-            resource.match("(.:format)",        :method => :get   ).to(:action => "show"   ).name(name)
+            resource.match("(.:format)",        :method => :get   ).to(:action => "show"   ).name(name).register_resource(name)
             resource.match("(.:format)",        :method => :post  ).to(:action => "create" )
             resource.match("(.:format)",        :method => :put   ).to(:action => "update" )
             resource.match("(.:format)",        :method => :delete).to(:action => "destroy")
-            resource.match("/new(.:format)",    :method => :get   ).to(:action => "new"    ).name(:new, name)
-            resource.match("/edit(.:format)",   :method => :get   ).to(:action => "edit"   ).name(:edit, name)
-            resource.match("/delete(.:format)", :method => :get   ).to(:action => "delete" ).name(:delete, name)
+            resource.match("/new(.:format)",    :method => :get   ).to(:action => "new"    ).name(:new,    name).register_resource(name, "new")
+            resource.match("/edit(.:format)",   :method => :get   ).to(:action => "edit"   ).name(:edit,   name).register_resource(name, "edit")
+            resource.match("/delete(.:format)", :method => :get   ).to(:action => "delete" ).name(:delete, name).register_resource(name, "delete")
 
-            resource.options(:name_prefix => name, &block) if block_given?
+            resource.options(:name_prefix => name, :resource_prefix => name,  &block) if block_given?
           end
+        end
+        
+      protected
+      
+        def register_resource(*key)
+          key = [@options[:resource_prefix], key].flatten.compact
+          @route.resource = key
+          self
         end
 
       end

@@ -430,16 +430,8 @@ class Merb::AbstractController
   # ====
   # TODO: Update this documentation
   def url(name, *args)
-    unless Symbol === name
-      args.unshift(name)
-      name = :default
-    end
-    
-    unless route = Merb::Router.named_routes[name]
-      raise Merb::Router::GenerationError, "Named route not found: #{name}"
-    end
-    
-    route.generate(args, params)
+    args << {}
+    Merb::Router.url(name, *args)
   end
   
   alias_method :relative_url, :url
@@ -460,17 +452,52 @@ class Merb::AbstractController
   # ==== Alternatives
   # If a hash is used as the first argument, a default route will be
   # generated based on it and rparams.
-  def absolute_url(name, rparams={})
+  def absolute_url(name, *args)
     # FIXME: arrgh, why request.protocol returns http://?
     # :// is not part of protocol name
-    if rparams.is_a?(Hash)
-      protocol = rparams.delete(:protocol)
-      host = rparams.delete(:host)
-    end
+    options  = extract_options_from_args!(args) || {}
+    protocol = options.delete(:protocol)
+    host     = options.delete(:host)
     
-    (protocol || request.protocol) + "://" +
-      (host || request.host) +
-      url(name, rparams)
+    raise ArgumentError, "The :protocol option must be specified" unless protocol
+    raise ArgumentError, "The :host option must be specified"     unless host
+    
+    args << options
+    
+    protocol + "://" + host + url(name, *args)
+  end
+  
+  # Generates a URL for a single or nested resource.
+  #
+  # ==== Parameters
+  # resources<Symbol,Object>:: The resources for which the URL
+  #   should be generated. These resources should be specified
+  #   in the router.rb file using #resources and #resource.
+  #
+  # options<Hash>:: Any extra parameters that are needed to
+  #   generate the URL.
+  #
+  # ==== Returns
+  # String:: The generated URL.
+  #
+  # ==== Examples
+  #
+  # Merb::Router.prepare do
+  #   resources :users do
+  #     resources :comments
+  #   end
+  # end
+  #
+  # resource(:users)            # => /users
+  # resource(@user)             # => /users/10
+  # resource(@user, :comments)  # => /users/10/comments
+  # resource(@user, @comment)   # => /users/10/comments/15
+  # resource(:users, :new)      # => /users/new
+  # resource(:@user, :edit)     # => /users/10/edit
+  #
+  def resource(*args)
+    args << params
+    Merb::Router.resource(*args)
   end
 
   # Calls the capture method for the selected template engine.

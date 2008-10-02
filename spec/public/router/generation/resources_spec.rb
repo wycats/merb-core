@@ -138,6 +138,15 @@ describe "When generating URLs," do
       url(:user_foo, :user_id => 2, :foo => "foo-123").should == "/users/2/foo-123"
     end
     
+    it "should allow the singular name to be set" do
+      Merb::Router.prepare do
+        resources :blogposts, :singular => :blogpoost
+      end
+      
+      url(:blogposts).should == "/blogposts"
+      url(:blogpoost, 1).should == "/blogposts/1"
+    end
+    
   end
   
   describe "a resource object route" do

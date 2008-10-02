@@ -3,7 +3,30 @@ require 'rubygems/dependency_installer'
 require 'rubygems/uninstaller'
 require 'rubygems/dependency'
 
+module ColorfulMessages
+  
+  # red
+  def error(*messages)
+    puts messages.map { |msg| "\033[1;31m#{msg}\033[0m" }
+  end
+  
+  # yellow
+  def warning(*messages)
+    puts messages.map { |msg| "\033[1;33m#{msg}\033[0m" }
+  end
+  
+  # green
+  def success(*messages)
+    puts messages.map { |msg| "\033[1;32m#{msg}\033[0m" }
+  end
+  
+  alias_method :message, :success
+  
+end
+
 module GemManagement
+  
+  include ColorfulMessages
   
   # Install a gem - looks remotely and local gem cache;
   # won't process rdoc or ri options.
@@ -34,10 +57,10 @@ module GemManagement
         exception = e
       end
       if installer.installed_gems.empty? && exception
-        puts "Failed to install gem '#{gem} (#{version})' (#{exception.message})"
+        error "Failed to install gem '#{gem} (#{version})' (#{exception.message})"
       end
       installer.installed_gems.each do |spec|
-        puts "Successfully installed #{spec.full_name}"
+        success "Successfully installed #{spec.full_name}"
       end
       return !installer.installed_gems.empty?
     end
@@ -61,10 +84,10 @@ module GemManagement
       exception = e
     end
     if installer.installed_gems.empty? && exception
-      puts "Failed to install gem '#{gem}' (#{e.message})"
+      error "Failed to install gem '#{gem}' (#{e.message})"
     end
     installer.installed_gems.each do |spec|
-      puts "Successfully installed #{spec.full_name}"
+      success "Successfully installed #{spec.full_name}"
     end
   end
 
@@ -166,7 +189,7 @@ module GemManagement
           spec = Gem::Specification.load(gemspec_path)
           spec.executables.each do |exec|
             executable = File.join(bin_dir, exec)
-            puts "Writing executable wrapper #{executable}"
+            message "Writing executable wrapper #{executable}"
             File.open(executable, 'w', 0755) do |f|
               f.write(executable_wrapper(spec, exec))
             end

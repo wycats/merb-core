@@ -31,7 +31,14 @@ describe "When generating URLs," do
     end
     
     it "should give precedence to the params hash" do
-      url(:ordered, "one", "two", "three", :second => "deux").should == "/one/deux/three"
+      url(:ordered, "one", "two", :first => "un").should             == "/un/one/two"
+      url(:ordered, "one", :first => "un", :second => "deux").should == "/un/deux/one"
+      url(:ordered, "one", :first => "un", :third => "trois").should == "/un/one/trois"
+      url(:ordered, "one", "two", :second => "deux").should          == "/one/deux/two"
+    end
+    
+    it "should raise an exception when there are two many anonymous params after the named params were placed" do
+      lambda { url(:ordered, "one", "two", :first => "un", :second => "deux") }.should raise_error(Merb::Router::GenerationError)
     end
   end
   

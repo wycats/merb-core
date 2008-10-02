@@ -21,10 +21,11 @@ module Merb
   #
   # Compilation is synchronized by mutex.
   class Router
-    @routes         = []
-    @named_routes   = {}
-    @compiler_mutex = Mutex.new
-    @root_behavior  = Behavior.new.defaults(:action => "index")
+    @routes          = []
+    @named_routes    = {}
+    @resource_routes = {}
+    @compiler_mutex  = Mutex.new
+    @root_behavior   = Behavior.new.defaults(:action => "index")
 
     # Raised when route lookup fails.
     class RouteNotFound < StandardError; end;
@@ -35,7 +36,7 @@ module Merb
 
     class << self
       # @private
-      attr_accessor :routes, :named_routes, :root_behavior
+      attr_accessor :routes, :named_routes, :resource_routes, :root_behavior
       
       # Creates a route building context and evaluates the block in it. A
       # copy of +root_behavior+ (and instance of Behavior) is copied as
@@ -111,6 +112,82 @@ module Merb
       end
 
       alias_method :match, :match_before_compilation
+      
+      # Generates a URL from the params
+      #
+      # ==== Parameters
+      # name<Symbol>::
+      #   The name of the route to generate
+      #
+      # anonymous_params<Object>::
+      #   An array of anonymous parameters to generate the route
+      #   with. These parameters are assigned to the route parameters
+      #   in the order that they are passed.
+      #
+      # params<Hash>::
+      #   Named parameters to generate the route with.
+      #
+      # defaults<Hash>::
+      #   A hash of default parameters to generate the route with.
+      #   This is usually the request parameters. If there are any
+      #   required params that are missing to generate the route,
+      #   they are pulled from this hash.
+      # ==== Returns
+      # String:: The generated URL
+      # ---
+      # @private
+      def url(name, *args)
+        unless name.is_a?(Symbol)
+          args.unshift(name)
+          name = :default
+        end
+
+        unless route = Merb::Router.named_routes[name]
+          raise Merb::Router::GenerationError, "Named route not found: #{name}"
+        end
+        
+        defaults = args.pop
+        
+        route.generate(args, defaults)
+      end
+      
+      # Generates a URL from the resource(s)
+      #
+      # ==== Parameters
+      # resources<Symbol,Object>::
+      #   The identifiers for the resource route to generate. These
+      #   can either be symbols or objects. Symbols denote resource
+      #   collection routes and objects denote the members.
+      #
+      # params<Hash>::
+      #   Any extra parameters needed to generate the route.
+      # ==== Returns
+      # String:: The generated URL
+      # ---
+      # @private
+      def resource(*args)
+        defaults = args.pop
+        options  = extract_options_from_args!(args) || {}
+        key      = []
+        params   = []
+
+        args.each do |arg|
+          if arg.is_a?(Symbol) || arg.is_a?(String)
+            key << arg.to_s
+          else
+            key << arg.class.to_s
+            params << arg
+          end
+        end
+
+        params << options
+
+        unless route = Merb::Router.resource_routes[key]
+          raise Merb::Router::GenerationError, "Resource route not found: #{args.inspect}"
+        end
+
+        route.generate(params, defaults)
+      end
 
     private
     

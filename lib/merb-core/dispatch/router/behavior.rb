@@ -32,8 +32,9 @@ module Merb
         # explicitly define the Behavior methods to proxy here (specifically namespace)
         # Rake's methods take precedence.
         %w(
-          match to with register default defaults options option namespace identify
-          default_routes defer_to name full_name fixatable redirect capture
+          match to with register default defaults options option namespace
+          identify default_routes defer_to name full_name fixatable redirect
+          capture resources resource
         ).each do |method|
           class_eval %{
             def #{method}(*args, &block)
@@ -335,6 +336,7 @@ module Merb
         # option keys could be nil
         opts[:controller_prefix] = name unless opts.has_key?(:controller_prefix)
         opts[:name_prefix]       = name unless opts.has_key?(:name_prefix)
+        opts[:resource_prefix]   = opts[:name_prefix] unless opts.has_key?(:resource_prefix)
 
         behavior = self
         behavior = behavior.match("/#{path}") unless path.nil? || path.empty?
