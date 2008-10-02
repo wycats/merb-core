@@ -10,8 +10,9 @@ module Merb
       #
       # ==== Alternatives
       # If name is a hash, it will be merged with params.
-      def url(name, params={})
-        Merb::Router.generate(name, params)
+      def url(name, *args)
+        args << {}
+        Merb::Router.url(name, *args)
       end
 
       # Reloads classes using Merb::BootLoader::ReloadClasses.

@@ -16,13 +16,13 @@ describe "rack application", :shared => true do
   end
 
   it 'returns response body as third tuple element' do
-    @result.last.should == @body
+    @result.last.to_s.should == @body
   end
 end
 
 describe "transparent middleware", :shared => true do
   it "delegates request handling to wrapped Rack application" do
-    @result.last.should == @body
+    @result.last.to_s.should == @body
   end
 
   describe "#deferred?" do

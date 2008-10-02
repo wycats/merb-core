@@ -67,8 +67,7 @@ module Merb
                        "rack.multiprocess" => false, # ???
                        "rack.run_once" => false,
   
-                       "rack.url_scheme" => "http",
-                       "rack.streaming" => true
+                       "rack.url_scheme" => "http"
                      })
           env["QUERY_STRING"] ||= ""
           env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
@@ -83,13 +82,9 @@ module Merb
               }
             }
             
-            if Proc === body
-              body.call(response)
-            else  
-              body.each { |part|
-                response.body << part
-              }
-            end
+            body.each { |part|
+              response.body << part
+            }
             response.finished
           ensure
             body.close  if body.respond_to? :close

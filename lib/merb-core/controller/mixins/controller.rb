@@ -62,6 +62,7 @@ module Merb
     # ==== Parameters
     # data<String>:: a chunk of data to return.
     def send_chunk(data)
+      only_runs_on_mongrel!
       @response.write('%x' % data.size + "\r\n")
       @response.write(data + "\r\n")
     end
@@ -76,12 +77,8 @@ module Merb
     #   A block that Mongrel can call later, allowing Merb to release the
     #   thread lock and render another request.
     def render_deferred(&blk)
-      must_support_streaming!
       Proc.new {|response|
-        result = blk.call
-        response.send_status(result.length)
-        response.send_header
-        response.write(result)
+        response.write(blk.call)
       }
     end
     
@@ -96,10 +93,7 @@ module Merb
     # Proc::
     #   A block that Mongrel can call after returning the string to the user.
     def render_then_call(str, &blk)
-      must_support_streaming!
       Proc.new {|response|
-        response.send_status(str.length)
-        response.send_header
         response.write(str)
         blk.call        
       }      
@@ -166,7 +160,13 @@ module Merb
         'Content-Disposition'       => disposition,
         'Content-Transfer-Encoding' => 'binary'
       )
-      File.open(file, 'rb')
+      Proc.new {|response|
+        file = File.open(file, 'rb')
+        while chunk = file.read(16384)
+          response.write chunk
+        end  
+        file.close
+      }
     end
     
     # Send binary data over HTTP to the user as a file download. May set content type,
@@ -217,7 +217,6 @@ module Merb
     #     end
     #   end
     def stream_file(opts={}, &stream)
-      must_support_streaming!
       opts.update(Merb::Const::DEFAULT_SEND_FILE_OPTIONS.merge(opts))
       disposition = opts[:disposition].dup || 'attachment'
       disposition << %(; filename="#{opts[:filename]}")
@@ -229,8 +228,6 @@ module Merb
         'CONTENT-LENGTH'            => opts[:content_length].to_s
       )
       Proc.new{|response|
-        response.send_status(opts[:content_length])
-        response.send_header
         stream.call(response)
       }
     end
@@ -306,13 +303,13 @@ module Merb
     alias escape_html escape_xml
     
     private
-      # Checks whether streaming is supported by the current Rack adapter.
+      # Marks an output method that only runs on the mongrel webserver.
       #
       # ==== Raises
-      # NotImplemented:: The Rack adapter doens't support streaming.
-      def must_support_streaming!
-        unless request.env['rack.streaming']
-          raise(Merb::ControllerExceptions::NotImplemented, "Current Rack adapter does not support streaming")
+      # NotImplemented:: The Rack adapter is not mongrel.
+      def only_runs_on_mongrel!
+        unless Merb::Config[:log_stream] == 'mongrel'
+          raise(Merb::ControllerExceptions::NotImplemented, "Current Rack adapter is not mongrel. cannot support this feature")
         end
       end
   end

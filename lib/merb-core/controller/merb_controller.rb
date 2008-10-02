@@ -252,7 +252,7 @@ class Merb::Controller < Merb::AbstractController
   # Array[Integer, Hash, String]::
   #   The controller's status code, headers, and body
   def rack_response
-    [status, headers, body]
+    [status, headers, Merb::Rack::StreamWrapper.new(body)]
   end
 
   # Sets a controller to be "abstract" 
