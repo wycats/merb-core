@@ -166,7 +166,7 @@ module Merb::Test::Rspec
       end
     end
     
-    describe RedirectTo do
+    describe "redirect_to" do
       before(:each) do
         @target = RedirectableTarget.new
       end
@@ -174,213 +174,223 @@ module Merb::Test::Rspec
       it "should match a target if the status code is 300 level and the locations match" do
         @target.status = 301
         @target.headers['Location'] = "http://example.com/"
-        
-        RedirectTo.new("http://example.com/").matches?(@target).should be_true
+
+        @target.should redirect_to("http://example.com/")
       end
       
       it "should not match a target if the status code is not 300 level but the locations match" do
         @target.status = 404
         @target.headers['Location'] = "http://example.com/"
-        
-        RedirectTo.new("http://example.com/").matches?(@target).should_not be_true
+
+        @target.should_not redirect_to("http://example.com/")
       end
       
       it "should not match a target if the status code is 300 level but the locations do not match" do
         @target.status = 301
         @target.headers['Location'] = "http://merbivore.com/"
-        
-        RedirectTo.new("http://example.com/").matches?(@target).should_not be_true
+
+        @target.should_not redirect_to("http://example.com/")
       end
       
       describe "#failure_message" do
-        it "should be 'expected Foo#bar to redirect to <http://expected.com/>, but was <http://target.com/>' when the expected url is http://expected.com/ and the target url is http://target.com/" do
+        it "should be 'expected Foo#bar to redirect to " \
+           "<http://expected.com/>, but was <http://target.com/>' " \
+           "when the expected url is http://expected.com/ and the " \
+           "target url is http://target.com/" do
           @target.stub!(:controller_name).and_return :Foo
           @target.stub!(:action_name).and_return :bar
           @target.status = 301
           @target.headers['Location'] = "http://target.com/"
-          matcher = RedirectTo.new("http://expected.com/")
-          matcher.matches?(@target)
-          matcher.failure_message.should == "expected Foo#bar to redirect to <http://expected.com/>, but was <http://target.com/>"
+          
+          lambda { @target.should redirect_to("http://expected.com/") }.
+            should fail_with("Expected Foo#bar to redirect to " \
+                             "<http://expected.com/>, but it " \
+                             "redirected to <http://target.com/>")
         end
         
-        it "should be 'expected Foo#bar to redirect, but there was no redirection' when the target is not redirected" do
+        it "should be 'expected Foo#bar to redirect, but there was " \
+           "no redirection' when the target is not redirected" do
           @target.stub!(:controller_name).and_return :Foo
           @target.stub!(:action_name).and_return :bar
           @target.status = 200
           @target.headers['Location'] = "http://target.com/"
-          matcher = RedirectTo.new("http://expected.com/")
-          matcher.matches?(@target)
-          matcher.failure_message.should == "expected Foo#bar to redirect to <http://expected.com/>, but there was no redirection"
+          
+          lambda { @target.should redirect_to("http://expected.com/")}.
+            should fail_with("Expected Foo#bar to be a redirect, " \
+                             "but it returned status code 200.")
         end
       end
       
       describe "#negative_failure_message" do
-        it "should be 'expected Foo#bar not to redirect to <http://expected.com/>, but it did anyways" do
+        it "should be 'expected Foo#bar not to redirect to " \
+           "<http://expected.com/>, but it did anyways" do
           @target.stub!(:controller_name).and_return :Foo
           @target.stub!(:action_name).and_return :bar
-          @target.status = 200
-          @target.headers['Location'] = "http://target.com/"
-          matcher = RedirectTo.new("http://expected.com/")
-          matcher.matches?(@target)
-          matcher.negative_failure_message.should == "expected Foo#bar not to redirect to <http://expected.com/>, but did anyway"
+          @target.status = 302
+          @target.headers['Location'] = "http://expected.com/"
+          
+          lambda { @target.should_not redirect_to("http://expected.com/") }.
+            should fail_with("Expected Foo#bar not to redirect to " \
+                             "<http://expected.com/> but it did.")
         end
       end
     end
     
-    describe BeSuccess do
+    describe "be_successful" do
       before(:each) do
         @target = RedirectableTarget.new
       end
       
       it "should match a target with a 200 'OK' status code" do
-        BeSuccess.new.matches?(200).should be_true
+        200.should be_successful
       end
       
       it "should match a target with a 201 'Created' status code" do
-        BeSuccess.new.matches?(201).should be_true
+        201.should be_successful
       end
       
       it "should match a target with a 202 'Accepted' status code" do
-        BeSuccess.new.matches?(202).should be_true
+        202.should be_successful
       end
       
       it "should match a target with a 203 'Non-Authoritative Information' status code" do
-        BeSuccess.new.matches?(203).should be_true
+        203.should be_successful
       end
       
       it "should match a target with a 204 'No Content' status code" do
-        BeSuccess.new.matches?(204).should be_true
+        204.should be_successful
       end
       
       it "should match a target with a 205 'Reset Content' status code" do
-        BeSuccess.new.matches?(205).should be_true
+        205.should be_successful
       end
       
       it "should match a target with a 206 'Partial Content' status code" do
-        BeSuccess.new.matches?(206).should be_true
+        206.should be_successful
       end
       
       it "should match a target with a 207 'Multi-Status' status code" do
-        BeSuccess.new.matches?(207).should be_true
+        207.should be_successful
       end
       
       it "should not match a target with an unused 200 level status code" do
-        BeSuccess.new.matches?(299).should_not be_true
+        299.should_not be_successful
       end
       
       it "should not match a target with a non 200 level status code" do
-        BeSuccess.new.matches?(301).should_not be_true
+        301.should_not be_successful
       end
       
       describe "#failure_message" do
         it "should be 'expected to be successful but was 300' when the target is status code 300" do
-          matcher = BeSuccess.new
-          matcher.matches?(300)
-          matcher.failure_message.should == "expected to be successful but was 300"
+          lambda { 300.should be_successful }.should fail_with(
+            "Expected status code to be successful, but it was 300")
         end
         
         it "should be 'expected Foo#bar to be successful but was 404' when the target is controller-ish" do
           @target.stub!(:controller_name).and_return :Foo
           @target.stub!(:action_name).and_return :bar
           @target.status = 404
-          matcher = BeSuccess.new
-          matcher.matches?(@target)
-          matcher.failure_message.should == "expected Foo#bar to be successful but was 404"
+          
+          lambda { @target.should be_successful }.
+            should fail_with("Expected Foo#bar to be successful, " \
+                             "but it returned a 404")
         end
       end
       
       describe "#negative_failure_message" do
         it "should be 'expected not to be successful but it was' when the target is a 200 status code" do
-          matcher = BeSuccess.new
-          matcher.matches?(200)
-          matcher.negative_failure_message.should == "expected not to be successful but it was 200"
+          
+          lambda { 302.should be_successful }.
+            should fail_with("Expected status code to be successful, " \
+                             "but it was 302")
         end
         
         it "should be 'expected Foo#bar not to be successful but it was 200' when the target is controller-ish" do
           @target.stub!(:controller_name).and_return :Foo
           @target.stub!(:action_name).and_return :bar
           @target.status = 200
-          matcher = BeSuccess.new
-          matcher.matches?(@target)
-          matcher.negative_failure_message.should == "expected Foo#bar not to be successful but it was 200"
+          
+          lambda { @target.should_not be_successful }.
+            should fail_with("Expected Foo#bar not to be successful, " \
+                             "but it returned a 200")
         end
       end
     end
     
-    describe BeMissing do
+    describe "be_missing" do
       before(:each) do
         @target = RedirectableTarget.new
       end
       
       it "should match a 400 'Bad Request'" do
-        BeMissing.new.matches?(400).should be_true
+        400.should be_missing
       end
       
       it "should match a 401 'Unauthorized'" do
-        BeMissing.new.matches?(401).should be_true
+        401.should be_missing
       end
       
       it "should match a 403 'Forbidden'" do
-        BeMissing.new.matches?(403).should be_true
+        402.should be_missing
       end
       
       it "should match a 404 'Not Found'" do
-        BeMissing.new.matches?(404).should be_true
+        404.should be_missing
       end
       
       it "should match a 409 'Conflict'" do
-        BeMissing.new.matches?(409).should be_true
+        409.should be_missing
       end
       
       it "should match a target with a valid client side error code" do
         @target.status = 404
-        
-        BeMissing.new.matches?(@target).should be_true
+        @target.should be_missing
       end
       
       it "should not match a target with an unused client side error code" do
         @target.status = 499
-        
-        BeMissing.new.matches?(@target).should_not be_true
+        @target.should_not be_missing
       end
       
       it "should not match a target with a non client side error code" do
         @target.status = 200
-        
-        BeMissing.new.matches?(@target).should_not be_true
+        @target.should_not be_missing
       end
       
       describe "#failure_message" do
         it "should be 'expected to be missing but was 300' when the target is status code 300" do
-          matcher = BeMissing.new
-          matcher.matches?(300)
-          matcher.failure_message.should == "expected to be missing but was 300"
+          lambda { 300.should be_missing }.
+            should fail_with("Expected a missing error code, but got 300")
         end
         
         it "should be 'expected Foo#bar to be successful but was 301' when the target is controller-ish" do
           @target.stub!(:controller_name).and_return :Foo
           @target.stub!(:action_name).and_return :bar
           @target.status = 301
-          matcher = BeMissing.new
-          matcher.matches?(@target)
-          matcher.failure_message.should == "expected Foo#bar to be missing but was 301"
+          
+          lambda { @target.should be_missing }.
+            should fail_with("Expected Foo#bar to be missing, " \
+                             "but it returned a 301")
         end
       end
       
       describe "#negative_failure_message" do
         it "should be 'expected not to be successful but it was' when the target is a 400 status code" do
-          matcher = BeMissing.new
-          matcher.matches?(400)
-          matcher.negative_failure_message.should == "expected not to be missing but it was 400"
+          
+          lambda { 400.should_not be_missing }.
+            should fail_with("Expected not to get a missing error code, " \
+                             "but got 400")
         end
         
         it "should be 'expected Foo#bar not to be missing but it was 404' when the target is controller-ish" do
           @target.stub!(:controller_name).and_return :Foo
           @target.stub!(:action_name).and_return :bar
           @target.status = 404
-          matcher = BeMissing.new
-          matcher.matches?(@target)
-          matcher.negative_failure_message.should == "expected Foo#bar not to be missing but it was 404"
+          
+          lambda { @target.should_not be_missing }.
+            should fail_with("Expected Foo#bar not to be missing, " \
+                             "but it returned a 404")
         end
       end
     end

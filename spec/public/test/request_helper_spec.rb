@@ -219,13 +219,13 @@ describe Merb::Test::RequestHelper do
     end
     
     it "should support setting request.raw_post" do
-      controller = request("/namespaced/spec_helper_controller", {}, {:post_body => 'some XML'})
+      controller = mock_request("/namespaced/spec_helper_controller", {}, {:post_body => 'some XML'})
       controller.request.raw_post.should == 'some XML'
     end
 
     it "should get namespaced index action" do
       Merb::Test::ControllerAssertionMock.should_receive(:called).with(:index)
-      controller = request("/namespaced/spec_helper_controller")
+      controller = mock_request("/namespaced/spec_helper_controller")
       controller.class.should == Namespaced::SpecHelperController
     end
 
@@ -237,7 +237,7 @@ describe Merb::Test::RequestHelper do
         end
       end
 
-      request('/xmlrpc', {}, {:post_body => 'XMLRPC request body'})
+      mock_request('/xmlrpc', {}, {:post_body => 'XMLRPC request body'})
     end
   end
   

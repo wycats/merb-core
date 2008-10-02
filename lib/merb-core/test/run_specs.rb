@@ -85,7 +85,7 @@ module Merb
       puts "Total actual time: #{@total_time}"
       puts "#{@examples} examples, #{@failures} failures, #{@errors} errors, #{@pending} pending, #{sprintf("suite run in %3.3f seconds", @time.real)}"
       # TODO: we need to report pending examples all together
-      print "\e[0m"    
+       puts "\e[0m"    
     end  
   end
 end
@@ -137,4 +137,5 @@ def run_specs(globs, spec_cmd='spec', run_opts = "-c", except = [])
   
   counter.time = time
   counter.report
+  exit!
 end

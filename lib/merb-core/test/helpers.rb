@@ -2,6 +2,7 @@
 # testing helpers
 module Merb::Test::Helpers; end
 
+require "merb-core/test/helpers/mock_request_helper"
 require "merb-core/test/helpers/request_helper"
 require "merb-core/test/helpers/multipart_request_helper"
 require "merb-core/test/helpers/controller_helper"
