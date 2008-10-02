@@ -12,10 +12,9 @@ module Merb
 
       attr_reader :conditions, :params, :segments
       attr_reader :index, :variables, :name
-      attr_reader :redirect_status, :redirect_url
       attr_accessor :fixation
 
-      def initialize(conditions, params, options = {}, &conditional_block)
+      def initialize(conditions, params, deferred_procs, options = {})
         @conditions, @params = conditions, params
 
         if options[:redirects]
@@ -25,10 +24,12 @@ module Merb
           @defaults          = {}
         else
           @defaults          = options[:defaults] || {}
-          @conditional_block = conditional_block
         end
+        
+        # @conditional_block = conditional_block
 
         @identifiers       = options[:identifiers]
+        @deferred_procs    = deferred_procs
         @segments          = []
         @symbol_conditions = {}
         @placeholders      = {}
@@ -41,10 +42,6 @@ module Merb
 
       def allow_fixation?
         @fixation
-      end
-
-      def redirects?
-        @redirects
       end
       
       def to_s
@@ -102,7 +99,17 @@ module Merb
 
         code = ""
         code << els_if << condition_statements.join(" && ") << "\n"
-        if @conditional_block
+        
+        # First, we need to always return the value of the
+        # deferred block if it explicitly matched the route
+        if @redirects && @deferred_procs.any?
+          code << "    return [#{@index.inspect}, block_result] if request.matched?" << "\n" 
+          code << "    request.redirects!" << "\n"
+          code << "    [#{@index.inspect}, { :url => #{@redirect_url.inspect}, :status => #{@redirect_status.inspect} }]" << "\n"
+        elsif @redirects
+          code << "    request.redirects!" << "\n"
+          code << "    [#{@index.inspect}, { :url => #{@redirect_url.inspect}, :status => #{@redirect_status.inspect} }]" << "\n"
+        elsif @deferred_procs.any?
           code << "    [#{@index.inspect}, block_result]" << "\n"
         else
           code << "    [#{@index.inspect}, #{params_as_string}]" << "\n"
@@ -455,6 +462,7 @@ module Merb
       def condition_statements
         statements = []
 
+        # First, let's build the conditions for the regular 
         conditions.each_pair do |key, value|
           statements << case value
           when Regexp
@@ -474,12 +482,39 @@ module Merb
             %{(cached_#{key} == #{value.inspect})}
           end
         end
-
-        if @conditional_block
-          statements << "(block_result = #{CachedProc.new(@conditional_block)}.call(request, #{params_as_string}))"
+        
+        # The first one is special, so let's extract it
+        if first = @deferred_procs.first
+          deferred = ""
+          deferred << "(block_result = "
+          deferred <<   "request._process_block_return("
+          deferred <<     "#{first}.call(request, #{params_as_string})"
+          deferred <<   ")"
+          deferred << ")"
+          
+          # Let's build the rest of them now
+          if @deferred_procs.length > 1
+            deferred << deferred_condition_statement(@deferred_procs[1..-1])
+          end
+          
+          statements << deferred
         end
 
         statements
+      end
+      
+      # (request.matched? || ((block_result = process(proc.call))))
+      def deferred_condition_statement(deferred)
+        if current = deferred.first
+          html  = " && (request.matched? || ("
+          html <<   "(block_result = "
+          html <<     "request._process_block_return("
+          html <<       "#{current}.call(request, block_result)"
+          html <<     ")"
+          html <<   ")"
+          html <<   "#{deferred_condition_statement(deferred[1..-1])}"
+          html << "))"
+        end
       end
 
       def params_as_string

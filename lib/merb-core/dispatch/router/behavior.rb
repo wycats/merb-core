@@ -28,13 +28,19 @@ module Merb
           @behaviors.pop
         end
         
+        def respond_to?(*args)
+          super || @behaviors.last.respond_to?(*args)
+        end
+        
         # Rake does some stuff with methods in the global namespace, so if I don't
         # explicitly define the Behavior methods to proxy here (specifically namespace)
         # Rake's methods take precedence.
+        # ---
+        # Removing the following:
+        # name full_name fixatable redirect
         %w(
-          match to with register default defaults options option namespace
-          identify default_routes defer_to name full_name fixatable redirect
-          capture resources resource
+          match to with register default defaults options option namespace identify
+          default_routes defer defer_to capture resources resource
         ).each do |method|
           class_eval %{
             def #{method}(*args, &block)
@@ -43,8 +49,21 @@ module Merb
           }
         end
         
-        def respond_to?(*args)
-          super || @behaviors.last.respond_to?(*args)
+        # --- These methods are to be used in defer_to blocks
+        
+        # Generates a URL from the passed arguments. This method is for use
+        # inside of defer_to 
+        def url(name, *args)
+          args << {}
+          Merb::Router.url(name, *args)
+        end
+        
+        def redirect(url, opts = {})
+          [url, opts[:permanent] ? 301 : 302]
+        end
+        
+        def route(params)
+          params
         end
         
       private
@@ -79,18 +98,21 @@ module Merb
       #   The initial route default parameters. See #defaults.
       # options<Hash>::
       #   The initial route options. See #options.
+      # blocks<Array>::
+      #   The stack of deferred routing blocks for the route
       #
       # ==== Returns
       # Behavior:: The initialized Behavior object
       #---
       # @private
-      def initialize(proxy = nil, conditions = {}, params = {}, defaults = {}, identifiers = {}, options = {}) #:nodoc:
+      def initialize(proxy = nil, conditions = {}, params = {}, defaults = {}, identifiers = {}, options = {}, blocks = []) #:nodoc:
         @proxy       = proxy
         @conditions  = conditions
         @params      = params
         @defaults    = defaults
         @identifiers = identifiers
         @options     = options
+        @blocks      = blocks
 
         stringify_condition_values
       end
@@ -180,7 +202,7 @@ module Merb
 
         raise Error, "The route has already been committed. Further conditions cannot be specified" if @route
 
-        behavior = Behavior.new(@proxy, @conditions.merge(conditions), @params, @defaults, @identifiers, @options)
+        behavior = Behavior.new(@proxy, @conditions.merge(conditions), @params, @defaults, @identifiers, @options, @blocks)
         with_behavior_context(behavior, &block)
       end
       
@@ -212,7 +234,7 @@ module Merb
       def to(params = {}, &block)
         raise Error, "The route has already been committed. Further params cannot be specified" if @route
 
-        behavior = Behavior.new(@proxy, @conditions, @params.merge(params), @defaults, @identifiers, @options)
+        behavior = Behavior.new(@proxy, @conditions, @params.merge(params), @defaults, @identifiers, @options, @blocks)
         
         if block_given?
           with_behavior_context(behavior, &block)
@@ -257,7 +279,7 @@ module Merb
       # ---
       # @public
       def default(defaults = {}, &block)
-        behavior = Behavior.new(@proxy, @conditions, @params, @defaults.merge(defaults), @identifiers, @options)
+        behavior = Behavior.new(@proxy, @conditions, @params, @defaults.merge(defaults), @identifiers, @options, @blocks)
         with_behavior_context(behavior, &block)
       end
       
@@ -292,7 +314,7 @@ module Merb
           options[key] = (options[key] || []) + [value.freeze] if value
         end
 
-        behavior = Behavior.new(@proxy, @conditions, @params, @defaults, @identifiers, options)
+        behavior = Behavior.new(@proxy, @conditions, @params, @defaults, @identifiers, options, @blocks)
         with_behavior_context(behavior, &block)
       end
       
@@ -370,7 +392,7 @@ module Merb
           { Object => identifiers }
         end
         
-        behavior = Behavior.new(@proxy, @conditions, @params, @defaults, identifiers.freeze, @options)
+        behavior = Behavior.new(@proxy, @conditions, @params, @defaults, identifiers.freeze, @options, @blocks)
         with_behavior_context(behavior, &block)
       end
       
@@ -420,14 +442,23 @@ module Merb
       # Route :: The default route.
       #
       # ==== Examples
-      #   r.defer_to do |request, params|
+      #   defer_to do |request, params|
       #     params.merge :controller => 'here',
       #       :action => 'there' if request.xhr?
       #   end
       #---
       # @public
-      def defer_to(params = {}, &conditional_block)
-        to_route(params, &conditional_block)
+      def defer_to(params = {}, &block)
+        defer(block).to_route(params)
+      end
+      
+      # Takes a Proc as a parameter and applies it as a deferred proc for all the
+      # routes defined in the block. This is mostly interesting for plugin
+      # developers.
+      def defer(deferred_block, &block)
+        blocks = @blocks + [CachedProc.new(deferred_block)]
+        behavior = Behavior.new(@proxy, @conditions, @params, @defaults, @identifiers, @options, blocks)
+        with_behavior_context(behavior, &block)
       end
       
       # Names this route in Router. Name must be a Symbol.
@@ -469,11 +500,22 @@ module Merb
         self
       end
 
-      def redirect(url, permanent = true)
+      # Sets the current route as a redirect.
+      #
+      # ==== Parameters
+      # path<String::
+      #   The path to redirect to
+      #
+      # options<Hash>::
+      #   Options for the redirect
+      #   The supported options are:
+      #   * :permanent: Whether or not the redirect should be permanent.
+      #                 The default value is false.
+      def redirect(url, opts = {})
         raise Error, "The route has already been committed." if @route
 
-        status = permanent ? 301 : 302
-        @route = Route.new(@conditions, {:url => url.freeze, :status => status.freeze}, :redirects => true)
+        status = opts[:permanent] ? 301 : 302
+        @route = Route.new(@conditions, {:url => url.freeze, :status => status.freeze}, @blocks, :redirects => true)
         @route.register
         self
       end
@@ -489,7 +531,7 @@ module Merb
         name_prefix     = [@options[:name_prefix]].flatten.compact.map { |p| "#{p}_"}
         current_names   = Merb::Router.named_routes.keys
         
-        behavior = Behavior.new(@proxy, @conditions, @params, @defaults, @identifiers, @options)
+        behavior = Behavior.new(@proxy, @conditions, @params, @defaults, @identifiers, @options, @blocks)
         with_behavior_context(behavior, &block)
         
         Merb::Router.named_routes.reject { |k,v| current_names.include?(k) }.each do |name, route|
@@ -505,7 +547,7 @@ module Merb
       # @private
       def with_proxy(&block) #:nodoc:
         proxy = Proxy.new
-        proxy.push Behavior.new(proxy, @conditions, @params, @defaults, @identifiers, @options)
+        proxy.push Behavior.new(proxy, @conditions, @params, @defaults, @identifiers, @options, @blocks)
         proxy.instance_eval(&block)
         proxy
       end
@@ -535,7 +577,7 @@ module Merb
         # should always be last.
         identifiers = @identifiers.sort { |(first,_),(sec,_)| first <=> sec || 1 }
         
-        @route = Route.new(@conditions.dup, params, :defaults => @defaults.dup, :identifiers => identifiers, &conditional_block)
+        @route = Route.new(@conditions.dup, params, @blocks, :defaults => @defaults.dup, :identifiers => identifiers)
         @route.register
         self
       end

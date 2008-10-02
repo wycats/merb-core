@@ -22,8 +22,8 @@ describe Merb::Dispatcher do
 
   describe "with a regular route, " do
     before(:each) do
-      Merb::Router.prepare do |r|
-        r.default_routes
+      Merb::Router.prepare do
+        default_routes
       end
       @url = "/dispatch_to/index"
     end
@@ -78,9 +78,44 @@ describe Merb::Dispatcher do
   
   describe "with a route that redirects" do
     before(:each) do
-      Merb::Router.prepare do |r|
-        r.match("/redirect/to/foo").redirect("/foo")
-        r.default_routes
+      Merb::Router.prepare do
+        match("/redirect/to/foo").redirect("/foo", :permanent => true)
+        default_routes
+      end
+      @url = "/redirect/to/foo"
+      @controller = dispatch(@url)
+    end
+    
+    it "redirects" do
+      @controller.body.should =~ %r{You are being <a href="/foo">redirected}
+    end
+    
+    it "reports that it is redirecting via Logger#info" do
+      with_level(:info) do
+        dispatch(@url)
+      end.should include_log("Dispatcher redirecting to: /foo (301)")
+      
+      with_level(:warn) do
+        dispatch(@url)
+      end.should_not include_log("Dispatcher redirecting to: /foo (301)")
+    end
+    
+    it "sets the status correctly" do
+      @controller.status.should == 301
+    end
+    
+    it "sets the location correctly" do
+      @controller.headers["Location"].should == "/foo"
+    end
+  end
+  
+  describe "with a deferred route that redirects" do
+    before(:each) do
+      Merb::Router.prepare do
+        match("/redirect/to/foo").defer_to do |request, params|
+          redirect "/foo", :permanent => true
+        end
+        default_routes
       end
       @url = "/redirect/to/foo"
       @controller = dispatch(@url)
@@ -111,8 +146,8 @@ describe Merb::Dispatcher do
   
   describe "with a route that points to a class that is not a Controller, " do
     before(:each) do
-      Merb::Router.prepare do |r|
-        r.default_routes
+      Merb::Router.prepare do
+        default_routes
       end
       @url = "/not_a_controller/index"
       @controller = dispatch(@url)
@@ -149,8 +184,8 @@ describe Merb::Dispatcher do
       end
       
       before(:each) do
-        Merb::Router.prepare do |r|
-          r.default_routes
+        Merb::Router.prepare do
+          default_routes
         end
         @url = "/raise_gone/index"
         @controller = dispatch(@url)
@@ -185,8 +220,8 @@ describe Merb::Dispatcher do
       end
       
       before(:each) do
-        Merb::Router.prepare do |r|
-          r.default_routes
+        Merb::Router.prepare do
+          default_routes
         end
         @url = "/raise_gone/index"
         @controller = dispatch(@url)
@@ -247,8 +282,8 @@ describe Merb::Dispatcher do
       end
       
       before(:each) do
-        Merb::Router.prepare do |r|
-          r.default_routes
+        Merb::Router.prepare do
+          default_routes
         end
         @url = "/raise_gone/index"
         @controller = dispatch(@url)
@@ -286,8 +321,8 @@ describe Merb::Dispatcher do
     end
     
     before(:each) do
-      Merb::Router.prepare do |r|
-        r.default_routes
+      Merb::Router.prepare do
+        default_routes
       end
       @url = "/raise_load_error/index"
       @controller = dispatch(@url)
@@ -322,8 +357,8 @@ describe Merb::Dispatcher do
     end
     
     before(:each) do
-      Merb::Router.prepare do |r|
-        r.default_routes
+      Merb::Router.prepare do
+        default_routes
       end
       @url = "/raise_load_error/index"
       @controller = dispatch(@url)
@@ -363,8 +398,8 @@ describe Merb::Dispatcher do
     end
     
     before(:each) do
-      Merb::Router.prepare do |r|
-        r.default_routes
+      Merb::Router.prepare do
+        default_routes
       end
       @url = "/page/not/found"
       @controller = dispatch(@url)
@@ -400,8 +435,8 @@ describe Merb::Dispatcher do
     end
     
     before(:each) do
-      Merb::Router.prepare do |r|
-        r.default_routes
+      Merb::Router.prepare do
+        default_routes
       end
       @url = "/raise_load_error/index"
       @controller = dispatch(@url)
@@ -440,8 +475,8 @@ describe Merb::Dispatcher do
     end
     
     before(:each) do
-      Merb::Router.prepare do |r|
-        r.default_routes
+      Merb::Router.prepare do
+        default_routes
       end
       @url = "/raise_load_error/index"
       @controller = dispatch(@url)
@@ -503,8 +538,8 @@ describe Merb::Dispatcher do
         undef method_for_abstract_test
       end
       
-      Merb::Router.prepare do |r|
-        r.default_routes
+      Merb::Router.prepare do
+        default_routes
       end      
     end
     

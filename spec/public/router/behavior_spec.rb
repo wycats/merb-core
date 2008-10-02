@@ -40,9 +40,9 @@ describe Merb::Router::Behavior do
         match("/three").to(:controller => "three")
       end
       
-      route_to("/one").should   have_route(:controller => "one")
-      route_to("/two").should   have_route(:controller => "two")
-      route_to("/three").should have_route(:controller => 'three')
+      route_for("/one").should   have_route(:controller => "one")
+      route_for("/two").should   have_route(:controller => "two")
+      route_for("/three").should have_route(:controller => 'three')
     end
     
     it "should not return anything if nothing was defined inside of the block" do

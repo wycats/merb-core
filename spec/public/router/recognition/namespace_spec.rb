@@ -11,8 +11,8 @@ describe "When recognizing requests," do
         end
       end
       
-      lambda { route_to("/foo") }.should raise_not_found
-      route_to("/admin/foo").should have_route(:controller => "admin/foos")
+      lambda { route_for("/foo") }.should raise_not_found
+      route_for("/admin/foo").should have_route(:controller => "admin/foos")
     end
     
     it "should yield the new behavior object to the block" do
@@ -22,7 +22,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to("/admin/foo").should have_route(:controller => "admin/foos")
+      route_for("/admin/foo").should have_route(:controller => "admin/foos")
     end
     
     it "should be able to prepend the namespace even if the :controller param has been specified already" do
@@ -34,7 +34,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to("/admin/foo").should have_route(:controller => "admin/bars")
+      route_for("/admin/foo").should have_route(:controller => "admin/bars")
     end
     
     it "should be able to prepend the namespace even if :controller has been used in the path already" do
@@ -44,7 +44,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to("/something/marketing").should have_route(:controller => "marketing/something")
+      route_for("/something/marketing").should have_route(:controller => "marketing/something")
     end
     
     it "should be able to specify the path prefix" do
@@ -54,8 +54,8 @@ describe "When recognizing requests," do
         end
       end
       
-      lambda { route_to("/admin/foo") }.should raise_not_found
-      route_to("/administration/foo").should have_route(:controller => "admin/foos")
+      lambda { route_for("/admin/foo") }.should raise_not_found
+      route_for("/administration/foo").should have_route(:controller => "admin/foos")
     end
     
     it "should be able to escape the controller namespace" do
@@ -65,7 +65,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to("/admin/login").should have_route(:controller => "sessions")
+      route_for("/admin/login").should have_route(:controller => "sessions")
     end
     
     it "should be able to set a namespace without a path prefix" do
@@ -75,8 +75,8 @@ describe "When recognizing requests," do
         end
       end
       
-      lambda { route_to("/admin/foo") }.should raise_not_found
-      route_to("/foo").should       have_route(:controller => "admin/foos")
+      lambda { route_for("/admin/foo") }.should raise_not_found
+      route_for("/foo").should       have_route(:controller => "admin/foos")
     end
     
     it "should be able to use nil to set a namespace without a path prefix" do
@@ -86,8 +86,8 @@ describe "When recognizing requests," do
         end
       end
       
-      lambda { route_to("/admin/foo") }.should raise_not_found
-      route_to("/foo").should       have_route(:controller => "admin/foos")
+      lambda { route_for("/admin/foo") }.should raise_not_found
+      route_for("/foo").should       have_route(:controller => "admin/foos")
     end
     
     it "should preserve previous conditions" do
@@ -99,8 +99,8 @@ describe "When recognizing requests," do
         end
       end
       
-      lambda { route_to("/admin/foo") }.should raise_not_found
-      route_to("/admin/foo", :domain => "foo.com").should have_route(:controller => "admin/foos")
+      lambda { route_for("/admin/foo") }.should raise_not_found
+      route_for("/admin/foo", :domain => "foo.com").should have_route(:controller => "admin/foos")
     end
     
     it "should preserve previous params" do
@@ -112,7 +112,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to("/administration/something").should have_route(:controller => "administration/home", :awesome => "true")
+      route_for("/administration/something").should have_route(:controller => "administration/home", :awesome => "true")
     end
     
     it "should preserve previous defaults" do
@@ -124,17 +124,17 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to("/baz/users").should have_route(:controller => "baz/users", :action => "awesome", :foo => "bar")
+      route_for("/baz/users").should have_route(:controller => "baz/users", :action => "awesome", :foo => "bar")
     end
     
     it "should be preserved through match blocks" do
       Merb::Router.prepare do
         namespace(:admin) do
-          match(:domain => "admin.domain.com").to(:controller => "welcome")
+          match(:host => "admin.domain.com").to(:controller => "welcome")
         end
       end
       
-      route_to("/admin", :domain => "admin.domain.com").should have_route(:controller => "admin/welcome")
+      route_for("/admin", :host => "admin.domain.com").should have_route(:controller => "admin/welcome")
     end
     
     it "should be preserved through to blocks" do
@@ -146,7 +146,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to("/blah/blah").should have_route(:controller => "blah/weeeee", :action => "overload")
+      route_for("/blah/blah").should have_route(:controller => "blah/weeeee", :action => "overload")
     end
     
     it "should be preserved through defaults blocks" do
@@ -158,7 +158,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to("/blah/blah").should have_route(:controller => "blah/weeeee", :action => "overload")
+      route_for("/blah/blah").should have_route(:controller => "blah/weeeee", :action => "overload")
     end
   end
   
@@ -172,7 +172,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/foo/bar/blah').should have_route(:controller => 'foo/bar/weeeee', :action => 'index')
+      route_for('/foo/bar/blah').should have_route(:controller => 'foo/bar/weeeee', :action => 'index')
     end
     
     it "should respec the custom path prefixes set on each namespace" do
@@ -184,13 +184,13 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/superfoo/superbar/blah').should have_route(:controller => 'foo/bar/weeeee', :action => 'index')
+      route_for('/superfoo/superbar/blah').should have_route(:controller => 'foo/bar/weeeee', :action => 'index')
     end
     
     it "should preserve previous conditions" do
       Merb::Router.prepare do
         namespace(:foo) do
-          match(:protocol => 'https://') do
+          match(:protocol => 'https') do
             namespace(:bar) do
               match("/blah").to(:controller => "weeeee")
             end
@@ -198,7 +198,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/foo/bar/blah', :protocol => 'https://').should have_route(:controller => 'foo/bar/weeeee', :action => 'index')
+      route_for('/foo/bar/blah', :protocol => 'https').should have_route(:controller => 'foo/bar/weeeee', :action => 'index')
     end
     
     it "should preserve previous params" do
@@ -212,7 +212,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/foo/one/bar/blah').should have_route(:controller => 'foo/bar/weeeee', :first => 'one', :action => 'index')
+      route_for('/foo/one/bar/blah').should have_route(:controller => 'foo/bar/weeeee', :first => 'one', :action => 'index')
     end
     
     it "should preserve previous defaults" do
@@ -226,7 +226,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/foo/bar/blah').should have_route(:controller => 'foo/bar/weeeee', :action => 'megaweee')
+      route_for('/foo/bar/blah').should have_route(:controller => 'foo/bar/weeeee', :action => 'megaweee')
     end
       
     it "should be preserved through match blocks" do
@@ -240,7 +240,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/foo/bar/baz/blah').should have_route(:controller => 'foo/baz/weeeee')
+      route_for('/foo/bar/baz/blah').should have_route(:controller => 'foo/baz/weeeee')
     end
     
     it "should be preserved through to blocks" do
@@ -254,7 +254,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/foo/bar/baz/blah').should have_route(:controller => 'foo/baz/bar', :action => "weeeee")
+      route_for('/foo/bar/baz/blah').should have_route(:controller => 'foo/baz/bar', :action => "weeeee")
     end
     
     it "should be preserved through defaults blocks" do
@@ -268,7 +268,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/foo/baz/blah').should have_route(:controller => 'foo/baz/blah', :action => "default_action")
+      route_for('/foo/baz/blah').should have_route(:controller => 'foo/baz/blah', :action => "default_action")
     end
     
     it "should use the controller prefix from the last time the prefix started with /" do
@@ -280,7 +280,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to("/foo/bar/home").should have_route(:controller => "bar/home")
+      route_for("/foo/bar/home").should have_route(:controller => "bar/home")
     end
   end
 
@@ -296,7 +296,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/admin/foo/blogposts', :method => :get).should have_route(:controller => 'admin/blogposts', :action => 'index', :id => nil)
+      route_for('/admin/foo/blogposts', :method => :get).should have_route(:controller => 'admin/blogposts', :action => 'index', :id => nil)
     end
 
     it "should match a get to /admin/blogposts/1/foo to the foo controller and the show action" do
@@ -308,7 +308,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/admin/blogposts/1/foo', :method => :get).should have_route(:controller => 'admin/foos', :action => 'show', :blogpost_id => '1', :id => nil)
+      route_for('/admin/blogposts/1/foo', :method => :get).should have_route(:controller => 'admin/foos', :action => 'show', :blogpost_id => '1', :id => nil)
     end
   
     it "should match a get to /my_admin/blogposts to the blogposts controller with a custom patch setting" do
@@ -318,7 +318,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/my_admin/blogposts', :method => :get).should have_route(:controller => 'admin/blogposts', :action => 'index', :id => nil)
+      route_for('/my_admin/blogposts', :method => :get).should have_route(:controller => 'admin/blogposts', :action => 'index', :id => nil)
     end
 
     it "should match a get to /admin/blogposts/1/foo to the foo controller and the show action with namespace admin" do
@@ -330,7 +330,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to('/blogposts/1/foo', :method => :get).should have_route(:controller => 'admin/foos', :action => 'show', :blogpost_id => '1', :id => nil)
+      route_for('/blogposts/1/foo', :method => :get).should have_route(:controller => 'admin/foos', :action => 'show', :blogpost_id => '1', :id => nil)
     end
   end
 
@@ -347,7 +347,7 @@ describe "When recognizing requests," do
   #       end
   #     end
   #     
-  #     route_to('/admin/blogposts', :method => :get).should have_route(:controller => 'admin/blogposts', :action => 'index', :id => nil)
+  #     route_for('/admin/blogposts', :method => :get).should have_route(:controller => 'admin/blogposts', :action => 'index', :id => nil)
   #   end
   # end
 end

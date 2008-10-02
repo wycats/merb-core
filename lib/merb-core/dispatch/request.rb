@@ -97,6 +97,48 @@ module Merb
       @route, @route_params = Merb::Router.route_for(self)
       params.merge! @route_params
     end
+    
+    # Processes the return value of a deferred router block
+    # and returns the current route params for the current
+    # request evaluation
+    # ---
+    # @private
+    def _process_block_return(retval)
+      # If the return value is an array, then it is a redirect
+      # so we must set the request as a redirect and extract
+      # the redirect params and return it as a hash so that the
+      # dispatcher can handle it
+      if retval.is_a?(Array)
+        redirects!
+        return { :url => retval[0], :status => retval[1] } 
+      end
+      retval
+    end
+    
+    # Sets the request as a redirect. This method is only really
+    # used in the router to tell the request object how to handle
+    # the route params. This will also set the request as matched.
+    # ---
+    # @private
+    def redirects!
+      @matched   = true
+      @redirects = true
+    end
+    
+    # Sets the request as matched. This will abort evaluating any
+    # further deferred procs.
+    # ---
+    # @private
+    def matched!
+      @matched = true
+    end
+    
+    # Checks whether or not the request has been matched to a route.
+    # ---
+    # @private
+    def matched?
+      @matched
+    end
 
     # Redirect status of route matched this request.
     #
@@ -104,7 +146,7 @@ module Merb
     # Integer::
     #   The URL to redirect to if the route redirects
     def redirect_status
-      route.redirect_status
+      @route_params[:status] if redirects?
     end
 
     # Returns redirect url of route matched this request.
@@ -112,7 +154,7 @@ module Merb
     # ==== Returns
     # <String>:: redirect url of route matched this request
     def redirect_url
-      route.redirect_url
+      @route_params[:url] if redirects?
     end
 
     # Returns true if matched route does immediate redirection.
@@ -120,7 +162,7 @@ module Merb
     # ==== Returns
     # <Boolean>:: if matched route does immediate redirection.
     def redirects?
-      route.redirects?
+      @redirects
     end
     
     private

@@ -13,7 +13,7 @@ module Spec
       end
 
       def matches?(target)
-        @target = target.last
+        @target = target[1]
         @errors = []
         @expected.all? { |param, value| @target[param] == value } && (!@exact || @expected.length == @target.length)
       end
@@ -88,47 +88,45 @@ module Spec
       Merb::Router.prepare {|r| r.match(from).to(to).name(name) }
     end
     
-    def simple_request(options = {})
-      Request.new({:protocol => "http://", :path => '/'}.merge(options))
+    def env_for(path, env = {})
+      env["REQUEST_METHOD"]  = env.delete(:method).to_s if env[:method]
+      env["HTTP_USER_AGENT"] = env.delete(:user_agent)  if env[:user_agent]
+      env["HTTPS"]           = "on"                     if env.delete(:protocol) =~ /https/i
+      env["REQUEST_PATH"]    = path
+      
+      if env[:host]
+        env["HTTP_HOST"] = env.delete(:host)
+      elsif env[:domain]
+        env["HTTP_HOST"] = env.delete(:domain)
+      end
+      
+      env
+    end
+    
+    def simple_request(env = {})
+      env_for("/", env)
     end
 
     #
     # Returns the dispatch parameters for a request by passing the request
     # through Router#match.
-    def route_to(path, args = {}, protocol = "http://")
-      request = Request.new({:protocol => protocol, :path => path}.merge(args))
-      # Merb::Router.match(request)
+    def route_for(path, env = {}, &block)
+      request = fake_request(env_for(path, env))
+      yield request if block_given?
       Merb::Router.route_for(request)
     end
     
-    def match_for(path, args = {}, protocol = "http://")
-      Merb::Router.match(Request.new({:protocol => protocol, :path => path}.merge(args)))
+    def request_for(path, env = {}, &block)
+      request = fake_request(env_for(path, env))
+      yield request if block_given?
+      Merb::Router.route_for(request)
+      request
     end
     
     def matched_route_for(*args)
-      # get route index
-      idx = match_for(*args)[0]
-    
-      Merb::Router.routes[idx]
+      route_for(*args).first
     end
 
-    # Fake request object
-    class Request < OpenStruct
-      def initialize(hash)
-        @table = {}
-        hash.each_pair do |key, value|
-          @table[key] = value.to_s
-        end
-      end
-      
-      def method
-        @table[:method] || "get"
-      end
-
-      def params
-        @table
-      end
-    end
   end
 end
 

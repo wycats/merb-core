@@ -9,7 +9,7 @@ describe "When recognizing requests," do
         match("/:foo/:bar").register
       end
       
-      route_to("/one/two").should have_route(:foo => "one", :bar => "two")
+      route_for("/one/two").should have_route(:foo => "one", :bar => "two")
     end
     
     it "should be able to match :controller, :action, and :id from the route" do
@@ -17,7 +17,7 @@ describe "When recognizing requests," do
         match("/:controller/:action/:id").register
       end
       
-      route_to("/foo/bar/baz").should have_route(:controller => "foo", :action => "bar", :id => "baz")
+      route_for("/foo/bar/baz").should have_route(:controller => "foo", :action => "bar", :id => "baz")
     end
     
     it "should be able to set :controller with #to" do
@@ -25,7 +25,7 @@ describe "When recognizing requests," do
         match("/:action").to(:controller => "users")
       end
       
-      route_to("/show").should have_route(:controller => "users", :action => "show")
+      route_for("/show").should have_route(:controller => "users", :action => "show")
     end
     
     it "should be able to combine multiple named variables into a param" do
@@ -33,7 +33,7 @@ describe "When recognizing requests," do
         match("/:foo/:bar").to(:controller => ":foo/:bar")
       end
       
-      route_to("/one/two").should have_route(:controller => "one/two", :foo => "one", :bar => "two")
+      route_for("/one/two").should have_route(:controller => "one/two", :foo => "one", :bar => "two")
     end
     
     it "should be able to overwrite matched named variables in the params" do
@@ -41,7 +41,7 @@ describe "When recognizing requests," do
         match("/:foo/:bar").to(:foo => "foo", :bar => "bar")
       end
       
-      route_to("/one/two").should have_route(:foo => "foo", :bar => "bar")
+      route_for("/one/two").should have_route(:foo => "foo", :bar => "bar")
     end
     
     it "should be able to block named variables from being present in the params" do
@@ -49,7 +49,7 @@ describe "When recognizing requests," do
         match("/:foo/:bar").to(:foo => nil, :bar => nil)
       end
       
-      route_to("/one/two").should have_route(:foo => nil, :bar => nil)
+      route_for("/one/two").should have_route(:foo => nil, :bar => nil)
     end
     
     it "should match single character names" do
@@ -57,7 +57,7 @@ describe "When recognizing requests," do
         match("/:x/:y").register
       end
       
-      route_to("/40/20").should have_route(:x => "40", :y => "20")
+      route_for("/40/20").should have_route(:x => "40", :y => "20")
     end
     
     it "should not swallow trailing underscores in the segment name" do
@@ -65,8 +65,8 @@ describe "When recognizing requests," do
         match("/:foo_").register
       end
       
-      route_to("/buh_").should have_route(:foo => "buh")
-      lambda { route_to("/buh").should }.should raise_error(Merb::ControllerExceptions::NotFound)
+      route_for("/buh_").should have_route(:foo => "buh")
+      lambda { route_for("/buh").should }.should raise_error(Merb::ControllerExceptions::NotFound)
     end
     
   end
@@ -80,7 +80,7 @@ describe "When recognizing requests," do
         end
       end
       
-      route_to("/one/two").should have_route(:foo => "one", :bar => "two")
+      route_for("/one/two").should have_route(:foo => "one", :bar => "two")
     end
   end
   

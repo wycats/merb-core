@@ -27,7 +27,7 @@ describe Merb::Router do
         match("/hello").to(:controller => "hello")
       end
       
-      route_to("/hello").should have_route(:controller => "hello", :action => "index")
+      route_for("/hello").should have_route(:controller => "hello", :action => "index")
     end
     
     it "should use the root_behavior specified externally" do
@@ -36,7 +36,7 @@ describe Merb::Router do
         match("/hello").register
       end
       
-      route_to("/hello").should have_route(:controller => "default", :action => "index")
+      route_for("/hello").should have_route(:controller => "default", :action => "index")
     end
     
     it "should be able to chain root_behaviors" do
@@ -46,7 +46,7 @@ describe Merb::Router do
         match("/hello").register
       end
       
-      route_to("/hello").should have_route(:controller => "default", :action => "default")
+      route_for("/hello").should have_route(:controller => "default", :action => "default")
     end
     
     it "should raise a friendly error when there is some :controller mismatching going on" do
@@ -65,7 +65,7 @@ describe Merb::Router do
         match("/hello").to(:controller => "hello")
       end
       
-      route_to("/hello").should have_route(:controller => "hello")
+      route_for("/hello").should have_route(:controller => "hello")
     end
     
     it "should retain previously defined routes" do
@@ -77,7 +77,7 @@ describe Merb::Router do
         match("/goodbye").to(:controller => "goodbye")
       end
       
-      route_to("/hello").should have_route(:controller => "hello")
+      route_for("/hello").should have_route(:controller => "hello")
     end
     
     it "should not overwrite any routes" do
@@ -89,7 +89,7 @@ describe Merb::Router do
         match("/hello").to(:controller => "second")
       end
       
-      route_to("/hello").should have_route(:controller => "first")
+      route_for("/hello").should have_route(:controller => "first")
     end
     
   end
@@ -101,7 +101,7 @@ describe Merb::Router do
         match("/hello").to(:controller => "hello")
       end
       
-      route_to("/hello").should have_route(:controller => "hello")
+      route_for("/hello").should have_route(:controller => "hello")
     end
     
     it "should retain previously defined routes" do
@@ -113,7 +113,7 @@ describe Merb::Router do
         match("/goodbye").to(:controller => "goodbye")
       end
       
-      route_to("/hello").should have_route(:controller => "hello")
+      route_for("/hello").should have_route(:controller => "hello")
     end
     
     it "should overwrite any routes" do
@@ -125,7 +125,7 @@ describe Merb::Router do
         match("/hello").to(:controller => "second")
       end
       
-      route_to("/hello").should have_route(:controller => "second")
+      route_for("/hello").should have_route(:controller => "second")
     end
     
   end
@@ -145,7 +145,7 @@ describe Merb::Router do
     end
     
     it "should not be able to match routes anymore" do
-      lambda { route_to("/users") }
+      lambda { route_for("/users") }
     end
     
   end
