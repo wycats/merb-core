@@ -22,5 +22,6 @@ module Merb
     autoload :ContentLength,       'merb-core/rack/middleware/content_length'
     autoload :ConditionalGet,      'merb-core/rack/middleware/conditional_get'
     autoload :Csrf,                'merb-core/rack/middleware/csrf'
+    autoload :StreamWrapper,       'merb-core/rack/stream_wrapper'
   end # Rack
 end # Merb
