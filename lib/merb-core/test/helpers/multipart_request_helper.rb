@@ -130,7 +130,7 @@ module Merb::Test::MultipartRequestHelper
   def multipart_post(path, params = {}, env = {}, &block)
     env[:request_method] = "POST"
     env[:test_with_multipart] = true
-    request(path, params, env, &block)
+    mock_request(path, params, env, &block)
   end
 
   # An HTTP PUT request that operates through the router and uses multipart
@@ -150,7 +150,7 @@ module Merb::Test::MultipartRequestHelper
   def multipart_put(path, params = {}, env = {}, &block)
     env[:request_method] = "PUT"
     env[:test_with_multipart] = true
-    request(path, params, env, &block)
+    mock_request(path, params, env, &block)
   end
   
   # ==== Parameters

@@ -7,6 +7,10 @@ module Merb
       ResponderMixin::TYPES
     end
 
+    def available_accepts
+      ResponderMixin::MIMES
+    end
+
     # Any specific outgoing headers should be included here.  These are not
     # the content-type header but anything in addition to it.
     # +transform_method+ should be set to a symbol of the method used to
