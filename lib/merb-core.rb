@@ -86,7 +86,6 @@ module Merb
       end
     end
 
-
     # Startup Merb by setting up the Config and starting the server.
     # This is where Merb application environment and root path are set.
     #
