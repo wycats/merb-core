@@ -289,11 +289,11 @@ module Merb
       @streams[port] ||= begin
         log = if Merb.testing?
           log_path / "merb_test.log"
-        elsif !Merb::Config[:daemonize]
+        elsif !Merb::Config[:daemonize] && !Merb::Config[:force_logging]
           STDOUT
         else
           log_path / "merb.#{port}.log"
-        end        
+        end
         
         if log.is_a?(IO)
           stream = log

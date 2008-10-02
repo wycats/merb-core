@@ -234,6 +234,7 @@ module Merb
                   "these options: debug < info < warn < error < " \
                   "fatal (default is info)") do |log_level|
             options[:log_level] = log_level.to_sym
+            options[:force_logging] = true
           end
 
           opts.on("-L", "--log LOGFILE", "A string representing the logfile to " \
@@ -241,6 +242,7 @@ module Merb
                   "master process and [Merb.root]/log/merb[port number].log" \
                   "for worker processes") do |log_file|
             options[:log_file] = log_file
+            options[:force_logging] = true
           end
 
           opts.on("-e", "--environment STRING", "Environment to run Merb " \

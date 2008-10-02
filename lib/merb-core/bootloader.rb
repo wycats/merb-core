@@ -289,8 +289,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
 
   def self.update_logger
-    # Clear out the logger so that any changes in init.rb will be
-    # picked up
+    # Clear out the logger so that any changes in init.rb will be picked up
     Merb.logger = nil
   end
   
