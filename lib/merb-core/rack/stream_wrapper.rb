@@ -25,6 +25,16 @@ module Merb
        def to_s
          @body.to_s
        end
+       
+       def ==(other)
+         @body == other
+       end
+       
+       def method_missing(sym, *args, &blk)
+         @body.send(sym, *args, &blk)
+       end
+       
+       
     end   
   
   end

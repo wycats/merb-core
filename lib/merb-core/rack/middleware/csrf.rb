@@ -10,7 +10,7 @@ module Merb
 
       def call(env)
         status, header, body = @app.call(env)
-
+        body = body.to_s
         if env[Merb::Const::REQUEST_METHOD] == Merb::Const::GET
           body = process_response(body) if valid_content_type?(header[Merb::Const::CONTENT_TYPE])
         elsif env[Merb::Const::REQUEST_METHOD] == Merb::Const::POST
