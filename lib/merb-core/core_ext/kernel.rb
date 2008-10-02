@@ -34,10 +34,13 @@ module Kernel
   # @param name<String> The name of the gem to load.
   # @param *ver<Gem::Requirement, Gem::Version, Array, #to_str>
   #   Version requirements to be passed to Gem::Dependency.new.
+  #   If the last argument is a Hash, extract the :immediate option,
+  #   forcing a dependency to load immediately.
   #
   # @return <Gem::Dependency> The dependency information.
   def dependency(name, *ver)
-    if Merb::BootLoader.finished?(Merb::BootLoader::Dependencies)
+    immediate = ver.last.is_a?(Hash) && ver.pop[:immediate]
+    if immediate || Merb::BootLoader.finished?(Merb::BootLoader::Dependencies)
       load_dependency(name, *ver)
     else
       track_dependency(name, *ver)

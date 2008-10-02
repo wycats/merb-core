@@ -170,7 +170,7 @@ end
 #
 # Only run if daemonization or clustering options specified on start.
 # Port is taken from Merb::Config and must be already set at this point.
-class Merb::BootLoader::DropPidFile <  Merb::BootLoader
+class Merb::BootLoader::DropPidFile < Merb::BootLoader
   class << self
 
     # Stores a PID file if Merb is running daemonized or clustered.

@@ -12,6 +12,15 @@ describe Kernel, "#dependency" do
     defined?(CoreExtDependency).should_not be_nil
   end
   
+  it "takes :immediate => true to require a dependency immediately" do
+    Merb::BootLoader::finished.delete("Merb::BootLoader::Dependencies")
+    dependency "core_ext_dependency"
+    defined?(CoreExtDependency).should be_nil
+    dependency "core_ext_dependency", :immediate => true
+    defined?(CoreExtDependency).should_not be_nil
+    Merb::BootLoader::finished << "Merb::BootLoader::Dependencies"
+  end
+  
   it "returns a Gem::Dependency" do
     dep = dependency "core_ext_dependency", ">= 1.1.2"
     dep.name.should == "core_ext_dependency"
