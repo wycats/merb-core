@@ -21,4 +21,5 @@ describe Merb::BootLoader::RackUpApplication do
     header.should == { "Content-Type" => "text/plain" }
     body.should == ""
   end
+  
 end
