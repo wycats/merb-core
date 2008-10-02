@@ -526,7 +526,7 @@ module Merb
     # Boolean:: True if Merb environment is testing for instance,
     # Merb is running with RSpec, Test::Unit of other testing facility.
     def testing?
-      $TESTING || Merb::Config[:testing]
+      $TESTING ||= env?(:test) || Merb::Config[:testing]
     end
 
     # Ask the question about which environment you're in.

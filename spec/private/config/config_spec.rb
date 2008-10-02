@@ -185,14 +185,14 @@ describe "Merb::Config with .setup" do
   end
 
   it "should take Merb.testing? into account" do
-    $TESTING.should == true
+    $TESTING = true
     Merb::Config[:testing].should be_nil
     Merb.should be_testing
     $TESTING = false
     Merb.should_not be_testing
     Merb::Config[:testing] = true
     Merb.should be_testing
-    $TESTING = true; Merb::Config[:testing] = false # reset
+    $TESTING = nil; Merb::Config[:testing] = false # reset
   end
 
   it "supports -V to turn on verbose mode" do
