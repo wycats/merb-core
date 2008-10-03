@@ -1,39 +1,39 @@
 require File.join(File.dirname(__FILE__), '..', "spec_helper")
 
-describe "When generating URLs," do
-  
-  module ID
-    class ORM ; end
-  
-    module Resource
-      def identifier
-        "included"
-      end
-    end
-  
-    class Article < ORM 
-      def id   ; 10        ; end
-      def to_s ; "article" ; end
-    end
-  
-    class Account < ORM
-      def to_s ; "account"  ; end
-      def url  ; "awesome" ; end
-    end
-  
-    class User    < ORM
-      def to_s ; "user" ; end
-      def name ; "carl" ; end
-    end
-  
-    class Something
-      def to_s ; "hello" ; end
-    end
-  
-    class WithInclusions
-      include Resource
+module ID
+  class ORM ; end
+
+  module Resource
+    def identifier
+      "included"
     end
   end
+
+  class Article < ORM 
+    def id   ; 10        ; end
+    def to_s ; "article" ; end
+  end
+
+  class Account < ORM
+    def to_s ; "account"  ; end
+    def url  ; "awesome" ; end
+  end
+
+  class User    < ORM
+    def to_s ; "user" ; end
+    def name ; "carl" ; end
+  end
+
+  class Something
+    def to_s ; "hello" ; end
+  end
+
+  class WithInclusions
+    include Resource
+  end
+end
+
+describe "When generating URLs," do
   
   before(:each) do
     Merb::Router.prepare do
@@ -101,14 +101,6 @@ describe "When generating URLs," do
       url(:account, :account => ID::Account.new).should == "/account"
       url(:user, :account => ID::Account.new, :id => ID::User.new).should == "/awesome/users/user"
     end
-    
-    it "should retain previously set params"
-    
-    it "should retain previously set options"
-    
-    it "should retain previously set namespaces"
-    
-    it "should retain previously set defaults"
     
   end
   

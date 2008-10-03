@@ -9,26 +9,20 @@ describe Merb::Test::RouteHelper do
   include Merb::Test::RouteHelper
   
   before(:each) do
-    Merb::Router.prepare do |r|
-      r.match("/").defer_to do |request, params|
+    Merb::Router.prepare do
+      match("/").defer_to do |request, params|
         { :controller => 'test_controller', :action => request.raw_post } unless request.raw_post.blank?
       end
-      r.match("/", :method => :get).to(:controller => "test_controller", :action => "get").name(:getter)
-      r.match("/", :method => :post).to(:controller => "test_controller", :action => "post")
-      r.match("/:id").to(:controller => "test_controller", :action => "get").name(:with_id)
+      match("/", :method => :get).to(:controller => "test_controller", :action => "get").name(:getter)
+      match("/", :method => :post).to(:controller => "test_controller", :action => "post")
+      match("/:id").to(:controller => "test_controller", :action => "get").name(:with_id)
+      default_routes
     end
   end
   
   describe "#url" do
     it "should use Merb::Router" do
       url(:getter).should == "/"
-    end
-    
-    it "should work with a model as the parameter" do
-      pending "This is not true anymore"
-      model = mock(:model)
-      model.stub!(:id).and_return("123")
-      url(:with_id, model).should == "/123"
     end
     
     it "should work with a parameters hash" do
@@ -49,7 +43,6 @@ describe Merb::Test::RouteHelper do
     end
     
     it "should remove items with nil values from query params when named route isn't specified" do
-      pending "This needs a default route to generate"
       url(:controller => 'cont', :action => 'act', :color => nil, :size => 'large').should == "/cont/act?size=large"
     end
   end

@@ -92,8 +92,6 @@ describe "When generating URLs," do
       
       url(:simple).should == "/one/two"
     end
-
-    it "should have more specs regarding regexp conditions and anchors"
   end
   
   describe "a route with multiple conditions" do
