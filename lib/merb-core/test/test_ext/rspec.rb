@@ -1,3 +1,4 @@
+require 'spec'
 module Kernel
   def given(*args, &example_group_block)
     args << {} unless Hash === args.last
