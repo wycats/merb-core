@@ -90,6 +90,22 @@ describe "When generating URLs," do
       lambda { url(:user, :id => 1) }.should raise_error(Merb::Router::GenerationError)
     end
     
+    [:key, :keys].each do |option|
+      it "should work with a single #{option.inspect} entry" do
+        Merb::Router.prepare do
+          resources :users, option => :name
+        end
+
+        url(:users).should                          == "/users"
+        url(:new_user).should                       == "/users/new"
+        url(:user,        :name => "foo").should    == "/users/foo"
+        url(:edit_user,   :name => "bar").should    == "/users/bar/edit"
+        url(:delete_user, :name => "world").should  == "/users/world/delete"
+        # -- Bad --
+        lambda { url(:user, :id => 1) }.should raise_error(Merb::Router::GenerationError)
+      end
+    end
+    
     it "should be able to specify the path of the resource" do
       Merb::Router.prepare do
         resources :users, :path => "admins"

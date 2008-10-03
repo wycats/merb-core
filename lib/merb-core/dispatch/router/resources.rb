@@ -71,7 +71,7 @@ module Merb
           options    = extract_options_from_args!(args) || {}
           singular   = options[:singular] ? options[:singular].to_s : Extlib::Inflection.singularize(name)
           klass      = args.first ? args.first.to_s : Extlib::Inflection.classify(singular)
-          keys       = [ options.delete(:keys) || :id ].flatten
+          keys       = [ options.delete(:keys) || options.delete(:key) || :id ].flatten
           params     = { :controller => options.delete(:controller) || name }
           collection = options.delete(:collection) || {}
           member     = { :edit => :get, :delete => :get }.merge(options.delete(:member) || {})

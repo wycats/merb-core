@@ -164,7 +164,7 @@ describe "When recognizing requests," do
     end
   end
 
-  describe "a resource route with custom keys" do
+  describe "a resource route with multiple custom keys" do
   
     before :each do
       Merb::Router.prepare do
@@ -197,4 +197,33 @@ describe "When recognizing requests," do
     end
  
   end
+  
+  describe "a resource route with a single custom key" do
+    
+    [:key, :keys].each do |option|
+      it "should use the specified key specified with #{option.inspect} in the params hash" do
+        Merb::Router.prepare do
+          resources :emails, option => :address
+        end
+        
+        route_for("/emails/foobar",        :method => :get).should have_route(:controller => "emails", :action => "show",   :address => "foobar")
+        route_for("/emails/foobar",        :method => :put).should have_route(:controller => "emails", :action => "update", :address => "foobar")
+        route_for("/emails/foobar/edit",   :method => :get).should have_route(:controller => "emails", :action => "edit",   :address => "foobar")
+        route_for("/emails/foobar/delete", :method => :get).should have_route(:controller => "emails", :action => "delete", :address => "foobar")
+      end
+    end
+    
+    it "should give precedence to :keys" do
+      Merb::Router.prepare do
+        resources :emails, :keys => :address, :key => :zomg
+      end
+      
+      route_for("/emails/foobar",        :method => :get).should have_route(:controller => "emails", :action => "show",   :address => "foobar")
+      route_for("/emails/foobar",        :method => :put).should have_route(:controller => "emails", :action => "update", :address => "foobar")
+      route_for("/emails/foobar/edit",   :method => :get).should have_route(:controller => "emails", :action => "edit",   :address => "foobar")
+      route_for("/emails/foobar/delete", :method => :get).should have_route(:controller => "emails", :action => "delete", :address => "foobar")
+    end
+    
+  end
+  
 end
