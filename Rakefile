@@ -17,7 +17,6 @@ require __DIR__ + "/tools/annotation_extract"
 include FileUtils
 
 require "lib/merb-core/version"
-require "lib/merb-core/test/run_specs"
 require 'lib/merb-core/tasks/merb_rake_helper'
 
 ##############################################################################
@@ -191,33 +190,39 @@ def setup_specs(name, spec_cmd='spec', run_opts = "-c")
 
   desc "Run all specs (#{name})"
   task "specs:#{name}" do
+    require "lib/merb-core/test/run_specs"
     globs = public_globs + private_globs
     run_specs(globs, spec_cmd, ENV['RSPEC_OPTS'] || run_opts, except)
   end
   
   desc "Run private specs (#{name})"
   task "specs:#{name}:private" do
+    require "lib/merb-core/test/run_specs"
     run_specs(private_globs, spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
 
   desc "Run public specs (#{name})"
   task "specs:#{name}:public" do
+    require "lib/merb-core/test/run_specs"
     run_specs(public_globs, spec_cmd, ENV['RSPEC_OPTS'] || run_opts)
   end
   
   # With profiling formatter
   desc "Run all specs (#{name}) with profiling formatter"
   task "specs:#{name}_profiled" do
+    require "lib/merb-core/test/run_specs"
     run_specs("spec/**/*_spec.rb", spec_cmd, "-c -f o")
   end
 
   desc "Run private specs (#{name}) with profiling formatter"
   task "specs:#{name}_profiled:private" do
+    require "lib/merb-core/test/run_specs"
     run_specs("spec/private/**/*_spec.rb", spec_cmd, "-c -f o")
   end
 
   desc "Run public specs (#{name}) with profiling formatter"
   task "specs:#{name}_profiled:public" do
+    require "lib/merb-core/test/run_specs"
     run_specs("spec/public/**/*_spec.rb", spec_cmd, "-c -f o")
   end  
 end
