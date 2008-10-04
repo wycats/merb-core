@@ -31,6 +31,7 @@ module GemManagement
   # Install a gem - looks remotely and local gem cache;
   # won't process rdoc or ri options.
   def install_gem(gem, options = {})
+    refresh = options.delete(:refresh) || []
     from_cache = (options.key?(:cache) && options.delete(:cache))
     if from_cache
       install_gem_from_cache(gem, options)
@@ -41,6 +42,16 @@ module GemManagement
       update_source_index(options[:install_dir]) if options[:install_dir]
 
       installer = Gem::DependencyInstaller.new(options.merge(:user_install => false))
+      
+      # Exclude gems to refresh from index - force (re)install of new version
+      # def installer.source_index; @source_index; end
+      unless refresh.empty?
+        source_index = installer.instance_variable_get(:@source_index)
+        source_index.gems.each do |name, spec| 
+          source_index.gems.delete(name) if refresh.include?(spec.name)
+        end
+      end
+      
       exception = nil
       begin
         installer.install gem, version
@@ -133,12 +144,16 @@ module GemManagement
 
       # Handle the main gem install.
       if File.exists?(File.join(gem_src_dir, 'Rakefile'))
+        subgems = []
         # Remove any existing packages.
         FileUtils.cd(gem_src_dir) { system("#{rake} clobber_package") }
         # Create the main gem pkg dir if it doesn't exist.
         FileUtils.mkdir_p(gem_pkg_dir) unless File.directory?(gem_pkg_dir)
         # Copy any subgems to the main gem pkg dir.
         Dir[File.join(gem_src_dir, '*', 'pkg', '*.gem')].each do |subgem_pkg|
+          if name = File.basename(subgem_pkg, '.gem')[/^(.*?)-([\d\.]+)$/, 1]
+            subgems << name
+          end
           dest = File.join(gem_pkg_dir, File.basename(subgem_pkg))
           FileUtils.copy_entry(subgem_pkg, dest, true, false, true)          
         end
@@ -150,7 +165,7 @@ module GemManagement
           FileUtils.cd(gem_pkg_dir) do
             if package = Dir[File.join(gem_pkg_dir, "#{gem_name}-*.gem")].last
               # If the (meta) gem has it's own package, install it.
-              install_gem(File.basename(package), options.dup)
+              install_gem(File.basename(package), options.merge(:refresh => subgems))
             else
               # Otherwise install each package seperately.
               Dir["*.gem"].each { |gem| install_gem(gem, options.dup) }
