@@ -1,7 +1,7 @@
 module Merb
   module Rack
     class AbstractAdapter
-    
+
       # Spawn a new worker process at a port.
       def self.spawn_worker(port)
         child_pid = Kernel.fork
@@ -9,31 +9,31 @@ module Merb
 
         # If we have a child_pid, we're in the parent. If we're
         throw(:new_worker) unless child_pid
-        
+
         @pids[port] = child_pid
         $CHILDREN = @pids.values
       end
-    
+
       # The main start method for bootloaders that support forking.
       def self.start(opts={})
         @opts = opts
         $CHILDREN ||= []
         parent = nil
-        
+
         @pids = {}
         port = (opts[:socket] || opts[:port]).to_i
         max_port = Merb::Config[:cluster] ? Merb::Config[:cluster] - 1 : 0
-        
+
         Merb.logger.warn! "Cluster: #{max_port}"
-        
+
         # If we only have a single merb, just start it up and dispense with
         # the spawner/worker setup.
         if max_port == 0
           start_at_port(port)
           return
         end
-        
-        $0 = "merb: spawner"
+
+        $0 = process_title(:spawner, port)
 
         # For each port, spawn a new worker. The parent will continue in
         # the loop, while the child will throw :new_worker and be booted
@@ -57,9 +57,9 @@ module Merb
                 begin
                   # Watch for the pid to exit.
                   _, status = Process.wait2(pid)
-                
-                # If the pid doesn't exist, we want to silently exit instead of
-                # raising here.
+
+                  # If the pid doesn't exist, we want to silently exit instead of
+                  # raising here.
                 rescue SystemCallError => e
                 ensure
                   # If there was no worker with that PID, the status was non-0
@@ -74,7 +74,7 @@ module Merb
                     Thread.exit
                   end
                 end
-              
+
                 # Otherwise, respawn the worker, and watch it again.
                 spawn_worker(port + i)
               end
@@ -85,14 +85,14 @@ module Merb
         # The spawner process will make it here, and when it does, it should just 
         # sleep so it can pick up ctrl-c if it's in console mode.
         sleep
-        
+
       end
-      
+
       def self.start_at_port(port, opts = @opts)
         at_exit do
           Merb::Server.remove_pid(port)
         end
-        
+
         # If Merb is daemonized, trap INT. If it's not daemonized,
         # we let the master process' ctrl-c control the cluster
         # of workers.
@@ -102,12 +102,12 @@ module Merb
             Merb.logger.warn! "Exiting port #{port}\n"
             exit_process
           end
-        # If it was not fork_for_class_load, we already set up
-        # ctrl-c handlers in the master thread.
+          # If it was not fork_for_class_load, we already set up
+          # ctrl-c handlers in the master thread.
         elsif Merb::Config[:fork_for_class_load]
           trap('INT') { 1 }
         end
-        
+
         # In daemonized mode or not, support HUPing the process to
         # restart it.
         trap('HUP') do
@@ -115,25 +115,25 @@ module Merb
           Merb.logger.warn! "Exiting port #{port} on #{Process.pid}\n"
           exit_process
         end
-        
+
         # ABRTing the process will kill it, and it will not be respawned.
         trap('ABRT') do
           stopped = stop(128)
           Merb.logger.warn! "Exiting port #{port}\n" if stopped
           exit_process(128)
         end
-        
+
         # Each worker gets its own `ps' name.
-        $0 = "merb: worker (port #{port})"
-        
+        $0 = process_title(:worker, port)
+
         # Store the PID for this worker
         Merb::Server.store_pid(port)
 
         Merb::Config[:log_delimiter] = "#{$0} ~ "
-        Merb.logger = nil
 
+        Merb.logger = nil
         Merb.logger.warn!("Starting #{self.name.split("::").last} at port #{port}")
-        
+
         # If we can't connect to the port, keep trying until we can. Print
         # a warning about this once. Try every 0.25s.
         printed_warning = false
@@ -148,7 +148,7 @@ module Merb
               Merb.logger.warn! "Waiting for it to become available"
               printed_warning = true
             end
-            
+
             sleep 0.25
             next
           end
@@ -156,18 +156,33 @@ module Merb
         end
 
         Merb.logger.warn! "Successfully bound to port #{port}"
-        
+
         Merb::Server.change_privilege
-        
+
         # Call the adapter's start_server method.
         start_server
       end
-      
+
       # This can be overridden in adapters, but shouldn't need to be.
       def self.exit_process(status = 0)
         exit(status)
       end
-      
+
+      def self.process_title(whoami, port)
+        name = Merb::Config[:name]
+        app  = "merb#{" : #{name}" if (name && name != "merb")}"
+        max_port  = Merb::Config[:cluster] ? (Merb::Config[:cluster] - 1) : 0
+        numbers   = ((whoami != :worker) && (max_port > 0)) ? "#{port}..#{port + max_port}" : port
+        file      = Merb::Config[:socket_file]
+        
+        listening_on = if Merb::Config[:socket]
+          "socket#{'s' if max_port > 0 && whoami != :worker} #{numbers} "\
+          "#{file ? file : "#{Merb.log_path}/#{name}.#{port}.sock"}"
+        else
+          "port#{'s' if max_port > 0 && whoami != :worker}"
+        end
+        "#{app} : #{whoami} (#{listening_on})"
+      end
     end
   end
 end

@@ -382,7 +382,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
 
       @ran = true
-      $0 = "merb: master"
+      $0 = "merb#{" : " + Merb::Config[:name] if Merb::Config[:name]} : master"
       
       if Merb::Config[:fork_for_class_load] && Merb.env != "test"
         start_transaction

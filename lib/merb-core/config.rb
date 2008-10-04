@@ -23,7 +23,8 @@ module Merb
           :log_level              => :info,
           :disabled_components    => [],
           :deferred_actions       => [],
-          :verbose                => false
+          :verbose                => false,
+          :name                   => "merb"
         }
       end
 
@@ -176,13 +177,19 @@ module Merb
 
           opts.on("-o", "--socket-file FILE", "Socket file to run merb on, " \
                   "defaults to [Merb.root]/log/merb.sock. This is for " \
-                  "web servers, like thin, that use sockets.") do |port|
+                  "web servers, like thin, that use sockets." \
+                  "Specify this *only* if you *must*.") do |port|
             options[:socket_file] = port
           end
 
           opts.on("-s", "--socket SOCKNUM", Integer, "Socket number to run " \
                   "merb on, defaults to 0.") do |port|
             options[:socket] = port
+          end
+
+          opts.on("-n", "--name NAME", String, "Set the name of the application. "\
+                  "This is used in the process title and log file names.") do |name|
+            options[:name] = name
           end
 
           opts.on("-P", "--pid PIDFILE", "PID file, defaults to " \
