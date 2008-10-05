@@ -24,73 +24,9 @@ module ColorfulMessages
   
 end
 
-module MinimalPrivilege
-  @@unprivileged = false
-
-  # become who we were before sudo
-  def lose_root
-    Process.gid, Process.egid = @@old_gid, @@old_gid
-    Process.uid, Process.euid = @@old_uid, @@old_uid
-
-    @@unprivileged = true
-  end
-
-  # take back our root privs!
-  def gain_root
-    Process.gid, Process.egid = @@cur_gid, @@cur_gid
-    Process.uid, Process.euid = @@cur_uid, @@cur_uid
-
-    @@unprivileged = false
-  end
-
-  # save our root privs so we can go back
-  def self.save_root_privs
-    @@cur_uid, @@cur_euid = Process.uid, Process.euid
-    @@cur_gid, @@cur_egid = Process.gid, Process.egid
-  end
-
-  # save who we were before sudo
-  def self.set_old_user
-    @@old_uid = ENV['SUDO_UID'].to_i
-    @@old_gid = ENV['SUDO_GID'].to_i
-  end
-
-  # class method version of lose_root so it works when #test_for_sudo is called
-  def self.drop_root
-    Process.gid, Process.egid = @@old_gid, @@old_gid
-    Process.uid, Process.euid = @@old_uid, @@old_uid
-
-    @@unprivileged = true
-  end
-
-  def self.test_for_sudo
-    if ENV['SUDO_UID'] && ENV['SUDO_GID']
-      save_root_privs
-      set_old_user
-      drop_root
-    end
-  end
-
-  def become_root
-    if @@unprivileged
-      gain_root
-      begin
-        yield
-      ensure
-        lose_root
-      end
-    else
-      yield
-    end
-  end
-end
-
-MinimalPrivilege.test_for_sudo
-
 module GemManagement
   
   include ColorfulMessages
-  include MinimalPrivilege
   
   # Install a gem - looks remotely and local gem cache;
   # won't process rdoc or ri options.
@@ -118,13 +54,13 @@ module GemManagement
       
       exception = nil
       begin
-        become_root { installer.install gem, version }
+        installer.install gem, version
       rescue Gem::InstallError => e
         exception = e
       rescue Gem::GemNotFoundException => e
         if from_cache && gem_file = find_gem_in_cache(gem, version)
           puts "Located #{gem} in gem cache..."
-          become_root { installer.install gem_file }
+          installer.install gem_file
         else
           exception = e
         end
@@ -248,7 +184,7 @@ module GemManagement
       options[:version] = Gem::Requirement.new ["= #{options[:version]}"]
     end
     update_source_index(options[:install_dir]) if options[:install_dir]
-    become_root { Gem::Uninstaller.new(gem, options).uninstall }
+    Gem::Uninstaller.new(gem, options).uninstall
   end
 
   # Use the local bin/* executables if available.
@@ -262,7 +198,6 @@ module GemManagement
   
   # Create a modified executable wrapper in the specified bin directory.
   def ensure_bin_wrapper_for(gem_dir, bin_dir, *gems)
-    system_bindir = bin_dir == Gem.bindir
     if bin_dir && File.directory?(bin_dir)
       gems.each do |gem|
         if gemspec_path = Dir[File.join(gem_dir, 'specifications', "#{gem}-*.gemspec")].last
@@ -270,16 +205,8 @@ module GemManagement
           spec.executables.each do |exec|
             executable = File.join(bin_dir, exec)
             message "Writing executable wrapper #{executable}"
-            if system_bindir
-              become_root do 
-                File.open(executable, 'w', 0755) do |f|
-                  f.write(executable_wrapper(spec, exec))
-                end
-              end
-            else
-              File.open(executable, 'w', 0755) do |f|
-                f.write(executable_wrapper(spec, exec))
-              end
+            File.open(executable, 'w', 0755) do |f|
+              f.write(executable_wrapper(spec, exec))
             end
           end
         end
