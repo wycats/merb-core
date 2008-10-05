@@ -384,7 +384,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       @ran = true
       $0 = "merb#{" : " + Merb::Config[:name] if Merb::Config[:name]} : master"
 
-      if Merb::Config[:fork_for_class_load] && Merb.env != "test"
+      if Merb::Config[:fork_for_class_load] && !Merb.testing?
         start_transaction
       else
         Merb.trap('INT') do
@@ -398,7 +398,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       
       # Load classes and their requirements
       Merb.load_paths.each do |component, path|
-        next unless path.last && component != :application
+        next if path.last.blank? || component == :application || component == :router
         load_classes(path.first / path.last)
       end
 
@@ -563,18 +563,10 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # ==== Parameters
     # file<String>:: The file to reload.
     def reload(file)
-      if !Merb::Config[:fork_for_class_load]
-        remove_classes_in_file(file) { |f| load_file(f) }
-      else
+      if Merb::Config[:fork_for_class_load]
         kill_children(128)
-      end
-    end
-    
-    # Reload the router to regenerate all routes.
-    def reload_router!
-      if File.file?(router_file = Merb.dir_for(:router) / Merb.glob_for(:router))
-        Merb::Router.reset!
-        reload router_file
+      else
+        remove_classes_in_file(file) { |f| load_file(f) }
       end
     end
     
@@ -582,7 +574,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # file<String>:: The file to remove classes for.
     # &block:: A block to call with the file that has been removed.
     def remove_classes_in_file(file, &block)
-      Merb.klass_hashes.each {|x| x.protect_keys!}
+      Merb.klass_hashes.each { |x| x.protect_keys! }
       if klasses = LOADED_CLASSES.delete(file)
         klasses.each { |klass| remove_constant(klass) unless klass.to_s =~ /Router/ }
       end
@@ -665,6 +657,31 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
   end
 
+end
+
+class Merb::BootLoader::Router < Merb::BootLoader
+  class << self
+    
+    def run
+      Merb::BootLoader::LoadClasses.load_file(router_file) if router_file
+    end
+    
+    def reload!
+      if router_file
+        Merb::Router.reset!
+        Merb::BootLoader::LoadClasses.reload(router_file)
+      end
+    end
+    
+    def router_file
+      @router_file ||= begin
+        if File.file?(router = Merb.dir_for(:router) / Merb.glob_for(:router))
+          Merb::BootLoader::LoadClasses.load_file(router)
+        end
+      end
+    end
+   
+  end
 end
 
 class Merb::BootLoader::Templates < Merb::BootLoader
