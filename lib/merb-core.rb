@@ -601,7 +601,7 @@ module Merb
     # Recommended way to find out what paths Rakefiles
     # are loaded from.
     def rakefiles
-      @rakefiles ||= ['merb-core/test/tasks/spectasks']
+      @rakefiles ||= []
     end
     
     # === Returns
@@ -620,7 +620,7 @@ module Merb
     # ==== Notes
     # Recommended way to add Rakefiles load path for plugins authors.
     def add_rakefiles(*rakefiles)
-      @rakefiles ||= ['merb-core/test/tasks/spectasks']
+      @rakefiles ||= []
       @rakefiles += rakefiles
     end
     
