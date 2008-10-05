@@ -1,3 +1,10 @@
+10/05/2008:
+* Merb does not add spec tasks to Rakefiles list by default. Add
+  require "merb-core/test/tasks/spectasks" in your existing Rakefiles
+	explicitly. This is done so that test unit users do not get spec
+	tasks they do not need down their throat in any merb application,
+	even running on just -core.
+
 9/26/2008:
 * For Merb developers, Rakefile features a new implementation of the :install
   and :uninstall tasks. These will work with Gems directly, without running
