@@ -39,7 +39,7 @@ task :stats do
     :models       => 'app/models',
     :lib          => 'lib',
     :spec         => 'spec'
-  }
+  }.reject {|name, dir| !File.exist?(dir) }
   EMPTY_STATS = { :lines => 0, :loc => 0, :classes => 0, :modules => 0, :methods => 0 }
  
   @all = {}
