@@ -76,6 +76,16 @@ describe "When recognizing requests," do
       lambda { route_for('/anything', :method => "put")    }.should raise_not_found
       lambda { route_for('/anything', :method => "delete") }.should raise_not_found
     end
+    
+    it "should ignore nil values" do
+      Merb::Router.prepare do
+        match("/hello", :method => nil).to(:controller => "all")
+      end
+      
+      [:get, :post, :puts, :delete].each do |method|
+        route_for("/hello", :method => method).should have_route(:controller => "all")
+      end
+    end
   end
   
   describe "a route with Request method condition and a path condition" do

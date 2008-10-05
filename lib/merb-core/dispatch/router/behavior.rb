@@ -197,10 +197,13 @@ module Merb
       #---
       # @public
       def match(path = {}, conditions = {}, &block)
-        path, conditions = path[:path], path if Hash === path
-        conditions[:path] = merge_paths(path)
+        path, conditions = path[:path], path if path.is_a?(Hash)
 
         raise Error, "The route has already been committed. Further conditions cannot be specified" if @route
+        
+        
+        conditions.delete_if { |k, v| v.nil? }
+        conditions[:path] = merge_paths(path)
 
         behavior = Behavior.new(@proxy, @conditions.merge(conditions), @params, @defaults, @identifiers, @options, @blocks)
         with_behavior_context(behavior, &block)
@@ -449,7 +452,7 @@ module Merb
       #---
       # @public
       def defer_to(params = {}, &block)
-        defer(block).to_route(params)
+        defer(block).to(params)
       end
       
       # Takes a Proc as a parameter and applies it as a deferred proc for all the
@@ -545,7 +548,7 @@ module Merb
       # So that Router can have a default route
       # ---
       # @private
-      def with_proxy(&block) #:nodoc:
+      def _with_proxy(&block) #:nodoc:
         proxy = Proxy.new
         proxy.push Behavior.new(proxy, @conditions, @params, @defaults, @identifiers, @options, @blocks)
         proxy.instance_eval(&block)
@@ -553,13 +556,15 @@ module Merb
       end
       
     protected
+    
+      def _route
+        @route
+      end
       
-      def to_route(params = {}, &conditional_block) # :nodoc:
-        
+      def to_route # :nodoc:
         raise Error, "The route has already been committed." if @route
 
-        params     = @params.merge(params)
-        controller = params[:controller]
+        controller = @params[:controller]
 
         if prefixes = @options[:controller_prefix]
           controller ||= ":controller"
@@ -570,16 +575,27 @@ module Merb
           end
         end
         
-        params.merge!(:controller => controller.to_s.gsub(%r{^/}, '')) if controller
+        @params.merge!(:controller => controller.to_s.gsub(%r{^/}, '')) if controller
         
         # Sorts the identifiers so that modules that are at the bottom of the
         # inheritance chain come first (more specific modules first). Object
         # should always be last.
         identifiers = @identifiers.sort { |(first,_),(sec,_)| first <=> sec || 1 }
         
-        @route = Route.new(@conditions.dup, params, @blocks, :defaults => @defaults.dup, :identifiers => identifiers)
-        @route.register
+        @route = Route.new(@conditions.dup,@params, @blocks, :defaults => @defaults.dup, :identifiers => identifiers)
+        
+        if before = @options[:before] && @options[:before].last
+          @route.register_at(Router.routes.index(before))
+        else
+          @route.register
+        end
         self
+      end
+      
+      # Allows to insert the route at a certain spot in the list of routes
+      # instead of appending to the list.
+      def before(route, &block) #:nodoc:
+        options(:before => route, &block)
       end
 
     private

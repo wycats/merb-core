@@ -126,9 +126,21 @@ describe "When generating URLs," do
       url(:delete_admin_user, :id => 1).should == "/users/1/delete"
     end
     
-    it "should be able to add extra collection routes" do
+    it "should be able to add extra collection routes through the options" do
       Merb::Router.prepare do
         resources :users, :collection => {:hello => :get, :goodbye => :post}
+      end
+      
+      url(:hello_users).should   == "/users/hello"
+      url(:goodbye_users).should == "/users/goodbye"
+    end
+    
+    it "should be able to add extra collection routes in the block" do
+      Merb::Router.prepare do
+        resources :users do
+          collection :hello
+          collection :goodbye
+        end
       end
       
       url(:hello_users).should   == "/users/hello"
@@ -138,6 +150,18 @@ describe "When generating URLs," do
     it "should be able to add extra member routes" do
       Merb::Router.prepare do
         resources :users, :member => {:hello => :get, :goodbye => :post}
+      end
+      
+      url(:hello_user, :id => 1).should   == "/users/1/hello"
+      url(:goodbye_user, :id => 1).should == "/users/1/goodbye"
+    end
+    
+    it "should be able to add extra member routes" do
+      Merb::Router.prepare do
+        resources :users do
+          member :hello
+          member :goodbye
+        end
       end
       
       url(:hello_user, :id => 1).should   == "/users/1/hello"
@@ -193,6 +217,27 @@ describe "When generating URLs," do
       lambda { url(:forms) }.should raise_error(Merb::Router::GenerationError)
     end
     
+    it "should be able to specify extra actions through the options" do
+      Merb::Router.prepare do
+        resource :form, :member => { :hello => :get, :goodbye => :post }
+      end
+      
+      url(:hello_form).should   == "/form/hello"
+      url(:goodbye_form).should == "/form/goodbye"
+    end
+    
+    it "should be able to specify extra actions through the block" do
+      Merb::Router.prepare do
+        resource :form do
+          member :hello
+          member :goodbye
+        end
+      end
+      
+      url(:hello_form).should   == "/form/hello"
+      url(:goodbye_form).should == "/form/goodbye"
+    end
+    
     it "should be able to specify arbitrary sub routes" do
       Merb::Router.prepare do
         resource :form do
@@ -210,7 +255,11 @@ describe "When generating URLs," do
     before(:each) do
       Merb::Router.prepare do
         resources :users do
-          resources :comments
+          collection :gaga
+          resources :comments do
+            collection :hello
+            member     :goodbye
+          end
         end
       end
     end
@@ -233,6 +282,18 @@ describe "When generating URLs," do
     
     it "should provide a delete route" do
       url(:delete_user_comment, :user_id => 5, :id => 1).should == "/users/5/comments/1/delete"
+    end
+    
+    it "should not have a gaga route" do
+      lambda { url(:gaga_user_comments, :user_id => 5) }
+    end
+    
+    it "should provide a hello collection route" do
+      url(:hello_user_comments, :user_id => 5).should == "/users/5/comments/hello"
+    end
+    
+    it "should provide a goodbye member route" do
+      url(:goodbye_user_comment, :user_id => 5, :id => 1).should == "/users/5/comments/1/goodbye"
     end
     
   end

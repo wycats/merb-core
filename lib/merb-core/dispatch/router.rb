@@ -56,7 +56,7 @@ module Merb
       #   Returns self to allow chaining of methods.
       def prepare(first = [], last = [], &block)
         @routes = []
-        root_behavior.with_proxy(&block)
+        root_behavior._with_proxy(&block)
         @routes = first + @routes + last
         compile
         self

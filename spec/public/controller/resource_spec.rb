@@ -44,6 +44,31 @@ describe Merb::Controller, " #resource" do
       @controller.resource(@user, :delete).should == "/users/5/delete"
     end
     
+    it "should be able to specify extra actions through the options" do
+      Merb::Router.prepare do
+        identify :id do
+          resources :users, :collection => { :hello => :get }, :member => { :goodbye => :post }
+        end
+      end
+      
+      @controller.resource(:users, :hello).should  == "/users/hello"
+      @controller.resource(@user, :goodbye).should == "/users/5/goodbye"
+    end
+    
+    it "should be able to specify extra actions through the block" do
+      Merb::Router.prepare do
+        identify :id do
+          resources :users do
+            collection :hello
+            member     :goodbye
+          end
+        end
+      end
+      
+      @controller.resource(:users, :hello).should  == "/users/hello"
+      @controller.resource(@user, :goodbye).should == "/users/5/goodbye"
+    end
+    
   end
   
   describe "generating a resource member route" do
@@ -70,6 +95,24 @@ describe Merb::Controller, " #resource" do
     
     it "should generate the url for deleting the member" do
       @controller.resource(:user, :delete).should == "/user/delete"
+    end
+    
+    it "should be able to specify extra actions through the options" do
+      Merb::Router.prepare do
+        resource :user, :member => { :hello => :get }
+      end
+      
+      @controller.resource(:user, :hello).should == "/user/hello"
+    end
+    
+    it "should be able to specify extra options through the block" do
+      Merb::Router.prepare do
+        resource :user do
+          member :hello
+        end
+      end
+      
+      @controller.resource(:user, :hello).should == "/user/hello"
     end
     
   end

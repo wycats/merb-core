@@ -2,7 +2,7 @@ require File.join(File.dirname(__FILE__), "..", "spec_helper")
 
 describe "When recognizing requests," do
 
-  describe "a basic resource route" do
+  describe "a basic resource collection route" do
   
     before :each do
       Merb::Router.prepare do
@@ -79,7 +79,7 @@ describe "When recognizing requests," do
     end
   end
   
-  describe "a customized resource route" do
+  describe "a customized resource collection route" do
     
     it "should be able to change the controller that the resource points to" do
       Merb::Router.prepare do
@@ -110,20 +110,14 @@ describe "When recognizing requests," do
     end
   end
   
-  describe "a resource with extra actions" do
-    
-    collection = { :one  => :get, :two => :post, :three => :put, :four  => :delete }
-    member     = { :five => :get, :six => :post, :seven => :put, :eight => :delete }
-    
-    before(:each) do
-      Merb::Router.prepare do
-        resources :users, :collection => collection, :member => member
-      end
-    end
+  collection_routes = { :one  => :get, :two => :post, :three => :put, :four  => :delete }
+  member_routes     = { :five => :get, :six => :post, :seven => :put, :eight => :delete }
+  
+  describe "a plural resource route with extra actions", :shared => true do
     
     # Loop through each method declared on the collection and make sure that they
     # are available only when the request is using the specified method
-    collection.each_pair do |action, method|
+    collection_routes.each_pair do |action, method|
       it "should be able to add extra #{method} methods on the collection with an optional :format" do
         route_for("/users/#{action}",     :method => method).should have_route(:controller => "users", :action => "#{action}", :id => nil, :format => nil)
         route_for("/users/#{action}.xml", :method => method).should have_route(:controller => "users", :action => "#{action}", :id => nil, :format => "xml")
@@ -146,7 +140,7 @@ describe "When recognizing requests," do
       end unless method == :post
     end
     
-    member.each_pair do |action, method|
+    member_routes.each_pair do |action, method|
       
       it "should be able to add extra #{method} methods on the member with an optional :format" do
         route_for("/users/2/#{action}",     :method => method).should have_route(:controller => "users", :action => "#{action}", :id => "2", :format => nil)
@@ -162,6 +156,84 @@ describe "When recognizing requests," do
         
       end
     end
+    
+  end
+  
+  describe "a plural resource with extra actions specified through the options" do
+    
+    before(:each) do
+      Merb::Router.prepare do
+        resources :users, :collection => collection_routes, :member => member_routes
+      end
+    end
+    
+    it_should_behave_like "a plural resource route with extra actions"
+    
+  end
+  
+  describe "a plural resource with extra actions specified in the block" do
+    
+    before(:each) do
+      Merb::Router.prepare do
+        resources :users do
+          collection_routes.each { |name, method| collection name, :method => method, :to => "#{name}" }
+          member_routes.each     { |name, method| member     name, :method => method, :to => "#{name}" }
+        end
+      end
+    end
+    
+    it_should_behave_like "a plural resource route with extra actions"
+    
+    it "should work without the :to option" do
+      Merb::Router.prepare do
+        resources :users do
+          collection :hello, :method => :get
+          member     :hello, :method => :get
+        end
+      end
+      
+      route_for("/users/hello").should   have_route(:action => "hello")
+      route_for("/users/1/hello").should have_route(:action => "hello")
+    end
+    
+    it "should work without the :method option" do
+      Merb::Router.prepare do
+        resources :users do
+          collection :hello, :to => "goodbye"
+          member     :hello, :to => "goodbye"
+        end
+      end
+      
+      [:get, :post, :put, :delete].each do |method|
+        route_for("/users/hello",   :method => method).should have_route(:action => "goodbye")
+        route_for("/users/1/hello", :method => method).should have_route(:action => "goodbye")
+      end
+    end
+    
+    it "should be able to map the same path with different methods to different actions for collection routes" do
+      Merb::Router.prepare do
+        resources :users do
+          collection :hello, :method => :get, :to => "collection_get_hello"
+          collection :hello, :method => :put, :to => "collection_put_hello"
+        end
+      end
+      
+      route_for("/users/hello", :method => :get).should have_route(:controller => "users", :action => "collection_get_hello")
+      route_for("/users/hello", :method => :put).should have_route(:controller => "users", :action => "collection_put_hello")
+    end
+    
+    it "should be able to map the same path with different methods to different actions for member routes" do
+      Merb::Router.prepare do
+        resources :users do
+          member :hello, :method => :get, :to => "member_get_hello"
+          member :hello, :method => :put, :to => "member_put_hello"
+        end
+      end
+      
+      route_for("/users/9/hello", :method => :get).should have_route(:controller => "users", :id => "9", :action => "member_get_hello")
+      route_for("/users/9/hello", :method => :put).should have_route(:controller => "users", :id => "9", :action => "member_put_hello")
+    end
+    
   end
 
   describe "a resource route with multiple custom keys" do

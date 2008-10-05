@@ -52,9 +52,17 @@ module Merb
       
       alias_method :inspect, :to_s
 
+      # Appends self to Merb::Router.routes
       def register
         @index = Merb::Router.routes.size
         Merb::Router.routes << self
+        self
+      end
+      
+      # Inserts self to Merb::Router.routes at the specified index.
+      def register_at(index)
+        @index = index
+        Merb::Router.routes.insert(index, self)
         self
       end
       
