@@ -33,14 +33,14 @@ end
 #   Merb.logger.info!(message<String>,&block)
 #   Merb.logger.debug!(message<String>,&block)
 #
-# Flush the buffer to 
+# Flush the buffer to
 #   Merb.logger.flush
 #
 # Remove the current log object
 #   Merb.logger.close
-# 
+#
 # ==== Private Merb Logger API
-# 
+#
 # To initialize the logger you create a new object, proxies to set_log.
 #   Merb::Logger.new(log{String, IO},level{Symbol, String})
 module Merb
@@ -61,10 +61,10 @@ module Merb
     # :warn:: A warning
     # :info:: generic (useful) information about system operation
     # :debug:: low-level information for developers
-    Levels = 
+    Levels =
     {
-      :fatal => 7, 
-      :error => 6, 
+      :fatal => 7,
+      :error => 6,
       :warn  => 4,
       :info  => 3,
       :debug => 0
@@ -105,7 +105,7 @@ module Merb
     end
 
     # Replaces an existing logger with a new one.
-    # 
+    #
     # ==== Parameters
     # log<IO, String>:: Either an IO object or a name of a logfile.
     # log_level<~to_sym>::
@@ -117,14 +117,14 @@ module Merb
     #   Whether the log should automatically flush after new messages are
     #   added. Defaults to false.
     def set_log(stream = Merb::Config[:log_stream],
-      log_level = Merb::Config[:log_level], 
-      delimiter = Merb::Config[:log_delimiter], 
+      log_level = Merb::Config[:log_level],
+      delimiter = Merb::Config[:log_delimiter],
       auto_flush = Merb::Config[:log_auto_flush])
-      
+
       @buffer                   = []
       @delimiter                = delimiter
       @auto_flush               = auto_flush
-      
+
       if Levels[log_level]
         @level                  = Levels[log_level]
       else
@@ -211,5 +211,5 @@ module Merb
     end
 
   end
-  
+
 end
