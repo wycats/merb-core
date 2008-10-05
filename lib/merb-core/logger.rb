@@ -61,14 +61,13 @@ module Merb
     # :warn:: A warning
     # :info:: generic (useful) information about system operation
     # :debug:: low-level information for developers
-    Levels =
-    {
+    Levels = Mash.new({
       :fatal => 7,
       :error => 6,
       :warn  => 4,
       :info  => 3,
       :debug => 0
-    } unless const_defined?(:Levels)
+    }) unless const_defined?(:Levels)
 
     @@mutex = {}
 
