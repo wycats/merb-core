@@ -615,7 +615,7 @@ module Merb
     end
 
     # ==== Parameters
-    # *rakefiles:: Rakefile pathss to add to the list of Rakefiles.
+    # *rakefiles:: Rakefile paths to add to the list of Rakefiles.
     #
     # ==== Notes
     # Recommended way to add Rakefiles load path for plugins authors.
@@ -632,6 +632,15 @@ module Merb
     def add_generators(*generators)
       @generators ||= []
       @generators += generators
+    end
+
+    # Install a signal handler for a given signal unless signals have
+    # been disabled with Merb.disable(:signals)
+    # ==== Parameters
+    # signal:: The name of the signal to install a handler for.
+    # &block:: The block to be run when the given signal is received.
+    def trap(signal, &block)
+      Kernel.trap(signal, &block) unless Merb.disabled?(:signals)
     end
 
   end

@@ -141,9 +141,9 @@ module Merb
       rescue NotImplementedError => e
         Merb.fatal! "Daemonized mode is not supported on your platform", e
       end
-      
+
       def bootup
-        trap('TERM') { exit }
+        Merb.trap('TERM') { exit }
 
         puts "Running bootloaders..." if Merb::Config[:verbose]
         BootLoader.run
@@ -290,12 +290,12 @@ module Merb
       end
 
       def add_irb_trap
-        trap('INT') do
+        Merb.trap('INT') do
           if @interrupted
             puts "Exiting\n"
             exit
           end
-          
+
           @interrupted = true
           puts "Interrupt a second time to quit"
           Kernel.sleep 1.5
@@ -308,7 +308,7 @@ module Merb
             IRB.conf[:MAIN_CONTEXT] = @irb.context
           end
 
-          trap(:INT) { @irb.signal_handle }
+          Merb.trap(:INT) { @irb.signal_handle }
           catch(:IRB_EXIT) { @irb.eval_input }
 
           puts "Exiting IRB mode, back in server mode"

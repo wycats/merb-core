@@ -97,7 +97,7 @@ module Merb
         # we let the master process' ctrl-c control the cluster
         # of workers.
         if Merb::Config[:daemonize]
-          trap('INT') do
+          Merb.trap('INT') do
             stop
             Merb.logger.warn! "Exiting port #{port}\n"
             exit_process
@@ -105,19 +105,19 @@ module Merb
           # If it was not fork_for_class_load, we already set up
           # ctrl-c handlers in the master thread.
         elsif Merb::Config[:fork_for_class_load]
-          trap('INT') { 1 }
+          Merb.trap('INT') { 1 }
         end
 
         # In daemonized mode or not, support HUPing the process to
         # restart it.
-        trap('HUP') do
+        Merb.trap('HUP') do
           stop
           Merb.logger.warn! "Exiting port #{port} on #{Process.pid}\n"
           exit_process
         end
 
         # ABRTing the process will kill it, and it will not be respawned.
-        trap('ABRT') do
+        Merb.trap('ABRT') do
           stopped = stop(128)
           Merb.logger.warn! "Exiting port #{port}\n" if stopped
           exit_process(128)

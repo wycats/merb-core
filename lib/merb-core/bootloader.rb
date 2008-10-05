@@ -383,11 +383,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
       @ran = true
       $0 = "merb#{" : " + Merb::Config[:name] if Merb::Config[:name]} : master"
-      
+
       if Merb::Config[:fork_for_class_load] && Merb.env != "test"
         start_transaction
       else
-        trap('INT') do 
+        Merb.trap('INT') do
           Merb.logger.warn! "Killing children"
           kill_children
         end
@@ -412,31 +412,31 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Merb::Server.remove_pid("main")
       exit
     end
-    
+
     # If using fork-based code reloading, set up the BEGIN
     # point and set up any signals in the parent and child.
     def start_transaction
       Merb.logger.warn! "Parent pid: #{Process.pid}"
       reader, writer = nil, nil
-      
+
       if GC.respond_to?(:copy_on_write_friendly=)
         GC.copy_on_write_friendly = true
-      end      
-            
+      end
+
       loop do
         reader, @writer = IO.pipe
         pid = Kernel.fork
-        
+
         # pid means we're in the parent; only stay in the loop in that case
         break unless pid
         @writer.close
 
         Merb::Server.store_pid("main")
-        
+
         if Merb::Config[:console_trap]
-          trap("INT") {}
+          Merb.trap("INT") {}
         else
-          trap("INT") do 
+          Merb.trap("INT") do
             Merb.logger.warn! "Killing children"
             begin
               Process.kill("ABRT", pid)
@@ -445,8 +445,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
             exit_gracefully
           end
         end
-        
-        trap("HUP") do 
+
+        Merb.trap("HUP") do
           Merb.logger.warn! "Doing a fast deploy\n"
           Process.kill("HUP", pid)
         end
@@ -471,20 +471,20 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
           end
         end
       end
- 
+
       reader.close
- 
+
       # add traps to the child
       if Merb::Config[:console_trap]
         Merb::Server.add_irb_trap
         at_exit { kill_children }
       else
-        trap('INT') {}
-        trap('ABRT') { kill_children }
-        trap('HUP') { kill_children(128) }
+        Merb.trap('INT') {}
+        Merb.trap('ABRT') { kill_children }
+        Merb.trap('HUP') { kill_children(128) }
       end
     end
-    
+
     # Kill any children of the spawner process and exit with
     # an appropriate status code.
     #
