@@ -268,17 +268,6 @@ module Merb::RenderMixin
   #
   # In this case, "one" will be available in the partial through the local
   # variable named +number+.
-  #
-  # ==== Notes
-  # It is important to note that the object being passed to the partial
-  # as well as any extra local variables cannot use names of helper methods
-  # since any helper method of the same name will take precedence over the
-  # passed variable. Example:
-  #
-  #   partial :bar, :with => "one", :as => :partial
-  #
-  # In this case, "one" will not be available in the partial because "partial"
-  # is already a helper method.
   def partial(template, opts={})
 
     # partial :foo becomes "#{controller_name}/_foo"
@@ -290,32 +279,36 @@ module Merb::RenderMixin
       kontroller = (m = template.match(/.*(?=\/)/)) ? m[0] : controller_name
       template = "_#{File.basename(template)}"
     end
-    template_method, template_location = 
-      _template_for(template, opts.delete(:format) || content_type, kontroller, template_path)
 
-    (@_old_partial_locals ||= []).push @_merb_partial_locals
-    
     # This handles no :with as well
     with = [opts.delete(:with)].flatten
-    as = opts.delete(:as) || template_location.match(%r[.*/_([^\.]*)])[1]
-    
-    @_merb_partial_locals = opts.merge(:collection_index => -1, :collection_size => with.size)
+    as = (opts.delete(:as) || template.match(%r[(?:.*/)?_([^\./]*)])[1]).to_sym
+
+    # Ensure that as is in the locals hash even if it isn't passed in here
+    # so that it's included in the preamble. 
+    locals = opts.merge(:collection_index => -1, :collection_size => with.size, as => opts[as])
+    template_method, template_location = _template_for(
+      template, 
+      opts.delete(:format) || content_type, 
+      kontroller, 
+      template_path, 
+      locals.keys)
     
     # this handles an edge-case where the name of the partial is _foo.* and your opts
     # have :foo as a key.
-    named_local = @_merb_partial_locals.key?(as.to_sym)
+    named_local = opts.key?(as)
     
     sent_template = with.map do |temp|
-      @_merb_partial_locals[as.to_sym] = temp unless named_local
+      locals[as] = temp unless named_local
+
       if template_method && self.respond_to?(template_method)
-        @_merb_partial_locals[:collection_index] += 1
-        send(template_method)
+        locals[:collection_index] += 1
+        send(template_method, locals)
       else
         raise TemplateNotFound, "Could not find template at #{template_location}.*"
       end
     end.join
     
-    @_merb_partial_locals = @_old_partial_locals.pop
     sent_template
   end
 
@@ -382,6 +375,7 @@ module Merb::RenderMixin
   # context<Object>:: The controller action or template (basename or absolute path).
   # content_type<~to_s>:: The content type (like html or json).
   # controller<~to_s>:: The name of the controller. Defaults to nil.
+  # locals<Array[Symbol]>:: A list of locals to assign from the args passed into the compiled template.
   #
   # ==== Options (opts)
   # :template<String>::
@@ -391,13 +385,13 @@ module Merb::RenderMixin
   # ==== Returns
   # Array[Symbol, String]::
   #   A pair consisting of the template method and location.
-  def _template_for(context, content_type, controller=nil, template=nil)
+  def _template_for(context, content_type, controller=nil, template=nil, locals=[])
     template_method, template_location = nil, nil
 
     # absolute path to a template (:template => "/foo/bar")
     if template.is_a?(String) && template =~ %r{^/}
       template_location = self._absolute_template_location(template, content_type)
-      return [_template_method_for(template_location), template_location]
+      return [_template_method_for(template_location, locals), template_location]
     end
 
     self.class._template_roots.reverse_each do |root, template_meth|
@@ -409,7 +403,7 @@ module Merb::RenderMixin
         template_location = root / self.send(template_meth, context, content_type, controller)
       end
       
-      break if template_method = _template_method_for(template_location.to_s)
+      break if template_method = _template_method_for(template_location.to_s, locals)
     end
 
     # template_location is a Pathname
@@ -421,11 +415,12 @@ module Merb::RenderMixin
   #
   # ==== Parameters
   # template_location<String>:: The phyical path of the template
+  # locals<Array[Symbol]>:: A list of locals to assign from the args passed into the compiled template.
   #
   # ==== Returns
   # String:: The method, if it exists. Otherwise return nil.
-  def _template_method_for(template_location)
-    meth = Merb::Template.template_for(template_location)
+  def _template_method_for(template_location, locals)
+    meth = Merb::Template.template_for(template_location, [], locals)
     meth && self.respond_to?(meth) ? meth : nil
   end
 

@@ -23,7 +23,7 @@ module Merb::Test::Fixtures
   
   class MyTemplateEngine
     
-    def self.compile_template(io, name, mod)
+    def self.compile_template(io, name, locals, mod)
       text = io.read
       table = { "\r"=>"\\r", "\n"=>"\\n", "\t"=>"\\t", '"'=>'\\"', "\\"=>"\\\\" }      
       text = (text.split("\n").map {|x| '"' + (x.gsub(/[\r\n\t"\\]/) { |m| table[m] }) + '"'}).join(" +\n")
@@ -58,7 +58,7 @@ describe Merb::Template do
   # @semipublic
   
   def rendering_template(template_path)
-    Merb::Template.inline_template(File.open(template_path), Merb::Test::Fixtures::MyHelpers)
+    Merb::Template.inline_template(File.open(template_path), [], Merb::Test::Fixtures::MyHelpers)
     Merb::Test::Fixtures::Environment.new.
       send(Merb::Template.template_name(template_path))  
   end
@@ -77,6 +77,7 @@ describe Merb::Template do
   it "should compile and inline templates that comes through via VirtualFile" do
     Merb::Template.inline_template(VirtualFile.new("Hello", 
       File.dirname(__FILE__) / "templates" / "template.html.erb"), 
+      [],
       Merb::Test::Fixtures::MyHelpers)
       
     res = Merb::Test::Fixtures::Environment.new.
@@ -97,7 +98,7 @@ describe Merb::Template do
   
   it "should find the full template name for a path via #template_for" do
     template_path = File.dirname(__FILE__) / "templates" / "template.html.erb"
-    name = Merb::Template.inline_template(File.open(template_path), Merb::Test::Fixtures::MyHelpers)
+    name = Merb::Template.inline_template(File.open(template_path), [], Merb::Test::Fixtures::MyHelpers)
     Merb::Test::Fixtures::Environment.new.should respond_to(name)
   end
   

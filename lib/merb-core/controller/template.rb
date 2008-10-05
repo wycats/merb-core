@@ -3,9 +3,10 @@ end
 
 module Merb::Template
   
-  EXTENSIONS  = {} unless defined?(EXTENSIONS)
-  METHOD_LIST = {} unless defined?(METHOD_LIST)
-  MTIMES      = {} unless defined?(MTIMES)
+  EXTENSIONS            = {} unless defined?(EXTENSIONS)
+  METHOD_LIST           = {} unless defined?(METHOD_LIST)
+  SUPPORTED_LOCALS_LIST = Hash.new([].freeze) unless defined?(SUPPORTED_LOCALS_LIST)
+  MTIMES                = {} unless defined?(MTIMES)
   
   class << self
     # Get the template's method name from a full path. This replaces
@@ -55,26 +56,37 @@ module Merb::Template
     # ==== Parameters
     # path<String>:: A full path to find a template method for.
     # template_stack<Array>:: The template stack. Not used.
+    # locals<Array[Symbol]>:: The names of local variables
     #
     # ==== Returns
     # <String>:: name of the method that inlines the template.
     #---
     # @semipublic
-    def template_for(path, template_stack = [])
+    def template_for(path, template_stack = [], locals=[])
       path = File.expand_path(path)
       
-      ret = 
-      if Merb::Config[:reload_templates]
+      if needs_compilation?(path, locals)
         file = Dir["#{path}.{#{template_extensions.join(',')}}"].first
-        METHOD_LIST[path] = file ? inline_template(load_template_io(file)) : nil
-      else
-        METHOD_LIST[path] ||= begin
-          file = Dir["#{path}.{#{template_extensions.join(',')}}"].first          
-          file ? inline_template(load_template_io(file)) : nil
-        end
+        METHOD_LIST[path] = file ? inline_template(load_template_io(file), locals) : nil
       end
       
-      ret
+      METHOD_LIST[path]
+    end
+    
+    # Decide if a template needs to be re/compiled.
+    #
+    # ==== Parameters
+    # path<String>:: The full path of the template to check support for.
+    # locals<Array[Symbol]>:: The list of locals that need to be supported
+    #
+    # ==== Returns
+    # Boolean:: Whether or not the template for the provided path needs to be recompiled
+    #---
+    def needs_compilation?(path, locals)
+      return true if Merb::Config[:reload_templates] || !METHOD_LIST[path]
+      
+      current_locals = SUPPORTED_LOCALS_LIST[path]
+      locals.any?{|local| !current_locals.include?(local)}
     end
     
     # Get all known template extensions
@@ -93,6 +105,9 @@ module Merb::Template
     # ==== Parameters
     # io<#path>::
     #   An IO that responds to #path (File or VirtualFile)
+    # locals<Array[Symbol]>::
+    #   A list of local names that should be assigned in the template method
+    #   from the arguments hash. Defaults to [].
     # mod<Module>::
     #   The module to put the compiled method into. Defaults to
     #   Merb::InlineTemplates
@@ -102,10 +117,14 @@ module Merb::Template
     # must be available to instances of AbstractController that will use it.
     #---
     # @public
-    def inline_template(io, mod = Merb::InlineTemplates)
-      path = File.expand_path(io.path)
-      ret = METHOD_LIST[path.gsub(/\.[^\.]*$/, "")] = 
-        engine_for(path).compile_template(io, template_name(path), mod)
+    def inline_template(io, locals=[], mod = Merb::InlineTemplates)
+      full_file_path = File.expand_path(io.path)
+      engine_neutral_path = full_file_path.gsub(/\.[^\.]*$/, "")
+      
+      SUPPORTED_LOCALS_LIST[engine_neutral_path] |= locals unless locals.empty?
+      ret = METHOD_LIST[engine_neutral_path] =
+        engine_for(full_file_path).compile_template(io, template_name(full_file_path), locals, mod)
+        
       io.close
       ret
     end
@@ -156,12 +175,17 @@ module Merb::Template
     # ==== Parameters
     # io<#path>:: An IO containing the full path of the template.
     # name<String>:: The name of the method that will be created.
+    # locals<Array[Symbol]>:: A list of locals to assign from the args passed into the compiled template.
     # mod<Module>:: The module that the compiled method will be placed into.
-    def self.compile_template(io, name, mod)
+    def self.compile_template(io, name, locals, mod)
       template = ::Erubis::BlockAwareEruby.new(io.read)
-
       _old_verbose, $VERBOSE = $VERBOSE, nil
-      template.def_method(mod, name, File.expand_path(io.path))
+      assigns = locals.inject([]) do |assigns, local|
+        assigns << "#{local} = _locals[#{local.inspect}]"
+      end.join(";")
+      
+      code = "def #{name}(_locals={}); #{assigns}; #{template.src}; end"
+      mod.module_eval code, File.expand_path(io.path)
       $VERBOSE = _old_verbose
       
       name

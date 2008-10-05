@@ -714,7 +714,9 @@ class Merb::BootLoader::Templates < Merb::BootLoader
       # template roots.  eg app/views/shared/*
       template_paths << Dir["#{Merb.dir_for(:view)}/**/*.#{extension_glob}"] if Merb.dir_for(:view)
 
-      template_paths.flatten.compact.uniq
+      # This ignores templates for partials, which need to be compiled at use time to generate
+      # a preamble that assigns local variables
+      template_paths.flatten.compact.uniq.grep(%r{^.*/[^_][^/]*$})
     end
   end
 end

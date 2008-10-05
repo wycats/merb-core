@@ -81,6 +81,25 @@ module Merb::Test::Fixtures
       end
     end
 
+    class PartialWithLocalsOverridingHelpers < RenderIt
+
+      def index
+        @foo = %w{ local }
+        render
+      end
+      
+      def value
+        "helper"
+      end
+    end
+
+    class PartialWithDifferentSetsOfLocals < RenderIt
+
+      def index
+        render
+      end
+    end
+
     class PartialWithBoth < RenderIt
 
       def index

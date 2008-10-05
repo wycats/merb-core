@@ -606,15 +606,4 @@ class Merb::AbstractController
     opts[:exclude]  = Array(opts[:exclude]).map {|x| x.to_s} if opts[:exclude]
     return opts
   end
-
-  # Attempts to return the partial local variable corresponding to sym.
-  #
-  # ==== Paramteres
-  # sym<Symbol>:: Method name.
-  # *arg:: Arguments to pass to the method.
-  # &blk:: A block to pass to the method.
-  def method_missing(sym, *args, &blk)
-    return @_merb_partial_locals[sym] if @_merb_partial_locals && @_merb_partial_locals.key?(sym)
-    super
-  end  
 end
