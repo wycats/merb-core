@@ -22,14 +22,13 @@ require 'fileutils'
 require 'socket'
 require 'pathname'
 require "extlib"
+require "extlib/dictionary"
 
 __DIR__ = File.dirname(__FILE__)
 
 $LOAD_PATH.unshift __DIR__ unless
   $LOAD_PATH.include?(__DIR__) ||
   $LOAD_PATH.include?(File.expand_path(__DIR__))
-
-require 'merb-core' / 'vendor' / 'facets'
 
 module Merb
   # Create stub module for global controller helpers.
