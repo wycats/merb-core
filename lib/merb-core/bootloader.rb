@@ -676,7 +676,7 @@ class Merb::BootLoader::Router < Merb::BootLoader
     def router_file
       @router_file ||= begin
         if File.file?(router = Merb.dir_for(:router) / Merb.glob_for(:router))
-          Merb::BootLoader::LoadClasses.load_file(router)
+          router
         end
       end
     end
