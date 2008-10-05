@@ -5,6 +5,9 @@
 	tasks they do not need down their throat in any merb application,
 	even running on just -core.
 
+* Dictionary and inflection code are now parts of Extlib library and shared
+  with other frameworks that use it (DataMapper, Halcyon, Mack, etc).
+
 9/26/2008:
 * For Merb developers, Rakefile features a new implementation of the :install
   and :uninstall tasks. These will work with Gems directly, without running
