@@ -1,6 +1,5 @@
 require 'enumerator'
 require 'merb-core/controller/mime'
-require "merb-core/vendor/facets/dictionary"
 
 module Merb
   # The ResponderMixin adds methods that help you manage what
