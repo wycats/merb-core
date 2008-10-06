@@ -1,3 +1,8 @@
+10/06/2008:
+
+* Use -L option or :log_file or :log_stream in init.rb or env init file
+  to point logger where you want.
+
 10/05/2008:
 * Merb does not add spec tasks to Rakefiles list by default. Add
   require "merb-core/test/tasks/spectasks" in your existing Rakefiles
