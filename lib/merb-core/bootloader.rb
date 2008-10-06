@@ -289,8 +289,8 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
 
   def self.update_logger
-    # Clear out the logger so that any changes in init.rb will be picked up
-    Merb.logger = nil
+    STDOUT.puts "Logging to #{Merb::Config[:log_file] || 'stdout'}" unless Merb.testing?
+    Merb::Config[:log_stream] = File.open(Merb::Config[:log_file], "w+") if Merb::Config[:log_file]
   end
   
   def self.set_encoding
