@@ -88,7 +88,8 @@ module Spec
       Merb::Router.prepare {|r| r.match(from).to(to).name(name) }
     end
     
-    def env_for(path, env = {})
+    def env_for(path, orig_env = {})
+      env = orig_env.dup
       env["REQUEST_METHOD"]  = env.delete(:method).to_s if env[:method]
       env["HTTP_USER_AGENT"] = env.delete(:user_agent)  if env[:user_agent]
       env["HTTPS"]           = "on"                     if env.delete(:protocol) =~ /https/i

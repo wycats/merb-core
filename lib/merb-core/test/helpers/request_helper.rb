@@ -5,7 +5,7 @@ module Merb
     module RequestHelper
 
       def describe_request(rack)
-        "a #{rack.original_env["REQUEST_METHOD"] || "GET"} to '#{rack.url}'"
+        "a #{rack.original_env[:method] || rack.original_env["REQUEST_METHOD"] || "GET"} to '#{rack.url}'"
       end
 
       def describe_input(input)
