@@ -227,7 +227,6 @@ class Merb::AbstractController
   def initialize(*args)
     @_benchmarks = {}
     @_caught_content = {}
-    @_template_stack = []
   end
   
   # This will dispatch the request, calling internal before/after dispatch_callbacks
