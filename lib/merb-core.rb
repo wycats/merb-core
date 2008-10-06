@@ -35,7 +35,15 @@ module Merb
   module GlobalHelpers; end
   
   class << self
-    attr_accessor :exiting
+    attr_reader :exiting
+
+    def exiting=(bool)
+      Extlib.exiting = bool
+      if bool && Extlib.const_defined?("Pooling") && Extlib::Pooling.scavenger
+        Extlib::Pooling.scavenger.wakeup
+      end
+      @exiting = bool
+    end
 
     # Merge environment settings
     # Can allow you to have a "localdev" that runs like your "development"

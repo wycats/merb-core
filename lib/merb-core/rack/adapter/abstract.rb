@@ -111,6 +111,7 @@ module Merb
         # In daemonized mode or not, support HUPing the process to
         # restart it.
         Merb.trap('HUP') do
+          Merb.exiting = true
           stop
           Merb.logger.warn! "Exiting port #{port} on #{Process.pid}\n"
           exit_process
@@ -118,6 +119,7 @@ module Merb
 
         # ABRTing the process will kill it, and it will not be respawned.
         Merb.trap('ABRT') do
+          Merb.exiting = true
           stopped = stop(128)
           Merb.logger.warn! "Exiting port #{port}\n" if stopped
           exit_process(128)

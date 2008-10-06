@@ -1,5 +1,11 @@
 require 'rubygems/dependency'
 
+module Gem
+  class Dependency
+    attr_accessor :require_block
+  end
+end
+
 module Kernel
   
   # Keep track of all required dependencies. 
@@ -11,8 +17,10 @@ module Kernel
   # @return <Gem::Dependency> Dependency information
   #
   # @api private
-  def track_dependency(name, *ver)
+  def track_dependency(name, *ver, &blk)
     dep = Gem::Dependency.new(name, ver)
+    dep.require_block = blk
+    
     existing = Merb::BootLoader::Dependencies.dependencies.find { |d| d.name == dep.name }
     if existing
       index = Merb::BootLoader::Dependencies.dependencies.index(existing)
@@ -38,12 +46,12 @@ module Kernel
   #   forcing a dependency to load immediately.
   #
   # @return <Gem::Dependency> The dependency information.
-  def dependency(name, *ver)
+  def dependency(name, *ver, &blk)
     immediate = ver.last.is_a?(Hash) && ver.pop[:immediate]
     if immediate || Merb::BootLoader.finished?(Merb::BootLoader::Dependencies)
-      load_dependency(name, *ver)
+      load_dependency(name, *ver, &blk)
     else
-      track_dependency(name, *ver)
+      track_dependency(name, *ver, &blk)
     end
   end
 
@@ -63,12 +71,16 @@ module Kernel
   #   as a library.
   #
   # @return <Gem::Dependency> The dependency information.
-  def load_dependency(name, *ver)
+  def load_dependency(name, *ver, &blk)
     dep = name.is_a?(Gem::Dependency) ? name : track_dependency(name, *ver)
     gem(dep)
   rescue Gem::LoadError
   ensure
-    require dep.name
+    if block = blk || dep.require_block
+      block.call
+    else
+      require dep.name
+    end
     Merb.logger.info!("loading gem '#{dep.name}' ...")
     return dep # ensure needs explicit return
   end
