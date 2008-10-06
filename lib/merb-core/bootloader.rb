@@ -289,6 +289,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
 
   def self.update_logger
+    Merb.logger = nil
     STDOUT.puts "Logging to #{Merb::Config[:log_file] || 'stdout'}" unless Merb.testing?
     Merb::Config[:log_stream] = File.open(Merb::Config[:log_file], "w+") if Merb::Config[:log_file]
   end
