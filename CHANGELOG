@@ -1,4 +1,138 @@
-== 0.9.7 "Universe In A Bundle" 2008-09-13
+== 0.9.8 "Time Machine" 2008-06-10
+
+* Pre-release contributors file update.
+* Nillify Merb.logger first.
+* Legacy Merb apps log again. And Merb tells you where it logs on boot unless you are testing.
+* Fixes up RSpec matcher for request helper
+* remove vestigal  @_template_stack variable.
+* remove rogure require no longer needed
+* compile templates with preambles to assign locals, support recompiling partial templates if previously unseen locals are provided
+* Add a note on Dictionary and inflection code to public changelog.
+* Nuke files that are already part of Extlib.
+* Update public changelog.
+* Fixed Merb::BootLoader::Router issue
+* -core now depends on most recent Extlib
+* Revert "Added MinimalPrivilege to merb.thor. Thanks namelessjon."
+* Fixed stats.rake to check if directory exists
+* Move inflection code and Dictionary to extlib.
+* Rakefiles should be empty by default (so RSpec is not pushed down test unit users' throat).
+* Added MinimalPrivilege to merb.thor. Thanks namelessjon.
+* Added Merb::BootLoader::Router
+* Improve public specs for logger. Use Mash for log levels.
+* Untabify logger.rb.
+* Allow Merb.disable(:signals) to keep Merb from installing any signal handlers.
+* Added the ability to specify resource actions in the block
+* Fixed bug where subgems (of meta-gems) weren't reinstalled each time
+* Added process title reporting as per: LH #517
+* Making the :key a synonym to :keys for Behavior#resource
+* Fixing the rspec error when running rake tasks
+* Cleaned up the specs. Removed any stray pending specs.
+* Added stacking and redirecting deferred routing blocks.
+* Removed private/dispatch/route_params_spec.rb
+* New spec helpers ported over. Old #request helper becomes #mock_request, which uses some mocking and stubbing to set up the request. The new #request API uses no mocking, and has the following API changes:
+* Removed spec/private/config
+* Added dependency 'foo', :immediate => true for loading dependencies immediately
+* call to_s in the csrf middlewre
+* make StreamWrapper more duck typed to the old body string.
+* If --log-level or --log is explicitly given, never log to STDOUT, alsways to file
+* If Merb.env?(:test) we don't need ugly  = true spread all over the place
+* use Proc === @body instead
+* Bring the console adapter's #url back into action
+* update specs for new rack stream_wrapper
+* Updating streaming methods to work on *all* rack adapters.
+* Make Merb::Config[]= work without calling setup 1st
+* Default to  = 'UTF8' - you can just set this in init.rb if needed
+* Colorful GemManagement
+* Removed unused directory under spec.
+* Reorganized URL generation methods across Controller classes
+* Added a :singular option to resource route building
+* merb -k works right
+* Fixes stupid issue in spec loader
+* Route matching handles slashes according to the RFC
+* Added the #resource controller helper for URL generation.
+* Fixes #503; raise InternalServerError works now.
+* We shouldn't use minigems explicitly in our code (yet)
+* Add missing pieces of forking awesomeness.
+* Executable wrappers use /usr/bin/env again - run them with /path/to/ruby -S if you need a specific Ruby version
+* Merge in forking branch.
+* Use trenary operator here.
+* capture returns return value of passed in block if it is not a template block
+* Updated PUBLIC_CHANGELOG regarding Merb::RakeHelper
+* reverts URI generation on requests
+* Updates full_uri for the changes to the Request#protocol
+* Reorganized merb-core/tasks/merb to require merb-core/tasks/merb_rake_helper (see merb-gen too)
+* Cleanup of tasks/merb_rake_helper.rb
+* Added :gemspec task to Rakefile
+* Fixed executable wrapper code (for loading local gems)
+* Added Merb::RakeHelper.install_package method to install packages directly
+* Merb::RakeHelper now handles local ./bin and GEM_DIR installs correctly
+* Rakefile now uses Merb::RakeHelper.install
+* Added GemManagement module - working towards new install/uninstall rake tasks
+* Removed Merb::BootLoader::ReloadTemplates; Merb::Config[:reload_templates] needs to be set explicitly
+* Marked Kernel#track_dependency as @api private - updated specs to reflect this
+* Added warning when specs are run without memcached being available
+* Refactored Kernel#dependency and #load_dependency to work with Gem::Dependency
+* Include request uri in routing exception raised by request helpers.
+* Added require 'thread' explicitly for Mutex to be available
+* Revert "Initial support for fast redeploys and code reloading via forks."
+* Revert "Split out the code transaction into a method and do some experimentation with cluster forking."
+* Revert "Better exit message"
+* Revert "Initial experiments are a success. TODO: Move the logic out of mongrel and make a proper clustering instead of hardcoding to 4"
+* Fixes issue people were having
+* Initial experiments are a success. TODO: Move the logic out of mongrel and make a proper clustering instead of hardcoding to 4
+* Split out the code transaction into a method and do some experimentation with cluster forking.
+* Better exit message
+* Initial support for fast redeploys and code reloading via forks.
+* Fixed that YAML plugin configuratator wasn't requiring YAML.
+* Reindent core_ext/kernel.rb.
+* Register dependencies even after the BootLoader has finished
+* Fixes Merb::Request#protocol to remove the ://.  May Break things in apps if you're checking protocol directly.
+* Moves actual url generation methods onto the request object from the controller.
+  Also updates the Merb::Request#redirect method to be usable just like the controller version.
+* Throw the correct error when generating a non existent route.
+* Modify throw_content to not append. Add append_content for that purpose.
+* Significant router refactoring and feature development
+* Run specs in groups
+* Added more discriptive message when a class fails to load
+* Optimized Merb::Request.query_parse - fixed silly spec
+* Update Rack application spec to reflect current affairs.
+* Document template_for.
+* Make merb fast again. Also make rake install work from any Ruby via -S
+* ControllerMixin#html_escape => #escape_html (bring it in line with #escape_xml).
+* Protected makes no sense for class methods.
+* Remove dead code from responder.
+* Adds abstract! and abstract? for controller classes for your inheritance pleasure
+* Server#add_irb_trap should play nice with ruby-debugger.
+* Reworked the Server#add_irb_trap to suppress the warnings.
+* added flag for an IRB trap
+* Add links to nginx_send_file examples: gist and app at GitHub.
+* Untabify fixture controller for streaming.
+* Make Merb::Controller#nginx_send_file more user friendly.
+* More fine-grained check to see if a local ./bin executable should have been used
+* Ignore products RDoc generates.
+* Include RDoc in the gem.
+* Ignore RDoc template cache.
+* Remove RDoc template cache from version control.
+* Session cookies now expire at the end of a browser session again (instead of 2 weeks)
+* Second attempt: fixed load_dependency (hopefully)
+* Fixed failing spec regarding 'dependency' change
+* Make flat! more useful
+* This rescue is obsolete and is obscuring useful failing information, as well as loading
+  from the system even when you require a specific version that isn't available in the bundled gems.
+* Clean before installation. Remove *.so and *.log under spec.
+* Make gem 3 times lighter.
+* Merb::Release is gone.
+* Bump up version
+* Set @_content_type before running transform blocks
+* sneaky merge failure piece that shouldn't be here
+* Revert "Add specs for action-level only_provides"
+* Revert "add specs for does_not_provide"
+* add specs for does_not_provide
+* Add specs for action-level only_provides
+* Make controller.route work
+
+
+== 0.9.7 "Universe In A Bundle" 2008-13-09
 
 * Made the post body available to the routing when testing a request.
 * Better local gems dir detection and end-user feedback
@@ -30,7 +164,7 @@
 * Meaninful message when have_xpath matcher is used but libxml-ruby fails to load.
 * Don't blow up when there are no system paths.
 
-== 0.9.6 "Therapy session" 2008-09-08
+== 0.9.6 "Therapy session" 2008-08-09
 
 * Merge in simple conditional get support at controller level.
 * Merged in new bundling (aka freezer) branch
