@@ -336,7 +336,7 @@ def contributors(since_release = nil)
   git_log(since_release).split("\n").uniq.sort
 end
 
-PREVIOUS_RELEASE = '0.9.7'
+PREVIOUS_RELEASE = '0.9.8'
 namespace :history do
   namespace :update do
     desc "updates contributors list"
