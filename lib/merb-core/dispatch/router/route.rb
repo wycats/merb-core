@@ -79,21 +79,48 @@ module Merb
         @name
       end
       
-      # === Compiled method ===
+      # Generates the URL for the route given the passed arguments. The
+      # method will first match the anonymous parameters to route params
+      # and will convert all the parameters according to the specifed
+      # object identifiers.
+      #
+      # Then the named parameters are passed to a compiled generation proc.
+      #
+      # ==== Parameters
+      # args<Array>::
+      #   The arguments passed to the public #url method with the name
+      #   of the route removed. This is an array of the anonymous parameters
+      #   followed by a hash containing the named parameters.
+      #
+      # defaults<Hash>::
+      #   A hash of parameters to use to generate the route if there are
+      #   any missing required parameters. This is usually the parameters
+      #   for the current request
+      #
+      # ==== Returns
+      # String:: The generated URL.
       def generate(args = [], defaults = {})
         raise GenerationError, "Cannot generate regexp Routes" if regexp?
         
         params = extract_options_from_args!(args) || { }
+        
+        params.each do |k, v|
+          params[k] = identify(v, k)
+        end
         
         # Support for anonymous params
         unless args.empty?
           # First, let's determine which variables are missing
           variables = @variables - params.keys
           
-          raise GenerationError, "The route has #{@variables.length} variables: #{@variables.inspect}" if args.length > variables.length
-          
-          args.each_with_index do |param, i|
-            params[variables[i]] ||= param
+          args.each do |param|
+            raise GenerationError, "The route has #{@variables.length} variables: #{@variables.inspect}" if variables.empty?
+            
+            if identifier = identifier_for(param) and identifier.is_a?(Array)
+              identifier.each { |ident| params[variables.shift] = param.send(ident) }
+            else
+              params[variables.shift] ||= identify(param)
+            end
           end
         end
         
@@ -101,7 +128,47 @@ module Merb
         uri = Merb::Config[:path_prefix] + uri if Merb::Config[:path_prefix]
         uri
       end
+      
+      # Identifies the object according to the identifiers set while building
+      # the routes. Identifying an object means picking an instance method to
+      # call on the object that will return a string representation of the
+      # object for the route being generated. If the identifier is an array,
+      # then a param_key must be present and match one of the elements of the
+      # identifier array.
+      #
+      # param_keys that end in _id are treated slightly differently in order
+      # to get nested resources to work correctly.
+      def identify(obj, param_key = nil)
+        identifier = identifier_for(obj)
+        if identifier.is_a?(Array)
+          # First check if the param_key exists as an identifier
+          return obj.send(param_key) if identifier.include?(param_key)
+          # If the param_key ends in _id, just return the object id
+          return obj.id if "#{param_key}" =~ /_id$/
+          # Otherwise, raise an error
+          raise GenerationError, "The object #{obj.inspect} cannot be identified with #{identifier.inspect} for #{param_key}"
+        else
+          identifier ? obj.send(identifier) : obj
+        end
+      end
+      
+      # Returns the identifier for the passed object. Built in core ruby classes are
+      # always identified with to_s. The method will return nil in that case (since
+      # to_s is the default for objects that do not have identifiers.)
+      def identifier_for(obj)
+        return if obj.is_a?(String)    || obj.is_a?(Symbol)     || obj.is_a?(Numeric)  ||
+                  obj.is_a?(TrueClass) || obj.is_a?(FalseClass) || obj.is_a?(NilClass) ||
+                  obj.is_a?(Array)     || obj.is_a?(Hash)
+        
+        @identifiers.each do |klass, identifier|
+          return identifier if obj.is_a?(klass)
+        end
+        
+        return nil
+      end
 
+      # Returns the if statement and return value for for the main
+      # Router.match compiled method.
       def compiled_statement(first)
         els_if = first ? '  if ' : '  elsif '
 
@@ -258,23 +325,13 @@ module Merb
           segments.each_with_index do |segment, i|
             bits << case
               when segment.is_a?(String) then segment
-              when segment.is_a?(Symbol) then '#{param_for_route(cached_' + segment.to_s + ')}'
+              when segment.is_a?(Symbol) then '#{cached_' + segment.to_s + '}'
               when segment.is_a?(Array) && segment.any? { |s| !s.is_a?(String) } then "\#{#{@opt_segment_stack.last.shift}}"
               else ""
             end
           end
 
           bits
-        end
-        
-        def param_for_route(param)
-          case param
-            when String, Symbol, Numeric, TrueClass, FalseClass, NilClass
-              param
-            else
-              _, identifier = @identifiers.find { |klass, _| param.is_a?(klass) }
-              identifier ? param.send(identifier) : param
-          end
         end
         
       end
