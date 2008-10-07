@@ -76,6 +76,14 @@ describe "When generating URLs," do
       url(:delete_admin, :id => User.new).should == "/admins/10/delete"
     end
     
+    it "should be able to specify a class that does not exist" do
+      lambda do
+        Merb::Router.prepare do
+          resources :emails, "EmailBlahBlah"
+        end
+      end.should_not raise_error
+    end
+    
     it "should be able to specify different keys than :id" do
       Merb::Router.prepare do
         resources :users, :keys => [:account, :name]

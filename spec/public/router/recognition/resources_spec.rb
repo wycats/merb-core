@@ -270,6 +270,48 @@ describe "When recognizing requests," do
  
   end
   
+  describe "a resource an identify" do
+    
+    class Email ; end
+    
+    it "should set the keys for the resource when the identify wraps the resource declaration" do
+      Merb::Router.prepare do
+        identify Email => :address do
+          resources :emails
+        end
+      end
+      
+      route_for('/emails/hello').should have_route(:id => nil, :address => "hello")
+    end
+    
+    it "should set the keys for the resource when the identify is specified inline" do
+      Merb::Router.prepare do
+        resources :emails, :identify => :address
+      end
+      
+      route_for('/emails/hello').should have_route(:id => nil, :address => "hello")
+    end
+    
+    it "should give precedance to the :keys option over a parent #identify" do
+      Merb::Router.prepare do
+        identify Email => :address do
+          resources :emails, :key => :email
+        end
+      end
+      
+      route_for('/emails/hello').should have_route(:id => nil, :address => nil, :email => "hello")
+    end
+    
+    it "should give precedance to the :keys option over the :identify option" do
+      Merb::Router.prepare do
+        resources :emails, :identify => :address, :key => :email
+      end
+      
+      route_for('/emails/hello').should have_route(:id => nil, :address => nil, :email => "hello")
+    end
+    
+  end
+  
   describe "a resource route with a single custom key" do
     
     [:key, :keys].each do |option|

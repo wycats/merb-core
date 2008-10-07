@@ -20,6 +20,8 @@ module Merb
       # :member<Hash>:
       #   Special settings and resources related to a specific member of this
       #   resource.
+      # :identify<Symbol|Array>: The method(s) that should be called on the object
+      #   before inserting it into an URL.
       # :keys<Array>:
       #   A list of the keys to be used instead of :id with the resource in the order of the url.
       # :singular<Symbol>
@@ -69,18 +71,32 @@ module Merb
         name       = name.to_s
         options    = extract_options_from_args!(args) || {}
         singular   = options[:singular] ? options[:singular].to_s : Extlib::Inflection.singularize(name)
-        klass      = args.first ? args.first.to_s : Extlib::Inflection.classify(singular)
-        keys       = [ options.delete(:keys) || options.delete(:key) || :id ].flatten
+        klass_name = args.first ? args.first.to_s : Extlib::Inflection.classify(singular)
+        klass      = Object.full_const_get(klass_name) rescue nil
+        keys       = options.delete(:keys) || options.delete(:key)
         params     = { :controller => options.delete(:controller) || name }
         collection = options.delete(:collection) || {}
         member     = { :edit => :get, :delete => :get }.merge(options.delete(:member) || {})
+        
+        # Use the identifier for the class as a default
+        if klass
+          keys ||= options[:identify]
+          keys ||= @identifiers[klass]
+        elsif options[:identify]
+          raise Error, "The constant #{klass_name} does not exist, please specify the constant for this resource"
+        end
+        
+        keys = [ keys || :id ].flatten
+        
 
         # Try pulling :namespace out of options for backwards compatibility
         options[:name_prefix]       ||= nil # Don't use a name_prefix if not needed
         options[:resource_prefix]   ||= nil # Don't use a resource_prefix if not needed
         options[:controller_prefix] ||= options.delete(:namespace)
 
-        self.namespace(name, options).to(params) do |resource|
+        context = options[:identify]
+        context = klass && options[:identify] ? identify(klass => options.delete(:identify)) : self
+        context.namespace(name, options).to(params) do |resource|
           root_keys = keys.map { |k| ":#{k}" }.join("/")
           
           # => index
@@ -103,13 +119,13 @@ module Merb
 
           # => show
           resource.match("/#{root_keys}(.:format)", :method => :get).to(:action => "show").
-            name(singular).register_resource(klass)
+            name(singular).register_resource(klass_name)
 
           # => user defined member routes
           member.each_pair do |action, method|
             action = action.to_s
             resource.match("/#{root_keys}/#{action}(.:format)", :method => method).
-              to(:action => "#{action}").name(action, singular).register_resource(klass, action)
+              to(:action => "#{action}").name(action, singular).register_resource(klass_name, action)
           end
 
           # => update
@@ -126,7 +142,7 @@ module Merb
             end.join("/")
             
             # Procs for building the extra collection/member resource routes
-            placeholder = Router.resource_routes[ [@options[:resource_prefix], klass].flatten.compact ]
+            placeholder = Router.resource_routes[ [@options[:resource_prefix], klass_name].flatten.compact ]
             builders    = {}
             
             builders[:collection] = lambda do |action, to, method|
@@ -136,10 +152,10 @@ module Merb
             
             builders[:member] = lambda do |action, to, method|
               resource.match("/#{root_keys}/#{action}(.:format)", :method => method).
-                to(:action => to).name(action, singular).register_resource(klass, action)
+                to(:action => to).name(action, singular).register_resource(klass_name, action)
             end
             
-            resource.options(:name_prefix => singular, :resource_prefix => klass).
+            resource.options(:name_prefix => singular, :resource_prefix => klass_name).
               match("/#{nested_keys}").resource_block(builders, &block)
           end
         end # namespace

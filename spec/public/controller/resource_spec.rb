@@ -6,6 +6,10 @@ class Orm     < OpenStruct ; def id ; @table[:id] ; end ; end
 class User    < Orm ; end
 class Comment < Orm ; end
 
+module Namespaced
+  class User < Orm ; end
+end
+
 describe Merb::Controller, " #resource" do
   
   before(:each) do
@@ -301,6 +305,32 @@ describe Merb::Controller, " #resource" do
     
     it "should generate the url for deleting a member of the nested collection" do
       @controller.resource(@admin, @note, :delete).should == "/admins/5/notes/8/delete"
+    end
+    
+  end
+  
+  describe "a resource collection with a specified namespaced class" do
+    
+    it "should generate the url for the namespaced resource when passed as a constant" do
+      Merb::Router.prepare do
+        identify :id do
+          resources :users, User
+          match("/hello").resources :users, Namespaced::User
+        end
+      end
+      
+      resource(Namespaced::User.new(:id => 5)).should == "/hello/users/5"
+    end
+    
+    it "should generate the url for the namespaced resource when passed as a string" do
+      Merb::Router.prepare do
+        identify :id do
+          resources :users, User
+          match("/hello").resources :users, "Namespaced::User"
+        end
+      end
+      
+      resource(Namespaced::User.new(:id => 5)).should == "/hello/users/5"
     end
     
   end
