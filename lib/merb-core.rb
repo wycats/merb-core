@@ -342,28 +342,6 @@ module Merb
       end
     end
 
-    # Allows flat apps by setting no default framework directories and yielding
-    # a Merb::Router instance. This is optional since the router will
-    # automatically configure the app with default routes.
-    #
-    # ==== Block parameters
-    # r<Merb::Router::Behavior>::
-    #   The root behavior upon which new routes can be added.
-    def flat!(framework = {})
-      default = {
-        :framework => { :public => [Merb.root / "public", nil] },
-        :session_store => 'none',
-        :exception_details => true
-      }
-            
-      Merb::Config[:framework] = default.merge(framework)
-
-      Merb::Router.prepare do |r|
-        yield(r) if block_given?
-        r.default_routes
-      end
-    end
-    
     def fatal!(str, e = nil)
       Merb.logger.fatal!
       Merb.logger.fatal!("\e[1;31;47mFATAL: #{str}\e[0m")
