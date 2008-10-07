@@ -471,13 +471,14 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         reader_ary = [reader]
         loop do
           if exit_status = Process.wait2(pid, Process::WNOHANG)
-            exit_status[1] == 128 ? break : exit
+            exit_status[1] && exit_status[1].exitstatus == 128 ? break : exit
           end
           if select(reader_ary, nil, nil, 0.25)
             begin
               next if reader.eof?
               msg = reader.readline
               if msg =~ /128/
+                Process.detach(pid)
                 break
               else
                 exit_gracefully
