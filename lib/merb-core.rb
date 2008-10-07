@@ -47,8 +47,9 @@ module Merb
     #   staging.rb:
     #     Merb.merge_env "production"         #We want to use all the settings production uses
     #     Merb::Config.use { |c|
-    #       c[:log_level]         = "debug"   #except we want debug log level
-    #       c[:exception_details] = true      #and we want to see exception details
+    #       c[:log_level]         = "debug"   # except we want debug log level
+    #       c[:log_stream]        = @some_io  # and log to this IO handle
+    #       c[:exception_details] = true      # and we want to see exception details
     #     }
     #
     # ==== Parameters
@@ -477,9 +478,11 @@ module Merb
     #                             flush after new messages are
     #                             added, defaults to true.
     #
-    # :log_file<IO>::             IO for logger. Default is STDOUT.
+    # :log_stream<IO>::           IO handle for logger. Defaults to STDOUT.
     #
-    # :log_level<Symbol>::        logger level, default is :warn
+    # :log_file<String>::         File path for logger. Overrides :log_stream.
+    #
+    # :log_level<Symbol>::        logger level, default is :info
     #
     # :disabled_components<Array[Symbol]>::
     #   array of disabled component names,
@@ -495,7 +498,7 @@ module Merb
     # application start, some of them are set in Merb init file
     # or environment-specific.
     def load_config(options = {})
-      Merb::Config.setup({ :log_file => STDOUT, :log_level => :warn, :log_auto_flush => true }.merge(options))
+      Merb::Config.setup(Merb::Config.defaults.merge(options))
       Merb::BootLoader::Logger.run
     end
 

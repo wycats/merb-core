@@ -21,6 +21,7 @@ module Merb
           :log_delimiter          => " ~ ",
           :log_auto_flush         => false,
           :log_level              => :info,
+          :log_stream             => STDOUT,
           :disabled_components    => [],
           :deferred_actions       => [],
           :verbose                => false,
@@ -36,6 +37,7 @@ module Merb
       # ==== Examples
       #   Merb::Config.use do |config|
       #     config[:exception_details] = false
+      #     config[:log_stream]        = STDOUT
       #   end
       def use
         @configuration ||= {}
@@ -348,6 +350,7 @@ module Merb
       #   Merb::Config.configure do
       #     environment "development"
       #     log_level   "debug"
+      #     log_file    Merb.root / "log" / "special.log"
       #   end
       def configure(&block)
         ConfigBlock.new(self, &block) if block_given?

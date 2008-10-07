@@ -66,6 +66,6 @@ task :stats do
   code_loc = [:controllers, :helpers, :models].inject(0) { |sum, e| sum += @all[e][:loc] }
   test_loc = @all[:spec][:loc]
  
-  puts "   Code LOC: #{cb}#{code_loc}#{ce}     Test LOC: #{cb}#{test_loc}#{ce}     Test to code radio:  #{cb}1:%0.2f#{ce}" % (test_loc.to_f / code_loc.to_f)
+  puts "   Code LOC: #{cb}#{code_loc}#{ce}     Test LOC: #{cb}#{test_loc}#{ce}     Code to test radio:  #{cb}1:%0.2f#{ce}" % (test_loc.to_f / code_loc.to_f)
   puts
 end
