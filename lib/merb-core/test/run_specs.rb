@@ -104,7 +104,8 @@ def run_specs(globs, spec_cmd='spec', run_opts = "-c", except = [])
   globs = globs.is_a?(Array) ? globs : [globs]
   
   counter = Merb::Counter.new
-  forks = 0
+  forks   = 0
+  failure = false
 
   time = Benchmark.measure do
     pid = nil
@@ -120,7 +121,7 @@ def run_specs(globs, spec_cmd='spec', run_opts = "-c", except = [])
           def out.tty?() true end
           options = Spec::Runner::OptionParser.parse(%W(#{spec} -fs --color), err, out)
           options.filename_pattern = File.expand_path(spec)
-          Spec::Runner::CommandLine.run(options)
+          failure = ! Spec::Runner::CommandLine.run(options)
           begin
             counter_client.add(spec, out.string, err.string)
           rescue DRb::DRbConnError => e
@@ -128,14 +129,14 @@ def run_specs(globs, spec_cmd='spec', run_opts = "-c", except = [])
             puts "#{e.class}: #{e.message}"
             retry
           end
-          exit
+          exit(failure ? -1 : 0)
         end
       end
-      Process.waitall
+      failure = Process.waitall.any? { |pid, s| !s.success? }
     end
   end
   
   counter.time = time
   counter.report
-  exit!
+  exit!(failure ? -1 : 0)
 end
