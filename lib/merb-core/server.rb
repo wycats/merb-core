@@ -212,7 +212,12 @@ module Merb
             "but you did not have access.", e
         end
         Merb.logger.warn! "Storing #{type} file to #{file}..." if Merb::Config[:verbose]
-        File.open(file, 'w'){ |f| f.write(Process.pid.to_s) }
+        begin
+          File.open(file, 'w'){ |f| f.write(Process.pid.to_s) }
+        rescue Errno::EACCES => e
+          Merb.fatal! "You tried to access #{file}, but you did not " \
+            "have permission", e
+        end
       end
 
       # Gets the pid file for the specified port.
