@@ -455,7 +455,7 @@ class Merb::AbstractController
     # FIXME: arrgh, why request.protocol returns http://?
     # :// is not part of protocol name
     options  = extract_options_from_args!(args) || {}
-    protocol = options.delete(:protocol)
+    protocol = options.delete(:protocol) || 'http'
     host     = options.delete(:host)
     
     raise ArgumentError, "The :protocol option must be specified" unless protocol
