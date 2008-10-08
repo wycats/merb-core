@@ -103,7 +103,7 @@ class Merb::AbstractController
   cattr_accessor :_abstract_subclasses
 
   #---
-  # @semipublic
+  # @api semipublic
   attr_accessor :body
   attr_accessor :action_name
   attr_accessor :_benchmarks, :_thrown_content  
