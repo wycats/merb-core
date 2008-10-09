@@ -143,7 +143,10 @@ module Merb
       end
 
       def bootup
-        Merb.trap('TERM') { Merb::BootLoader::LoadClasses.kill_children; exit }
+        Merb.trap('TERM') {
+          Merb::BootLoader::LoadClasses.kill_children if Merb::Config[:fork_for_class_load]
+          exit
+        }
 
         puts "Running bootloaders..." if Merb::Config[:verbose]
         BootLoader.run
