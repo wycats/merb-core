@@ -281,10 +281,8 @@ module Merb
       Thread.current[:merb_logger] ||= Merb::Logger.new
     end
 
-    def logger=(obj)
-      unless obj
-        Thread.current[:merb_logger] = nil
-      end
+    def reset_logger!
+      Thread.current[:merb_logger] = nil
     end
 
     # ==== Returns
