@@ -37,14 +37,14 @@ describe Merb::Logger do
 
     it "should set the log level to :warn (4) when second parameter is :warn" do
       Merb::Config[:log_level] = :warn
-      Merb.logger = nil
+      Merb.reset_logger!
       Merb.logger.level.should == 4
     end
 
     it "should set the log level to :debug (0) when Merb.environment is development" do
       Merb.environment = "development"
       Merb::Config.delete(:log_level)
-      Merb.logger = nil
+      Merb.reset_logger!
       Merb::BootLoader::Logger.run
       Merb.logger.level.should == 0
     end
@@ -52,7 +52,7 @@ describe Merb::Logger do
     it "should set the log level to :error (6) when Merb.environment is production" do
       Merb.environment = "production"
       Merb::Config.delete(:log_level)
-      Merb.logger = nil
+      Merb.reset_logger!
       Merb::BootLoader::Logger.run
       Merb.logger.level.should == 4
     end
@@ -63,7 +63,7 @@ describe Merb::Logger do
 
     it 'allows level value be specified as a String' do
       Merb::Config[:log_level] = 'warn'
-      Merb.logger = nil
+      Merb.reset_logger!
       Merb.logger.level.should == 4
     end
   end
@@ -72,7 +72,7 @@ describe Merb::Logger do
   describe "#flush" do
     it "should immediately return if the buffer is empty" do
       Merb::Config[:log_stream] = StringIO.new
-      Merb.logger = nil
+      Merb.reset_logger!
 
       Merb.logger.flush
       Merb::Config[:log_stream].string.should == ""
@@ -80,7 +80,7 @@ describe Merb::Logger do
 
     it "should call the write_method with the stringified contents of the buffer if the buffer is non-empty" do
       Merb::Config[:log_stream] = StringIO.new
-      Merb.logger = nil
+      Merb.reset_logger!
 
       Merb.logger << "a message"
       Merb.logger << "another message"
@@ -97,7 +97,7 @@ describe Merb::Logger do
 
   def set_level(level)
     Merb::Config[:log_level] = level
-    Merb.logger = nil
+    Merb.reset_logger!
   end
 
   # Spec examples below all use log_with_method

@@ -111,7 +111,7 @@ Spec::Runner.configure do |config|
   def with_level(level)
     Merb::Config[:log_stream] = StringIO.new
     Merb::Config[:log_level] = level
-    Merb.logger = nil
+    Merb.reset_logger!
     yield
     Merb::Config[:log_stream]
   end
