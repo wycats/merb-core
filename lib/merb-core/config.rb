@@ -14,7 +14,7 @@ module Merb
           :port                   => "4000",
           :adapter                => "runner",
           :reload_classes         => true,
-          :fork_for_class_load    => !RUBY_PLATFORM.in?("windows", "java"),
+          :fork_for_class_load    => !(RUBY_PLATFORM =~ /(:?mswin|mingw|java)/),
           :environment            => "development",
           :merb_root              => Dir.pwd,
           :use_mutex              => true,
