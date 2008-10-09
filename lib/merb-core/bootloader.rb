@@ -272,8 +272,10 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     # this is crucial: load init file with all the preferences
     # then environment init file, then start enabling specific
     # components, load dependencies and update logger.
-    load_initfile unless Merb::disabled?(:initfile)
-    load_env_config
+    unless Merb::disabled?(:initfile)
+      load_initfile 
+      load_env_config
+    end
     enable_json_gem unless Merb::disabled?(:json)
     load_dependencies
     update_logger
