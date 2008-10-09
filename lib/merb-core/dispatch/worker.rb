@@ -3,6 +3,10 @@ module Merb
     
     attr_accessor :thread
     
+    def self.start
+      new
+    end
+    
     def initialize
       @thread = Thread.new { loop { process_queue } }
     end
