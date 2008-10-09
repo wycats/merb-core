@@ -445,13 +445,16 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
 
       loop do
+        # create two connected endpoints
         reader, @writer = IO.pipe
         pid = Kernel.fork
 
         # pid means we're in the parent; only stay in the loop in that case
         break unless pid
+        # writer must be closed so reader can generate EOF condition
         @writer.close
 
+        # master process stores pid to merb.mail.pid
         Merb::Server.store_pid("main")
 
         if Merb::Config[:console_trap]
@@ -474,11 +477,22 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
         reader_ary = [reader]
         loop do
+          # wait for child to exit and capture exit status
+          # 
+          #
+          # WNOHANG specifies that wait2 exists without waiting
+          # if no child process are ready to be noticed.
           if exit_status = Process.wait2(pid, Process::WNOHANG)
+            # wait2 returns a 2-tuple of process id and exit
+            # status.
+            #
+            # We do not care about specific pid here.
             exit_status[1] && exit_status[1].exitstatus == 128 ? break : exit
           end
+          # wait for data to become available, timeout in 0.25 of a second
           if select(reader_ary, nil, nil, 0.25)
             begin
+              # no open writers
               next if reader.eof?
               msg = reader.readline
               if msg =~ /128/
