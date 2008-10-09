@@ -52,9 +52,11 @@ module Merb
         # describe "...", :when => "logged in", and the like
         def describe(*args, &example_group_block)
           super
-          params ||= {}
-          if example_group_block && params[:when] || (params[:when] = params[:given])
-            module_eval %{it_should_behave_like "#{params[:when]}"}
+          
+          params = args.last.is_a?(Hash) ? args.last : {}
+          if example_group_block
+            params[:when] = params[:when] || params[:given]
+            module_eval %{it_should_behave_like "#{params[:when]}"} if params[:when]
           end
         end
         alias context describe
