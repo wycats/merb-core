@@ -272,11 +272,8 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     # this is crucial: load init file with all the preferences
     # then environment init file, then start enabling specific
     # components, load dependencies and update logger.
-    unless Merb::disabled?(:initfile)
-      load_initfile
-      load_env_config
-    end
-
+    load_initfile unless Merb::disabled?(:initfile)
+    load_env_config
     enable_json_gem unless Merb::disabled?(:json)
     load_dependencies
     update_logger
@@ -347,6 +344,10 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
       if File.exists?(initfile)
         STDOUT.puts "Loading init file from #{initfile}" unless Merb.testing?
         load(initfile)
+      elsif Merb.env != "test"
+        Merb.fatal! "You are not in a Merb application, or you are in " \
+          "a flat application and have not specified the init file. If you " \
+          "are trying to create a new merb application, use merb-gen app."
       end
     end
 end
@@ -477,7 +478,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         reader_ary = [reader]
         loop do
           # wait for child to exit and capture exit status
-          #
+          # 
           #
           # WNOHANG specifies that wait2 exists without waiting
           # if no child process are ready to be noticed.
