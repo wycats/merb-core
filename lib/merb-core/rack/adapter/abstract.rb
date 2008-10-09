@@ -93,6 +93,8 @@ module Merb
           Merb::Server.remove_pid(port)
         end
 
+        Merb::Worker.start
+
         # If Merb is daemonized, trap INT. If it's not daemonized,
         # we let the master process' ctrl-c control the cluster
         # of workers.

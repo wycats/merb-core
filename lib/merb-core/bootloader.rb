@@ -847,7 +847,7 @@ class Merb::BootLoader::StartWorkerThread < Merb::BootLoader
 
   # Choose the Rack adapter/server to use and set Merb.adapter.
   def self.run
-    Merb::Worker.new
+    Merb::Worker.start
   end
 end
 
