@@ -344,7 +344,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
       if File.exists?(initfile)
         STDOUT.puts "Loading init file from #{initfile}" unless Merb.testing?
         load(initfile)
-      else
+      elsif Merb.env != "test"
         Merb.fatal! "You are not in a Merb application, or you are in " \
           "a flat application and have not specified the init file. If you " \
           "are trying to create a new merb application, use merb-gen app."
