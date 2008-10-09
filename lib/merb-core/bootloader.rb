@@ -292,7 +292,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   end
 
   def self.update_logger
-    Merb.logger = nil
+    Merb.reset_logger!
 
     # If log file is given, use it and not log stream we have.
     if Merb::Config[:log_file]

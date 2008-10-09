@@ -3,7 +3,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 describe "Kernel#require" do
   before do
     @logger = StringIO.new
-    Merb.logger = Merb::Logger.new(@logger)
   end
 
   it "should be able to require and throw a useful error message" do

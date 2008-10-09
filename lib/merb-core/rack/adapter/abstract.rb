@@ -131,9 +131,9 @@ module Merb
         # Store the PID for this worker
         Merb::Server.store_pid(port)
 
-        Merb::Config[:log_delimiter] = "#{$0} ~ "
+        Merb::Config[:log_delimiter] = "#{process_title(:worker, port)} ~ "
 
-        Merb.logger = nil
+        Merb.reset_logger!
         Merb.logger.warn!("Starting #{self.name.split("::").last} at port #{port}")
 
         # If we can't connect to the port, keep trying until we can. Print
@@ -181,7 +181,7 @@ module Merb
           "socket#{'s' if max_port > 0 && whoami != :worker} #{numbers} "\
           "#{file ? file : "#{Merb.log_path}/#{name}.#{port}.sock"}"
         else
-          "port#{'s' if max_port > 0 && whoami != :worker}"
+          "port#{'s' if max_port > 0 && whoami != :worker} #{port}"
         end
         "#{app} : #{whoami} (#{listening_on})"
       end

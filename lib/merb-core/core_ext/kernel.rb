@@ -74,12 +74,17 @@ module Kernel
   def load_dependency(name, *ver, &blk)
     dep = name.is_a?(Gem::Dependency) ? name : track_dependency(name, *ver)
     gem(dep)
-  rescue Gem::LoadError
+  rescue Gem::LoadError => e
+    Merb.fatal! "The gem #{name}, #{ver.inspect} was not found", e
   ensure
     if block = blk || dep.require_block
       block.call
     else
-      require dep.name
+      begin
+        require dep.name
+      rescue LoadError => e
+        Merb.fatal! "The file #{dep.name} was not found", e
+      end
     end
     Merb.logger.info!("loading gem '#{dep.name}' ...")
     return dep # ensure needs explicit return
