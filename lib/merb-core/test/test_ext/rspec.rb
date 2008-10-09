@@ -51,25 +51,10 @@ module Merb
         # This is a copy of the method in rspec, so we can have
         # describe "...", :when => "logged in", and the like
         def describe(*args, &example_group_block)
-          args << {} unless Hash === args.last
-          if example_group_block
-            params = args.last
-            params[:spec_path] = eval("caller(0)[1]", example_group_block) unless params[:spec_path]
-            if params[:shared]
-              ::Spec::Example::SharedExampleGroup.new(*args, &example_group_block)
-            else
-              self.subclass("Subclass") do
-                describe(*args)
-                if params[:when] || (params[:when] = params[:given])
-                  module_eval %{it_should_behave_like "#{params[:when]}"}
-                end
-                module_eval(&example_group_block)
-              end
-            end
-          else
-            set_description(*args)
-            before_eval
-            self
+          super
+          params ||= {}
+          if example_group_block && params[:when] || (params[:when] = params[:given])
+            module_eval %{it_should_behave_like "#{params[:when]}"}
           end
         end
         alias context describe
