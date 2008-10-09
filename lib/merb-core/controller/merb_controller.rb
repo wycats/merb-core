@@ -124,14 +124,14 @@ class Merb::Controller < Merb::AbstractController
   #    The mime-type of the template that will be rendered. Defaults to nil.
   # controller<~to_s>::
   #   The name of the controller that will be rendered. Defaults to
-  #   controller_name.
+  #   controller_name.  This will be "layout" for rendering a layout.  
   #
   # ==== Notes
   # By default, this renders ":controller/:action.:type". To change this,
   # override it in your application class or in individual controllers.
   #
-  #---
-  # @public
+  # @api public
+  # @overridable
   def _template_location(context, type, controller)
     _conditionally_append_extension(controller ? "#{controller}/#{context}" : "#{context}", type)
   end
