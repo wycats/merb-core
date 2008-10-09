@@ -64,10 +64,10 @@ end
 
 Spec::Matchers.create(:have_xpath) do
   matches do |rack, xpath|
-    document = rack.body
+    document = rack.body.to_s
     
     if rack.status < 200 || rack.status >= 300
-      @error_text = rack.body
+      @error_text = rack.body.to_s
       false
     else
       @document = case document
