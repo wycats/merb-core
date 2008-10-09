@@ -124,12 +124,12 @@ class Merb::AbstractController
 
   # ==== Returns
   # String:: The controller name in path form, e.g. "admin/items".
-  #---
-  # @public
+  # @api public
   def self.controller_name() @controller_name ||= self.name.to_const_path end
 
   # ==== Returns
   # String:: The controller name in path form, e.g. "admin/items".
+  # @api public
   def controller_name()      self.class.controller_name                   end
   
   # This is called after the controller is instantiated to figure out where to
@@ -160,8 +160,8 @@ class Merb::AbstractController
   #
   # This would look for templates at controller.action.mime.type instead
   # of controller/action.mime.type
-  #---
-  # @public
+  # @api public
+  # @overridable
   def _template_location(context, type, controller)
     controller ? "#{controller}/#{context}" : context
   end
@@ -173,7 +173,8 @@ class Merb::AbstractController
   # type<~to_s>::
   #    The mime-type of the template that will be rendered. Defaults to nil.
   #
-  # @public
+  # @api public
+  # @overridable
   def _absolute_template_location(template, type)
     template
   end
@@ -222,22 +223,32 @@ class Merb::AbstractController
     end    
   end
   
+  # This will initialize the controller, it is designed to be overridden in subclasses (like MerbController)
   # ==== Parameters
-  # *args:: The args are ignored.
+  # *args:: The args are ignored in this class, but we need this so that subclassed initializes can have parameters
+  #
+  # @overridable
   def initialize(*args)
     @_benchmarks = {}
     @_caught_content = {}
   end
   
-  # This will dispatch the request, calling internal before/after dispatch_callbacks
+  # This will dispatch the request, calling internal before/after dispatch callbacks.  
+  # If the return value of _call_filters is not :filter_chain_completed the action is not called, and the return from the filters is used instead. 
   # 
   # ==== Parameters
   # action<~to_s>::
   #   The action to dispatch to. This will be #send'ed in _call_action.
   #   Defaults to :to_s.
   #
+  # ==== Returns
+  # <~to_s>::
+  #   Returns the string that was returned from the action. 
+  #
   # ==== Raises
-  # MerbControllerError:: Invalid body content caught.
+  # ArgumentError:: Invalid result caught from before filters.
+  #
+  # @api private
   def _dispatch(action)
     self._before_dispatch_callbacks.each { |cb| cb.call(self) }
     self.action_name = action
@@ -267,14 +278,18 @@ class Merb::AbstractController
     @body
   end
   
-  # This method exists to provide an overridable hook for ActionArgs
+  # This method exists to provide an overridable hook for ActionArgs.  It uses #send to call the action method.
   #
   # ==== Parameters
   # action<~to_s>:: the action method to dispatch to
+  #
+  # @api plugin
+  # @overridable
   def _call_action(action)
     send(action)
   end
   
+  # 
   # ==== Parameters
   # filter_set<Array[Filter]>::
   #   A set of filters in the form [[:filter, rule], [:filter, rule]]
@@ -370,6 +385,7 @@ class Merb::AbstractController
     end
   end
 
+  # Adds a filter to the after filter chaing
   # ==== Parameters
   # filter<Symbol, Proc>:: The filter to add. Defaults to nil.
   # opts<Hash>::
@@ -382,6 +398,7 @@ class Merb::AbstractController
     add_filter(self._after_filters, filter || block, opts)
   end
 
+  # Adds a filter to the before filter chain
   # ==== Parameters
   # filter<Symbol, Proc>:: The filter to add. Defaults to nil.
   # opts<Hash>::
@@ -390,6 +407,8 @@ class Merb::AbstractController
   #
   # ==== Notes
   # If the filter already exists, its options will be replaced with opts.
+  #
+  # @api public
   def self.before(filter = nil, opts = {}, &block)
     add_filter(self._before_filters, filter || block, opts)
   end
@@ -528,8 +547,9 @@ class Merb::AbstractController
   end
 
   private
+  # adds a filter to the specified filter chain
   # ==== Parameters
-  # filters<Array[Filter]>:: The filter list that this should be added to.
+  # filters<Array[Filter]>:: The filter chain that this should be added to.
   # filter<Filter>:: A filter that should be added.
   # opts<Hash>::
   #   Filter options (see class documentation under <tt>Filter Options</tt>).
@@ -538,6 +558,7 @@ class Merb::AbstractController
   # ArgumentError::
   #   Both :only and :exclude, or :if and :unless given, if filter is not a
   #   Symbol, String or Proc, or if an unknown option is passed.
+  # @api private
   def self.add_filter(filters, filter, opts={})
     raise(ArgumentError,
       "You can specify either :only or :exclude but 
@@ -576,7 +597,7 @@ class Merb::AbstractController
   # inheritence hierarchies.
   #
   # ==== Parameters
-  # filters<Array[Filter]>:: The filter list that this should be removed from.
+  # filters<Array[Filter]>:: The filter chain that this should be removed from.
   # filter<Filter>:: A filter that should be removed.
   #
   # ==== Raises
