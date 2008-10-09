@@ -19,9 +19,9 @@ module Merb
       # If cluster is left out, then one process will be started. This process
       # will be daemonized if Merb::Config[:daemonize] is true.
       def start(port, cluster=nil)
-        
+
         @port = port
-        @cluster = cluster        
+        @cluster = cluster
 
         if Merb::Config[:daemonize]
           pidfile = pid_file(port)
@@ -89,7 +89,7 @@ module Merb
           Merb.fatal! "Killed #{port} with signal #{sig}"
         end
       end
-      
+
       def kill_pid(sig, file)
         begin
           pid = File.read(file).chomp.to_i
@@ -143,7 +143,10 @@ module Merb
       end
 
       def bootup
-        Merb.trap('TERM') { exit }
+        Merb.trap('TERM') {
+          Merb::BootLoader::LoadClasses.kill_children if Merb::Config[:fork_for_class_load]
+          exit
+        }
 
         puts "Running bootloaders..." if Merb::Config[:verbose]
         BootLoader.run
@@ -265,7 +268,7 @@ module Merb
         Merb.logger.warn! "Changing privileges to #{user}:#{group}"
 
         uid, gid = Process.euid, Process.egid
-        
+
         begin
           target_uid = Etc.getpwnam(user).uid
         rescue ArgumentError => e
@@ -273,7 +276,7 @@ module Merb
             "You tried to use user #{user}, but no such user was found", e)
           return false
         end
-        
+
         begin
           target_gid = Etc.getgrnam(group).gid
         rescue ArgumentError => e
