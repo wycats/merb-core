@@ -735,19 +735,19 @@ module Merb
               filename = head[FILENAME_REGEX, 1]
               content_type = head[CONTENT_TYPE_REGEX, 1]
               name = head[NAME_REGEX, 1]
-            
+              
               if filename && !filename.empty?
                 body = Tempfile.new(:Merb)
                 body.binmode if defined? body.binmode
               end
               next
             end
-          
+            
             # Save the read body part.
             if head && (boundary_size+4 < buf.size)
               body << buf.slice!(0, buf.size - (boundary_size+4))
             end
-          
+            
             read_size = bufsize < content_length ? bufsize : content_length
             if( read_size > 0 )
               c = input.read(read_size)
@@ -756,15 +756,15 @@ module Merb
               content_length -= c.size
             end
           end
-        
+          
           # Save the rest.
           if i = buf.index(rx)
             body << buf.slice!(0, i)
             buf.slice!(0, boundary_size+2)
-          
+            
             content_length = -1  if $1 == "--"
           end
-        
+          
           if filename && !filename.empty?   
             body.rewind
             data = { 
