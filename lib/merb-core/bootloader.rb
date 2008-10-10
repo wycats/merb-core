@@ -408,6 +408,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       @ran = true
       $0 = "merb#{" : " + Merb::Config[:name] if Merb::Config[:name]} : master"
 
+      # Log the process configuration user defined signal 1 (SIGUSR1) is received.
+      Merb.trap("USR1") do
+        Merb.logger.error! "Configuration:\n#{Merb::Config.to_hash.merge(:pid => $$).to_yaml}\n\n"
+      end
+
       if Merb::Config[:fork_for_class_load] && !Merb.testing?
         start_transaction
       else
