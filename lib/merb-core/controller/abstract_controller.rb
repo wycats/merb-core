@@ -124,12 +124,13 @@ class Merb::AbstractController
 
   # ==== Returns
   # String:: The controller name in path form, e.g. "admin/items".
-  #---
-  # @public
+  # @api public
   def self.controller_name() @controller_name ||= self.name.to_const_path end
 
   # ==== Returns
   # String:: The controller name in path form, e.g. "admin/items".
+  #
+  # @api public
   def controller_name()      self.class.controller_name                   end
   
   # This is called after the controller is instantiated to figure out where to
@@ -138,9 +139,9 @@ class Merb::AbstractController
   #
   # ==== Parameters
   # context<~to_s>:: The controller context (the action or template name).
-  # type<~to_s>:: The content type. Defaults to nil.
+  # type<~to_s>:: The content type. Could be nil. 
   # controller<~to_s>::
-  #   The name of the controller. Defaults to controller_name.
+  #   The name of the controller. Defaults to being called with the controller_name.  Set t
   #
   #
   # ==== Returns
@@ -160,29 +161,41 @@ class Merb::AbstractController
   #
   # This would look for templates at controller.action.mime.type instead
   # of controller/action.mime.type
-  #---
-  # @public
+  #
+  # @api public
+  # @overridable
   def _template_location(context, type, controller)
     controller ? "#{controller}/#{context}" : context
   end
 
-  # The location to look for a template - stub method for particular behaviour.
+  # The location to look for a template - override this method for particular behaviour. 
   #
   # ==== Parameters
   # template<String>:: The absolute path to a template - without template extension.
   # type<~to_s>::
-  #    The mime-type of the template that will be rendered. Defaults to nil.
+  #    The mime-type of the template that will be rendered. Defaults to being called with nil.
   #
-  # @public
+  # @api public
+  # @overridable
   def _absolute_template_location(template, type)
     template
   end
 
+  # Resets the template roots to the template root passed in.
+  #
+  # ==== Parameters
+  # root<~to_s>:: 
+  #   The new path to set the template root to.  
+  #
+  # @api public
   def self._template_root=(root)
     @_template_root = root
     _reset_template_roots
   end
 
+  # Reset the template root based on the @_template_root ivar.
+  #
+  # @api private
   def self._reset_template_roots
     self.template_roots = [[self._template_root, :_template_location]]
   end
@@ -191,6 +204,8 @@ class Merb::AbstractController
   # roots<Array[Array]>::
   #   Template roots as pairs of template root path and template location
   #   method.
+  #
+  # @api unknown
   def self._template_roots
     self.template_roots || _reset_template_roots
   end
@@ -199,45 +214,62 @@ class Merb::AbstractController
   # roots<Array[Array]>::
   #   Template roots as pairs of template root path and template location
   #   method.
+  #
+  # @api unknown
   def self._template_roots=(roots)
     self.template_roots = roots
   end
   
+  # Returns the list of classes that have specifically subclassed AbstractController.  
+  # Does not include all decendents.  
+  #
   # ==== Returns
   # Set:: The subclasses.
+  #
+  # @api private
   def self.subclasses_list() _abstract_subclasses end
   
-  class << self
-    # ==== Parameters
-    # klass<Merb::AbstractController>::
-    #   The controller that is being inherited from Merb::AbstractController
-    def inherited(klass)
-      _abstract_subclasses << klass.to_s
-      helper_module_name = klass.to_s =~ /^(#|Merb::)/ ? "#{klass}Helper" : "Merb::#{klass}Helper"
-      Object.make_module helper_module_name
-      klass.class_eval <<-HERE
-        include Object.full_const_get("#{helper_module_name}") rescue nil
-      HERE
-      super
-    end    
-  end
-  
   # ==== Parameters
-  # *args:: The args are ignored.
+  # klass<Merb::AbstractController>::
+  #   The controller that is being inherited from Merb::AbstractController
+  #
+  # @api private
+  def self.inherited(klass)
+    _abstract_subclasses << klass.to_s
+    helper_module_name = klass.to_s =~ /^(#|Merb::)/ ? "#{klass}Helper" : "Merb::#{klass}Helper"
+    Object.make_module helper_module_name
+    klass.class_eval <<-HERE
+      include Object.full_const_get("#{helper_module_name}") rescue nil
+    HERE
+    super
+  end    
+  
+  # This will initialize the controller, it is designed to be overridden in subclasses (like MerbController)
+  # ==== Parameters
+  # *args:: The args are ignored in this class, but we need this so that subclassed initializes can have parameters
+  #
+  # @overridable
   def initialize(*args)
     @_benchmarks = {}
     @_caught_content = {}
   end
   
-  # This will dispatch the request, calling internal before/after dispatch_callbacks
+  # This will dispatch the request, calling internal before/after dispatch callbacks.  
+  # If the return value of _call_filters is not :filter_chain_completed the action is not called, and the return from the filters is used instead. 
   # 
   # ==== Parameters
   # action<~to_s>::
   #   The action to dispatch to. This will be #send'ed in _call_action.
   #   Defaults to :to_s.
   #
+  # ==== Returns
+  # <~to_s>::
+  #   Returns the string that was returned from the action. 
+  #
   # ==== Raises
-  # MerbControllerError:: Invalid body content caught.
+  # ArgumentError:: Invalid result caught from before filters.
+  #
+  # @api private
   def _dispatch(action)
     self._before_dispatch_callbacks.each { |cb| cb.call(self) }
     self.action_name = action
@@ -252,7 +284,8 @@ class Merb::AbstractController
     @body = case caught
     when :filter_chain_completed  then _call_action(action_name)
     when String                   then caught
-    when nil                      then _filters_halted
+    # return *something* if you throw halt with nothing
+    when nil                      then "<html><body><h1>Filter Chain Halted!</h1></body></html>"
     when Symbol                   then __send__(caught)
     when Proc                     then self.instance_eval(&caught)
     else
@@ -267,14 +300,19 @@ class Merb::AbstractController
     @body
   end
   
-  # This method exists to provide an overridable hook for ActionArgs
+  # This method exists to provide an overridable hook for ActionArgs.  It uses #send to call the action method.
   #
   # ==== Parameters
   # action<~to_s>:: the action method to dispatch to
+  #
+  # @api plugin
+  # @overridable
   def _call_action(action)
     send(action)
   end
   
+  # Calls a filter chain. 
+  #
   # ==== Parameters
   # filter_set<Array[Filter]>::
   #   A set of filters in the form [[:filter, rule], [:filter, rule]]
@@ -290,6 +328,8 @@ class Merb::AbstractController
   # Procs::
   #   Execute the +Proc+, in the context of the controller (self will be the
   #   controller)
+  #
+  # @api private
   def _call_filters(filter_set)
     (filter_set || []).each do |filter, rule|
       if _call_filter_for_action?(rule, action_name) && _filter_condition_met?(rule)
@@ -308,6 +348,8 @@ class Merb::AbstractController
     return :filter_chain_completed
   end
 
+  # Determine whether the filter should be called for the current action using :only and :exclude.
+  #
   # ==== Parameters
   # rule<Hash>:: Rules for the filter (see below).
   # action_name<~to_s>:: The name of the action to be called.
@@ -322,6 +364,8 @@ class Merb::AbstractController
   #
   # ==== Returns
   # Boolean:: True if the action should be called.
+  #
+  # @api private
   def _call_filter_for_action?(rule, action_name)
     # Both:
     # * no :only or the current action is in the :only list
@@ -330,6 +374,8 @@ class Merb::AbstractController
     (!rule.key?(:exclude) || !rule[:exclude].include?(action_name))
   end
 
+  # Determines whether the filter should be run based on the conditions passed (:if and :unless)
+  #
   # ==== Parameters
   # rule<Hash>:: Rules for the filter (see below).
   #
@@ -340,6 +386,8 @@ class Merb::AbstractController
   #
   # ==== Returns
   # Boolean:: True if the conditions are met.
+  #
+  # @api private
   def _filter_condition_met?(rule)
     # Both:
     # * no :if or the if condition evaluates to true
@@ -348,6 +396,8 @@ class Merb::AbstractController
     (!rule.key?(:unless) || ! _evaluate_condition(rule[:unless]))
   end
 
+  # Evaluates a filter condition (:if or :unless)
+  #
   # ==== Parameters
   # condition<Symbol, Proc>:: The condition to evaluate.
   #
@@ -360,6 +410,8 @@ class Merb::AbstractController
   # ==== Alternatives
   # If condition is a symbol, it will be send'ed. If it is a Proc it will be
   # called directly with self as an argument.
+  #
+  # @api private
   def _evaluate_condition(condition)
     case condition
     when Symbol : self.send(condition)
@@ -370,6 +422,7 @@ class Merb::AbstractController
     end
   end
 
+  # Adds a filter to the after filter chain
   # ==== Parameters
   # filter<Symbol, Proc>:: The filter to add. Defaults to nil.
   # opts<Hash>::
@@ -377,11 +430,14 @@ class Merb::AbstractController
   # &block:: A block to use as a filter if filter is nil.
   #
   # ==== Notes
-  # If the filter already exists, its options will be replaced with opts.
+  # If the filter already exists, its options will be replaced with opts.;
+  #
+  # @api public
   def self.after(filter = nil, opts = {}, &block)
     add_filter(self._after_filters, filter || block, opts)
   end
 
+  # Adds a filter to the before filter chain
   # ==== Parameters
   # filter<Symbol, Proc>:: The filter to add. Defaults to nil.
   # opts<Hash>::
@@ -390,6 +446,8 @@ class Merb::AbstractController
   #
   # ==== Notes
   # If the filter already exists, its options will be replaced with opts.
+  #
+  # @api public
   def self.before(filter = nil, opts = {}, &block)
     add_filter(self._before_filters, filter || block, opts)
   end
@@ -399,6 +457,8 @@ class Merb::AbstractController
   #
   # ==== Parameters
   # filter<Symbol>:: A filter name to skip.
+  #
+  # @api public
   def self.skip_after(filter)
     skip_filter(self._after_filters, filter)
   end
@@ -408,26 +468,65 @@ class Merb::AbstractController
   #
   # ==== Parameters
   # filter<Symbol>:: A filter name to skip.
+  # @api public
   def self.skip_before(filter)
     skip_filter(self._before_filters , filter)
   end  
-  
-  #---
-  # Defaults that can be overridden by plugins, other mixins, or subclasses
-  def _filters_halted()   "<html><body><h1>Filter Chain Halted!</h1></body></html>"  end
-  
-  # ==== Parameters
-  # name<~to_sym, Hash>:: The name of the URL to generate.
-  # rparams<Hash>:: Parameters for the route generation.
+
+  # There are three possible ways to use this method.  First, if you have a named route, 
+  # you can specify the route as the first parameter as a symbol and any paramters in a 
+  # hash.  Second, you can generate the default route by just passing the params hash, 
+  # just passing the params hash.  Finally, you can use the anonymous parameters.  This 
+  # allows you to specify the parameters to a named route in the order they appear in the 
+  # router.  
+  #
+  # ==== Parameters(Named Route)
+  # name<Symbol>:: 
+  #   The name of the route. 
+  # args<Hash>:: 
+  #   Parameters for the route generation.
+  #
+  # ==== Parameters(Default Route)
+  # args<Hash>:: 
+  #   Parameters for the route generation.  This route will use the default route. 
+  #
+  # ==== Parameters(Anonymous Parameters)
+  # name<Symbol>::
+  #   The name of the route.  
+  # args<Array>:: 
+  #   An array of anonymous parameters to generate the route
+  #   with. These parameters are assigned to the route parameters
+  #   in the order that they are passed.
   #
   # ==== Returns
   # String:: The generated URL.
   #
-  # ==== Alternatives
-  # If a hash is used as the first argument, a default route will be
-  # generated based on it and rparams.
-  # ====
-  # TODO: Update this documentation
+  # ==== Examples
+  # Named Route
+  #
+  # Merb::Router.prepare do
+  #   match("/articles/:title").to(:controller => :articles, :action => :show).name("articles")
+  # end
+  #
+  # url(:articles, :title => "new_article")
+  #
+  # Default Route
+  #
+  # Merb::Router.prepare do
+  #   default_routes
+  # end
+  #
+  # url(:controller => "articles", :action => "new")
+  #
+  # Anonymous Paramters
+  #
+  # Merb::Router.prepare do
+  #   match("/articles/:year/:month/:title").to(:controller => :articles, :action => :show).name("articles")
+  # end
+  #
+  # url(:articles, 2008, 10, "test_article")
+  #
+  # @api public
   def url(name, *args)
     args << {}
     Merb::Router.url(name, *args)
@@ -435,22 +534,12 @@ class Merb::AbstractController
   
   alias_method :relative_url, :url
 
-  # ==== Parameters
-  # name<~to_sym, Hash>:: The name of the URL to generate.
-  # rparams<Hash>:: Parameters for the route generation.
+  # Returns the absolute url including the passed protocol and host.  
+  # 
+  # This uses the same arguments as the url method, with added requirements 
+  # of protocol and host options. 
   #
-  # ==== Returns
-  # String:: The generated url with protocol + hostname + URL.
-  #
-  # ==== Options
-  #
-  # :protocol and :host options are special: use them to explicitly
-  # specify protocol and host of resulting url. If you omit them,
-  # protocol and host of request are used.
-  #
-  # ==== Alternatives
-  # If a hash is used as the first argument, a default route will be
-  # generated based on it and rparams.
+  # @api public
   def absolute_url(name, *args)
     # FIXME: arrgh, why request.protocol returns http://?
     # :// is not part of protocol name
@@ -494,8 +583,9 @@ class Merb::AbstractController
   # resource(:users, :new)      # => /users/new
   # resource(:@user, :edit)     # => /users/10/edit
   #
+  # @api public
   def resource(*args)
-    args << params
+    args << {}
     Merb::Router.resource(*args)
   end
 
@@ -507,6 +597,8 @@ class Merb::AbstractController
   #
   # ==== Returns
   # String:: The output of a template block or the return value of a non-template block converted to a string.
+  #
+  # @api public
   def capture(*args, &block)
     ret = nil
 
@@ -523,13 +615,16 @@ class Merb::AbstractController
   # ==== Parameters
   # str<String>:: The string to concatenate to the buffer.
   # binding<Binding>:: The binding to use for the buffer.
+  #
+  # @api public
   def concat(str, binding)
     send("concat_#{@_engine}", str, binding)
   end
 
   private
+  # adds a filter to the specified filter chain
   # ==== Parameters
-  # filters<Array[Filter]>:: The filter list that this should be added to.
+  # filters<Array[Filter]>:: The filter chain that this should be added to.
   # filter<Filter>:: A filter that should be added.
   # opts<Hash>::
   #   Filter options (see class documentation under <tt>Filter Options</tt>).
@@ -538,6 +633,8 @@ class Merb::AbstractController
   # ArgumentError::
   #   Both :only and :exclude, or :if and :unless given, if filter is not a
   #   Symbol, String or Proc, or if an unknown option is passed.
+  #
+  # @api private
   def self.add_filter(filters, filter, opts={})
     raise(ArgumentError,
       "You can specify either :only or :exclude but 
@@ -576,11 +673,13 @@ class Merb::AbstractController
   # inheritence hierarchies.
   #
   # ==== Parameters
-  # filters<Array[Filter]>:: The filter list that this should be removed from.
+  # filters<Array[Filter]>:: The filter chain that this should be removed from.
   # filter<Filter>:: A filter that should be removed.
   #
   # ==== Raises
   # ArgumentError:: filter not Symbol or String.
+  #
+  # @api private
   def self.skip_filter(filters, filter)
     raise(ArgumentError, 'You can only skip filters that have a String or Symbol name.') unless
       [Symbol, String].include? filter.class
@@ -600,6 +699,8 @@ class Merb::AbstractController
   #
   # ==== Examples
   #   normalize_filters!(:only => :new) #=> {:only => [:new]}
+  #
+  # @api public
   def self.normalize_filters!(opts={})
     opts[:only]     = Array(opts[:only]).map {|x| x.to_s} if opts[:only]
     opts[:exclude]  = Array(opts[:exclude]).map {|x| x.to_s} if opts[:exclude]
