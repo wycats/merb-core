@@ -23,5 +23,6 @@ module Merb
     autoload :ConditionalGet,      'merb-core/rack/middleware/conditional_get'
     autoload :Csrf,                'merb-core/rack/middleware/csrf'
     autoload :StreamWrapper,       'merb-core/rack/stream_wrapper'
+    autoload :Helpers,             'merb-core/rack/helpers'
   end # Rack
 end # Merb

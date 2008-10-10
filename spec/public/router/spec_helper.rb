@@ -42,6 +42,32 @@ module Spec
       HaveRoute.new(expected, true)
     end
     
+    class HaveRack
+      def initialize(expected)
+        @expected = expected
+      end
+
+      def matches?(rack)
+        return false unless rack.last.is_a?(Array)
+        @actual = Struct.new(:status, :headers, :body).new(rack.last[0], rack.last[1], rack.last[2])
+        @expected.all? { |k, v| @actual[k] == v }
+      end
+
+      def failure_message
+        "#{@actual.inspect} does not match #{@expected.inspect}"
+      end
+
+      def negative_failure_message
+        "#{@actual.inspect} does match #{@expected.inspect}"
+      end
+
+      def description() "have_rack #{@actual.inspect}" end
+    end
+    
+    def have_rack(expected)
+      HaveRack.new(expected)
+    end
+    
     # class HaveNilRoute
     # 
     #   def matches?(target)
