@@ -102,6 +102,7 @@ module Merb
         Merb.push_path(:config,       Merb.root_path("config"), nil)
         Merb.push_path(:router,       Merb.dir_for(:config), (Merb::Config[:router_file] || "router.rb"))
         Merb.push_path(:lib,          Merb.root_path("lib"), nil)
+        Merb.push_path(:lib_merb,     Merb.root_path("lib" / "merb"))
         Merb.push_path(:log,          Merb.log_path, nil)
         Merb.push_path(:public,       Merb.root_path("public"), nil)
         Merb.push_path(:stylesheet,   Merb.dir_for(:public) / "stylesheets", nil)
