@@ -133,6 +133,7 @@ module GemManagement
       FileUtils.mkdir_p(gem_pkg_dir) unless File.directory?(gem_pkg_dir)
 
       # Recursively process all gem packages within the source dir
+      skip_gems << gem_name
       packages = package_all(source_dir, skip_gems)
       
       if packages.length == 1
@@ -143,10 +144,10 @@ module GemManagement
         packages.each do |pkg|
           FileUtils.copy_entry(pkg, File.join(gem_pkg_dir, File.basename(pkg)))
         end
-      
+        
         # Finally package the main gem - without clobbering the already copied pkgs
         package(source_dir, false)
-      
+        
         # Gather subgems to refresh during installation of the main gem
         options[:refresh] = packages.map do |pkg|
           File.basename(pkg, '.gem')[/^(.*?)-([\d\.]+)$/, 1] rescue nil
@@ -154,7 +155,7 @@ module GemManagement
       end
     
       gem_pkg = Dir[File.join(gem_pkg_dir, "#{gem_name}-*.gem")][0]
-      if File.exists?(gem_pkg)
+      if gem_pkg && File.exists?(gem_pkg)
         # Needs to be executed from the directory that contains all packages
         Dir.chdir(File.dirname(gem_pkg)) do 
           install_gem(gem_pkg, options)
@@ -194,15 +195,14 @@ module GemManagement
   end
 
   def package_all(source_dir, skip = [], packages = [])
-    if Dir[File.join(source_dir, '{Rakefile,Thorfile}')][0] &&
-        !skip.include?(File.basename(source_dir))
-      
+    if Dir[File.join(source_dir, '{Rakefile,Thorfile}')][0]
+      name = File.basename(source_dir)
       Dir[File.join(source_dir, '*', '{Rakefile,Thorfile}')].each do |taskfile|
         package_all(File.dirname(taskfile), skip, packages)
       end
-      packages.push(*package(source_dir))
+      packages.push(*package(source_dir)) unless skip.include?(name)
     end
-    packages
+    packages.uniq
   end
   
   def rake(cmd)
