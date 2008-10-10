@@ -118,10 +118,10 @@ module GemManagement
   # Install a gem from source - builds and packages it first then installs.
   # 
   # Examples:
-  # install_from_source(source_dir, :install_dir => ...)
-  # install_from_source(source_dir, gem_name)
-  # install_from_source(source_dir, :skip => [...])
-  def install_from_source(source_dir, *args)
+  # install_gem_from_source(source_dir, :install_dir => ...)
+  # install_gem_from_source(source_dir, gem_name)
+  # install_gem_from_source(source_dir, :skip => [...])
+  def install_gem_from_source(source_dir, *args)
     Dir.chdir(source_dir) do
       options = args.last.is_a?(Hash) ? args.pop : {}
       gem_name    = args[0] || File.basename(source_dir)
