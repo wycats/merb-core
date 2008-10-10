@@ -178,7 +178,7 @@ module GemManagement
 
   def clobber(source_dir)
     Dir.chdir(source_dir) do 
-      sh "#{Gem.ruby} -S rake -s clobber" if File.exists?('Rakefile')
+      system "#{Gem.ruby} -S rake -s clobber" if File.exists?('Rakefile')
     end
   end
 
@@ -206,11 +206,11 @@ module GemManagement
   end
   
   def rake(cmd)
-    sh "#{Gem.ruby} -S #{which('rake')} -s #{cmd}"
+    system "#{Gem.ruby} -S #{which('rake')} -s #{cmd}"
   end
   
   def thor(cmd)
-    sh "#{Gem.ruby} -S #{which('thor')} #{cmd}"
+    system "#{Gem.ruby} -S #{which('thor')} #{cmd}"
   end
 
   # Use the local bin/* executables if available.
