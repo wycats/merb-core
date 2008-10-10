@@ -62,42 +62,6 @@ Spec::Matchers.create(:have_content_type) do
   end
 end
 
-Spec::Matchers.create(:have_xpath) do
-  matches do |rack, xpath|
-    document = rack.body.to_s
-    
-    if rack.status < 200 || rack.status >= 300
-      @error_text = rack.body.to_s
-      false
-    else
-      @document = case document
-      when LibXML::XML::Document, LibXML::XML::Node
-        document
-      when StringIO
-        LibXML::XML::HTMLParser.string(document.string).parse
-      else
-        LibXML::XML::HTMLParser.string(document).parse
-      end
-      begin
-        !@document.find(xpath).empty?
-      rescue LibXML::XML::XPath::InvalidPath
-        @bad_xpath = true
-        false
-      end
-    end
-  end
-  
-  message do |not_string, rack, xpath|
-    if @bad_xpath
-      "the XPath '#{xpath}' was invalid"
-    elsif @error_text
-      "there was an error on your page:\n#{@error_text}"
-    else
-      "expected the following text #{not_string}to match the xpath '#{xpath}':\n\n#{@document}"
-    end
-  end
-end
-
 Spec::Matchers.create(:redirect) do
   matches do |rack|
     @inspect = describe_input(rack)

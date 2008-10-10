@@ -110,7 +110,7 @@ module Merb
     # @api private
     def find_route!
       @route, @route_params = Merb::Router.route_for(self)
-      params.merge! @route_params
+      params.merge! @route_params if @route_params.is_a?(Hash)
     end
     
     # ==== Notes
@@ -124,21 +124,8 @@ module Merb
       # so we must set the request as a redirect and extract
       # the redirect params and return it as a hash so that the
       # dispatcher can handle it
-      if retval.is_a?(Array)
-        redirects!
-        return { :url => retval[0], :status => retval[1] } 
-      end
+      matched! if retval.is_a?(Array)
       retval
-    end
-    
-    # Sets the request as a redirect. This method is only really
-    # used in the router to tell the request object how to handle
-    # the route params. This will also set the request as matched.
-    # 
-    # @api private
-    def redirects!
-      @matched   = true
-      @redirects = true
     end
     
     # Sets the request as matched. This will abort evaluating any
@@ -156,34 +143,28 @@ module Merb
       @matched
     end
     
-    # Redirect status of the route matching this request.
-    #
     # ==== Returns
-    # Integer:: the status of the redirect response.
+    # (Array, Hash):: the route params for the matched route.
+    # 
+    # ==== Notes
+    # If the response is an Array then it is considered a direct Rack response
+    # to be sent back as a response. Otherwise, the route_params is a Hash with
+    # routing data (controller, action, et al).
     # 
     # @api private
-    def redirect_status
-      @route_params[:status] if redirects?
+    def rack_response
+      @route_params
     end
     
-    # Returns redirect url of the route matching this request.
-    #
+    # If @route_params is an Array, then it will be the rack response.
+    # In this case, the request is considered handled.
+    # 
     # ==== Returns
-    # String:: redirect url of route matched this request
+    # Boolean:: true if @route_params is an Array, false otherwise.
     # 
     # @api private
-    def redirect_url
-      @route_params[:url] if redirects?
-    end
-    
-    # Returns true if matched route does immediate redirection.
-    #
-    # ==== Returns
-    # Boolean:: if matched route does immediate redirection.
-    # 
-    # @api private
-    def redirects?
-      @redirects
+    def handled?
+      @route_params.is_a?(Array)
     end
     
     # == Params

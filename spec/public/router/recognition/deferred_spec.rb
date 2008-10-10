@@ -62,8 +62,7 @@ describe "Recognizing requests for deferred routes" do
         end
       end
       
-      route_for("/").should have_route(:url => "/hello", :status => 302)
-      request_for("/").should be_redirects
+      route_for("/").should have_rack(:status => 302, :headers => { "Location" => "/hello" })
     end
     
     it "should be able to set the redirect status" do
@@ -73,7 +72,7 @@ describe "Recognizing requests for deferred routes" do
         end
       end
       
-      route_for("/").should have_route(:url => "/hello", :status => 302)
+      route_for("/").should have_rack(:status => 302, :headers => { "Location" => "/hello" })
     end
     
     it "should be able to use #url in deferred blocks" do
@@ -82,7 +81,7 @@ describe "Recognizing requests for deferred routes" do
         match("/home").to(:controller => "home").name(:homepage)
       end
       
-      route_for("/").should have_route(:url => "/home")
+      route_for("/").should have_rack(:headers => { "Location" => "/home" })
     end
     
   end

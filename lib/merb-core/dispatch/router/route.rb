@@ -177,13 +177,9 @@ module Merb
         
         # First, we need to always return the value of the
         # deferred block if it explicitly matched the route
-        if @redirects && @deferred_procs.any?
-          code << "    return [#{@index.inspect}, block_result] if request.matched?" << "\n" 
-          code << "    request.redirects!" << "\n"
-          code << "    [#{@index.inspect}, { :url => #{@redirect_url.inspect}, :status => #{@redirect_status.inspect} }]" << "\n"
-        elsif @redirects
-          code << "    request.redirects!" << "\n"
-          code << "    [#{@index.inspect}, { :url => #{@redirect_url.inspect}, :status => #{@redirect_status.inspect} }]" << "\n"
+        if @redirects
+          code << "    return [#{@index.inspect}, block_result] if request.matched?" << "\n" if @deferred_procs.any?
+          code << "    [#{@index.inspect}, Merb::Rack::Helpers.redirect(#{@redirect_url.inspect}, :status => #{@redirect_status.inspect})]" << "\n"
         elsif @deferred_procs.any?
           code << "    [#{@index.inspect}, block_result]" << "\n"
         else

@@ -8,8 +8,21 @@ describe Merb::Dispatcher do
   include Merb::Test::Rspec::ControllerMatchers
   include Merb::Test::Rspec::ViewMatchers
   
+  def status(response)
+    response.status
+  end
+  
+  def body(response)
+    response.body.to_s
+  end
+  
+  def headers(response)
+    response.headers
+  end
+  
   def dispatch(url)
-    Merb::Dispatcher.handle(request_for(url))
+    rack = Merb::Dispatcher.handle(request_for(url))
+    Struct.new(:status, :headers, :body, :url).new(rack[0], rack[1], rack[2], url)
   end
 
   def request_for(url)
@@ -29,18 +42,18 @@ describe Merb::Dispatcher do
     end
   
     it "dispatches to the right controller and action" do
-      controller = dispatch(@url)
-      controller.body.should == "Dispatched"
+      body(dispatch(@url)).should == "Dispatched"
     end
     
     it "has the correct status code" do
-      controller = dispatch(@url)
-      controller.status.should == 200
+      status(dispatch(@url)).should == 200
     end
     
     it "sets the Request#params to include the route params" do
-      controller = dispatch(@url)
-      controller.request.params.should == 
+      # FIXME
+      request = request_for(@url)
+      Merb::Dispatcher.handle(request)
+      request.params.should == 
         {"controller" => "dispatch_to", "action" => "index", 
          "id" => nil, "format" => nil}
     end
@@ -87,7 +100,7 @@ describe Merb::Dispatcher do
     end
     
     it "redirects" do
-      @controller.body.should =~ %r{You are being <a href="/foo">redirected}
+      body(@controller).should =~ %r{You are being <a href="/foo">redirected}
     end
     
     it "reports that it is redirecting via Logger#info" do
@@ -101,11 +114,11 @@ describe Merb::Dispatcher do
     end
     
     it "sets the status correctly" do
-      @controller.status.should == 301
+      status(@controller).should == 301
     end
     
     it "sets the location correctly" do
-      @controller.headers["Location"].should == "/foo"
+      headers(@controller)["Location"].should == "/foo"
     end
   end
   
@@ -122,7 +135,7 @@ describe Merb::Dispatcher do
     end
     
     it "redirects" do
-      @controller.body.should =~ %r{You are being <a href="/foo">redirected}
+      body(@controller).should =~ %r{You are being <a href="/foo">redirected}
     end
     
     it "reports that it is redirecting via Logger#info" do
@@ -136,11 +149,11 @@ describe Merb::Dispatcher do
     end
     
     it "sets the status correctly" do
-      @controller.status.should == 301
+      status(@controller).should == 301
     end
     
     it "sets the location correctly" do
-      @controller.headers["Location"].should == "/foo"
+      headers(@controller)["Location"].should == "/foo"
     end
   end
   
@@ -154,16 +167,12 @@ describe Merb::Dispatcher do
     end
     
     describe "with exception details showing" do
-      it "raises a NotFound" do
-        @controller.should be_error(Merb::ControllerExceptions::NotFound)
-      end
-    
       it "returns a 404 status" do
-        @controller.status.should == 404
+        status(@controller).should == 404
       end
       
       it "returns useful info in the body" do
-        @controller.body.should =~
+        body(@controller).should =~
           %r{<h2>Controller 'Merb::Test::Fixtures::Controllers::NotAController' not found.</h2>}
       end
     end
@@ -191,16 +200,12 @@ describe Merb::Dispatcher do
         @controller = dispatch(@url)
       end
       
-      it "remembers that the Exception is Gone" do
-        @controller.should be_error(Merb::ControllerExceptions::Gone)
-      end
-      
       it "renders the action Exception#gone" do
-        @controller.body.should == "Gone"
+        body(@controller).should == "Gone"
       end
       
       it "returns the status 410" do
-        @controller.status.should == 410
+        status(@controller).should == 410
       end
     end
     
@@ -227,16 +232,12 @@ describe Merb::Dispatcher do
         @controller = dispatch(@url)
       end
       
-      it "renders the Exception from the Exceptions controller" do
-        @controller.should be_error(Merb::ControllerExceptions::Gone)
-      end
-      
       it "renders the action Exceptions#client_error since #gone is not defined" do
-        @controller.body.should == "ClientError"
+        body(@controller).should == "ClientError"
       end
       
       it "returns the status 410 (Gone) even though we rendered #client_error" do
-        @controller.status.should == 410
+        status(@controller).should == 410
       end
     end
   end
@@ -252,16 +253,13 @@ describe Merb::Dispatcher do
     end
     
     describe "with exception details showing" do
-      it "raises a NotFound" do
-        @controller.should be_error(Merb::ControllerExceptions::NotFound)
-      end
     
       it "returns a 404 status" do
-        @controller.status.should == 404
+        status(@controller).should == 404
       end
       
       it "returns useful info in the body" do
-        @controller.body.should =~
+        body(@controller).should =~
           %r{<h2>Route matched, but route did not specify a controller.</h2>}
       end
     end
@@ -289,16 +287,12 @@ describe Merb::Dispatcher do
         @controller = dispatch(@url)
       end
       
-      it "remembers that the Exception is Gone" do
-        @controller.should be_error(Merb::ControllerExceptions::Gone)
-      end
-      
       it "renders the action Exception#gone" do
-        @controller.body.should == "Gone"
+        body(@controller).should == "Gone"
       end
       
       it "returns the status 410" do
-        @controller.status.should == 410
+        status(@controller).should == 410
       end
     end
     
@@ -328,16 +322,12 @@ describe Merb::Dispatcher do
       @controller = dispatch(@url)
     end
     
-    it "knows that the error is a LoadError" do
-      @controller.should be_error(LoadError)
-    end
-    
     it "renders Exceptions#load_error" do
-      @controller.body.should == "LoadError"
+      body(@controller).should == "LoadError"
     end
     
     it "returns a 500 status code" do
-      @controller.status.should == 500
+      status(@controller).should == 500
     end
   end
 
@@ -364,20 +354,16 @@ describe Merb::Dispatcher do
       @controller = dispatch(@url)
     end
     
-    it "knows that the error is a StandardError" do
-      @controller.should be_error(StandardError)
-    end
-    
     it "renders the default exception template" do
-      @controller.body.should have_xpath("//h1[contains(.,'Standard Error')]")
-      @controller.body.should have_xpath("//h2[contains(.,'Big error')]")
+      body(@controller).should have_xpath("//h1[contains(.,'Standard Error')]")
+      body(@controller).should have_xpath("//h2[contains(.,'Big error')]")
 
-      @controller.body.should have_xpath("//h1[contains(.,'Load Error')]")
-      @controller.body.should have_xpath("//h2[contains(.,'Big error')]")
+      body(@controller).should have_xpath("//h1[contains(.,'Load Error')]")
+      body(@controller).should have_xpath("//h2[contains(.,'Big error')]")
     end
     
     it "returns a 500 status code" do
-      @controller.status.should == 500
+      status(@controller).should == 500
     end
   end
 
@@ -405,17 +391,13 @@ describe Merb::Dispatcher do
       @controller = dispatch(@url)
     end
     
-    it "knows that the error is a NotFound" do
-      @controller.should be_error(Merb::ControllerExceptions::NotFound)
-    end
-    
     it "renders the default exception template" do
-      @controller.body.should have_xpath("//h1[contains(.,'Not Found')]")
-      @controller.body.should have_xpath("//h2[contains(.,'Somehow, the thing')]")
+      body(@controller).should have_xpath("//h1[contains(.,'Not Found')]")
+      body(@controller).should have_xpath("//h2[contains(.,'Somehow, the thing')]")
     end
     
     it "returns a 404 status code" do
-      @controller.status.should == 404
+      status(@controller).should == 404
     end
   end
 
@@ -442,16 +424,12 @@ describe Merb::Dispatcher do
       @controller = dispatch(@url)
     end
     
-    it "knows that the error is a NotFound" do
-      @controller.should be_error(LoadError)
-    end
-    
     it "renders the default exception template" do
-      @controller.body.should have_xpath("//h2[contains(.,'Something failed here')]")
+      body(@controller).should have_xpath("//h2[contains(.,'Something failed here')]")
     end
     
     it "returns a 500 status code" do
-      @controller.status.should == 500
+      status(@controller).should == 500
     end
   end
 
@@ -480,11 +458,7 @@ describe Merb::Dispatcher do
       end
       @url = "/raise_load_error/index"
       @controller = dispatch(@url)
-      @body = @controller.body
-    end
-    
-    it "knows that the error is a NotFound" do
-      @controller.should be_error(Exception)
+      @body = body(@controller)
     end
     
     it "renders a list of links to the traces" do
@@ -503,7 +477,7 @@ describe Merb::Dispatcher do
     end
     
     it "returns a 500 status code" do
-      @controller.status.should == 500
+      status(@controller).should == 500
     end
   end
   
@@ -526,6 +500,9 @@ describe Merb::Dispatcher do
       class Application < Merb::Controller
         def method_for_abstract_test; "method_for_abstract_test"; end
       end
+      Merb::Router.prepare do
+        default_routes
+      end
     end
     
     after(:each) do
@@ -538,14 +515,13 @@ describe Merb::Dispatcher do
         undef method_for_abstract_test
       end
       
-      Merb::Router.prepare do
-        default_routes
-      end      
+      # Merb::Router.prepare do
+      #   default_routes
+      # end      
     end
     
     it "should return a NotFound for an Application#method" do
-      result = fake_request(:request_uri => "/application/method_for_abstract_test").handle
-      result.status.should == 404
+      status(dispatch("/application/method_for_abstract_test")).should == 404
     end
     
     it "should have Application marked as abstract" do
@@ -557,21 +533,19 @@ describe Merb::Dispatcher do
     end
     
     it "should return a NotFound for an abstract controllers method" do
-      result = fake_request(:request_uri => "/abstract_one/index").handle
-      result.status.should == 404
+      status(dispatch("/abstract_one/index")).should == 404
     end
     
-    
     it "should return correctly for a normal controller" do
-      result = fake_request(:request_uri => "/normal_controller/index").handle
-      result.status.should == 200
-      result.body.should == "NormalController#index"
+      result = dispatch("/normal_controller/index")
+      status(result).should == 200
+      body(result).should == "NormalController#index"
     end
     
     it "should return correctly for a controller that is inherited from an abstract controller" do
-      result = fake_request(:request_uri => "/not_abstract/index").handle
-      result.status.should == 200
-      result.body.should == "NotAbstract#index"
+      result = dispatch("/not_abstract/index")
+      status(result).should == 200
+      body(result).should == "NotAbstract#index"
     end
     
     

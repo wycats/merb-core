@@ -53,7 +53,7 @@ module Merb
       Merb.logger.info "Started request handling: #{start.to_s}"
       
       find_route!
-      return redirect if redirects?
+      return rack_response if handled?
       
       klass = controller
       Merb.logger.debug("Routed to: #{params.inspect}")
@@ -74,39 +74,9 @@ module Merb
       controller._benchmarks[:dispatch_time] = Time.now - start
       Merb.logger.info controller._benchmarks.inspect
       Merb.logger.flush
-      controller
+      controller.rack_response
     rescue Object => exception
-      dispatch_exception(exception)
-    end
-    
-    # Set up a faux controller to do redirection from the router 
-    #
-    # ==== Parameters
-    # request<Merb::Request>::
-    #   The Merb::Request object that was created in #handle
-    # status<Integer>::
-    #   The status code to return with the controller
-    # url<String>::
-    #   The URL to return
-    #
-    # ==== Example
-    # r.match("/my/old/crusty/url").redirect("http://example.com/index.html")
-    #
-    # ==== Returns
-    # Merb::Controller::
-    #   Merb::Controller set with redirect headers and a 301/302 status
-    # 
-    # @api public
-    def redirect
-      status, url = redirect_status, redirect_url
-      controller = Merb::Controller.new(self, status)
-      
-      Merb.logger.info("Dispatcher redirecting to: #{url} (#{status})")
-      Merb.logger.flush
-      
-      controller.headers['Location'] = url
-      controller.body = "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
-      controller
+      dispatch_exception(exception).rack_response
     end
     
     private

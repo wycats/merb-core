@@ -4,7 +4,7 @@ module Merb
       
       def call(env) 
         begin
-          controller = ::Merb::Dispatcher.handle(Merb::Request.new(env))
+          rack_response = ::Merb::Dispatcher.handle(Merb::Request.new(env))
         rescue Object => e
           return [500, {Merb::Const::CONTENT_TYPE => "text/html"}, e.message + "<br/>" + e.backtrace.join("<br/>")]
         end
@@ -15,7 +15,7 @@ module Merb
         #   require "time"
         #   controller.headers[Merb::Const::DATE] = Time.now.rfc2822.to_s
         # end
-        controller.rack_response
+        rack_response
       end
 
       def deferred?(env)
