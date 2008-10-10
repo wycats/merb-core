@@ -9,7 +9,7 @@ module Merb
       defaults = { :cache => false }
       defaults[:install_dir] = ENV['GEM_DIR'] if ENV['GEM_DIR']
       opts = defaults.merge(options)
-      install_gem_from_src(Dir.pwd, opts)
+      install_from_source(Dir.pwd, name, opts)
       ensure_wrapper(opts[:install_dir] || Gem.default_dir, name)
     end
     
@@ -17,7 +17,10 @@ module Merb
       defaults = { :cache => false }
       defaults[:install_dir] = ENV['GEM_DIR'] if ENV['GEM_DIR']
       opts = defaults.merge(options)
-      install_gem(pkg, opts)
+      # Needs to be executed from the directory that contains all packages
+      Dir.chdir(File.dirname(pkg_file = File.expand_path(pkg))) do 
+        install_gem(pkg_file, opts)
+      end
       name = File.basename(pkg, '.gem')[/^(.*?)-([\d\.]+)$/, 1]
       ensure_wrapper(opts[:install_dir] || Gem.default_dir, name)
     end
@@ -26,7 +29,7 @@ module Merb
       defaults = { :ignore => true, :executables => true }
       defaults[:install_dir] = ENV['GEM_DIR'] if ENV['GEM_DIR']
       uninstall_gem(name, defaults.merge(options))
-    end
+    end  
     
     def self.sudo
       ENV['MERB_SUDO'] ||= "sudo"
