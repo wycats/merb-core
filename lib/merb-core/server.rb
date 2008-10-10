@@ -18,6 +18,8 @@ module Merb
       # ==== Alternatives
       # If cluster is left out, then one process will be started. This process
       # will be daemonized if Merb::Config[:daemonize] is true.
+      #
+      # @api private
       def start(port, cluster=nil)
 
         @port = port
@@ -47,6 +49,8 @@ module Merb
       # ==== Returns
       # Boolean::
       #   True if Merb is running on the specified port.
+      #
+      # @api private
       def alive?(port)
         puts "About to check if port #{port} is alive..." if Merb::Config[:verbose]
         pidfile = pid_file(port)
@@ -68,6 +72,8 @@ module Merb
       # ==== Alternatives
       # If you pass "all" as the port, the signal will be sent to all Merb
       # processes.
+      #
+      # @api private
       def kill(port, sig="INT")
         Merb::BootLoader::BuildFramework.run
         if sig == 9 && port == "main"
@@ -90,6 +96,8 @@ module Merb
         end
       end
 
+      # Kills the process pointed at by the provided pid file.
+      # @api private
       def kill_pid(sig, file)
         begin
           pid = File.read(file).chomp.to_i
@@ -118,6 +126,8 @@ module Merb
 
       # ==== Parameters
       # port<~to_s>:: The port of the Merb process to daemonize.
+      #
+      # @api private
       def daemonize(port)
         puts "About to fork..." if Merb::Config[:verbose]
         fork do
@@ -142,6 +152,9 @@ module Merb
         Merb.fatal! "Daemonized mode is not supported on your platform", e
       end
 
+      # Starts up Merb by running the bootloader and starting the adapter.
+      #
+      # @api private
       def bootup
         Merb.trap('TERM') {
           Merb::BootLoader::LoadClasses.kill_children if Merb::Config[:fork_for_class_load]
@@ -154,6 +167,9 @@ module Merb
         Merb.adapter.start(Merb::Config.to_hash)
       end
 
+      # Change process user/group to those specified in Merb::Config.
+      #
+      # @api private
       def change_privilege
         if Merb::Config[:user] && Merb::Config[:group]
           Merb.logger.verbose! "About to change privilege to group " \
@@ -179,6 +195,8 @@ module Merb
       # ==== Alternatives
       # If Merb::Config[:pid_file] has been specified, that will be used
       # instead of the port based PID file.
+      #
+      # @api private
       def remove_pid_file(port)
         pidfile = pid_file(port)
         if File.exist?(pidfile)
@@ -198,14 +216,32 @@ module Merb
       # ==== Alternatives
       # If Merb::Config[:pid_file] has been specified, that will be used
       # instead of the port based PID file.
+      #
+      # @api private
       def store_pid(port)
         store_details(port)
       end
 
+      # Delete the pidfile for the specified port.
+      #
+      # @api private
       def remove_pid(port)
         FileUtils.rm(pid_file(port)) if File.file?(pid_file(port))
       end
 
+      # Stores a PID file on the filesystem.
+      # This uses :pid_file options from configuration when provided
+      # or merb.<port>.pid in log directory by default.
+      #
+      # ==== Parameters
+      # port<~to_s>::
+      #   The port of the Merb process to whom the the PID file belongs to.
+      #
+      # ==== Alternatives
+      # If Merb::Config[:pid_file] has been specified, that will be used
+      # instead of the port based PID file.
+      #
+      # @api private
       def store_details(port = nil)
         file = pid_file(port)
         begin
@@ -233,6 +269,8 @@ module Merb
       # String::
       #   Location of pid file for specified port. If clustered and pid_file option
       #   is specified, it adds the port value to the path.
+      #
+      # @api private
       def pid_file(port)
         pidfile = Merb::Config[:pid_file] || (Merb.log_path / "merb.%s.pid")
         pidfile % port
@@ -243,6 +281,8 @@ module Merb
       # ==== Returns
       # Array::
       #   List of pid file paths. If not clustered, array contains a single path.
+      #
+      # @api private
       def pid_files
         if Merb::Config[:pid_file]
           if Merb::Config[:cluster]
@@ -263,6 +303,8 @@ module Merb
       #
       # ==== Alternatives
       # If group is left out, the user will be used as the group.
+      #
+      # @api private
       def _change_privilege(user, group=user)
 
         Merb.logger.warn! "Changing privileges to #{user}:#{group}"
@@ -297,6 +339,7 @@ module Merb
         false
       end
 
+      # @api private
       def add_irb_trap
         Merb.trap('INT') do
           if @interrupted
