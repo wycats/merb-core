@@ -269,7 +269,7 @@ class Merb::AbstractController
   # ==== Raises
   # ArgumentError:: Invalid result caught from before filters.
   #
-  # @api private
+  # @api plugin
   def _dispatch(action)
     self._before_dispatch_callbacks.each { |cb| cb.call(self) }
     self.action_name = action

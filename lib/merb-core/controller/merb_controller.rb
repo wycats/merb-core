@@ -15,104 +15,106 @@ class Merb::Controller < Merb::AbstractController
   include Merb::AuthenticationMixin
   include Merb::ConditionalGetMixin
 
-  class << self
+  # ==== Parameters
+  # klass<Merb::Controller>::
+  #   The Merb::Controller inheriting from the base class.
+  #
+  # @api private
+  def self.inherited(klass)
+    _subclasses << klass.to_s
+    super
+    klass._template_root = Merb.dir_for(:view) unless self._template_root
+  end
 
-    # ==== Parameters
-    # klass<Merb::Controller>::
-    #   The Merb::Controller inheriting from the base class.
-    def inherited(klass)
-      _subclasses << klass.to_s
-      super
-      klass._template_root = Merb.dir_for(:view) unless self._template_root
-    end
+  # Hide each of the given methods from being callable as actions.
+  #
+  # ==== Parameters
+  # *names<~to-s>:: Actions that should be added to the list.
+  #
+  # ==== Returns
+  # Array[String]::
+  #   An array of actions that should not be possible to dispatch to.
+  #
+  # @api public
+  def self.hide_action(*names)
+    self._hidden_actions = self._hidden_actions | names.map { |n| n.to_s }
+  end
 
-    # Hide each of the given methods from being callable as actions.
-    #
-    # ==== Parameters
-    # *names<~to-s>:: Actions that should be added to the list.
-    #
-    # ==== Returns
-    # Array[String]::
-    #   An array of actions that should not be possible to dispatch to.
-    #
-    #---
-    # @public
-    def hide_action(*names)
-      self._hidden_actions = self._hidden_actions | names.map { |n| n.to_s }
-    end
+  # Makes each of the given methods being callable as actions. You can use
+  # this to make methods included from modules callable as actions.
+  #
+  # ==== Parameters
+  # *names<~to-s>:: Actions that should be added to the list.
+  #
+  # ==== Returns
+  # Array[String]::
+  #   An array of actions that should be dispatched to even if they would not
+  #   otherwise be.
+  #
+  # ==== Example
+  #   module Foo
+  #     def self.included(base)
+  #       base.show_action(:foo)
+  #     end
+  #
+  #     def foo
+  #       # some actiony stuff
+  #     end
+  #
+  #     def foo_helper
+  #       # this should not be an action
+  #     end
+  #   end
+  #
+  # @api public
+  def self.show_action(*names)
+    self._shown_actions = self._shown_actions | names.map {|n| n.to_s}
+  end
 
-    # Makes each of the given methods being callable as actions. You can use
-    # this to make methods included from modules callable as actions.
-    #
-    # ==== Parameters
-    # *names<~to-s>:: Actions that should be added to the list.
-    #
-    # ==== Returns
-    # Array[String]::
-    #   An array of actions that should be dispatched to even if they would not
-    #   otherwise be.
-    #
-    # ==== Example
-    #   module Foo
-    #     def self.included(base)
-    #       base.show_action(:foo)
-    #     end
-    #
-    #     def foo
-    #       # some actiony stuff
-    #     end
-    #
-    #     def foo_helper
-    #       # this should not be an action
-    #     end
-    #   end
-    #
-    #---
-    # @public
-    def show_action(*names)
-      self._shown_actions = self._shown_actions | names.map {|n| n.to_s}
-    end
+  # The list of actions that are callable, after taking defaults,
+  # _hidden_actions and _shown_actions into consideration. It is calculated
+  # once, the first time an action is dispatched for this controller.
+  #
+  # ==== Returns
+  # SimpleSet[String]:: A set of actions that should be callable.
+  #
+  # @api public
+  def self.callable_actions
+    @callable_actions ||= Extlib::SimpleSet.new(_callable_methods)
+  end
 
-    # The list of actions that are callable, after taking defaults,
-    # _hidden_actions and _shown_actions into consideration. It is calculated
-    # once, the first time an action is dispatched for this controller.
-    #
-    # ==== Returns
-    # SimpleSet[String]:: A set of actions that should be callable.
-    def callable_actions
-      @callable_actions ||= Extlib::SimpleSet.new(_callable_methods)
-    end
+  # This is a stub method so plugins can implement param filtering if they want.
+  #
+  # ==== Parameters
+  # params<Hash{Symbol => String}>:: A list of params
+  #
+  # ==== Returns
+  # Hash{Symbol => String}:: A new list of params, filtered as desired
+  # 
+  # @api plugin
+  # @overridable
+  def self._filter_params(params)
+    params
+  end
 
-    # This is a stub method so plugins can implement param filtering if they want.
-    #
-    # ==== Parameters
-    # params<Hash{Symbol => String}>:: A list of params
-    #
-    # ==== Returns
-    # Hash{Symbol => String}:: A new list of params, filtered as desired
-    #---
-    # @semipublic
-    def _filter_params(params)
-      params
-    end
+  private
 
-    private
+  # All methods that are callable as actions.
+  #
+  # ==== Returns
+  # Array:: A list of method names that are also actions
+  #
+  # @api private
+  def self._callable_methods
+    callables = []
+    klass = self
+    begin
+      callables << (klass.public_instance_methods(false) + klass._shown_actions) - klass._hidden_actions
+      klass = klass.superclass
+    end until klass == Merb::AbstractController || klass == Object
+    callables.flatten.reject{|action| action =~ /^_.*/}
+  end
 
-    # All methods that are callable as actions.
-    #
-    # ==== Returns
-    # Array:: A list of method names that are also actions
-    def _callable_methods
-      callables = []
-      klass = self
-      begin
-        callables << (klass.public_instance_methods(false) + klass._shown_actions) - klass._hidden_actions
-        klass = klass.superclass
-      end until klass == Merb::AbstractController || klass == Object
-      callables.flatten.reject{|action| action =~ /^_.*/}
-    end
-
-  end # class << self
 
   # The location to look for a template for a particular controller, context,
   # and mime-type. This is overridden from AbstractController, which defines a
@@ -124,14 +126,14 @@ class Merb::Controller < Merb::AbstractController
   #    The mime-type of the template that will be rendered. Defaults to nil.
   # controller<~to_s>::
   #   The name of the controller that will be rendered. Defaults to
-  #   controller_name.
+  #   controller_name.  This will be "layout" for rendering a layout.  
   #
   # ==== Notes
   # By default, this renders ":controller/:action.:type". To change this,
   # override it in your application class or in individual controllers.
   #
-  #---
-  # @public
+  # @api public
+  # @overridable
   def _template_location(context, type, controller)
     _conditionally_append_extension(controller ? "#{controller}/#{context}" : "#{context}", type)
   end
@@ -148,7 +150,7 @@ class Merb::Controller < Merb::AbstractController
   # type<~to_s>::
   #    The mime-type of the template that will be rendered. Defaults to nil.
   #
-  # @public
+  # @api public
   def _absolute_template_location(template, type)
     _conditionally_append_extension(template, type)
   end
@@ -164,8 +166,9 @@ class Merb::Controller < Merb::AbstractController
   # headers<Hash{header => value}>::
   #   A hash of headers to start the controller with. These headers can be
   #   overridden later by the #headers method.
-  #---
-  # @semipublic
+  # 
+  # @api plugin
+  # @overridable
   def initialize(request, status=200, headers={'Content-Type' => 'text/html; charset=utf-8'})
     super()
     @request, @_status, @headers = request, status, headers
@@ -181,8 +184,8 @@ class Merb::Controller < Merb::AbstractController
   #
   # ==== Raises
   # ActionNotFound:: The requested action was not found in class.
-  #---
-  # @semipublic
+  #
+  # @api plugin
   def _dispatch(action=:index)
     Merb.logger.info("Params: #{self.class._filter_params(request.params).inspect}")
     start = Time.now
@@ -197,6 +200,10 @@ class Merb::Controller < Merb::AbstractController
 
   attr_reader :request, :headers
 
+  # ==== Returns
+  # Fixnum:: The response status code
+  #
+  # @api public
   def status
     @_status
   end
@@ -205,6 +212,8 @@ class Merb::Controller < Merb::AbstractController
   #
   # ==== Parameters
   # s<Fixnum, Symbol>:: A status-code or named http-status
+  #
+  # @api public
   def status=(s)
     if s.is_a?(Symbol) && STATUS_CODES.key?(s)
       @_status = STATUS_CODES[s]
@@ -217,27 +226,112 @@ class Merb::Controller < Merb::AbstractController
 
   # ==== Returns
   # Hash:: The parameters from the request object
+  # 
+  # @api public
   def params()  request.params  end
     
-  # ==== Parameters
-  # name<~to_sym, Hash>:: The name of the URL to generate.
-  # rparams<Hash>:: Parameters for the route generation.
+  # There are three possible ways to use this method.  First, if you have a named route, 
+  # you can specify the route as the first parameter as a symbol and any paramters in a 
+  # hash.  Second, you can generate the default route by just passing the params hash, 
+  # just passing the params hash.  Finally, you can use the anonymous parameters.  This 
+  # allows you to specify the parameters to a named route in the order they appear in the 
+  # router.  
+  #
+  # ==== Parameters(Named Route)
+  # name<Symbol>:: 
+  #   The name of the route. 
+  # args<Hash>:: 
+  #   Parameters for the route generation.
+  #
+  # ==== Parameters(Default Route)
+  # args<Hash>:: 
+  #   Parameters for the route generation.  This route will use the default route. 
+  #
+  # ==== Parameters(Anonymous Parameters)
+  # name<Symbol>::
+  #   The name of the route.  
+  # args<Array>:: 
+  #   An array of anonymous parameters to generate the route
+  #   with. These parameters are assigned to the route parameters
+  #   in the order that they are passed.
   #
   # ==== Returns
   # String:: The generated URL.
   #
-  # ==== Alternatives
-  # If a hash is used as the first argument, a default route will be
-  # generated based on it and rparams.
-  # ====
-  # TODO: Update this documentation
+  # ==== Examples
+  # Named Route
+  #
+  # Merb::Router.prepare do
+  #   match("/articles/:title").to(:controller => :articles, :action => :show).name("articles")
+  # end
+  #
+  # url(:articles, :title => "new_article")
+  #
+  # Default Route
+  #
+  # Merb::Router.prepare do
+  #   default_routes
+  # end
+  #
+  # url(:controller => "articles", :action => "new")
+  #
+  # Anonymous Paramters
+  #
+  # Merb::Router.prepare do
+  #   match("/articles/:year/:month/:title").to(:controller => :articles, :action => :show).name("articles")
+  # end
+  #
+  # url(:articles, 2008, 10, "test_article")
+  #
+  # @api public
   def url(name, *args)
     args << params
     Merb::Router.url(name, *args)
   end
+  
+  # Generates a URL for a single or nested resource.
+  #
+  # ==== Parameters
+  # resources<Symbol,Object>:: The resources for which the URL
+  #   should be generated. These resources should be specified
+  #   in the router.rb file using #resources and #resource.
+  #
+  # options<Hash>:: Any extra parameters that are needed to
+  #   generate the URL.
+  #
+  # ==== Returns
+  # String:: The generated URL.
+  #
+  # ==== Examples
+  #
+  # Merb::Router.prepare do
+  #   resources :users do
+  #     resources :comments
+  #   end
+  # end
+  #
+  # resource(:users)            # => /users
+  # resource(@user)             # => /users/10
+  # resource(@user, :comments)  # => /users/10/comments
+  # resource(@user, @comment)   # => /users/10/comments/15
+  # resource(:users, :new)      # => /users/new
+  # resource(:@user, :edit)     # => /users/10/edit
+  #
+  # @api public
+  def resource(*args)
+    args << params
+    Merb::Router.resource(*args)
+  end
+  
 
   alias_method :relative_url, :url
   
+  # Returns the absolute url including the passed protocol and host.  
+  # 
+  # This uses the same arguments as the url method, with added requirements 
+  # of protocol and host options. 
+  #
+  # @api public
   def absolute_url(*args)
     options  = extract_options_from_args!(args) || {}
     options[:protocol] ||= request.protocol
@@ -251,6 +345,8 @@ class Merb::Controller < Merb::AbstractController
   # ==== Returns
   # Array[Integer, Hash, String]::
   #   The controller's status code, headers, and body
+  #
+  # @api private
   def rack_response
     [status, headers, Merb::Rack::StreamWrapper.new(body)]
   end
@@ -258,6 +354,8 @@ class Merb::Controller < Merb::AbstractController
   # Sets a controller to be "abstract" 
   # This controller will not be able to be routed to
   # and is used for super classing only
+  #
+  # @api public
   def self.abstract!
     @_abstract = true
   end
@@ -267,6 +365,8 @@ class Merb::Controller < Merb::AbstractController
   # === Returns
   # Boolean
   #  true if the controller has been set as abstract
+  #
+  # @api public
   def self.abstract?
     !!@_abstract 
   end
@@ -277,6 +377,15 @@ class Merb::Controller < Merb::AbstractController
   private
 
   # If not already added, add the proper mime extension to the template path.
+  #
+  # ==== Parameters
+  #
+  # template<~to_s> ::
+  #   The template path to append the mime type to.
+  # type<~to_s> ::
+  #   The extension to append to the template path conditionally
+  #
+  # @api private
   def _conditionally_append_extension(template, type)
     type && !template.match(/\.#{type.to_s.escape_regexp}$/) ? "#{template}.#{type}" : template
   end
