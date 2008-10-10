@@ -278,7 +278,11 @@ module Merb
 
     # Logger settings
     def logger
-      Thread.current[:merb_logger] ||= Merb::Logger.new
+      Thread.current[:merb_logger] ||= Merb::Logger.new(
+        Merb::Config[:log_stream],
+        Merb::Config[:log_level],
+        Merb::Config[:log_delimiter],
+        Merb::Config[:log_auto_flush])
     end
 
     def reset_logger!
