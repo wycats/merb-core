@@ -1,7 +1,4 @@
 require 'rubygems'
-require 'rubygems/dependency_installer'
-require 'rubygems/uninstaller'
-require 'rubygems/dependency'
 
 module ColorfulMessages
   
@@ -22,7 +19,23 @@ module ColorfulMessages
   
   alias_method :message, :success
   
+  # magenta
+  def note(*messages)
+    puts messages.map { |msg| "\033[1;35m#{msg}\033[0m" }
+  end
+  
+  # blue
+  def info(*messages)
+    puts messages.map { |msg| "\033[1;34m#{msg}\033[0m" }
+  end
+  
 end
+
+##############################################################################
+
+require 'rubygems/dependency_installer'
+require 'rubygems/uninstaller'
+require 'rubygems/dependency'
 
 module GemManagement
   
@@ -39,13 +52,13 @@ module GemManagement
       version = options.delete(:version)
       Gem.configuration.update_sources = false
 
+      # Limit source index to install dir
       update_source_index(options[:install_dir]) if options[:install_dir]
 
       installer = Gem::DependencyInstaller.new(options.merge(:user_install => false))
       
-      # Exclude gems to refresh from index - force (re)install of new version
-      # def installer.source_index; @source_index; end
-      unless refresh.empty?
+      # Force-refresh certain gems by excluding them from the current index
+      if refresh.respond_to?(:include?) && !refresh.empty?
         source_index = installer.instance_variable_get(:@source_index)
         source_index.gems.each do |name, spec| 
           source_index.gems.delete(name) if refresh.include?(spec.name)
@@ -103,79 +116,55 @@ module GemManagement
   end
 
   # Install a gem from source - builds and packages it first then installs.
-  def install_gem_from_src(gem_src_dir, options = {})
-    if !File.directory?(gem_src_dir)
-      raise "Missing rubygem source path: #{gem_src_dir}"
-    end
-    if options[:install_dir] && !File.directory?(options[:install_dir])
-      raise "Missing rubygems path: #{options[:install_dir]}"
-    end
+  # 
+  # Examples:
+  # install_gem_from_source(source_dir, :install_dir => ...)
+  # install_gem_from_source(source_dir, gem_name)
+  # install_gem_from_source(source_dir, :skip => [...])
+  def install_gem_from_source(source_dir, *args)
+    Dir.chdir(source_dir) do
+      options = args.last.is_a?(Hash) ? args.pop : {}
+      gem_name    = args[0] || File.basename(source_dir)
+      gem_pkg_dir = File.join(source_dir, 'pkg')
+      skip_gems   = options.delete(:skip) || []
 
-    gem_name = File.basename(gem_src_dir)
-    gem_pkg_dir = File.expand_path(File.join(gem_src_dir, 'pkg'))
+      # Cleanup what's already there
+      clobber(source_dir)
+      FileUtils.mkdir_p(gem_pkg_dir) unless File.directory?(gem_pkg_dir)
 
-    # We need to use local bin executables if available.
-    thor = "#{Gem.ruby} -S #{which('thor')}"
-    rake = "#{Gem.ruby} -S #{which('rake')}"
-
-    # Handle pure Thor installation instead of Rake
-    if File.exists?(File.join(gem_src_dir, 'Thorfile'))
-      # Remove any existing packages.
-      FileUtils.rm_rf(gem_pkg_dir) if File.directory?(gem_pkg_dir)
-      # Create the package.
-      FileUtils.cd(gem_src_dir) { system("#{thor} :package") }
-      # Install the package using rubygems.
-      if package = Dir[File.join(gem_pkg_dir, "#{gem_name}-*.gem")].last
-        FileUtils.cd(File.dirname(package)) do
-          install_gem(File.basename(package), options.dup)
-          return true
-        end
+      # Recursively process all gem packages within the source dir
+      skip_gems << gem_name
+      packages = package_all(source_dir, skip_gems)
+      
+      if packages.length == 1
+        # The are no subpackages for the main package
+        options[:refresh] = [gem_name]
       else
-        raise Gem::InstallError, "No package found for #{gem_name}"
+        # Gather all packages into the top-level pkg directory
+        packages.each do |pkg|
+          FileUtils.copy_entry(pkg, File.join(gem_pkg_dir, File.basename(pkg)))
+        end
+        
+        # Finally package the main gem - without clobbering the already copied pkgs
+        package(source_dir, false)
+        
+        # Gather subgems to refresh during installation of the main gem
+        options[:refresh] = packages.map do |pkg|
+          File.basename(pkg, '.gem')[/^(.*?)-([\d\.]+)$/, 1] rescue nil
+        end.compact
       end
-    # Handle elaborate installation through Rake
-    else
-      # Clean and regenerate any subgems for meta gems.
-      Dir[File.join(gem_src_dir, '*', 'Rakefile')].each do |rakefile|
-        FileUtils.cd(File.dirname(rakefile)) do 
-          system("#{rake} clobber_package; #{rake} package")
+    
+      gem_pkg = Dir[File.join(gem_pkg_dir, "#{gem_name}-*.gem")][0]
+      if gem_pkg && File.exists?(gem_pkg)
+        # Needs to be executed from the directory that contains all packages
+        Dir.chdir(File.dirname(gem_pkg)) do 
+          install_gem(gem_pkg, options)
         end
-      end
-
-      # Handle the main gem install.
-      if File.exists?(File.join(gem_src_dir, 'Rakefile'))
-        subgems = []
-        # Remove any existing packages.
-        FileUtils.cd(gem_src_dir) { system("#{rake} clobber_package") }
-        # Create the main gem pkg dir if it doesn't exist.
-        FileUtils.mkdir_p(gem_pkg_dir) unless File.directory?(gem_pkg_dir)
-        # Copy any subgems to the main gem pkg dir.
-        Dir[File.join(gem_src_dir, '*', 'pkg', '*.gem')].each do |subgem_pkg|
-          if name = File.basename(subgem_pkg, '.gem')[/^(.*?)-([\d\.]+)$/, 1]
-            subgems << name
-          end
-          dest = File.join(gem_pkg_dir, File.basename(subgem_pkg))
-          FileUtils.copy_entry(subgem_pkg, dest, true, false, true)          
-        end
-
-        # Finally generate the main package and install it; subgems
-        # (dependencies) are local to the main package.
-        FileUtils.cd(gem_src_dir) do         
-          system("#{rake} package")
-          FileUtils.cd(gem_pkg_dir) do
-            if package = Dir[File.join(gem_pkg_dir, "#{gem_name}-*.gem")].last
-              # If the (meta) gem has it's own package, install it.
-              install_gem(File.basename(package), options.merge(:refresh => subgems))
-            else
-              # Otherwise install each package seperately.
-              Dir["*.gem"].each { |gem| install_gem(gem, options.dup) }
-            end
-          end
-          return true
-        end
+        options[:refresh]
+      else
+        []
       end
     end
-    raise Gem::InstallError, "No Rakefile found for #{gem_name}"
   end
 
   # Uninstall a gem.
@@ -187,6 +176,43 @@ module GemManagement
     Gem::Uninstaller.new(gem, options).uninstall
   end
 
+  def clobber(source_dir)
+    Dir.chdir(source_dir) do 
+      system "#{Gem.ruby} -S rake -s clobber" if File.exists?('Rakefile')
+    end
+  end
+
+  def package(source_dir, clobber = true)
+    Dir.chdir(source_dir) do 
+      if File.exists?('Rakefile')
+        rake "clobber" if clobber
+        rake "package"
+      elsif
+        thor ":package"
+      end
+    end
+    Dir[File.join(source_dir, 'pkg/*.gem')]
+  end
+
+  def package_all(source_dir, skip = [], packages = [])
+    if Dir[File.join(source_dir, '{Rakefile,Thorfile}')][0]
+      name = File.basename(source_dir)
+      Dir[File.join(source_dir, '*', '{Rakefile,Thorfile}')].each do |taskfile|
+        package_all(File.dirname(taskfile), skip, packages)
+      end
+      packages.push(*package(source_dir)) unless skip.include?(name)
+    end
+    packages.uniq
+  end
+  
+  def rake(cmd)
+    system "#{Gem.ruby} -S #{which('rake')} -s #{cmd}"
+  end
+  
+  def thor(cmd)
+    system "#{Gem.ruby} -S #{which('thor')} #{cmd}"
+  end
+
   # Use the local bin/* executables if available.
   def which(executable)
     if File.executable?(exec = File.join(Dir.pwd, 'bin', executable))
@@ -194,6 +220,29 @@ module GemManagement
     else
       executable
     end
+  end
+  
+  # Partition gems into system, local and missing gems
+  def partition_dependencies(dependencies, gem_dir)
+    system_specs, local_specs, missing_deps = [], [], []
+    if gem_dir && File.directory?(gem_dir)
+      gem_dir = File.expand_path(gem_dir)
+      ::Gem.clear_paths; ::Gem.path.unshift(gem_dir)
+      ::Gem.source_index.refresh!
+      dependencies.each do |dep|
+        if gemspec = ::Gem.source_index.search(dep).last
+          if gemspec.loaded_from.index(gem_dir) == 0
+            local_specs  << gemspec
+          else
+            system_specs << gemspec
+          end
+        else
+          missing_deps << dep
+        end
+      end
+      ::Gem.clear_paths
+    end
+    [system_specs, local_specs, missing_deps]
   end
   
   # Create a modified executable wrapper in the specified bin directory.
