@@ -860,14 +860,6 @@ class Merb::BootLoader::ChooseAdapter < Merb::BootLoader
   end
 end
 
-class Merb::BootLoader::StartWorkerThread < Merb::BootLoader
-
-  # Choose the Rack adapter/server to use and set Merb.adapter.
-  def self.run
-    Merb::Worker.start
-  end
-end
-
 class Merb::BootLoader::RackUpApplication < Merb::BootLoader
   # Setup the Merb Rack App or read a rackup file located at
   # Merb::Config[:rackup] with the same syntax as the
