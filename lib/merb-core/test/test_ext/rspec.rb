@@ -7,7 +7,7 @@ module Kernel
     params[:shared] = true
     
     describe(*args) do
-      before(:each) do
+      prepend_before(:each) do
         self.instance_eval(&example_group_block)
       end
     end
