@@ -356,7 +356,12 @@ module Merb::Test::Rspec::ViewMatchers
       require "libxml"
       type = "libxml"
     rescue LoadError => e
-      require "rexml/document"
+      if require "rexml/document" # show warning only once
+        warn(<<-WARN_TEXT)
+Standard REXML library is slow. Please consider to install libxml-ruby.
+Use "sudo gem install libxml-ruby"
+WARN_TEXT
+      end
       type = "rexml"
     end
     HaveXpath.new(expected, type)
