@@ -1,15 +1,60 @@
 module Merb
   module Rack
     class Console
-      # ==== Parameters
-      # name<~to_sym, Hash>:: The name of the route to generate.
-      # params<Hash>:: The params to use in the route generation.
+      # There are three possible ways to use this method.  First, if you have a named route, 
+      # you can specify the route as the first parameter as a symbol and any paramters in a 
+      # hash.  Second, you can generate the default route by just passing the params hash, 
+      # just passing the params hash.  Finally, you can use the anonymous parameters.  This 
+      # allows you to specify the parameters to a named route in the order they appear in the 
+      # router.  
+      #
+      # ==== Parameters(Named Route)
+      # name<Symbol>:: 
+      #   The name of the route. 
+      # args<Hash>:: 
+      #   Parameters for the route generation.
+      #
+      # ==== Parameters(Default Route)
+      # args<Hash>:: 
+      #   Parameters for the route generation.  This route will use the default route. 
+      #
+      # ==== Parameters(Anonymous Parameters)
+      # name<Symbol>::
+      #   The name of the route.  
+      # args<Array>:: 
+      #   An array of anonymous parameters to generate the route
+      #   with. These parameters are assigned to the route parameters
+      #   in the order that they are passed.
       #
       # ==== Returns
       # String:: The generated URL.
       #
-      # ==== Alternatives
-      # If name is a hash, it will be merged with params.
+      # ==== Examples
+      # Named Route
+      #
+      # Merb::Router.prepare do
+      #   match("/articles/:title").to(:controller => :articles, :action => :show).name("articles")
+      # end
+      #
+      # url(:articles, :title => "new_article")
+      #
+      # Default Route
+      #
+      # Merb::Router.prepare do
+      #   default_routes
+      # end
+      #
+      # url(:controller => "articles", :action => "new")
+      #
+      # Anonymous Paramters
+      #
+      # Merb::Router.prepare do
+      #   match("/articles/:year/:month/:title").to(:controller => :articles, :action => :show).name("articles")
+      # end
+      #
+      # url(:articles, 2008, 10, "test_article")
+      #
+      # @api public
       def url(name, *args)
         args << {}
         Merb::Router.url(name, *args)
