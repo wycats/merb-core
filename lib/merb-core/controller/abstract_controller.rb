@@ -437,7 +437,8 @@ class Merb::AbstractController
     add_filter(self._after_filters, filter || block, opts)
   end
 
-  # Adds a filter to the before filter chain
+  # Adds a filter to the before filter chain.  
+  #
   # ==== Parameters
   # filter<Symbol, Proc>:: The filter to add. Defaults to nil.
   # opts<Hash>::
@@ -452,22 +453,25 @@ class Merb::AbstractController
     add_filter(self._before_filters, filter || block, opts)
   end
      
-  # Skip an after filter that has been previously defined (perhaps in a
-  # superclass)
+  # Removes a filter from the after filter chain.  This removes the 
+  # filter from the filter chain for the whole controller and does not 
+  # take any options. 
   #
   # ==== Parameters
-  # filter<Symbol>:: A filter name to skip.
+  # filter<Symbol, String>:: A filter name to skip.
   #
   # @api public
   def self.skip_after(filter)
     skip_filter(self._after_filters, filter)
   end
   
-  # Skip a before filter that has been previously defined (perhaps in a
-  # superclass).
+  # Removes a filter from the before filter chain.  This removes the 
+  # filter from the filter chain for the whole controller and does not 
+  # take any options.
   #
   # ==== Parameters
-  # filter<Symbol>:: A filter name to skip.
+  # filter<Symbol, String>:: A filter name to skip.
+  #
   # @api public
   def self.skip_before(filter)
     skip_filter(self._before_filters , filter)
