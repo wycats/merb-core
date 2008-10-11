@@ -6,8 +6,12 @@ module Merb
 
     class << self
 
+      # Returns the hash of default config values for Merb.
+      #
       # ==== Returns
       # Hash:: The defaults for the config.
+      #
+      # @api private
       def defaults
         @defaults ||= {
           :host                   => "0.0.0.0",
@@ -39,29 +43,45 @@ module Merb
       #     config[:exception_details] = false
       #     config[:log_stream]        = STDOUT
       #   end
+      #
+      # ==== Returns
+      # nil
+      #
+      # @api public
       def use
         @configuration ||= {}
         yield @configuration
+        nil
       end
-
+      
+      # Detects whether the provided key is in the config.
+      #
       # ==== Parameters
       # key<Object>:: The key to check.
       #
       # ==== Returns
       # Boolean:: True if the key exists in the config.
+      #
+      # @api public
       def key?(key)
         @configuration.key?(key)
       end
 
+      # Retrieve the value of a config entry.
+      #
       # ==== Parameters
       # key<Object>:: The key to retrieve the parameter for.
       #
       # ==== Returns
       # Object:: The value of the configuration parameter.
+      #
+      # @api public
       def [](key)
         (@configuration ||= setup)[key]
       end
 
+      # Set the value of a config entry.
+      #
       # ==== Parameters
       # key<Object>:: The key to set the parameter for.
       # val<Object>:: The value of the parameter.
@@ -69,12 +89,21 @@ module Merb
         (@configuration ||= setup)[key] = val
       end
 
+      # Remove the value of a config entry.
+      #
       # ==== Parameters
       # key<Object>:: The key of the parameter to delete.
+      #
+      # ==== Returns
+      # Object:: The value of the removed entry.
+      #
+      # @api public
       def delete(key)
         @configuration.delete(key)
       end
 
+      # Retrieve the value of a config entry, returning the provided default if the key is not present
+      #
       # ==== Parameters
       # key<Object>:: The key to retrieve the parameter for.
       # default<Object>::
@@ -86,14 +115,22 @@ module Merb
         @configuration.fetch(key, default)
       end
 
+      # Returns the configuration as a hash.
+      #
       # ==== Returns
       # Hash:: The config as a hash.
+      #
+      # @api public
       def to_hash
         @configuration
       end
 
+      # Returns the config as YAML.
+      #
       # ==== Returns
       # String:: The config as YAML.
+      #
+      # @api public
       def to_yaml
         require "yaml"
         @configuration.to_yaml
@@ -104,6 +141,11 @@ module Merb
       # ==== Parameters
       # settings<Hash>::
       #   Configuration settings to use. These are merged with the defaults.
+      #
+      # ==== Returns
+      # The configuration as a hash.
+      #
+      # @api private
       def setup(settings = {})
         @configuration = defaults.merge(settings)
         
@@ -118,6 +160,11 @@ module Merb
       #
       # ==== Parameters
       # argv<String>:: The command line arguments. Defaults to +ARGV+.
+      #
+      # ==== Returns
+      # The configuration as a hash.
+      #
+      # @api private
       def parse_args(argv = ARGV)
         @configuration ||= {}
         # Our primary configuration hash for the length of this method
@@ -352,8 +399,14 @@ module Merb
       #     log_level   "debug"
       #     log_file    Merb.root / "log" / "special.log"
       #   end
+      #
+      # ==== Returns
+      # nil
+      #
+      # @api public
       def configure(&block)
         ConfigBlock.new(self, &block) if block_given?
+        nil
       end
 
       # Allows retrieval of single key config values via Merb.config.<key>
@@ -362,6 +415,11 @@ module Merb
       # ==== Parameters
       # method<~to_s>:: Method name as hash key value.
       # *args:: Value to set the configuration parameter to.
+      #
+      # ==== Returns
+      # The value of the entry fetched or assigned to.
+      #
+      # @api public
       def method_missing(method, *args)
         if method.to_s[-1,1] == '='
           @configuration[method.to_s.tr('=','').to_sym] = *args
@@ -374,11 +432,26 @@ module Merb
 
     class ConfigBlock
 
+      # Evaluates the provided block, where any call to a method causes
+      # #[]= to be called on klass with the method name as the key and the arguments
+      # as the value.
+      #
+      # ==== Parameters
+      # klass<Object~[]=>:: The object on which to assign values.
+      # &block:: The block which specifies the config values to set.
+      #
+      # ==== Returns
+      # nil
+      #
+      # @api private
       def initialize(klass, &block)
         @klass = klass
         instance_eval(&block)
       end
 
+      # Assign args as the value of the entry keyed by method.
+      #
+      # @api private
       def method_missing(method, *args)
         @klass[method] = *args
       end

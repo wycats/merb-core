@@ -2,7 +2,51 @@ module Merb
   module Rack
     class AbstractAdapter
 
+      # This method is designed to be overridden in a rack adapter.  It 
+      # will be called to start a server created with the new_server method.
+      # This is called from the AbstractAdapter start method.
+      #
+      # @api plugin
+      # @overridable
+      def self.start_server
+        raise NotImplemented
+      end
+      
+      # This method is designed to be overridden in a rack adapter.  It will
+      # be called to create a new instance of the server for the adapter to 
+      # start.  The adapter should attempt to bind to a port at this point. 
+      # This is called from the AbstractAdapter start method.
+      #
+      # ==== Parameters
+      # port<Integer>:: The port the server should listen on
+      #
+      # @api plugin
+      # @overridable
+      def self.new_server(port)
+        raise NotImplemented
+      end
+      
+      # This method is designed to be overridden in a rack adapter.  It will
+      # be called to stop the adapter server.  
+      #
+      # ==== Parameters
+      # status<Integer>:: The exit status the adapter should exit with. 
+      #
+      # ==== Returns
+      # Boolean:: True if the server was properly stopped.  
+      #
+      # @api plugin
+      # @overridable
+      def self.stop(status)
+        raise NotImplemented
+      end
+
       # Spawn a new worker process at a port.
+      #
+      # ==== Parameters
+      # port<Integer>:: The port to start the worker process on. 
+      #
+      # @api private
       def self.spawn_worker(port)
         worker_pid = Kernel.fork
         start_at_port(port, @opts) unless worker_pid
@@ -15,6 +59,17 @@ module Merb
       end
 
       # The main start method for bootloaders that support forking.
+      # This method launches the adapters which inherit using the 
+      # new_server and start_server methods.  This method should not
+      # be overridden in adapters which want to fork.  
+      #
+      # ==== Parameters
+      # opts<Hash>:: A hash of options
+      #   socket: the socket to bind to
+      #   port: the port to bind to
+      #   cluster: the number 
+      #
+      # @api private
       def self.start(opts={})
         @opts = opts
         $WORKERS ||= []
@@ -88,6 +143,14 @@ module Merb
 
       end
 
+      # Fork a server on the specified port and start the app.
+      #
+      # ==== Parameters
+      # port<Integer>:: The port to start the server on
+      # opts<Hash>:: The hash of options, defaults to the @opts 
+      #   instance variable.  
+      #
+      # @api private
       def self.start_at_port(port, opts = @opts)
         at_exit do
           Merb::Server.remove_pid(port)
@@ -167,11 +230,24 @@ module Merb
         start_server
       end
 
-      # This can be overridden in adapters, but shouldn't need to be.
+      # Exit the process with the specified status.  
+      #
+      # ==== Parameters
+      # status<Integer>:: The exit code of the process.
+      # 
+      # @api private
       def self.exit_process(status = 0)
         exit(status)
       end
 
+      # Set the process title.
+      #
+      # ==== Parameters
+      # whoami<Symbol>:: Either :spawner for the master process or :worker for any of the worker
+      #   processes. 
+      # port<Integer>:: The base port that the app is running on. 
+      #
+      # @api private
       def self.process_title(whoami, port)
         name = Merb::Config[:name]
         app  = "merb#{" : #{name}" if (name && name != "merb")}"

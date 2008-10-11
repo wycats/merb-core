@@ -2,10 +2,15 @@ module Merb
 
   module Plugins
 
+    # Returns the configuration settings hash for plugins. This is prepopulated from
+    # Merb.root / "config/plugins.yml" if it is present.
+    #
     # ==== Returns
     # Hash::
     #   The configuration loaded from Merb.root / "config/plugins.yml" or, if
     #   the load fails, an empty hash whose default value is another Hash.
+    #
+    # @api plugin
     def self.config
       @config ||= begin
         # this is so you can do Merb.plugins.config[:helpers][:awesome] = "bar"
@@ -25,12 +30,16 @@ module Merb
 
     # ==== Returns
     # Array(String):: All Rakefile load paths Merb uses for plugins.
+    #
+    # @api plugin
     def self.rakefiles
       Merb.rakefiles
     end
     
     # ==== Returns
     # Array(String):: All Generator load paths Merb uses for plugins.
+    #
+    # @api plugin
     def self.generators
       Merb.generators
     end
@@ -49,6 +58,8 @@ module Merb
     # if defined(Merb::Plugins)
     #   Merb::Plugins.add_rakefiles "merb_sequel" / "merbtasks"
     # end
+    #
+    # @api plugin
     def self.add_rakefiles(*rakefiles)
       Merb.add_rakefiles(*rakefiles)
     end
@@ -60,6 +71,8 @@ module Merb
     #
     # This is the recommended way to register your plugin's generators
     # in Merb.
+    #
+    # @api plugin
     def self.add_generators(*generators)
       Merb.add_generators(*generators)
     end

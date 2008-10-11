@@ -29,6 +29,8 @@ module Merb::ConditionalGetMixin
   # tag<~to_s>::
   #   value of ETag header enclosed in double quotes
   #   as required by the RFC
+  #
+  # @api public
   def etag=(tag)
     headers[Merb::Const::ETAG] = %("#{tag}")
   end
@@ -36,6 +38,8 @@ module Merb::ConditionalGetMixin
   # ==== Returns
   # <String>::
   #   Value of ETag response header or nil if it's not set.
+  #
+  # @api public
   def etag
     headers[Merb::Const::ETAG]
   end
@@ -44,6 +48,8 @@ module Merb::ConditionalGetMixin
   # <Boolean>::
   # true if ETag response header equals If-None-Match request header,
   # false otherwise
+  #
+  # @api public
   def etag_matches?(tag = self.etag)
     tag == self.request.if_none_match
   end
@@ -54,6 +60,8 @@ module Merb::ConditionalGetMixin
   # tag<Time>::
   # resource modification timestamp converted into format
   # required by the RFC
+  #
+  # @api public
   def last_modified=(time)
     headers[Merb::Const::LAST_MODIFIED] = time.httpdate
   end
@@ -61,6 +69,8 @@ module Merb::ConditionalGetMixin
   # ==== Returns
   # <String>::
   #   Value of Last-Modified response header or nil if it's not set.
+  #
+  # @api public
   def last_modified
     Time.rfc2822(headers[Merb::Const::LAST_MODIFIED])
   end
@@ -69,6 +79,8 @@ module Merb::ConditionalGetMixin
   # <Boolean>::
   # true if Last-Modified response header is < than
   # If-Modified-Since request header value, false otherwise.
+  #
+  # @api public
   def not_modified?(time = self.last_modified)
     request.if_modified_since && time && time <= request.if_modified_since
   end
@@ -77,6 +89,8 @@ module Merb::ConditionalGetMixin
   # <Boolean>::
   # true if either ETag matches or entity is not modified,
   # so request is fresh; false otherwise
+  #
+  # @api public
   def request_fresh?
     etag_matches?(self.etag) || not_modified?(self.last_modified)
   end

@@ -1,5 +1,9 @@
 require 'erubis'
 module Erubis
+  # This adds support for embedding the return value of a block call:
+  #   <%= foo do %>...<% end =%>
+  #
+  # @api private
   module Basic::Converter
     def convert_input(src, input)
       pat = @pattern

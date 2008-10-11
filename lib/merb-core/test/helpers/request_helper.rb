@@ -36,7 +36,7 @@ module Merb
         end
 
         if env[:params]
-          uri << "&#{Merb::Request.params_to_query_string(env.delete(:body_params))}"
+          uri << "?#{Merb::Request.params_to_query_string(env.delete(:params))}"
         end
 
         if @__cookie__

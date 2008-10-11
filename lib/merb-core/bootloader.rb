@@ -3,8 +3,8 @@ module Merb
   class BootLoader
 
     # def self.subclasses
-    #---
-    # @semipublic
+    #
+    # @api plugin
     cattr_accessor :subclasses, :after_load_callbacks, :before_load_callbacks, :finished
     self.subclasses, self.after_load_callbacks,
       self.before_load_callbacks, self.finished = [], [], [], []
@@ -16,29 +16,44 @@ module Merb
       #
       # ==== Parameters
       # klass<Class>:: The class inheriting from Merb::BootLoader.
+      #
+      # ==== Returns
+      # nil
+      #
+      # @api plugin
       def inherited(klass)
         subclasses << klass.to_s
         super
       end
 
+      # Execute this boot loader after the specified boot loader.
+      #
       # ==== Parameters
       # klass<~to_s>::
       #   The boot loader class after which this boot loader should be run.
       #
-      #---
-      # @public
+      # ==== Returns
+      # nil
+      # 
+      # @api plugin
       def after(klass)
         move_klass(klass, 1)
+        nil
       end
 
+      # Execute this boot loader before the specified boot loader.
+      #
       # ==== Parameters
       # klass<~to_s>::
       #   The boot loader class before which this boot loader should be run.
       #
-      #---
-      # @public
+      # ==== Returns
+      # nil
+      #
+      # @api plugin
       def before(klass)
         move_klass(klass, 0)
+        nil
       end
 
       # Move a class that is inside the bootloader to some place in the Array,
@@ -49,15 +64,26 @@ module Merb
       #   The klass to move the bootloader relative to
       # where<Integer>::
       #   0 means insert it before; 1 means insert it after
+      #
+      # ==== Returns
+      # nil
+      #
+      # @api private
       def move_klass(klass, where)
         index = Merb::BootLoader.subclasses.index(klass.to_s)
         if index
           Merb::BootLoader.subclasses.delete(self.to_s)
           Merb::BootLoader.subclasses.insert(index + where, self.to_s)
         end
+        nil
       end
 
       # Runs all boot loader classes by calling their run methods.
+      #
+      # ==== Returns
+      # nil
+      #
+      # @api plugin
       def run
         Merb.started = true
         subklasses = subclasses.dup
@@ -74,6 +100,7 @@ module Merb
           self.finished << bootloader
         end
         self.subclasses = subklasses
+        nil
       end
 
       # Determines whether or not a specific bootloader has finished yet.
@@ -83,6 +110,8 @@ module Merb
       #
       # ==== Returns
       # Boolean:: Whether or not the bootloader has finished.
+      #
+      # @api private
       def finished?(bootloader)
         self.finished.include?(bootloader.to_s)
       end
@@ -92,8 +121,8 @@ module Merb
       # ==== Returns
       # nil
       #
-      #---
-      # @public
+      # @api plugin
+      # @overridable
       def default_framework
         %w[view model helper controller mailer part].each do |component|
           Merb.push_path(component.to_sym, Merb.root_path("app/#{component}s"))
@@ -111,24 +140,26 @@ module Merb
         nil
       end
 
+      # Execute a block of code after the app loads.
+      #
       # ==== Parameters
       # &block::
       #   A block to be added to the callbacks that will be executed after the
       #   app loads.
       #
-      #---
-      # @public
+      # @api public
       def after_app_loads(&block)
         after_load_callbacks << block
       end
 
+      # Execute a block of code before the app loads but after dependencies load.
+      #
       # ==== Parameters
       # &block::
       #   A block to be added to the callbacks that will be executed before the
       #   app loads.
       #
-      #---
-      # @public
+      # @api public
       def before_app_loads(&block)
         before_load_callbacks << block
       end
@@ -145,6 +176,11 @@ end
 class Merb::BootLoader::Logger < Merb::BootLoader
 
   # Sets Merb.logger to a new logger created based on the config settings.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     Merb::Config[:log_level] ||= begin
       if Merb.environment == "production"
@@ -157,8 +193,16 @@ class Merb::BootLoader::Logger < Merb::BootLoader
     Merb::Config[:log_stream] = Merb.log_stream
 
     print_warnings
+    
+    nil
   end
 
+  # Print a warning if the installed version of rubygems is not supported
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api private
   def self.print_warnings
     if Gem::Version.new(Gem::RubyGemsVersion) < Gem::Version.new("1.1")
       Merb.fatal! "Merb requires Rubygems 1.1 and later. " \
@@ -175,19 +219,32 @@ class Merb::BootLoader::DropPidFile < Merb::BootLoader
   class << self
 
     # Stores a PID file if Merb is running daemonized or clustered.
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api plugin
     def run
       Merb::Server.store_pid("main") #if Merb::Config[:daemonize] || Merb::Config[:cluster]
+      nil
     end
   end
 end
 
 # Setup some useful defaults
 class Merb::BootLoader::Defaults < Merb::BootLoader
+  # Sets up the defaults
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     Merb::Request.http_method_overrides.concat([
       proc { |c| c.params[:_method] },
       proc { |c| c.env['HTTP_X_HTTP_METHOD_OVERRIDE'] }
     ])
+    nil
   end
 end
 
@@ -231,12 +288,24 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
   class << self
 
     # Builds the framework directory structure.
+    #
+    # ==== Returns
+    # nil
     def run
       build_framework
+      nil
     end
 
-    # This method should be overridden in init.rb before Merb.start to set up
-    # a different framework structure.
+    # Sets up merb paths to support the app's file layout. First, config/framework.rb is checked,
+    # next we look for Merb.root/framework.rb, finally we use the default merb layout (Merb::BootLoader.default_framework)
+    #
+    # This method can be overriden to support other application layouts.
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api plugin
+    # @overridable
     def build_framework
       if File.exists?(Merb.root / "config" / "framework.rb")
         require Merb.root / "config" / "framework"
@@ -249,12 +318,17 @@ class Merb::BootLoader::BuildFramework < Merb::BootLoader
         path = Array(path)
         Merb.push_path(name, path.first, path.length == 2 ? path[1] : "**/*.rb")
       end
+      nil
     end
   end
 end
 
 class Merb::BootLoader::Dependencies < Merb::BootLoader
 
+  # ==== Returns
+  # Array[Gem::Dependency]:: The dependencies regiestered in init.rb.
+  #
+  # @api plugin
   cattr_accessor :dependencies
   self.dependencies = []
 
@@ -267,7 +341,11 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
   # before or after insertion methods. Since these are loaded from this
   # bootloader (Dependencies), they can only adapt the bootloaders that
   # haven't been loaded up until this point.
-
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     set_encoding
     # this is crucial: load init file with all the preferences
@@ -280,12 +358,24 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     enable_json_gem unless Merb::disabled?(:json)
     load_dependencies
     update_logger
+    nil
   end
 
+  # Load each dependency that has been declared so far.
+  # 
+  # ==== Returns
+  # nil
+  #
+  # @api private
   def self.load_dependencies
     dependencies.each { |dependency| Kernel.load_dependency(dependency) }
+    nil
   end
 
+  # Loads json or json_pure and requires it.
+  #
+  # ==== Returns
+  # nil
   def self.enable_json_gem
     gem "json"
     require "json/ext"
@@ -294,6 +384,13 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     require "json/pure"
   end
 
+  # Resets the logger and sets the log_stream to Merb::Config[:log_file] 
+  # if one is specified, falling back to STDOUT.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api private
   def self.update_logger
     Merb.reset_logger!
 
@@ -306,34 +403,64 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     else
       Merb::Config[:log_stream] ||= STDOUT
     end
+    
+    nil
   end
 
+  # Default encoding to UTF8 if it has not already been set to something else.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api private
   def self.set_encoding
     $KCODE = 'UTF8' if $KCODE == 'NONE' || $KCODE.blank?
+    nil
   end
 
   private
 
     # Determines the path for the environment configuration file
+    #
+    # ==== Returns
+    # String:: The path to the config file for the environment
+    #
+    # @api private
     def self.env_config
       Merb.dir_for(:config) / "environments" / (Merb.environment + ".rb")
     end
 
     # Checks to see whether or not an environment configuration exists
+    #
+    # ==== Returns
+    # Boolean:: Whether or not the environment configuration file exists.
+    #
+    # @api private
     def self.env_config?
       Merb.environment && File.exist?(env_config)
     end
 
-    # Loads the environment configuration file, if any
+    # Loads the environment configuration file, if it is present
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api private
     def self.load_env_config
       if env_config?
         STDOUT.puts "Loading #{env_config}" unless Merb.testing?
         load(env_config)
       end
+      nil
     end
 
     # Determines the init file to use, if any.
     # By default Merb uses init.rb from application config directory.
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api private
     def self.initfile
       if Merb::Config[:init_file]
         Merb::Config[:init_file].chomp(".rb") + ".rb"
@@ -343,6 +470,11 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     end
 
     # Loads the init file, should one exist
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api private
     def self.load_initfile
       if File.exists?(initfile)
         STDOUT.puts "Loading init file from #{initfile}" unless Merb.testing?
@@ -352,6 +484,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
           "a flat application and have not specified the init file. If you " \
           "are trying to create a new merb application, use merb-gen app."
       end
+      nil
     end
 end
 
@@ -364,6 +497,11 @@ class Merb::BootLoader::MixinSession < Merb::BootLoader
   #
   # Note: access to Merb::Config is needed, so it needs to run after
   # Merb::BootLoader::Dependencies is done.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     require 'merb-core/dispatch/session'
     Merb::Controller.send(:include, ::Merb::SessionMixin)
@@ -376,8 +514,14 @@ class Merb::BootLoader::BeforeAppLoads < Merb::BootLoader
 
   # Call any before_app_loads hooks that were registered via before_app_loads
   # in any plugins.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     Merb::BootLoader.before_load_callbacks.each { |x| x.call }
+    nil
   end
 end
 
@@ -396,6 +540,18 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
   class << self
 
     # Load all classes from Merb's native load paths.
+    #
+    # If fork-based loading is used, every time classes are loaded this will return in a new spawner process
+    # and boot loading will continue from this point in the boot loading process.
+    #
+    # If fork-based loading is not in use, this only returns once and does not fork a new
+    # process.
+    #
+    # ==== Returns
+    # Returns at least once:
+    #   nil
+    #
+    # @api plugin
     def run
       # Add models, controllers, helpers and lib to the load path
       unless @ran
@@ -432,17 +588,37 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
 
       Merb::Controller.send :include, Merb::GlobalHelpers
+      
+      nil
     end
 
-    # Wait for workers to exit, remove the "main" PID, and exit.
+    # Wait for any children to exit, remove the "main" PID, and
+    # exit.
+    #
+    # ==== Returns
+    # (Does not return.)
+    #
+    # @api private
     def exit_gracefully
       Process.waitall
       Merb::Server.remove_pid("main")
       exit
     end
 
-    # If using fork-based code reloading, set up the BEGIN
-    # point and set up any signals in the parent and worker.
+    # Set up the BEGIN point for fork-based loading and sets up 
+    # any signals in the parent and child. This is done by forking
+    # the app. The child process continues on to run the app. The parent
+    # process waits for the child process to finish and either forks again
+    # 
+    #
+    # ==== Returns
+    # Parent Process:
+    #   (Does not return.)
+    # Child Process returns at least once:
+    #   nil
+    #
+    # @api private
+
     def start_transaction
       Merb.logger.warn! "Parent pid: #{Process.pid}"
       reader, writer = nil, nil
@@ -535,7 +711,13 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # of 128 when a master process exists will cause the
     # spawner process to be recreated, and the app code reloaded.
     #
-    # @param status<Integer> The status code to exit with
+    # ==== Parameters
+    # status<Integer>:: The status code to exit with. Defaults to 0.
+    #
+    # ==== Returns
+    # (Does not return.)
+    #
+    # @api private
     def reap_workers(status = 0)
       Merb.exiting = true unless status == 128
 
@@ -559,8 +741,15 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       exit(status)
     end
 
+    # Loads a file, tracking its modified time and, if necessary, the classes it declared.
+    #
     # ==== Parameters
     # file<String>:: The file to load.
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api private
     def load_file(file)
       # Don't do this expensive operation unless we need to
       unless Merb::Config[:fork_for_class_load]
@@ -583,12 +772,20 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       unless Merb::Config[:fork_for_class_load]
         LOADED_CLASSES[file] = ObjectSpace.classes - klasses
       end
+      
+      nil
     end
 
     # Load classes from given paths - using path/glob pattern.
     #
+    # ==== Parameters
     # *paths<Array>::
     #   Array of paths to load classes from - may contain glob pattern
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api private
     def load_classes(*paths)
       orphaned_classes = []
       paths.flatten.each do |path|
@@ -602,9 +799,22 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
       load_classes_with_requirements(orphaned_classes)
     end
-
+    
+    # Reloads the classes in the specified file. If fork-based loading is used,
+    # this causes the current processes to be killed and and all classes to be
+    # reloaded. If class-based loading is not in use, the classes declared in that file
+    # are removed and the file is reloaded.
+    #
     # ==== Parameters
     # file<String>:: The file to reload.
+    #
+    # ==== Returns
+    # When fork-based loading is used:
+    #   (Does not return.)
+    # When fork-based loading is not in use:
+    #   nil
+    #
+    # @api private
     def reload(file)
       if Merb::Config[:fork_for_class_load]
         reap_workers(128)
@@ -613,9 +823,20 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
     end
 
+    # Removes all classes declared in the specified file. Any hashes which use classes as keys
+    # will be protected provided they have been added to Merb.klass_hashes. These hashes have their
+    # keys substituted with placeholders before the file's classes are unloaded. If a block is provided,
+    # it is called before the substituted keys are reconstituted.
+    #
     # ==== Parameters
     # file<String>:: The file to remove classes for.
-    # &block:: A block to call with the file that has been removed.
+    # &block:: A block to call with the file that has been removed before klass_hashes are updated
+    # to use the current values of the constants they used as keys.
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api private
     def remove_classes_in_file(file, &block)
       Merb.klass_hashes.each { |x| x.protect_keys! }
       if klasses = LOADED_CLASSES.delete(file)
@@ -623,15 +844,26 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
       yield file if block_given?
       Merb.klass_hashes.each {|x| x.unprotect_keys!}
+      nil
     end
 
+    # Removes the specified class. 
+    #
+    # Additionally, removes the specified class from the subclass list of every superclass that
+    # tracks it's subclasses in an array returned by _subclasses_list. Classes that wish to use this
+    # functionality are required to alias the reader for their list of subclasses
+    # to _subclasses_list. Plugins for ORMs and other libraries should keep this in mind.
+    #
     # ==== Parameters
     # const<Class>:: The class to remove.
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api private
     def remove_constant(const)
       # This is to support superclasses (like AbstractController) that track
-      # their subclasses in a class variable. Classes that wish to use this
-      # functionality are required to alias it to _subclasses_list. Plugins
-      # for ORMs and other libraries should keep this in mind.
+      # their subclasses in a class variable.
       superklass = const
       until (superklass = superklass.superclass).nil?
         if superklass.respond_to?(:_subclasses_list)
@@ -649,16 +881,22 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       rescue NameError
         Merb.logger.debug("Failed to remove constant #{object} from #{base}")
       end
+      nil
     end
 
     private
 
-    # "Better loading" of classes.  If a class fails to load due to a NameError
+    # "Better loading" of classes.  If a file fails to load due to a NameError
     # it will be added to the failed_classes and load cycle will be repeated unless
     # no classes load.
     #
     # ==== Parameters
     # klasses<Array[Class]>:: Classes to load.
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api private
     def load_classes_with_requirements(klasses)
       klasses.uniq!
 
@@ -696,26 +934,35 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         end
         break if(klasses.size == size_at_start || klasses.size == 0)
       end
+      
+      nil
     end
 
   end
 
 end
 
+# Loads the router file. This needs to happen after everything else is loaded while merb is starting up to ensure
+# the router has everything it needs to run.
 class Merb::BootLoader::Router < Merb::BootLoader
   class << self
-
+    
+    # load the router file
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api plugin
     def run
       Merb::BootLoader::LoadClasses.load_file(router_file) if router_file
+      
+      nil
     end
 
-    def reload!
-      if router_file
-        Merb::Router.reset!
-        Merb::BootLoader::LoadClasses.reload(router_file)
-      end
-    end
-
+    # Tries to find the router file.
+    #
+    # ==== Returns
+    # String:: The path to the router file if it exists, nil otherwise.
     def router_file
       @router_file ||= begin
         if File.file?(router = Merb.dir_for(:router) / Merb.glob_for(:router))
@@ -727,18 +974,28 @@ class Merb::BootLoader::Router < Merb::BootLoader
   end
 end
 
+# Precompiles all non-partial templates.
 class Merb::BootLoader::Templates < Merb::BootLoader
   class << self
 
-    # Loads the templates into the Merb::InlineTemplates module.
+    # Loads all non-partial templates into the Merb::InlineTemplates module.
+    #
+    # ==== Returns
+    # Array[String]:: The list of template files which were loaded.
+    #
+    # @api plugin
     def run
       template_paths.each do |path|
         Merb::Template.inline_template(File.open(path))
       end
     end
 
+    # Finds a list of templates to load.
+    #
     # ==== Returns
-    # Array[String]:: Template files found.
+    # Array[String]:: All found template files whose basename does not begin with "_".
+    #
+    # @api private
     def template_paths
       extension_glob = "{#{Merb::Template.template_extensions.join(',')}}"
 
@@ -777,6 +1034,11 @@ end
 class Merb::BootLoader::MimeTypes < Merb::BootLoader
 
   # Registers the default MIME types.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     Merb.add_mime_type(:all,  nil,      %w[*/*])
     Merb.add_mime_type(:yaml, :to_yaml, %w[application/x-yaml text/yaml], :charset => "utf-8")
@@ -785,15 +1047,24 @@ class Merb::BootLoader::MimeTypes < Merb::BootLoader
     Merb.add_mime_type(:xml,  :to_xml,  %w[application/xml text/xml application/x-xml], {:charset => "utf-8"}, 0.9998)
     Merb.add_mime_type(:js,   :to_json, %w[text/javascript application/javascript application/x-javascript], :charset => "utf-8")
     Merb.add_mime_type(:json, :to_json, %w[application/json text/x-json], :charset => "utf-8")
+    nil
   end
 end
 
+# Set up cookies support in Merb::Controller and Merb::Request
 class Merb::BootLoader::Cookies < Merb::BootLoader
 
+  # Set up cookies support in Merb::Controller and Merb::Request
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     require 'merb-core/dispatch/cookies'
     Merb::Controller.send(:include, Merb::CookiesMixin)
     Merb::Request.send(:include, Merb::CookiesMixin::RequestMixin)
+    nil
   end
 
 end
@@ -802,6 +1073,11 @@ class Merb::BootLoader::SetupSession < Merb::BootLoader
 
   # Enable the configured session container(s); any class that inherits from
   # SessionContainer will be considered by its session_store_type attribute.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     # Require all standard session containers.
     Dir[Merb.framework_root / "merb-core" / "dispatch" / "session" / "*.rb"].each do |file|
@@ -826,6 +1102,7 @@ class Merb::BootLoader::SetupSession < Merb::BootLoader
 
     # Mixin the Merb::Session module to add app-level functionality to sessions
     Merb::SessionContainer.send(:include, Merb::Session)
+    nil
   end
 
 end
@@ -834,14 +1111,26 @@ class Merb::BootLoader::AfterAppLoads < Merb::BootLoader
 
   # Call any after_app_loads hooks that were registered via after_app_loads in
   # init.rb.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     Merb::BootLoader.after_load_callbacks.each {|x| x.call }
+    nil
   end
 end
 
 # In case someone's running a sparse app, the default exceptions require the
 # Exceptions class.
 class Merb::BootLoader::SetupStubClasses < Merb::BootLoader
+  # Declares empty Application and Exception controllers.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     unless defined?(Exceptions)
       Object.class_eval <<-RUBY
@@ -853,14 +1142,33 @@ class Merb::BootLoader::SetupStubClasses < Merb::BootLoader
         end
       RUBY
     end
+    nil
   end
 end
 
 class Merb::BootLoader::ChooseAdapter < Merb::BootLoader
 
   # Choose the Rack adapter/server to use and set Merb.adapter.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     Merb.adapter = Merb::Rack::Adapter.get(Merb::Config[:adapter])
+  end
+end
+
+class Merb::BootLoader::StartWorkerThread < Merb::BootLoader
+
+  # Starts the worker thread used by the run_later helper.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
+  def self.run
+    Merb::Worker.start
   end
 end
 
@@ -870,6 +1178,11 @@ class Merb::BootLoader::RackUpApplication < Merb::BootLoader
   # rackup tool that comes with rack. Automatically evals the file in
   # the context of a Rack::Builder.new { } block. Allows for mounting
   # additional apps or middleware.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     require 'rack'
     if File.exists?(Merb.dir_for(:config) / "rack.rb")
@@ -888,13 +1201,24 @@ class Merb::BootLoader::RackUpApplication < Merb::BootLoader
          run Merb::Rack::Application.new
        }.to_app
     end
-
+    
+    nil
   end
 end
 
 class Merb::BootLoader::ReloadClasses < Merb::BootLoader
 
   class TimedExecutor
+    # Executes the associated block every @seconds@ seconds in a separate thread.
+    #
+    # ==== Parameters
+    # seconds<Integer>:: Number of seconds to sleep in between runs of &block.
+    # &block:: The block to execute periodically.
+    #
+    # ==== Returns
+    # Thread:: The thread executing the block periodically.
+    #
+    # @api private
     def self.every(seconds, &block)
       Thread.abort_on_exception = true
       Thread.new do
@@ -907,7 +1231,14 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
     end
   end
 
-  # Setup the class reloader if it's been specified in config.
+  # Set up the class reloader if class reloading is enabled. This checks periodically 
+  # for modifications to files loaded by the LoadClasses BootLoader and reloads them
+  # when they are modified.
+  # 
+  # ==== Returns
+  # nil
+  #
+  # @api plugin
   def self.run
     return unless Merb::Config[:reload_classes]
 
@@ -928,10 +1259,16 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
       GC.start
       reload(paths)
     end
-
+    
+    nil
   end
 
-  # Reloads all files.
+  # Reloads all files which have been modified since they were last loaded.
+  #
+  # ==== Returns
+  # nil
+  #
+  # @api private
   def self.reload(paths)
     paths.each do |file|
       next if LoadClasses::MTIMES[file] &&
@@ -939,5 +1276,7 @@ class Merb::BootLoader::ReloadClasses < Merb::BootLoader
 
       LoadClasses.reload(file)
     end
+    
+    nil
   end
 end
