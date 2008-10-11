@@ -1,12 +1,32 @@
 module Merb
   class << self
 
+    
+    # Returns a hash of the available mime types. 
+    #
     # ==== Returns
-    # Hash:: The available mime types.
+    # Hash{Symbol => Hash{Symbol => Object}}:: The available mime types.
+    #
+    # ==== Notes
+    # Each entry corresponds to a call to add_mime_type, having the mime type key (:html, :xml, :json, etc.)
+    # as the key and a hash containing the following entries:
+    #   :accepts           # the mime types that will be recognized by this entry
+    #   :transform_method  # the method called on an object to convert it to content of this type (such as to_json)
+    #   :content_type      # the value set to the "Content-Type" HTTP header when this mime is sent in a response
+    #   :response_headers  # sent in a response using this content type
+    #   :default_quality   # the scale factor used in describing content type preference
+    #   :response_block    # the block to be called with the controller when a request responds to this mime type
+    #
+    # @api public
     def available_mime_types
       ResponderMixin::TYPES
     end
 
+    # ==== Returns
+    # Hash{String => Symbol}:: 
+    #   A hash mapping Content-Type values to the mime type key of the appropriate entry in #available_mime_types
+    #
+    # @api public
     def available_accepts
       ResponderMixin::MIMES
     end
@@ -42,6 +62,11 @@ module Merb
     #   correctly appended to the mimetype itself.
     # &block:: a block which recieves the current controller when the format
     #   is set (in the controller's #content_type method)
+    #
+    # ==== Returns
+    # nil
+    #
+    # @api public
     def add_mime_type(key, transform_method, mimes, new_response_headers = {}, default_quality = 1, &block) 
       enforce!(key => Symbol, mimes => Array)
       
@@ -69,6 +94,8 @@ module Merb
           render thing, opts
         end
       EOS
+      
+      nil
     end
 
     # Removes a MIME-type from the mime-type list.
@@ -78,6 +105,8 @@ module Merb
     #
     # ==== Notes
     # :all is the key for */*; It can't be removed.
+    #
+    # @api public
     def remove_mime_type(key)
       return false if key == :all
       ResponderMixin::TYPES.delete(key)
@@ -91,21 +120,12 @@ module Merb
     #
     # ==== Raises
     # ArgumentError:: The requested mime type is not valid.
+    #
+    # @api public
     def mime_transform_method(key)
       raise ArgumentError, ":#{key} is not a valid MIME-type" unless ResponderMixin::TYPES.key?(key)
       ResponderMixin::TYPES[key][:transform_method]
     end
 
-    # The mime-type for a particular inbound Accepts header.
-    #
-    # ==== Parameters
-    # header<String>:: The name of the header to find the mime-type for.
-    #
-    # ==== Returns
-    # Hash:: The mime type information.
-    def mime_by_request_header(header)
-      available_mime_types.find {|key,info| info[:accepts].include?(header)}.first
-    end
-    
   end
 end
