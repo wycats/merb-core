@@ -566,7 +566,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
       # Log the process configuration user defined signal 1 (SIGUSR1) is received.
       Merb.trap("USR1") do
-        Merb.logger.error! "Configuration:\n#{Merb::Config.to_hash.merge(:pid => $$).to_yaml}\n\n"
+        Merb.logger.fatal! "Configuration:\n#{Merb::Config.to_hash.merge(:pid => $$).to_yaml}\n\n"
       end
 
       if Merb::Config[:fork_for_class_load] && !Merb.testing?
@@ -600,8 +600,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     #
     # @api private
     def exit_gracefully
+      # wait all workers to exit
       Process.waitall
+      # remove master process pid
       Merb::Server.remove_pid("main")
+      # terminate
       exit
     end
 
@@ -643,6 +646,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         if Merb::Config[:console_trap]
           Merb.trap("INT") {}
         else
+          # send ABRT to worker on INT
           Merb.trap("INT") do
             Merb.logger.warn! "Reaping Workers"
             begin
@@ -718,7 +722,9 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # (Does not return.)
     #
     # @api private
-    def reap_workers(status = 0)
+    # @param status<Integer> The status code to exit with
+    # @param sig<String>     The signal to send to workers
+    def reap_workers(status = 0, sig = "ABRT")
       Merb.exiting = true unless status == 128
 
       begin
@@ -731,7 +737,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       ($WORKERS || []).each do |p|
         threads << Thread.new do
           begin
-            Process.kill("ABRT", p)
+            Process.kill(sig, p)
             Process.wait2(p)
           rescue SystemCallError
           end

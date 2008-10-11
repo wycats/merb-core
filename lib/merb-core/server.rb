@@ -74,25 +74,22 @@ module Merb
       # processes.
       #
       # @api private
-      def kill(port, sig="INT")
-        Merb::BootLoader::BuildFramework.run
-        if sig == 9 && port == "main"
-          kill_pid("INT", pid_file("main"))
-          Dir["#{Merb.log_path}" / "*.pid"].each do |file|
-            kill_pid(9, file)
-          end
-        else
-          kill_pid(sig, pid_file(port))
-        end
-
+      def kill(port, sig = "INT")
+        # 9 => KILL
+        # 2 => INT
         if sig.is_a?(Integer)
           sig = Signal.list.invert[sig]
         end
-
-        if sig == "KILL" && port == "main"
-          Merb.fatal! "Killed all PIDs with signal KILL"
+        
+        Merb::BootLoader::BuildFramework.run
+        # assume that if we kill master,
+        # workers should be reaped, too
+        if %w(main all).include?(port)
+          Dir["#{Merb.log_path}" / "*.pid"].each do |file|
+            kill_pid(sig, file)
+          end
         else
-          Merb.fatal! "Killed #{port} with signal #{sig}"
+          kill_pid(sig, pid_file(port))
         end
       end
 
@@ -101,25 +98,28 @@ module Merb
       def kill_pid(sig, file)
         begin
           pid = File.read(file).chomp.to_i
-          Merb.logger.warn! "Killing pid #{pid}"
+          Merb.logger.fatal! "Killing pid #{pid} with #{sig}"
           Process.kill(sig, pid)
           FileUtils.rm(file) if File.exist?(file)
         rescue Errno::EINVAL
-          Merb.fatal! "Failed to kill PID #{pid}: '#{sig}' is an invalid " \
+          Merb.fatal! "Failed to kill PID #{pid} with #{sig}: '#{sig}' is an invalid " \
             "or unsupported signal number."
         rescue Errno::EPERM
-          Merb.fatal! "Failed to kill PID #{pid}: Insufficient permissions."
+          Merb.fatal! "Failed to kill PID #{pid} with #{sig}: Insufficient permissions."
         rescue Errno::ESRCH
           FileUtils.rm file
-          Merb.fatal! "Failed to kill PID #{pid}: Process is " \
+          Merb.fatal! "Failed to kill PID #{pid} with #{sig}: Process is " \
             "deceased or zombie."
         rescue Errno::EACCES => e
           Merb.fatal! e.message, e
         rescue Errno::ENOENT => e
-          Merb.fatal! "Could not find a PID file at #{file}", e
+          # This should not cause abnormal exit, that's why
+          # we do not use Merb.fatal but instead just
+          # log with max level.
+          Merb.logger.fatal! "Could not find a PID file at #{file}. Probably process is no longer running but pid file wasn't cleaned up.", e
         rescue Exception => e
           if !e.is_a?(SystemExit)
-            Merb.fatal! "Failed to kill PID #{pid}", e
+            Merb.fatal! "Failed to kill PID #{pid} with #{sig}", e
           end
         end
       end
@@ -156,10 +156,7 @@ module Merb
       #
       # @api private
       def bootup
-        Merb.trap('TERM') {
-          Merb::BootLoader::LoadClasses.reap_workers if Merb::Config[:fork_for_class_load]
-          exit
-        }
+        Merb.trap('TERM') { shutdown }
 
         puts "Running bootloaders..." if Merb::Config[:verbose]
         BootLoader.run
@@ -170,6 +167,13 @@ module Merb
       # Change process user/group to those specified in Merb::Config.
       #
       # @api private
+      def shutdown(status = 0)
+        # reap_workers does exit but may not be called
+        Merb::BootLoader::LoadClasses.reap_workers(status) if Merb::Config[:fork_for_class_load]
+        # that's why we exit explicitly here
+        exit(status)
+      end
+
       def change_privilege
         if Merb::Config[:user] && Merb::Config[:group]
           Merb.logger.verbose! "About to change privilege to group " \
