@@ -34,9 +34,11 @@ module Merb
   
   # Used for handling multiple sessions stored in memory.
   class MemorySessionStore
-
+    
     # ==== Parameters
     # ttl<Fixnum>:: Session validity time in seconds. Defaults to 1 hour.
+    # 
+    # @api private
     def initialize(ttl=nil)
       @sessions = Hash.new
       @timestamps = Hash.new
@@ -50,41 +52,51 @@ module Merb
     #
     # ==== Returns
     # ContainerSession:: The session corresponding to the ID.
+    # 
+    # @api private
     def retrieve_session(session_id)
       @mutex.synchronize {
         @timestamps[session_id] = Time.now
         @sessions[session_id]
       }
     end
-
+    
     # ==== Parameters
     # session_id<String>:: ID of the session to set.
     # data<ContainerSession>:: The session to set.
+    # 
+    # @api private
     def store_session(session_id, data)
       @mutex.synchronize {
         @timestamps[session_id] = Time.now
         @sessions[session_id] = data
       }
     end
-
+    
     # ==== Parameters
     # session_id<String>:: ID of the session to delete.
+    # 
+    # @api private
     def delete_session(session_id)
       @mutex.synchronize {
         @timestamps.delete(session_id)
         @sessions.delete(session_id)
       }
     end
-
+    
     # Deletes any sessions that have reached their maximum validity.
+    # 
+    # @api private
     def reap_expired_sessions
       @timestamps.each do |session_id,stamp|
         delete_session(session_id) if (stamp + @session_ttl) < Time.now 
       end
       GC.start
     end
-
+    
     # Starts the timer that will eventually reap outdated sessions.
+    # 
+    # @api private
     def start_timer
       Thread.new do
         loop {
