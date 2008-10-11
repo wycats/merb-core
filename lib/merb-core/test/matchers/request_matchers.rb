@@ -82,6 +82,8 @@ Spec::Matchers.create(:redirect_to) do
   
   matches do |rack, location|
     @inspect = describe_input(rack)
+    
+    return false unless rack.headers["Location"]
     @location, @query = rack.headers["Location"].split("?")
     @status_code = status_code(rack)
     @status_code.in?(300..399) && @location == location
