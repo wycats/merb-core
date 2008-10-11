@@ -37,29 +37,42 @@ describe Merb::Test::Rspec::ViewMatchers do
           Hpricot.should_receive(:parse).and_return @document
         end
       
-        it "should should pass all found elements to the block" do
+        it "should pass all found elements to the block" do
           @block_called = false
         
           @document.should_receive(:search).and_return [""]
-          HasTag.new("tag").matches?("") {|e| @block_called = true}
-        
-          @block_called.should be_true
+          HasTag.new("tag").matches?("") {|e| e.should == "" }
         end
       
-        it "should not intercept any errors raised in the block" do
+        it 'should intercept errors raised in the block' do
           @document.should_receive(:search).and_return [""]
           lambda {
             HasTag.new("tag").matches?("") {|e| true.should be_false }
-          }.should raise_error(Spec::Expectations::ExpectationNotMetError)
+          }.should_not raise_error(Spec::Expectations::ExpectationNotMetError)
+        end
+
+        it 'should raise ExpectationNotMetError when there are no matched elements' do
+          @document.should_receive(:search).and_return [""]
+          lambda {
+            @document.should have_tag(:tag) {|e| true.should be_false }
+          }.should raise_error(Spec::Expectations::ExpectationNotMetError, "tag:\nexpected false, got true")
+        end
+
+        #part of bugfix for #329
+        it 'should not raise error if block for first of matched elements by xpath expression fails' do
+          @document.should_receive(:search).and_return ["a", "b"]
+          lambda {
+            @document.should have_tag(:tag) { |tag| tag.should == "b" }
+          }.should_not raise_error(Spec::Expectations::ExpectationNotMetError)
         end
       end
     
       describe "#with_tag" do
-        it "should set @inner_tag" do
+        it "should set @outer_has_tag" do
           outer = HasTag.new("outer")
           inner = outer.with_tag("inner")
         
-          outer.selector.should include(inner.selector)
+          inner.selector.should include(outer.selector)
         end
       end
     
@@ -95,15 +108,15 @@ describe Merb::Test::Rspec::ViewMatchers do
     
       describe "#failure_message" do
         it "should include the tag name" do
-          HasTag.new("anytag").failure_message.should include("<anytag")
+          HasTag.new("anytag").failure_message.should include("anytag")
         end
       
         it "should include the tag's id" do
-          HasTag.new("div", :id => :spacer).failure_message.should include("<div id=\"spacer\"")
+          HasTag.new("div", :id => :spacer).failure_message.should include("div#spacer")
         end
       
         it "should include the tag's class" do
-          HasTag.new("div", :class => :header).failure_message.should include("<div class=\"header\"")
+          HasTag.new("div", :class => :header).failure_message.should include("div.header")
         end
       
         it "should include the tag's custom attributes" do
@@ -113,18 +126,12 @@ describe Merb::Test::Rspec::ViewMatchers do
       end
     
       describe "id, class, and attributes for error messages" do
-        it "should start with a space for a class, id, or custom attribute" do
-          HasTag.new("tag", :id => "identifier").id_for_error.should =~ /^ /
-          HasTag.new("tag", :class => "classifier").class_for_error.should =~ /^ /
-          HasTag.new("tag", :rand => "attr").attributes_for_error.should =~ /^ /
+        it "should have '.classifier' in class_for_error" do
+          HasTag.new("tag", :class => "classifier").class_for_error.should include(".classifier")
         end
       
-        it "should have 'class=\"classifier\"' in class_for_error" do
-          HasTag.new("tag", :class => "classifier").class_for_error.should include("class=\"classifier\"")
-        end
-      
-        it "should have 'id=\"identifier\" in id_for_error" do
-          HasTag.new("tag", :id => "identifier").id_for_error.should include("id=\"identifier\"")
+        it "should have '#identifier' in id_for_error" do
+          HasTag.new("tag", :id => "identifier").id_for_error.should include("#identifier")
         end
       end
     end
