@@ -21,14 +21,6 @@ end
 
 describe Merb::Logger do
 
-  describe "Levels" do
-    it "should have the same entries as Extlib::Logger::Levels" do
-      Extlib::Logger::Levels.each do |level, value|
-        Merb::Logger::Levels[level].should == value
-      end
-    end
-  end
-
   describe "#new" do
     it "should call set_log with the arguments it was passed." do
       logger = Merb::Logger.allocate # create an object sans initialization
@@ -47,12 +39,6 @@ describe Merb::Logger do
       Merb::Config[:log_level] = :warn
       Merb.reset_logger!
       Merb.logger.level.should == 4
-    end
-
-    it "should set the log level to a specific numeric value when that value is set into Mer" do
-      Merb::Config[:log_level] = 5
-      Merb.reset_logger!
-      Merb.logger.level.should == 5
     end
 
     it "should set the log level to :debug (0) when Merb.environment is development" do
@@ -294,81 +280,4 @@ describe Merb::Logger do
       Merb.logger.should log_with_method(:fatal)
     end
   end # #fatal
-  
-  describe "#verbose" do
-    before do
-      @stream = Merb::Config[:log_stream] = StringIO.new
-      Merb.reset_logger!
-    end
-    
-    describe "when Merb::Config[:verbose] is false" do
-      it "should not log any messages" do
-        Merb::Config[:verbose] = false
-        Merb::Config[:log_level] = :debug
-        Merb.logger.verbose("message", :fatal)
-        Merb.logger.flush
-        
-        Merb.logger.log.string.should_not include("message")
-      end
-    end
-    
-    describe "when Merb::Config[:verbose] is true" do
-      before do
-        Merb::Config[:verbose] = true
-        Merb::Config[:log_level] = :debug
-      end
-
-      it "adds to the buffer with error level" do
-        set_level(:error)
-        Merb.logger.verbose("message", :error)
-        Merb.logger.flush
-        Merb.logger.log.string.should include("message")
-      end
-
-      it "adds to the buffer with fatal level" do
-        set_level(:fatal)
-        Merb.logger.verbose("message", :error)
-        Merb.logger.flush
-        Merb.logger.log.string.should_not include("message")
-      end
-      
-    end
-  end
-  
-  describe "#verbose!" do
-    before do
-      @stream = Merb::Config[:log_stream] = StringIO.new
-      Merb.reset_logger!
-    end
-    
-    describe "when Merb::Config[:verbose] is false" do
-      it "should not log any messages" do
-        Merb::Config[:verbose] = false
-        Merb::Config[:log_level] = :debug
-        Merb.logger.verbose!("message", :fatal)
-        Merb.logger.log.string.should_not include("message")
-      end
-    end
-    
-    describe "when Merb::Config[:verbose] is true" do
-      before do
-        Merb::Config[:verbose] = true
-        Merb::Config[:log_level] = :debug
-      end
-
-      it "adds to the buffer with error level" do
-        set_level(:error)
-        Merb.logger.verbose!("message", :error)
-        Merb.logger.log.string.should include("message")
-      end
-
-      it "adds to the buffer with fatal level" do
-        set_level(:fatal)
-        Merb.logger.verbose!("message", :error)
-        Merb.logger.log.string.should_not include("message")
-      end
-      
-    end
-  end
-  
 end # Merb::Logger
