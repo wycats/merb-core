@@ -112,13 +112,13 @@ module Merb
   #     MySpecialMailer.deliver(
   #       "team@cowboys.com", 
   #       "Exception occured at #{Time.now}", 
-  #       params[:exception])
+  #       self.request.exceptions.first)
   #     render 'Something is wrong, but the team is on it!'
   #   end
   #
-  # Note: The special param[:exception] is available in all Exception actions 
-  # and contains the ControllerException that was raised (this is handy if
-  # you want to display the associated message or display more detailed info)
+  # Note: The special method +exceptions+ is available on Merb::Request instances 
+  # and contains the exceptions that was raised (this is handy if
+  # you want to display the associated message or display more detailed info).
   #
   #
   # ==== Extending ControllerExceptions

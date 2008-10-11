@@ -208,11 +208,15 @@ module Kernel
   #   $ merb-gen model ActivityEvent
   #
   # @api public
-  def use_test(test_framework, *test_dependencies)
+  def use_testing_framework(test_framework, *test_dependencies)
     Merb.test_framework = test_framework
     
     Kernel.dependencies test_dependencies if Merb.env == "test" || Merb.env.nil?
     nil
+  end
+
+  def use_test(*args)
+    use_testing_framework(*args)
   end
   
   # Used in Merb.root/config/init.rb to tell Merb which template engine to

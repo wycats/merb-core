@@ -95,7 +95,7 @@ module Merb
     # into request params hash.
     def find_route!
       @route, @route_params = Merb::Router.route_for(self)
-      params.merge! @route_params
+      params.merge! @route_params if @route_params.is_a?(Hash)
     end
     
     # Processes the return value of a deferred router block
@@ -108,21 +108,8 @@ module Merb
       # so we must set the request as a redirect and extract
       # the redirect params and return it as a hash so that the
       # dispatcher can handle it
-      if retval.is_a?(Array)
-        redirects!
-        return { :url => retval[0], :status => retval[1] } 
-      end
+      matched! if retval.is_a?(Array)
       retval
-    end
-    
-    # Sets the request as a redirect. This method is only really
-    # used in the router to tell the request object how to handle
-    # the route params. This will also set the request as matched.
-    # ---
-    # @private
-    def redirects!
-      @matched   = true
-      @redirects = true
     end
     
     # Sets the request as matched. This will abort evaluating any
@@ -139,30 +126,15 @@ module Merb
     def matched?
       @matched
     end
-
-    # Redirect status of route matched this request.
-    #
-    # ==== Returns
-    # Integer::
-    #   The URL to redirect to if the route redirects
-    def redirect_status
-      @route_params[:status] if redirects?
+    
+    def rack_response
+      @route_params
     end
-
-    # Returns redirect url of route matched this request.
-    #
-    # ==== Returns
-    # <String>:: redirect url of route matched this request
-    def redirect_url
-      @route_params[:url] if redirects?
-    end
-
-    # Returns true if matched route does immediate redirection.
-    #
-    # ==== Returns
-    # <Boolean>:: if matched route does immediate redirection.
-    def redirects?
-      @redirects
+    
+    # If @route_params is an Array, then it will be the rack response.
+    # In this case, the request has been handled.
+    def handled?
+      @route_params.is_a?(Array)
     end
     
     private

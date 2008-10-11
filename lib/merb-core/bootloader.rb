@@ -131,6 +131,7 @@ module Merb
         Merb.push_path(:config,       Merb.root_path("config"), nil)
         Merb.push_path(:router,       Merb.dir_for(:config), (Merb::Config[:router_file] || "router.rb"))
         Merb.push_path(:lib,          Merb.root_path("lib"), nil)
+        Merb.push_path(:lib_merb,     Merb.root_path("lib" / "merb"))
         Merb.push_path(:log,          Merb.log_path, nil)
         Merb.push_path(:public,       Merb.root_path("public"), nil)
         Merb.push_path(:stylesheet,   Merb.dir_for(:public) / "stylesheets", nil)
@@ -563,12 +564,17 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       @ran = true
       $0 = "merb#{" : " + Merb::Config[:name] if Merb::Config[:name]} : master"
 
+      # Log the process configuration user defined signal 1 (SIGUSR1) is received.
+      Merb.trap("USR1") do
+        Merb.logger.error! "Configuration:\n#{Merb::Config.to_hash.merge(:pid => $$).to_yaml}\n\n"
+      end
+
       if Merb::Config[:fork_for_class_load] && !Merb.testing?
         start_transaction
       else
         Merb.trap('INT') do
-          Merb.logger.warn! "Killing children"
-          kill_children
+          Merb.logger.warn! "Reaping Workers"
+          reap_workers
         end
       end
 
@@ -612,6 +618,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     #   nil
     #
     # @api private
+
     def start_transaction
       Merb.logger.warn! "Parent pid: #{Process.pid}"
       reader, writer = nil, nil
@@ -625,7 +632,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         reader, @writer = IO.pipe
         pid = Kernel.fork
 
-        # pid means we're in the parent; only stay in the loop in that case
+        # pid means we're in the parent; only stay in the loop if that is case
         break unless pid
         # writer must be closed so reader can generate EOF condition
         @writer.close
@@ -637,7 +644,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
           Merb.trap("INT") {}
         else
           Merb.trap("INT") do
-            Merb.logger.warn! "Killing children"
+            Merb.logger.warn! "Reaping Workers"
             begin
               Process.kill("ABRT", pid)
             rescue SystemCallError
@@ -653,11 +660,11 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
         reader_ary = [reader]
         loop do
-          # wait for child to exit and capture exit status
+          # wait for worker to exit and capture exit status
           # 
           #
           # WNOHANG specifies that wait2 exists without waiting
-          # if no child process are ready to be noticed.
+          # if no worker processes are ready to be noticed.
           if exit_status = Process.wait2(pid, Process::WNOHANG)
             # wait2 returns a 2-tuple of process id and exit
             # status.
@@ -686,32 +693,32 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
       reader.close
 
-      # add traps to the child
+      # add traps to the worker
       if Merb::Config[:console_trap]
         Merb::Server.add_irb_trap
-        at_exit { kill_children }
+        at_exit { reap_workers }
       else
         Merb.trap('INT') {}
-        Merb.trap('ABRT') { kill_children }
-        Merb.trap('HUP') { kill_children(128) }
+        Merb.trap('ABRT') { reap_workers }
+        Merb.trap('HUP') { reap_workers(128) }
       end
     end
 
-    # Kill any children of the spawner process and exit with
-    # an appropriate status code.
+    # Reap any workers of the spawner process and 
+    # exit with an appropriate status code.
     #
     # Note that exiting the spawner process with a status code
     # of 128 when a master process exists will cause the
     # spawner process to be recreated, and the app code reloaded.
     #
     # ==== Parameters
-    # status<Integer>:: The status code to exit with
+    # status<Integer>:: The status code to exit with. Defaults to 0.
     #
     # ==== Returns
     # (Does not return.)
     #
     # @api private
-    def kill_children(status = 0)
+    def reap_workers(status = 0)
       Merb.exiting = true unless status == 128
 
       begin
@@ -721,7 +728,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
       threads = []
 
-      ($CHILDREN || []).each do |p|
+      ($WORKERS || []).each do |p|
         threads << Thread.new do
           begin
             Process.kill("ABRT", p)
@@ -810,7 +817,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
     # @api private
     def reload(file)
       if Merb::Config[:fork_for_class_load]
-        kill_children(128)
+        reap_workers(128)
       else
         remove_classes_in_file(file) { |f| load_file(f) }
       end

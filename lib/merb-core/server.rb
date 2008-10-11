@@ -157,7 +157,7 @@ module Merb
       # @api private
       def bootup
         Merb.trap('TERM') {
-          Merb::BootLoader::LoadClasses.kill_children if Merb::Config[:fork_for_class_load]
+          Merb::BootLoader::LoadClasses.reap_workers if Merb::Config[:fork_for_class_load]
           exit
         }
 

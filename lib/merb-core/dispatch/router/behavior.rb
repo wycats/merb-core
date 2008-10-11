@@ -59,7 +59,7 @@ module Merb
         end
         
         def redirect(url, opts = {})
-          [url, opts[:permanent] ? 301 : 302]
+          Merb::Rack::Helpers.redirect(url, opts)
         end
         
         def route(params)
