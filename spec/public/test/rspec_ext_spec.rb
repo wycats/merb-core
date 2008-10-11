@@ -9,3 +9,9 @@ describe "a spec that reuses a given block", :given => "we set an ivar" do
     @foo.should == 7
   end
 end
+
+describe "a spec that does not reuse a given block" do
+  it "does not see the given block" do
+    @foo.should == nil
+  end
+end

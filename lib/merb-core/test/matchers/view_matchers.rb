@@ -9,6 +9,8 @@ module Merb::Test::Rspec::ViewMatchers
     end
     
     def matches_rexml?(stringlike)
+      stringlike = stringlike.body.to_s if stringlike.respond_to?(:body)
+      
       @document = case stringlike
       when REXML::Document
         stringlike.root
@@ -21,6 +23,8 @@ module Merb::Test::Rspec::ViewMatchers
     end
     
     def matches_libxml?(stringlike)
+      stringlike = stringlike.body.to_s if stringlike.respond_to?(:body)
+      
       @document = case stringlike
       when LibXML::XML::Document, LibXML::XML::Node
         stringlike

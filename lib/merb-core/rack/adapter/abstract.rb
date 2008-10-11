@@ -48,14 +48,14 @@ module Merb
       #
       # @api private
       def self.spawn_worker(port)
-        child_pid = Kernel.fork
-        start_at_port(port, @opts) unless child_pid
+        worker_pid = Kernel.fork
+        start_at_port(port, @opts) unless worker_pid
 
-        # If we have a child_pid, we're in the parent. If we're
-        throw(:new_worker) unless child_pid
+        # If we have a worker_pid, we're in the parent.
+        throw(:new_worker) unless worker_pid
 
-        @pids[port] = child_pid
-        $CHILDREN = @pids.values
+        @pids[port] = worker_pid
+        $WORKERS = @pids.values
       end
 
       # The main start method for bootloaders that support forking.
@@ -72,7 +72,7 @@ module Merb
       # @api private
       def self.start(opts={})
         @opts = opts
-        $CHILDREN ||= []
+        $WORKERS ||= []
         parent = nil
 
         @pids = {}
@@ -91,7 +91,7 @@ module Merb
         $0 = process_title(:spawner, port)
 
         # For each port, spawn a new worker. The parent will continue in
-        # the loop, while the child will throw :new_worker and be booted
+        # the loop, while the worker will throw :new_worker and be booted
         # out of the loop.
         catch(:new_worker) do
           0.upto(max_port) do |i|
@@ -119,7 +119,7 @@ module Merb
                 ensure
                   # If there was no worker with that PID, the status was non-0
                   # (we send back a status of 128 when ABRT is called on a 
-                  # child, and Merb.fatal! exits with a status of 1), or if
+                  # worker, and Merb.fatal! exits with a status of 1), or if
                   # Merb is in the process of exiting, *then* don't respawn.
                   # Note that processes killed with kill -9 will return no
                   # exitstatus, and we respawn them.
