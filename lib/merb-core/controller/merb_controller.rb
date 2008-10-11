@@ -97,8 +97,6 @@ class Merb::Controller < Merb::AbstractController
     params
   end
 
-  private
-
   # All methods that are callable as actions.
   #
   # ==== Returns

@@ -6,7 +6,7 @@ describe "Recognizing requests for deferred routes" do
     before :each do
       Merb::Router.prepare do      
         match("/deferred/:zoo").defer_to do |request, params|
-          route params.merge(:controller => "w00t") if params[:zoo]
+          params.merge(:controller => "w00t") if params[:zoo]
         end
       end    
     end
@@ -22,7 +22,7 @@ describe "Recognizing requests for deferred routes" do
     it "should return the param hash returned by the block" do
       Merb::Router.prepare do
         match("/deferred").defer_to do |request, params|
-          route :hello => "world"
+          :hello => "world"
         end
       end
 
@@ -32,7 +32,7 @@ describe "Recognizing requests for deferred routes" do
     it "should accept params" do
       Merb::Router.prepare do
         match("/").defer_to(:controller => "accounts") do |request, params|
-          route params.update(:action => "hello")
+          params.update(:action => "hello")
         end
       end
 
@@ -42,7 +42,7 @@ describe "Recognizing requests for deferred routes" do
     it "should be able to define routes after the deferred route" do
       Merb::Router.prepare do
         match("/deferred").defer_to do
-          route :hello => "world"
+          :hello => "world"
         end
 
         match("/").to(:foo => "bar")
