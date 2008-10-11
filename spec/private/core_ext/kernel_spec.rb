@@ -1,19 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "Kernel#require" do
-  before do
-    @logger = StringIO.new
-  end
-
-  it "should be able to require and throw a useful error message" do
-    Kernel.stub!(:require).with("redcloth").and_raise(LoadError)
-    Merb.logger.should_receive(:error!).with("foo")
-    Kernel.rescue_require("redcloth", "foo")
-  end
-end
-
-
-
 describe "Kernel#caller" do
   it "should be able to determine caller info" do
     __caller_info__.should be_kind_of(Array)
@@ -71,7 +57,7 @@ describe "Kernel#dependencies" do
     end
   end
 
-  it "deferres load of dependencies given as Hash" do
+  it "defers load of dependencies given as Hash" do
     self.should_receive(:dependency).with("hpricot", "0.6").and_return(true)
     self.should_receive(:dependency).with("rake", "0.8.1").and_return(true)
 
