@@ -45,25 +45,31 @@ module Merb
     self.session_store_type = :store
     
     class << self
-
+      
       # Generates a new session ID and creates a new session.
-      #
+      # 
       # ==== Returns
       # SessionStoreContainer:: The new session.
+      # 
+      # @api private
       def generate
         session = new(Merb::SessionMixin.rand_uuid)
         session.needs_new_cookie = true
         session
       end
-
-      # Setup a new session.
-      #
+      
+      # Setup a new session or retreive an existing session.
+      # 
       # ==== Parameters
       # request<Merb::Request>:: The Merb::Request that came in from Rack.
-      #
+      # 
+      # ==== Notes
+      # If no sessions were found, a new SessionContainer will be generated.
+      # 
       # ==== Returns
-      # SessionContainer:: a SessionContainer. If no sessions were found, 
-      # a new SessionContainer will be generated.
+      # SessionContainer:: a SessionContainer.
+      # 
+      # @api private
       def setup(request)
         session = retrieve(request.session_id)
         request.session = session
@@ -84,6 +90,8 @@ module Merb
       # ==== Notes
       # If there are persisted exceptions callbacks to execute, they all get executed
       # when Memcache library raises an exception.
+      # 
+      # @api private
       def retrieve(session_id)
         unless session_id.blank?
           begin
@@ -121,6 +129,8 @@ module Merb
     # The data (self) is converted to a Hash first, since a container might 
     # choose to do a full Marshal on the data, which would make it persist 
     # attributes like 'needs_new_cookie', which it shouldn't.
+    # 
+    # @api private
     def finalize(request)
       if @_destroy
         store.delete_session(self.session_id)
@@ -138,8 +148,10 @@ module Merb
         end
       end
     end
-
+    
     # Regenerate the session ID.
+    # 
+    # @api private
     def regenerate
       store.delete_session(self.session_id)
       self.session_id = Merb::SessionMixin.rand_uuid

@@ -39,13 +39,17 @@ module Kernel
   # If that has already happened, the gem will be activated
   # immediately, but it will still be registered.
   # 
-  # @param name<String> The name of the gem to load.
-  # @param *ver<Gem::Requirement, Gem::Version, Array, #to_str>
+  # ==== Parameters
+  # name<String> The name of the gem to load.
+  # *ver<Gem::Requirement, Gem::Version, Array, #to_str>
   #   Version requirements to be passed to Gem::Dependency.new.
   #   If the last argument is a Hash, extract the :immediate option,
   #   forcing a dependency to load immediately.
   #
-  # @return <Gem::Dependency> The dependency information.
+  # ==== Returns
+  # Gem::Dependency:: The dependency information.
+  #
+  # @api public
   def dependency(name, *ver, &blk)
     immediate = ver.last.is_a?(Hash) && ver.pop[:immediate]
     if immediate || Merb::BootLoader.finished?(Merb::BootLoader::Dependencies)
@@ -71,6 +75,8 @@ module Kernel
   #   as a library.
   #
   # @return <Gem::Dependency> The dependency information.
+  #
+  # @api private
   def load_dependency(name, *ver, &blk)
     dep = name.is_a?(Gem::Dependency) ? name : track_dependency(name, *ver)
     gem(dep)
@@ -93,7 +99,14 @@ module Kernel
   # Loads both gem and library dependencies that are passed in as arguments.
   # Execution is deferred to the Merb::BootLoader::Dependencies.run during bootup.
   #
-  # @param *args<String, Hash, Array> The dependencies to load.
+  # ==== Parameters
+  # *args<String, Hash, Array> The dependencies to load.
+  #
+  # ==== Returns
+  # Array[(Gem::Dependency, Array[Gem::Dependency])]:: Gem::Dependencies for the
+  #   dependencies specified in args.
+  #
+  # @api public
   def dependencies(*args)
     args.map do |arg|
       case arg
@@ -118,6 +131,8 @@ module Kernel
   # @example dependencies "RedCloth"                 # Loads the the RedCloth gem
   # @example dependencies "RedCloth", "merb_helpers" # Loads RedCloth and merb_helpers
   # @example dependencies "RedCloth" => "3.0"        # Loads RedCloth 3.0
+  #
+  # @api private
   def load_dependencies(*args)
     args.map do |arg|
       case arg
@@ -132,7 +147,12 @@ module Kernel
   #
   # @param library<to_s> The library to attempt to include.
   # @param message<String> The error to add to the log upon failure. Defaults to nil.
+  #
+  # @api private
+  # @deprecated
   def rescue_require(library, message = nil)
+    Merb.logger.warn("Deprecation warning: rescue_require is deprecated")
+    sleep 2.0
     require library
   rescue LoadError, RuntimeError
     Merb.logger.error!(message) if message
@@ -142,17 +162,22 @@ module Kernel
   # Mapper) you wish to use. Currently Merb has plugins to support
   # ActiveRecord, DataMapper, and Sequel.
   #
-  # @param orm<Symbol> The ORM to use.
+  # ==== Parameters
+  # orm<Symbol>:: The ORM to use.
   #
-  # @example
+  # ==== Returns
+  # nil
+  #
+  # ==== Example
   #   use_orm :datamapper
   #
   #   # This will use the DataMapper generator for your ORM
   #   $ merb-gen model ActivityEvent
   #
-  # @note
+  # ==== Notes
   #   If for some reason this is called more than once, latter
   #   call takes over other.
+  #
   # @api public
   def use_orm(orm)
     begin
@@ -163,24 +188,31 @@ module Kernel
       Merb.logger.warn!("The #{orm_plugin} gem was not found.  You may need to install it.")
       raise e
     end
+    nil
   end
 
   # Used in Merb.root/config/init.rb to tell Merb which testing framework to
   # use. Currently Merb has plugins to support RSpec and Test::Unit.
   #
-  # @param test_framework<Symbol>
+  # ==== Parameters
+  # test_framework<Symbol>::
   #   The test framework to use. Currently only supports :rspec and :test_unit.
   #
-  # @example
+  # ==== Returns
+  # nil
+  #
+  # ==== Example
   #   use_test :rspec
   #
   #   # This will now use the RSpec generator for tests
   #   $ merb-gen model ActivityEvent
+  #
   # @api public
   def use_testing_framework(test_framework, *test_dependencies)
     Merb.test_framework = test_framework
     
     Kernel.dependencies test_dependencies if Merb.env == "test" || Merb.env.nil?
+    nil
   end
 
   def use_test(*args)
@@ -190,14 +222,19 @@ module Kernel
   # Used in Merb.root/config/init.rb to tell Merb which template engine to
   # prefer.
   #
-  # @param template_engine<Symbol>
+  # ==== Parameters
+  # template_engine<Symbol>
   #   The template engine to use.
   #
-  # @example
+  # ==== Returns
+  # nil
+  #
+  # ==== Example
   #   use_template_engine :haml
   #
   #   # This will now use haml templates in generators where available.
   #   $ merb-gen resource_controller Project 
+  #
   # @api public
   def use_template_engine(template_engine)
     Merb.template_engine = template_engine
@@ -210,10 +247,13 @@ module Kernel
       end
       Kernel.dependency(template_engine_plugin)
     end
+    
+    nil
   rescue LoadError => e
     Merb.logger.warn!("The #{template_engine_plugin} gem was not found.  You may need to install it.")
     raise e
   end
+
 
   # @param i<Fixnum> The caller number. Defaults to 1.
   #
@@ -222,6 +262,8 @@ module Kernel
   # @example
   #   __caller_info__(1)
   #     # => ['/usr/lib/ruby/1.8/irb/workspace.rb', '52', 'irb_binding']
+  #
+  # @api private
   def __caller_info__(i = 1)
     file, line, meth = caller[i].scan(/(.*?):(\d+):in `(.*?)'/).first
   end
@@ -245,6 +287,8 @@ module Kernel
   #       [ 123, "      DEBUGGER__.waiting.push Thread.current",      false ],
   #       [ 124, "      @suspend_next = false",                       false ]
   #     ]
+  #
+  # @api private
   def __caller_lines__(file, line, size = 4)
     line = line.to_i
     if file =~ /\(erubis\)/
@@ -262,26 +306,6 @@ module Kernel
         yield index + line - size, str.chomp
       end
     end
-    # 
-    # lines = File.readlines(file)
-    # current = line.to_i - 1
-    # 
-    # first = current - size
-    # first = first < 0 ? 0 : first
-    # 
-    # last = current + size
-    # last = last > lines.size ? lines.size : last
-    # 
-    # log = lines[first..last]
-    # 
-    # area = []
-    # 
-    # log.each_with_index do |line, index|
-    #   index = index + first + 1
-    #   area << [index, line.chomp, index == current + 1]
-    # end
-    # 
-    # area
   end
 
   # Takes a block, profiles the results of running the block
@@ -309,6 +333,8 @@ module Kernel
   #   Assuming that the total time taken for #puts calls was less than 5% of the
   #   total time to run, #puts won't appear in the profile report.
   #   The code block will be run 30 times in the example above.
+  #
+  # @api private
   def __profile__(name, min=1, iter=100)
     require 'ruby-prof' unless defined?(RubyProf)
     return_result = ''
@@ -334,6 +360,8 @@ module Kernel
   #     opts = extract_options_from_args!(args) || {}
   #     # [...]
   #   end
+  #
+  # @api public
   def extract_options_from_args!(args)
     args.pop if Hash === args.last
   end
@@ -346,6 +374,8 @@ module Kernel
   #
   # @raise <ArgumentError>
   #   An object failed to quack like a condition.
+  #
+  # @api public
   def enforce!(opts = {})
     opts.each do |k,v|
       raise ArgumentError, "#{k.inspect} doesn't quack like #{v.inspect}" unless k.quacks_like?(v)

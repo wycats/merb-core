@@ -3,14 +3,24 @@ module Merb
     
     attr_accessor :thread
     
+    # ==== Returns
+    # Merb::Worker:: instance of a worker.
+    # 
+    # @api private
     def self.start
       new
     end
     
+    # Creates a new worker thread that loops over the work queue.
+    # 
+    # @api private
     def initialize
       @thread = Thread.new { loop { process_queue } }
     end
     
+    # Processes tasks in the Merb::Dispatcher.work_queue.
+    # 
+    # @api private
     def process_queue
       begin
         while blk = Merb::Dispatcher.work_queue.pop
@@ -25,8 +35,8 @@ module Merb
       rescue Exception => e
         Merb.logger.warn! %Q!Worker Thread Crashed with Exception:\n#{Merb.exception(e)}\nRestarting Worker Thread!
         retry
-      end    
+      end
     end
     
   end
-end    
+end
