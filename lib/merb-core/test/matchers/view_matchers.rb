@@ -168,6 +168,8 @@ module Merb::Test::Rspec::ViewMatchers
   
   class HasTag
     
+    attr_accessor :outer_has_tag, :inner_has_tag
+
     # ==== Parameters
     # tag<~to_s>:: The tag to look for.
     # attributes<Hash>:: Attributes for the tag (see below).
@@ -197,8 +199,13 @@ module Merb::Test::Rspec::ViewMatchers
 
       unless @blk.nil?
         !@document.search(selector).select do |ele|
-          @blk.call ele
-          true
+          begin
+            @blk.call ele
+            true
+          rescue Spec::Expectations::ExpectationNotMetError
+            @error_message = "#{tag_for_error}:\n" + $!.message
+            false
+          end
         end.empty?
       else
         !@document.search(selector).empty?
@@ -208,12 +215,10 @@ module Merb::Test::Rspec::ViewMatchers
     # ==== Returns
     # String:: The complete selector for element queries.
     def selector
-      @selector = "//#{@tag}#{id_selector}#{class_selector}"
+      @selector = @outer_has_tag ? @outer_has_tag.selector : ''
+
+      @selector << "//#{@tag}#{id_selector}#{class_selector}"
       @selector << @attributes.map{|a, v| "[@#{a}=\"#{v}\"]"}.join
-
-      @selector << @inner_has_tag.selector unless @inner_has_tag.nil?
-
-      @selector
     end
 
     # ==== Returns
@@ -231,45 +236,38 @@ module Merb::Test::Rspec::ViewMatchers
     # ==== Returns
     # String:: The failure message.
     def failure_message
-      "expected following output to contain a #{tag_for_error} tag:\n#{@document}"
+      @error_message || "expected following output to contain a #{tag_for_error} tag:\n#{@document}"
     end
 
     # ==== Returns
     # String:: The failure message to be displayed in negative matches.
     def negative_failure_message
-      "expected following output to omit a #{tag_for_error} tag:\n#{@document}"
+      @error_message || "expected following output to omit a #{tag_for_error} tag:\n#{@document}"
     end
     
     # ==== Returns
     # String:: The tag used in failure messages.
     def tag_for_error
-      "#{inner_failure_message}<#{@tag}#{id_for_error}#{class_for_error}#{attributes_for_error}>"
-    end
-
-    # ==== Returns
-    # String::
-    #   The failure message to be displayed in negative matches within the
-    #   have_tag block.
-    def inner_failure_message
-      "#{@inner_has_tag.tag_for_error} tag within a " unless @inner_has_tag.nil?
+      result = "#{@tag}#{id_for_error}#{class_for_error}#{attributes_for_error}"
+      inner_has_tag ? result << " > #{inner_has_tag.tag_for_error}" : result
     end
 
     # ==== Returns
     # String:: ID for the error tag.
     def id_for_error
-      " id=\"#{@id}\"" unless @id.nil?
+      "##{@id}" unless @id.nil?
     end
 
     # ==== Returns
     # String:: Class for the error tag.
     def class_for_error
-      " class=\"#{@class}\"" unless @class.nil?
+      ".#{@class}" unless @class.nil?
     end
 
     # ==== Returns
     # String:: Class for the error tag.
     def attributes_for_error
-      @attributes.map{|a,v| " #{a}=\"#{v}\""}.join
+      @attributes.map{|a,v| "[#{a}=\"#{v}\"]"}.join
     end
 
     # Search for a child tag within a have_tag block.
@@ -279,6 +277,7 @@ module Merb::Test::Rspec::ViewMatchers
     # attributes<Hash>:: Attributes for the tag (see below).
     def with_tag(name, attrs={})
       @inner_has_tag = HasTag.new(name, attrs)
+      @inner_has_tag.outer_has_tag = self
     end
   end
 
