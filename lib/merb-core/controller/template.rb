@@ -86,7 +86,8 @@ module Merb::Template
       return true if Merb::Config[:reload_templates] || !METHOD_LIST[path]
       
       current_locals = SUPPORTED_LOCALS_LIST[path]
-      locals.any?{|local| !current_locals.include?(local)}
+      current_locals != locals &&
+        !(locals - current_locals).empty?
     end
     
     # Get all known template extensions
