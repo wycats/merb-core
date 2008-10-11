@@ -58,7 +58,7 @@ module GemManagement
       installer = Gem::DependencyInstaller.new(options.merge(:user_install => false))
       
       # Force-refresh certain gems by excluding them from the current index
-      if refresh.respond_to?(:include?) && !refresh.empty?
+      if !options[:ignore_dependencies] && refresh.respond_to?(:include?) && !refresh.empty?
         source_index = installer.instance_variable_get(:@source_index)
         source_index.gems.each do |name, spec| 
           source_index.gems.delete(name) if refresh.include?(spec.name)
@@ -81,7 +81,7 @@ module GemManagement
         exception = e
       end
       if installer.installed_gems.empty? && exception
-        error "Failed to install gem '#{gem} (#{version})' (#{exception.message})"
+        error "Failed to install gem '#{gem} (#{version || 'any version'})' (#{exception.message})"
       end
       installer.installed_gems.each do |spec|
         success "Successfully installed #{spec.full_name}"
@@ -122,11 +122,13 @@ module GemManagement
   # install_gem_from_source(source_dir, gem_name)
   # install_gem_from_source(source_dir, :skip => [...])
   def install_gem_from_source(source_dir, *args)
+    installed_gems = []
     Dir.chdir(source_dir) do
-      options = args.last.is_a?(Hash) ? args.pop : {}
-      gem_name    = args[0] || File.basename(source_dir)
-      gem_pkg_dir = File.join(source_dir, 'pkg')
-      skip_gems   = options.delete(:skip) || []
+      opts = args.last.is_a?(Hash) ? args.pop : {}
+      gem_name     = args[0] || File.basename(source_dir)
+      gem_pkg_dir  = File.join(source_dir, 'pkg')
+      gem_pkg_glob = File.join(gem_pkg_dir, "#{gem_name}-*.gem")
+      skip_gems    = opts.delete(:skip) || []
 
       # Cleanup what's already there
       clobber(source_dir)
@@ -138,7 +140,7 @@ module GemManagement
       
       if packages.length == 1
         # The are no subpackages for the main package
-        options[:refresh] = [gem_name]
+        refresh = [gem_name]
       else
         # Gather all packages into the top-level pkg directory
         packages.each do |pkg|
@@ -149,24 +151,38 @@ module GemManagement
         package(source_dir, false)
         
         # Gather subgems to refresh during installation of the main gem
-        options[:refresh] = packages.map do |pkg|
+        refresh = packages.map do |pkg|
           File.basename(pkg, '.gem')[/^(.*?)-([\d\.]+)$/, 1] rescue nil
         end.compact
-      end
-    
-      gem_pkg = Dir[File.join(gem_pkg_dir, "#{gem_name}-*.gem")][0]
-      if gem_pkg && File.exists?(gem_pkg)
-        # Needs to be executed from the directory that contains all packages
-        Dir.chdir(File.dirname(gem_pkg)) do 
-          install_gem(gem_pkg, options)
+        
+        # Install subgems explicitly even if ignore_dependencies is set
+        if opts[:ignore_dependencies]
+          refresh.each do |name| 
+            gem_pkg = Dir[File.join(gem_pkg_dir, "#{name}-*.gem")][0]
+            install_pkg(gem_pkg, opts)
+          end
         end
-        options[:refresh]
+      end
+      
+      # Finally install the main gem
+      if install_pkg(Dir[gem_pkg_glob][0], opts.merge(:refresh => refresh))
+        installed_gems = refresh
       else
-        []
+        installed_gems = []
       end
     end
+    installed_gems
   end
-
+  
+  def install_pkg(gem_pkg, opts = {})
+    if (gem_pkg && File.exists?(gem_pkg))
+      # Needs to be executed from the directory that contains all packages
+      Dir.chdir(File.dirname(gem_pkg)) { install_gem(gem_pkg, opts) }
+    else
+      false
+    end
+  end
+  
   # Uninstall a gem.
   def uninstall_gem(gem, options = {})
     if options[:version] && !options[:version].is_a?(Gem::Requirement)
@@ -178,17 +194,17 @@ module GemManagement
 
   def clobber(source_dir)
     Dir.chdir(source_dir) do 
-      system "#{Gem.ruby} -S rake -s clobber" if File.exists?('Rakefile')
+      system "#{Gem.ruby} -S rake -s clobber" unless File.exists?('Thorfile')
     end
   end
 
   def package(source_dir, clobber = true)
     Dir.chdir(source_dir) do 
-      if File.exists?('Rakefile')
+      if File.exists?('Thorfile')
+        thor ":package"
+      elsif File.exists?('Rakefile')
         rake "clobber" if clobber
         rake "package"
-      elsif
-        thor ":package"
       end
     end
     Dir[File.join(source_dir, 'pkg/*.gem')]
@@ -230,12 +246,12 @@ module GemManagement
       ::Gem.clear_paths; ::Gem.path.unshift(gem_dir)
       ::Gem.source_index.refresh!
       dependencies.each do |dep|
-        if gemspec = ::Gem.source_index.search(dep).last
-          if gemspec.loaded_from.index(gem_dir) == 0
-            local_specs  << gemspec
-          else
-            system_specs << gemspec
-          end
+        gemspecs = ::Gem.source_index.search(dep)
+        local = gemspecs.reverse.find { |s| s.loaded_from.index(gem_dir) == 0 }
+        if local
+          local_specs  << local
+        elsif gemspecs.last
+          system_specs << gemspecs.last
         else
           missing_deps << dep
         end
