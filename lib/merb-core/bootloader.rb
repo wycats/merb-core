@@ -769,8 +769,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       # the file is changed, it'll be reloaded again
       begin
         load file
-      rescue SyntaxError
-        return
+      rescue SyntaxError => e
+        Merb.logger.error "Cannot load #{file} because of syntax error: #{e.message}"
       ensure
         if Merb::Config[:reload_classes]
           MTIMES[file] = File.mtime(file)
