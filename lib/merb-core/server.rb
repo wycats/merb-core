@@ -52,17 +52,18 @@ module Merb
       #
       # @api private
       def alive?(port)
-        puts "About to check if port #{port} is alive..." if Merb::Config[:verbose]
         pidfile = pid_file(port)
-        puts "Pidfile is #{pidfile}..." if Merb::Config[:verbose]
-        pid = File.read(pidfile).chomp.to_i
-        puts "Process id is #{pid}" if Merb::Config[:verbose]
+        pid     = pid_in_file(pidfile)
         Process.kill(0, pid)
         true
       rescue Errno::ESRCH, Errno::ENOENT
         false
       rescue Errno::EACCES => e
-        Merb.fatal!("You don't have access to the PID file at #{pidfile}.", e)
+        Merb.fatal!("You don't have access to the PID file at #{pidfile}: #{e.message}")
+      end
+
+      def pid_in_file(pidfile)
+        File.read(pidfile).chomp.to_i
       end
 
       # ==== Parameters
@@ -84,9 +85,32 @@ module Merb
         Merb::BootLoader::BuildFramework.run
         # assume that if we kill master,
         # workers should be reaped, too
-        if %w(main all).include?(port)
-          Dir["#{Merb.log_path}" / "*.pid"].each do |file|
-            kill_pid(sig, file)
+        if %w(main master all).include?(port)
+          # if graceful exit is requested,
+          # send INT to master process and
+          # it's gonna do it's job
+          #
+          # Otherwise read pids from pid files
+          # and try to kill each process in
+          # turn
+          if sig == "INT"
+            kill_pid(sig, pid_file("main"))
+          else
+            # order is important here
+            
+            # then reap workers
+            # 
+            # there is no way to handle KILL so
+            # at_exit block does not work and
+            # processes do not clean up their
+            # pid files: lets do it ourselves
+            Dir["#{Merb.log_path}" / "*.pid"].each do |file|
+              kill_pid(sig, file)
+              ::FileUtils.rm_rf file
+            end
+
+            # reap master
+            kill_pid(sig, pid_file("main"))
           end
         else
           kill_pid(sig, pid_file(port))
@@ -97,29 +121,29 @@ module Merb
       # @api private
       def kill_pid(sig, file)
         begin
-          pid = File.read(file).chomp.to_i
+          pid = pid_in_file(file)
           Merb.logger.fatal! "Killing pid #{pid} with #{sig}"
           Process.kill(sig, pid)
           FileUtils.rm(file) if File.exist?(file)
         rescue Errno::EINVAL
-          Merb.fatal! "Failed to kill PID #{pid} with #{sig}: '#{sig}' is an invalid " \
+          Merb.logger.fatal! "Failed to kill PID #{pid} with #{sig}: '#{sig}' is an invalid " \
             "or unsupported signal number."
         rescue Errno::EPERM
-          Merb.fatal! "Failed to kill PID #{pid} with #{sig}: Insufficient permissions."
+          Merb.logger.fatal! "Failed to kill PID #{pid} with #{sig}: Insufficient permissions."
         rescue Errno::ESRCH
           FileUtils.rm file
-          Merb.fatal! "Failed to kill PID #{pid} with #{sig}: Process is " \
+          Merb.logger.fatal! "Failed to kill PID #{pid} with #{sig}: Process is " \
             "deceased or zombie."
         rescue Errno::EACCES => e
-          Merb.fatal! e.message, e
+          Merb.logger.fatal! e.message
         rescue Errno::ENOENT => e
           # This should not cause abnormal exit, that's why
           # we do not use Merb.fatal but instead just
           # log with max level.
-          Merb.logger.fatal! "Could not find a PID file at #{file}. Probably process is no longer running but pid file wasn't cleaned up.", e
+          Merb.logger.fatal! "Could not find a PID file at #{file}. Probably process is no longer running but pid file wasn't cleaned up."
         rescue Exception => e
           if !e.is_a?(SystemExit)
-            Merb.fatal! "Failed to kill PID #{pid} with #{sig}", e
+            Merb.logger.fatal! "Failed to kill PID #{pid.inspect} with #{sig.inspect}: #{e.message}"
           end
         end
       end

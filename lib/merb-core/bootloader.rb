@@ -562,6 +562,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       end
 
       @ran = true
+      # process name you see in ps output
       $0 = "merb#{" : " + Merb::Config[:name] if Merb::Config[:name]} : master"
 
       # Log the process configuration user defined signal 1 (SIGUSR1) is received.
@@ -604,7 +605,8 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
       Process.waitall
       # remove master process pid
       Merb::Server.remove_pid("main")
-      # terminate
+      # terminate, workers remove their own pids
+      # in on exit hook
       exit
     end
 
@@ -632,6 +634,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
 
       loop do
         # create two connected endpoints
+        # we use them for master/workers communication
         reader, @writer = IO.pipe
         pid = Kernel.fork
 
@@ -640,7 +643,7 @@ class Merb::BootLoader::LoadClasses < Merb::BootLoader
         # writer must be closed so reader can generate EOF condition
         @writer.close
 
-        # master process stores pid to merb.mail.pid
+        # master process stores pid to merb.main.pid
         Merb::Server.store_pid("main")
 
         if Merb::Config[:console_trap]
