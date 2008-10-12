@@ -8,16 +8,20 @@ module Merb
       end
       
       def call(env)        
-        path = env['PATH_INFO'] ? env['PATH_INFO'].chomp('/') : ""
+        path = if env[Merb::Const::PATH_INFO]
+                 env[Merb::Const::PATH_INFO].chomp(Merb::Const::SLASH)
+               else
+                 Merb::Const::EMPTY_STRING
+               end
         cached_path = (path.empty? ? 'index' : path) + '.html'
         
-        if file_exist?(path) && env['REQUEST_METHOD'] =~ /GET|HEAD/ # Serve the file if it's there and the request method is GET or HEAD
+        if file_exist?(path) && env[Merb::Const::REQUEST_METHOD] =~ /GET|HEAD/ # Serve the file if it's there and the request method is GET or HEAD
           serve_static(env)
-        elsif file_exist?(cached_path) && env['REQUEST_METHOD'] =~ /GET|HEAD/ # Serve the page cache if it's there and the request method is GET or HEAD
-          env['PATH_INFO'] = cached_path
+        elsif file_exist?(cached_path) && env[Merb::Const::REQUEST_METHOD] =~ /GET|HEAD/ # Serve the page cache if it's there and the request method is GET or HEAD
+          env[Merb::Const::PATH_INFO] = cached_path
           serve_static(env)
         elsif path =~ /favicon\.ico/
-          return [404, {"Content-Type"=>"text/html"}, "404 Not Found."]
+          return [404, { Merb::Const::CONTENT_TYPE => Merb::Const::TEXT_SLASH_HTML }, "404 Not Found."]
         else
           @app.call(env)
         end
@@ -36,7 +40,7 @@ module Merb
         # ==== Parameters
         # env<Hash>:: Environment variables to pass on to the server.
         def serve_static(env)
-          env["PATH_INFO"] = ::Merb::Request.unescape(env["PATH_INFO"])        
+          env[Merb::Const::PATH_INFO] = ::Merb::Request.unescape(env[Merb::Const::PATH_INFO])
           @static_server.call(env)
         end
       

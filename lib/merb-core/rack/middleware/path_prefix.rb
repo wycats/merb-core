@@ -20,8 +20,8 @@ module Merb
       def strip_path_prefix(env)
         ['PATH_INFO', 'REQUEST_URI'].each do |path_key|
           if env[path_key] =~ @path_prefix
-            env[path_key].sub!(@path_prefix, '')
-            env[path_key] = '/' if env[path_key].empty?
+            env[path_key].sub!(@path_prefix, Merb::Const::EMPTY_STRING)
+            env[path_key] = Merb::Const::SLASH if env[path_key].empty?
           end
         end
       end

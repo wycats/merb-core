@@ -48,16 +48,20 @@ module Merb
     HTTP_X_FORWARDED_FOR     = "HTTP_X_FORWARDED_FOR".freeze
     HTTP_IF_MODIFIED_SINCE   = "HTTP_IF_MODIFIED_SINCE".freeze
     HTTP_IF_NONE_MATCH       = "HTTP_IF_NONE_MATCH".freeze
+    HTTP_CONTENT_TYPE        = "HTTP_CONTENT_TYPE".freeze
+    HTTP_CONTENT_LENGTH      = "HTTP_CONTENT_LENGTH".freeze
     UPLOAD_ID                = "upload_id".freeze
     PATH_INFO                = "PATH_INFO".freeze
     SCRIPT_NAME              = "SCRIPT_NAME".freeze
     REQUEST_URI              = "REQUEST_URI".freeze
     REQUEST_PATH             = "REQUEST_PATH".freeze
+    REQUEST_METHOD           = "REQUEST_METHOD".freeze
     REMOTE_ADDR              = "REMOTE_ADDR".freeze
     BREAK_TAG                = "<br/>".freeze
     EMPTY_STRING             = "".freeze
     NEWLINE                  = "\n".freeze
     DOUBLE_NEWLINE           = "\n\n".freeze
     LOCATION                 = "Location".freeze
+    TEXT_SLASH_HTML          = "text/html".freeze
   end
 end

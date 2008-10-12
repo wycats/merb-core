@@ -7,7 +7,7 @@ module Merb
 
         if document_not_modified?(env, headers)
           status = 304
-          body = ""
+          body = Merb::Const::EMPTY_STRING
           # set Date header using RFC1123 date format as specified by HTTP
           # RFC2616 section 3.3.1.
         end

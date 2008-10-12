@@ -54,10 +54,10 @@ module Merb
         # response<HTTPResponse>:: The response object to write response to.
         def process(request, response)
           env = {}.replace(request.params)
-          env.delete "HTTP_CONTENT_TYPE"
-          env.delete "HTTP_CONTENT_LENGTH"
+          env.delete Merb::Const::HTTP_CONTENT_TYPE
+          env.delete Merb::Const::HTTP_CONTENT_LENGTH
   
-          env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
+          env[Merb::Const::SCRIPT_NAME] = Merb::Const::EMPTY_STRING if env[Merb::Const::SCRIPT_NAME] == Merb::Const::SLASH
   
           env.update({"rack.version" => [0,1],
                        "rack.input" => request.body || StringIO.new(""),
@@ -69,8 +69,8 @@ module Merb
   
                        "rack.url_scheme" => "http"
                      })
-          env["QUERY_STRING"] ||= ""
-          env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
+          env[Merb::Const::QUERY_STRING] ||= ""
+          env.delete Merb::Const::PATH_INFO  if env[Merb::Const::PATH_INFO] == Merb::Const::EMPTY_STRING
   
           status, headers, body = @app.call(env)
   
