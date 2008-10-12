@@ -22,7 +22,7 @@ describe "Recognizing requests for deferred routes" do
     it "should return the param hash returned by the block" do
       Merb::Router.prepare do
         match("/deferred").defer_to do |request, params|
-          :hello => "world"
+          { :hello => "world" }
         end
       end
 
@@ -42,7 +42,7 @@ describe "Recognizing requests for deferred routes" do
     it "should be able to define routes after the deferred route" do
       Merb::Router.prepare do
         match("/deferred").defer_to do
-          :hello => "world"
+          { :hello => "world" }
         end
 
         match("/").to(:foo => "bar")
