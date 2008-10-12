@@ -32,7 +32,7 @@ module Merb
   #                           retrieved; defaults to _session_id
   #
   # :session_expiry           When to expire the session cookie;
-  #                           defaults to 2 weeks
+  #                           by defaults session expires when browser quits.
   #
   # :session_secret_key       A secret string which is used to sign/validate
   #                           session data; min. 16 chars
