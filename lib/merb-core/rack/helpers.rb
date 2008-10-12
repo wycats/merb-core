@@ -24,7 +24,7 @@ module Merb
         Merb.logger.info("Dispatcher redirecting to: #{url} (#{status})")
         Merb.logger.flush
         
-        [status, { "Location" => url },
+        [status, { Merb::Const::LOCATION => url },
          Merb::Rack::StreamWrapper.new("<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>")]
       end
       

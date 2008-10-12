@@ -1,4 +1,17 @@
 # Most of this list is simply constants frozen for efficiency
+# and lowered memory consumption. Every time Ruby VM comes
+# across a string or a number or a regexp literal,
+# new object is created.
+#
+# This means if you refer to the same string 6 times per request
+# and your application takes 100 requests per second, there are
+# 600 objects for weak MRI garbage collector to work on.
+#
+# GC cycles take up to 80% (!) time of request processing in
+# some cases. Eventually Rubinius and maybe MRI 2.0 gonna
+# improve this situation but at the moment, all commonly used
+# strings, regexp and numbers used as constants so no extra
+# objects created and VM just operate pointers.
 module Merb
     module Const
     
@@ -41,5 +54,10 @@ module Merb
     REQUEST_URI              = "REQUEST_URI".freeze
     REQUEST_PATH             = "REQUEST_PATH".freeze
     REMOTE_ADDR              = "REMOTE_ADDR".freeze
+    BREAK_TAG                = "<br/>".freeze
+    EMPTY_STRING             = "".freeze
+    NEWLINE                  = "\n".freeze
+    DOUBLE_NEWLINE           = "\n\n".freeze
+    LOCATION                 = "Location".freeze
   end
 end

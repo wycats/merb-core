@@ -16,9 +16,9 @@ module Merb
         begin
           rack_response = ::Merb::Dispatcher.handle(Merb::Request.new(env))
         rescue Object => e
-          return [500, {Merb::Const::CONTENT_TYPE => "text/html"}, e.message + "<br/>" + e.backtrace.join("<br/>")]
+          return [500, {Merb::Const::CONTENT_TYPE => "text/html"}, e.message + Merb::Const::BREAK_TAG + e.backtrace.join(Merb::Const::BREAK_TAG)]
         end
-        Merb.logger.info "\n\n"
+        Merb.logger.info Merb::Const::DOUBLE_NEWLINE
         Merb.logger.flush
 
         # unless controller.headers[Merb::Const::DATE]
@@ -41,7 +41,7 @@ module Merb
       #
       # @api private
       def deferred?(env)
-        path = env[Merb::Const::PATH_INFO] ? env[Merb::Const::PATH_INFO].chomp('/') : ""
+        path = env[Merb::Const::PATH_INFO] ? env[Merb::Const::PATH_INFO].chomp(Merb::Const::SLASH) : Merb::Const::EMPTY_STRING
         if path =~ Merb.deferred_actions
           Merb.logger.info! "Deferring Request: #{path}"
           true
