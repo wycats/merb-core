@@ -157,6 +157,123 @@ module Spec
   end
 end
 
+def it_should_be_a_resource_collection_route(name, *args)
+  params = extract_options_from_args!(args) || {}
+  prefix = args.first.is_a?(String) ? args.shift : ""
+  opts   = args.first.is_a?(Hash)   ? args.shift : {}
+  
+  id = opts[:id] || "45"
+  
+  it "should provide #{name} with an 'index' route" do
+    route_for("#{prefix}/#{name}").should          have_route({:action => "index", :controller => "#{name}",  :id => nil, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}/index").should    have_route({:action => "index", :controller => "#{name}",  :id => nil, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}.js").should       have_route({:action => "index", :controller => "#{name}",  :id => nil, :format => "js"}.merge(params))
+    route_for("#{prefix}/#{name}/index.js").should have_route({:action => "index", :controller => "#{name}",  :id => nil, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with a 'new' route" do
+    route_for("#{prefix}/#{name}/new").should    have_route({:action => "new", :controller => "#{name}", :id => nil, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}/new.js").should have_route({:action => "new", :controller => "#{name}", :id => nil, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with a 'create' route" do
+    route_for("#{prefix}/#{name}",    :method => :post).should have_route({:action => "create", :controller => "#{name}", :id => nil, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}.js", :method => :post).should have_route({:action => "create", :controller => "#{name}", :id => nil, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with a 'show' route" do
+    route_for("#{prefix}/#{name}/#{id}").should    have_route({:action => "show", :controller => "#{name}", :id => id, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}/#{id}.js").should have_route({:action => "show", :controller => "#{name}", :id => id, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with an 'edit' route" do
+    route_for("#{prefix}/#{name}/#{id}/edit").should    have_route({:action => "edit", :controller => "#{name}", :id => id, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}/#{id}/edit.js").should have_route({:action => "edit", :controller => "#{name}", :id => id, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with an 'update' route" do
+    route_for("#{prefix}/#{name}/#{id}",    :method => :put).should have_route({:action => "update", :controller => "#{name}", :id => id, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}/#{id}.js", :method => :put).should have_route({:action => "update", :controller => "#{name}", :id => id, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with a 'delete' route" do
+    route_for("#{prefix}/#{name}/#{id}/delete").should    have_route({:action => "delete", :controller => "#{name}", :id => id, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}/#{id}/delete.js").should have_route({:action => "delete", :controller => "#{name}", :id => id, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with a 'destroy' route" do
+    route_for("#{prefix}/#{name}/#{id}",    :method => :delete).should have_route({:action => "destroy", :controller => "#{name}", :id => id, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}/#{id}.js", :method => :delete).should have_route({:action => "destroy", :controller => "#{name}", :id => id, :format => "js"}.merge(params))
+  end
+
+  # --- I decided that all the routes here will have the following ---
+  
+  if !opts.has_key?(:extra) || opts[:extra]
+    
+    it "should provide #{name} with a 'one' collection route" do
+      route_for("#{prefix}/#{name}/one").should    have_route({:action => "one", :controller => "#{name}", :format => nil }.merge(params))
+      route_for("#{prefix}/#{name}/one.js").should have_route({:action => "one", :controller => "#{name}", :format => "js"}.merge(params))
+    end
+
+    it "should provide #{name} with a 'two' member route" do
+      route_for("#{prefix}/#{name}/#{id}/two").should    have_route({:action => "two", :controller => "#{name}", :id => id, :format => nil }.merge(params))
+      route_for("#{prefix}/#{name}/#{id}/two.js").should have_route({:action => "two", :controller => "#{name}", :id => id, :format => "js"}.merge(params))
+    end
+
+    it "should provide #{name} with a 'three' collection route that maps the 'awesome' method" do
+      route_for("#{prefix}/#{name}/three").should    have_route({:action => "awesome", :controller => "#{name}", :format => nil }.merge(params))
+      route_for("#{prefix}/#{name}/three.js").should have_route({:action => "awesome", :controller => "#{name}", :format => "js"}.merge(params))
+    end
+
+    it "should provide #{name} with a 'four' member route that maps to the 'awesome' method" do
+      route_for("#{prefix}/#{name}/#{id}/four").should    have_route({:action => "awesome", :controller => "#{name}", :id => id, :format => nil }.merge(params))
+      route_for("#{prefix}/#{name}/#{id}/four.js").should have_route({:action => "awesome", :controller => "#{name}", :id => id, :format => "js"}.merge(params))
+    end
+  end
+end
+
+def it_should_be_a_resource_object_route(name, *args)
+  controller = "#{name}s"
+  params     = extract_options_from_args!(args) || {}
+  prefix     = args.first.is_a?(String) ? args.shift : ""
+  opts       = args.first.is_a?(Hash)   ? args.shift : {}
+
+  it "should provide #{name} with a 'show' route" do
+    route_for("#{prefix}/#{name}").should    have_route({:action => "show", :controller => controller, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}.js").should have_route({:action => "show", :controller => controller, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with an 'edit' route" do
+    route_for("#{prefix}/#{name}/edit").should    have_route({:action => "edit", :controller => controller, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}/edit.js").should have_route({:action => "edit", :controller => controller, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with an 'update' route" do
+    route_for("#{prefix}/#{name}",    :method => :put).should have_route({:action => "update", :controller => controller, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}.js", :method => :put).should have_route({:action => "update", :controller => controller, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with a 'delete' route" do
+    route_for("#{prefix}/#{name}/delete").should    have_route({:action => "delete", :controller => controller, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}/delete.js").should have_route({:action => "delete", :controller => controller, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with a 'destroy' route" do
+    route_for("#{prefix}/#{name}",    :method => :delete).should have_route({:action => "destroy", :controller => controller, :format => nil}.merge(params))
+    route_for("#{prefix}/#{name}.js", :method => :delete).should have_route({:action => "destroy", :controller => controller, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with a 'one' member route" do
+    route_for("#{prefix}/#{name}/one").should    have_route({:action => "one", :controller => controller, :format => nil}.merge(params))
+    route_for("#{prefix}/#{name}/one.js").should have_route({:action => "one", :controller => controller, :format => "js"}.merge(params))
+  end
+
+  it "should provide #{name} with a 'two' member route that maps to the 'awesome' method" do
+    route_for("#{prefix}/#{name}/two").should    have_route({:action => "awesome", :controller => controller, :format => nil }.merge(params))
+    route_for("#{prefix}/#{name}/two.js").should have_route({:action => "awesome", :controller => controller, :format => "js"}.merge(params))
+  end
+end
+
 Spec::Runner.configure do |config|
   config.include(Spec::Helpers)
   config.include(Spec::Matchers)

@@ -70,6 +70,8 @@ module Merb
       def resources(name, *args, &block)
         name       = name.to_s
         options    = extract_options_from_args!(args) || {}
+        match_opts = options.except(*resource_options)
+        options    = options.only(*resource_options)
         singular   = options[:singular] ? options[:singular].to_s : Extlib::Inflection.singularize(name)
         klass_name = args.first ? args.first.to_s : Extlib::Inflection.classify(singular)
         klass      = Object.full_const_get(klass_name) rescue nil
@@ -118,45 +120,48 @@ module Merb
           end
 
           # => show
-          resource.match("/#{root_keys}(.:format)", :method => :get).to(:action => "show").
+          resource.match("/#{root_keys}(.:format)", match_opts.merge(:method => :get)).to(:action => "show").
             name(singular).register_resource(klass_name)
 
           # => user defined member routes
           member.each_pair do |action, method|
             action = action.to_s
-            resource.match("/#{root_keys}/#{action}(.:format)", :method => method).
+            resource.match("/#{root_keys}/#{action}(.:format)", match_opts.merge(:method => method)).
               to(:action => "#{action}").name(action, singular).register_resource(klass_name, action)
           end
 
           # => update
-          resource.match("/#{root_keys}(.:format)", :method => :put).
+          resource.match("/#{root_keys}(.:format)", match_opts.merge(:method => :put)).
             to(:action => "update")
             
           # => destroy
-          resource.match("/#{root_keys}(.:format)", :method => :delete).
+          resource.match("/#{root_keys}(.:format)", match_opts.merge(:method => :delete)).
             to(:action => "destroy")
 
           if block_given?
             nested_keys = keys.map do |k|
               k.to_s == "id" ? ":#{singular}_id" : ":#{k}"
             end.join("/")
+
+            nested_match_opts = match_opts.except(:id)
+            nested_match_opts["#{singular}_id".to_sym] = match_opts[:id] if match_opts[:id]
             
             # Procs for building the extra collection/member resource routes
             placeholder = Router.resource_routes[ [@options[:resource_prefix], klass_name].flatten.compact ]
             builders    = {}
             
             builders[:collection] = lambda do |action, to, method|
-              resource.before(placeholder).match("/#{action}(.:format)", :method => method).
+              resource.before(placeholder).match("/#{action}(.:format)", match_opts.merge(:method => method)).
                 to(:action => to).name(action, name).register_resource(name, action)
             end
             
             builders[:member] = lambda do |action, to, method|
-              resource.match("/#{root_keys}/#{action}(.:format)", :method => method).
+              resource.match("/#{root_keys}/#{action}(.:format)", match_opts.merge(:method => method)).
                 to(:action => to).name(action, singular).register_resource(klass_name, action)
             end
             
             resource.options(:name_prefix => singular, :resource_prefix => klass_name).
-              match("/#{nested_keys}").resource_block(builders, &block)
+              match("/#{nested_keys}", nested_match_opts).resource_block(builders, &block)
           end
         end # namespace
       end # resources
@@ -226,6 +231,7 @@ module Merb
 
         self.namespace(name, options).to(params) do |resource|
           # => show
+          
           resource.match("(.:format)", :method => :get).to(:action => "show").
             name(name).register_resource(name)
             
@@ -269,6 +275,11 @@ module Merb
       def resource_block(builders, &block)
         behavior = ResourceBehavior.new(builders, @proxy, @conditions, @params, @defaults, @identifiers, @options, @blocks)
         with_behavior_context(behavior, &block)
+      end
+      
+      def resource_options
+        [:singular, :keys, :key, :controller, :member, :collection, :identify,
+          :name_prefix, :resource_prefix, :controller_prefix, :namespace, :path]
       end
 
     end # Resources

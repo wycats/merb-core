@@ -1,62 +1,27 @@
 require File.join(File.dirname(__FILE__), "..", "spec_helper")
 
 describe "When recognizing requests," do
-
-  describe "a basic resource collection route" do
   
+  describe "a basic resource collection route" do
+    
     before :each do
       Merb::Router.prepare do
         resources :blogposts
       end
     end
-  
-    it "should have an index action with an optional :format" do
-      route_for('/blogposts').should           have_route(:controller => 'blogposts', :action => 'index', :id => nil, :format => nil)
-      route_for('/blogposts/index').should     have_route(:controller => 'blogposts', :action => 'index', :id => nil, :format => nil)
-      route_for('/blogposts.js').should        have_route(:controller => 'blogposts', :action => 'index', :id => nil, :format => "js")
-      route_for('/blogposts/index.xml').should have_route(:controller => 'blogposts', :action => 'index', :id => nil, :format => "xml")
-    end
-  
-    it "should have a create action with an optional :format" do
-      route_for('/blogposts',    :method => :post).should have_route(:controller => 'blogposts', :action => 'create', :id => nil, :format => nil)
-      route_for('/blogposts.js', :method => :post).should have_route(:controller => 'blogposts', :action => 'create', :id => nil, :format => "js")
-    end
-
+    
+    it_should_be_a_resource_collection_route :blogposts, { :extra => false }, { }
+    
     it "should not match put or delete on the collection" do
       [:put, :delete].each do |method|
         lambda { route_for('/blogposts',    :method => method) }.should raise_not_found
         lambda { route_for('/blogposts.js', :method => method) }.should raise_not_found
       end
     end
-  
-    it "should have a new action with an optional :format" do
-      route_for('/blogposts/new',    :method => :get).should have_route(:controller => 'blogposts', :action => 'new', :id => nil, :format => nil)
-      route_for('/blogposts/new.js', :method => :get).should have_route(:controller => 'blogposts', :action => 'new', :id => nil, :format => "js")
-    end
     
     it "should not match post on the new action" do
       lambda { route_for('/blogposts/new',     :method => :post) }.should raise_not_found
       lambda { route_for('/blogposts/new.xml', :method => :post) }.should raise_not_found
-    end
-  
-    it "should have a show action with an optional :format" do
-      route_for('/blogposts/1',     :method => :get).should have_route(:controller => 'blogposts', :action => 'show', :id => "1", :format => nil)
-      route_for('/blogposts/1.css', :method => :get).should have_route(:controller => 'blogposts', :action => 'show', :id => "1", :format => "css")
-    end
-  
-    it "should have an update action with an optional :format" do
-      route_for('/blogposts/1',     :method => :put).should have_route(:controller => 'blogposts', :action => 'update', :id => "1", :format => nil)
-      route_for('/blogposts/1.csv', :method => :put).should have_route(:controller => 'blogposts', :action => 'update', :id => "1", :format => "csv")
-    end
-  
-    it "should have a destroy action with an optional :format" do
-      route_for('/blogposts/1',     :method => :delete).should have_route(:controller => 'blogposts', :action => 'destroy', :id => "1", :format => nil)
-      route_for('/blogposts/1.xxl', :method => :delete).should have_route(:controller => 'blogposts', :action => 'destroy', :id => "1", :format => 'xxl')
-    end
-
-    it "should have an edit action with an optional :format" do
-      route_for('/blogposts/1/edit',     :method => :get).should have_route(:controller => 'blogposts', :action => 'edit', :id => "1", :format => nil)
-      route_for('/blogposts/1/edit.rss', :method => :get).should have_route(:controller => 'blogposts', :action => 'edit', :id => "1", :format => "rss")
     end
     
     it "should not match post, put, or delete on the edit action" do
@@ -65,11 +30,6 @@ describe "When recognizing requests," do
         lambda { route_for('/blogposts/edit.hi', :method => :post) }.should raise_not_found
       end
     end
-  
-    it "should should have a delete action with an optional :format" do
-      route_for('/blogposts/1/delete',     :method => :get).should have_route(:controller => 'blogposts', :action => 'delete', :id => "1", :format => nil)
-      route_for('/blogposts/1/delete.mp3', :method => :get).should have_route(:controller => 'blogposts', :action => 'delete', :id => "1", :format => "mp3")
-    end
     
     it "should not match post, put, or delete on the delete action" do
       [:put, :post, :delete].each do |method|
@@ -77,6 +37,27 @@ describe "When recognizing requests," do
         lambda { route_for('/blogposts/delete.flv', :method => :post) }.should raise_not_found
       end
     end
+    
+  end
+  
+  describe "a basic resource collection with custom " do
+    
+    before :each do
+      Merb::Router.prepare do
+        resources :blogposts, :id => %r([a-z]+/\d+)
+      end
+    end
+    
+    it_should_be_a_resource_collection_route :blogposts, { :extra => false, :id => "abc/123" }, { }
+    
+    it "should not match a numeric ID for the routes" do
+      lambda { route_for("/blogposts/10") }.should                     raise_not_found
+      lambda { route_for("/blogposts/10", :method => :put) }.should    raise_not_found
+      lambda { route_for("/blogposts/10", :method => :delete) }.should raise_not_found
+      lambda { route_for("/blogposts/10/edit") }.should                raise_not_found
+      lambda { route_for("/blogposts/10/delete") }.should              raise_not_found
+    end
+    
   end
   
   describe "a customized resource collection route" do
@@ -266,6 +247,28 @@ describe "When recognizing requests," do
     
     it "should match a get to /emails/bidule/merbivore_com/delete to the emails controller and the delete action with username => 'bidule', domain => 'merbivore_com'" do
       route_for('/emails/bidule/merbivore_com/delete', :method => :get).should have_route(:controller => 'emails', :action => 'delete', :username => "bidule", :domain => "merbivore_com")
+    end
+    
+    it "should be able to set matches on each key" do
+      Merb::Router.prepare do
+        resources :emails, :keys => ["username", "domain"], :username => /[a-z]+/, :domain => /[a-z]+\.com/
+      end
+      
+      route_for("/emails/abc/abc.com").should have_route(:username => "abc", :domain => "abc.com")
+      lambda { route_for("/emails/123/456")     }.should raise_not_found
+      lambda { route_for("/emails/abc/123")     }.should raise_not_found
+      lambda { route_for("/emails/123/abc.com") }.should raise_not_found
+    end
+    
+    it "should be able to set matches on a single key" do
+      Merb::Router.prepare do
+        resources :emails, :keys => ["username", "domain"], :username => /[a-z]+/
+      end
+      
+      route_for("/emails/abc/123").should have_route(:username => "abc", :domain => "123")
+      route_for("/emails/abc/abc").should have_route(:username => "abc", :domain => "abc")
+      lambda { route_for("/emails/123/456") }.should raise_not_found
+      lambda { route_for("/emails/123/abc") }.should raise_not_found
     end
  
   end
