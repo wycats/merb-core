@@ -18,7 +18,7 @@ module Kernel
   #
   # @api private
   def track_dependency(name, *ver, &blk)
-    dep = Gem::Dependency.new(name, ver)
+    dep = Gem::Dependency.new(name, ver.empty? ? nil : ver)
     dep.require_block = blk
     
     existing = Merb::BootLoader::Dependencies.dependencies.find { |d| d.name == dep.name }
