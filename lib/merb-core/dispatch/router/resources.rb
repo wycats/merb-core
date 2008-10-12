@@ -272,11 +272,7 @@ module Merb
       end
 
     end # Resources
-    
-    class Behavior
-      include Resources
-    end
-    
+
     # Adding the collection and member methods to behavior
     class ResourceBehavior < Behavior #:nodoc:
       
@@ -300,6 +296,10 @@ module Merb
         @member[action, to, method]
       end
       
+    end
+    
+    class Behavior
+      include Resources
     end
   end
 end

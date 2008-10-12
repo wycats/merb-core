@@ -145,7 +145,7 @@ describe Merb::Router do
     end
     
     it "should not be able to match routes anymore" do
-      lambda { route_for("/users") }
+      lambda { route_for("/users") }.should raise_error(Merb::Router::NotCompiledError)
     end
     
   end
@@ -156,6 +156,22 @@ describe Merb::Router do
       lambda { Merb::Router.match(simple_request) }.should raise_error(Merb::Router::NotCompiledError)
     end
 
+  end
+  
+  describe "#extensions" do
+    it "should be able to extend the router" do
+      Merb::Router.extensions do
+        def hello_world
+          match("/hello").to(:controller => "world")
+        end
+      end
+      
+      Merb::Router.prepare do
+        hello_world
+      end
+      
+      route_for("/hello").should have_route(:controller => "world")
+    end
   end
 
 end

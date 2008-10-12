@@ -236,8 +236,40 @@ module Merb
         route.generate(params, defaults)
       end
       
-      private
-      
+      # Add functionality to the router. This can be in the form of
+      # including a new module or directly defining new methods.
+      #
+      # ==== Parameters
+      # &block<Block>::
+      #   A block of code used to extend the route builder with. This
+      #   can be including a module or directly defining some new methods
+      #   that should be available to building routes.
+      #
+      # ==== Example
+      # Merb::Router.extensions do
+      #   def domain(name, domain, options={}, &block)
+      #     match(:domain => domain).namespace(name, :path => nil, &block)
+      #   end
+      # end
+      #
+      # In this case, a method 'domain' will be available to the route builder
+      # which will create namespaces around domains instead of path prefixes.
+      #
+      # This can then be used as follows.
+      #
+      # Merb::Router.prepare do
+      #   domain(:admin, "my-admin.com") do
+      #     # ... routes come here ...
+      #   end
+      # end
+      # ---
+      # @api public
+      def extensions(&block)
+        Router::Behavior.class_eval(&block)
+      end
+
+    private
+    
       # Compiles the routes and creates the +match+ method.
       # 
       # @api private
