@@ -278,6 +278,8 @@ module Merb::Test::Rspec::ViewMatchers
     def with_tag(name, attrs={})
       @inner_has_tag = HasTag.new(name, attrs)
       @inner_has_tag.outer_has_tag = self
+      
+      @inner_has_tag
     end
   end
 
