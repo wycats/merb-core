@@ -29,3 +29,7 @@ require "merb-core/controller/merb_controller"
 module Merb
   module InlineTemplates; end
 end
+
+# StatusCodes does not autoload properly if placed with the above autoload
+# statements.  ControllerExceptions depends upon StatusCodes loading first.
+require "merb-core/controller/status_codes"

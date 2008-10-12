@@ -54,7 +54,7 @@ describe Merb::Rack::Csrf do
     env = Rack::MockRequest.env_for('/users/new')
     status, header, body = @middleware.call(env)
     body.should have_tag(:form, :action => '/users')
-      body.should have_tag(:input, :type => 'hidden', :id => 'csrf_authentication_token')
+    body.should have_tag(:input, :type => 'hidden', :id => 'csrf_authentication_token')
   end
 
   it "should not do anything if there is no form found in the response" do
