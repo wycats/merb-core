@@ -324,7 +324,7 @@ module Merb
 
           opts.on("-k", "--kill PORT", "Force kill one merb worker " \
                   "by port number. This will cause the worker to" \
-                  "be respawned. If you want to kill ") do |port|
+                  "be respawned.") do |port|
             options[:action] = :kill_9
             port = "main" if port == "all"
             options[:port] = port

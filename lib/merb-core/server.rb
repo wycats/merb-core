@@ -95,22 +95,6 @@ module Merb
           # turn
           if sig == "INT"
             kill_pid(sig, pid_file("main"))
-          else
-            # order is important here
-            
-            # then reap workers
-            # 
-            # there is no way to handle KILL so
-            # at_exit block does not work and
-            # processes do not clean up their
-            # pid files: lets do it ourselves
-            Dir["#{Merb.log_path}" / "*.pid"].each do |file|
-              kill_pid(sig, file)
-              ::FileUtils.rm_rf file
-            end
-
-            # reap master
-            kill_pid(sig, pid_file("main"))
           end
         else
           kill_pid(sig, pid_file(port))
