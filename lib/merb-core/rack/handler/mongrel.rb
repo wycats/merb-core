@@ -34,7 +34,7 @@ module Merb
         def self.run(app, options={})
           @server = ::Mongrel::HttpServer.new(options[:Host] || '0.0.0.0',
                                              options[:Port] || 8080)
-          @server.register('/', ::Merb::Rack::Handler::Mongrel.new(app))
+          @server.register(Merb::Const::SLASH, ::Merb::Rack::Handler::Mongrel.new(app))
           yield @server  if block_given?
           @server.run.join
         end
@@ -60,16 +60,17 @@ module Merb
           env[Merb::Const::SCRIPT_NAME] = Merb::Const::EMPTY_STRING if env[Merb::Const::SCRIPT_NAME] == Merb::Const::SLASH
   
           env.update({"rack.version" => [0,1],
-                       "rack.input" => request.body || StringIO.new(""),
+                       Merb::Const::RACK_INPUT => request.body || StringIO.new(""),
                        "rack.errors" => STDERR,
   
                        "rack.multithread" => true,
                        "rack.multiprocess" => false, # ???
                        "rack.run_once" => false,
-  
-                       "rack.url_scheme" => "http"
+                        
+                       # Merb::Const::HTTP = "http".freeze
+                       "rack.url_scheme" => Merb::Const::HTTP
                      })
-          env[Merb::Const::QUERY_STRING] ||= ""
+          env[Merb::Const::QUERY_STRING] ||= Merb::Const::EMPTY_STRING
           env.delete Merb::Const::PATH_INFO  if env[Merb::Const::PATH_INFO] == Merb::Const::EMPTY_STRING
   
           status, headers, body = @app.call(env)

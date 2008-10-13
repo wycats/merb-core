@@ -25,9 +25,16 @@ module Merb
     COOKIE_SPLIT             = /[;,] */n.freeze
     COOKIE_REGEXP            = /\s*(.+)=(.*)\s*/.freeze
     COOKIE_EXPIRED_TIME      = Time.at(0).freeze
+    XML_HTTP_REQUEST_REGEXP  = /XMLHttpRequest/i.freeze
+    TRUSTED_IP_REGEXP        = /^unknown$|^(127|10|172\.16|192\.168)\./i.freeze
     HOUR                     = 60 * 60
     DAY                      = HOUR * 24
     WEEK                     = DAY * 7
+    ON                       = "on".freeze
+    COMMA                    = ','.freeze
+    DOT                      = '.'.freeze
+    QUESTION_MARK            = '?'.freeze
+    AMPERSAND                = '&'.freeze    
     MULTIPART_REGEXP         = /\Amultipart\/form-data.*boundary=\"?([^\";,]+)/n.freeze
     HTTP_COOKIE              = 'HTTP_COOKIE'.freeze
     QUERY_STRING             = 'QUERY_STRING'.freeze
@@ -44,24 +51,47 @@ module Merb
     GET                      = "GET".freeze
     POST                     = "POST".freeze
     HEAD                     = "HEAD".freeze
+    HTTP                     = "http".freeze
+    HTTPS                    = "https".freeze
+    UPCASE_HTTPS             = "HTTPS".freeze
     CONTENT_LENGTH           = "CONTENT_LENGTH".freeze
+    HTTP_ACCEPT_ENCODING     = "HTTP_ACCEPT_ENCODING".freeze
+    HTTP_ACCEPT_LANGUAGE     = "HTTP_ACCEPT_LANGUAGE".freeze
+    HTTP_ACCEPT_CHARSET      = "HTTP_ACCEPT_CHARSET".freeze
+    HTTP_CACHE_CONTROL       = "HTTP_CACHE_CONTROL".freeze    
     HTTP_X_FORWARDED_FOR     = "HTTP_X_FORWARDED_FOR".freeze
     HTTP_IF_MODIFIED_SINCE   = "HTTP_IF_MODIFIED_SINCE".freeze
+    HTTP_X_FORWARDED_HOST    = "HTTP_X_FORWARDED_HOST".freeze
+    HTTP_X_FORWARDED_PROTO   = "HTTP_X_FORWARDED_PROTO".freeze
+    HTTP_X_REQUESTED_WITH    = "HTTP_X_REQUESTED_WITH".freeze
     HTTP_IF_NONE_MATCH       = "HTTP_IF_NONE_MATCH".freeze
     HTTP_CONTENT_TYPE        = "HTTP_CONTENT_TYPE".freeze
     HTTP_CONTENT_LENGTH      = "HTTP_CONTENT_LENGTH".freeze
+    HTTP_REFERER             = "HTTP_REFERER".freeze
+    HTTP_USER_AGENT          = "HTTP_USER_AGENT".freeze
+    HTTP_CLIENT_IP           = "HTTP_CLIENT_IP".freeze
+    HTTP_CONNECTION          = "HTTP_CONNECTION".freeze
+    HTTP_VERSION             = "HTTP_VERSION".freeze
+    GATEWAY_INTERFACE        = "GATEWAY_INTERFACE".freeze
     UPLOAD_ID                = "upload_id".freeze
     PATH_INFO                = "PATH_INFO".freeze
     SCRIPT_NAME              = "SCRIPT_NAME".freeze
+    SERVER_NAME              = "SERVER_NAME".freeze
+    SERVER_PORT              = "SERVER_PORT".freeze
+    SERVER_SOFTWARE          = "SERVER_SOFTWARE".freeze
     REQUEST_URI              = "REQUEST_URI".freeze
     REQUEST_PATH             = "REQUEST_PATH".freeze
     REQUEST_METHOD           = "REQUEST_METHOD".freeze
     REMOTE_ADDR              = "REMOTE_ADDR".freeze
+    HTTP_HOST                = "HTTP_HOST".freeze
+    HTTP_ACCEPT              = "HTTP_ACCEPT".freeze
+    HTTP_KEEP_ALIVE          = "HTTP_KEEP_ALIVE".freeze
     BREAK_TAG                = "<br/>".freeze
     EMPTY_STRING             = "".freeze
     NEWLINE                  = "\n".freeze
     DOUBLE_NEWLINE           = "\n\n".freeze
     LOCATION                 = "Location".freeze
     TEXT_SLASH_HTML          = "text/html".freeze
+    RACK_INPUT               = 'rack.input'.freeze
   end
 end

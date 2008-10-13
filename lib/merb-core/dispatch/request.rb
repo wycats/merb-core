@@ -33,7 +33,8 @@ module Merb
     # @api private
     def initialize(rack_env)
       @env  = rack_env
-      @body = rack_env['rack.input']
+      # Merb::Const::RACK_INPUT = 'rack.input'.freeze
+      @body = rack_env[Merb::Const::RACK_INPUT]
       @route_params = {}
     end
     
@@ -53,7 +54,7 @@ module Merb
           "segment to route definition?\nHere is what's specified:\n" + 
           route.inspect
       end
-      path = [params[:namespace], params[:controller]].compact.join("/")
+      path = [params[:namespace], params[:controller]].compact.join(Merb::Const::SLASH)
       controller = path.snake_case.to_const_string
       
       begin
@@ -79,7 +80,8 @@ module Merb
     # @api public
     def method
       @method ||= begin
-        request_method = @env['REQUEST_METHOD'].downcase.to_sym
+        # Merb::Const::REQUEST_METHOD = "REQUEST_METHOD".freeze
+        request_method = @env[Merb::Const::REQUEST_METHOD].downcase.to_sym
         case request_method
         when :get, :head, :put, :delete, :options
           request_method
@@ -91,7 +93,7 @@ module Merb
           m.downcase! if m
           METHODS.include?(m) ? m.to_sym : :post
         else
-          raise "Unknown REQUEST_METHOD: #{@env['REQUEST_METHOD']}"
+          raise "Unknown REQUEST_METHOD: #{@env[Merb::Const::REQUEST_METHOD]}"
         end
       end
     end
@@ -179,7 +181,7 @@ module Merb
     # 
     # @api private
     def query_params
-      @query_params ||= self.class.query_parse(query_string || '')
+      @query_params ||= self.class.query_parse(query_string || Merb::Const::EMPTY_STRING)
     end
     
     # Parameters passed in the body of the request. Ajax calls from
@@ -322,7 +324,9 @@ module Merb
     # 
     # @api public
     def xml_http_request?
-      not /XMLHttpRequest/i.match(@env['HTTP_X_REQUESTED_WITH']).nil?
+      # Merb::Const::XML_HTTP_REQUEST_REGEXP = /XMLHttpRequest/i.freeze
+      # Merb::Const::HTTP_X_REQUESTED_WITH   = "HTTP_X_REQUESTED_WITH".freeze
+      !Merb::Const::XML_HTTP_REQUEST_REGEXP.match(@env[Merb::Const::HTTP_X_REQUESTED_WITH]).nil?
     end
     alias xhr? :xml_http_request?
     alias ajax? :xml_http_request?
@@ -332,16 +336,21 @@ module Merb
     # 
     # @api public
     def remote_ip
-      return @env['HTTP_CLIENT_IP'] if @env.include?('HTTP_CLIENT_IP')
+      # Merb::Const::HTTP_CLIENT_IP = "HTTP_CLIENT_IP".freeze
+      return @env[Merb::Const::HTTP_CLIENT_IP] if @env.include?(Merb::Const::HTTP_CLIENT_IP)
       
+      # Merb::Const::HTTP_X_FORWARDED_FOR = "HTTP_X_FORWARDED_FOR".freeze
       if @env.include?(Merb::Const::HTTP_X_FORWARDED_FOR) then
-        remote_ips = @env[Merb::Const::HTTP_X_FORWARDED_FOR].split(',').reject do |ip|
-          ip =~ /^unknown$|^(127|10|172\.16|192\.168)\./i
+        # Merb::Const::COMMA = ",".freeze
+        remote_ips = @env[Merb::Const::HTTP_X_FORWARDED_FOR].split(Merb::Const::COMMA).reject do |ip|
+          # Merb::Const::TRUSTED_IP_REGEXP = /^unknown$|^(127|10|172\.16|192\.168)\./i.freeze
+          ip =~ Merb::Const::TRUSTED_IP_REGEXP
         end
         
         return remote_ips.first.strip unless remote_ips.empty?
       end
       
+      # Merb::Const::REMOTE_ADDR = "REMOTE_ADDR".freeze
       return @env[Merb::Const::REMOTE_ADDR]
     end
     
@@ -352,7 +361,9 @@ module Merb
     # 
     # @api public
     def protocol
-      ssl? ? 'https' : 'http'
+      # Merb::Const::HTTP         = 'http'.freeze
+      # Merb::Const::HTTPS        = 'https'.freeze
+      ssl? ? Merb::Const::HTTPS : Merb::Const::HTTP
     end
     
     # ==== Returns
@@ -360,7 +371,11 @@ module Merb
     # 
     # @api public
     def ssl?
-      @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
+      # Merb::Const::ON                     = 'on'.freeze
+      # Merb::Const::HTTPS                  = 'https'.freeze
+      # Merb::Const::UPCASE_HTTPS           = 'HTTPS'.freeze
+      # Merb::Const::HTTP_X_FORWARDED_PROTO = 'HTTP_X_FORWARDED_PROTO'.freeze
+      @env[Merb::Const::UPCASE_HTTPS] == Merb::Const::ON || @env[Merb::Const::HTTP_X_FORWARDED_PROTO] == Merb::Const::HTTPS
     end
     
     # ==== Returns
@@ -368,7 +383,7 @@ module Merb
     # 
     # @api public
     def referer
-      @env['HTTP_REFERER']
+      @env[Merb::Const::HTTP_REFERER]
     end
     
     # ==== Returns
@@ -384,7 +399,7 @@ module Merb
     # 
     # @api public
     def uri
-      @env['REQUEST_PATH'] || @env['REQUEST_URI'] || path_info
+      @env[Merb::Const::REQUEST_PATH] || @env[Merb::Const::REQUEST_URI] || path_info
     end
     
     # ==== Returns
@@ -392,7 +407,8 @@ module Merb
     # 
     # @api public
     def user_agent
-      @env['HTTP_USER_AGENT']
+      # Merb::Const::HTTP_USER_AGENT = "HTTP_USER_AGENT".freeze
+      @env[Merb::Const::HTTP_USER_AGENT]
     end
     
     # ==== Returns
@@ -400,7 +416,8 @@ module Merb
     # 
     # @api public
     def server_name
-      @env['SERVER_NAME']
+      # Merb::Const::SERVER_NAME = "SERVER_NAME".freeze
+      @env[Merb::Const::SERVER_NAME]
     end
     
     # ==== Returns
@@ -408,7 +425,8 @@ module Merb
     # 
     # @api private
     def accept_encoding
-      @env['HTTP_ACCEPT_ENCODING']
+      # Merb::Const::HTTP_ACCEPT_ENCODING = "HTTP_ACCEPT_ENCODING".freeze
+      @env[Merb::Const::HTTP_ACCEPT_ENCODING]
     end
     
     # ==== Returns
@@ -416,7 +434,8 @@ module Merb
     # 
     # @api public
     def script_name
-      @env['SCRIPT_NAME']
+      # Merb::Const::SCRIPT_NAME = "SCRIPT_NAME".freeze
+      @env[Merb::Const::SCRIPT_NAME]
     end
     
     # ==== Returns
@@ -424,7 +443,8 @@ module Merb
     # 
     # @api public
     def cache_control
-      @env['HTTP_CACHE_CONTROL']
+      # Merb::Const::HTTP_CACHE_CONTROL = "HTTP_CACHE_CONTROL".freeze
+      @env[Merb::Const::HTTP_CACHE_CONTROL]
     end
     
     # ==== Returns
@@ -432,7 +452,8 @@ module Merb
     # 
     # @api public
     def accept_language
-      @env['HTTP_ACCEPT_LANGUAGE']
+      # Merb::Const::HTTP_ACCEPT_LANGUAGE = "HTTP_ACCEPT_LANGUAGE".freeze
+      @env[Merb::Const::HTTP_ACCEPT_LANGUAGE]
     end
     
     # ==== Returns
@@ -440,7 +461,8 @@ module Merb
     # 
     # @api public
     def server_software
-      @env['SERVER_SOFTWARE']
+      # Merb::Const::SERVER_SOFTWARE = "SERVER_SOFTWARE".freeze
+      @env[Merb::Const::SERVER_SOFTWARE]
     end
     
     # ==== Returns
@@ -448,7 +470,7 @@ module Merb
     # 
     # @api public
     def keep_alive
-      @env['HTTP_KEEP_ALIVE']
+      @env[Merb::Const::HTTP_KEEP_ALIVE]
     end
     
     # ==== Returns
@@ -456,7 +478,7 @@ module Merb
     # 
     # @api public
     def accept_charset
-      @env['HTTP_ACCEPT_CHARSET']
+      @env[Merb::Const::HTTP_ACCEPT_CHARSET]
     end
     
     # ==== Returns
@@ -464,7 +486,7 @@ module Merb
     # 
     # @api private
     def version
-      @env['HTTP_VERSION']
+      @env[Merb::Const::HTTP_VERSION]
     end
     
     # ==== Returns
@@ -472,7 +494,7 @@ module Merb
     # 
     # @api public
     def gateway
-      @env['GATEWAY_INTERFACE']
+      @env[Merb::Const::GATEWAY_INTERFACE]
     end
     
     # ==== Returns
@@ -480,7 +502,7 @@ module Merb
     # 
     # @api private
     def accept
-      @env['HTTP_ACCEPT'].blank? ? "*/*" : @env['HTTP_ACCEPT']
+      @env[Merb::Const::HTTP_ACCEPT].blank? ? "*/*" : @env[Merb::Const::HTTP_ACCEPT]
     end
     
     # ==== Returns
@@ -488,7 +510,7 @@ module Merb
     # 
     # @api private
     def connection
-      @env['HTTP_CONNECTION']
+      @env[Merb::Const::HTTP_CONNECTION]
     end
     
     # ==== Returns
@@ -496,7 +518,7 @@ module Merb
     # 
     # @api private
     def query_string
-      @env['QUERY_STRING']  
+      @env[Merb::Const::QUERY_STRING]  
     end
     
     # ==== Returns
@@ -504,7 +526,7 @@ module Merb
     # 
     # @api private
     def content_type
-      @env['CONTENT_TYPE']
+      @env[Merb::Const::UPCASE_CONTENT_TYPE]
     end
     
     # ==== Returns
@@ -522,7 +544,7 @@ module Merb
     # 
     # @api public
     def path
-      path = (uri.empty? ? '/' : uri.split('?').first).squeeze("/")
+      path = (uri.empty? ? Merb::Const::SLASH : uri.split(Merb::Const::QUESTION_MARK).first).squeeze(Merb::Const::SLASH)
       path = path[0..-2] if (path[-1] == ?/) && path.size > 1
       path
     end
@@ -532,7 +554,7 @@ module Merb
     # 
     # @api public
     def path_info
-      @path_info ||= self.class.unescape(@env['PATH_INFO'])
+      @path_info ||= self.class.unescape(@env[Merb::Const::PATH_INFO])
     end
     
     # ==== Returns
@@ -540,7 +562,7 @@ module Merb
     # 
     # @api public
     def port
-      @env['SERVER_PORT'].to_i
+      @env[Merb::Const::SERVER_PORT].to_i
     end
     
     # ==== Returns
@@ -548,7 +570,7 @@ module Merb
     # 
     # @api public
     def host
-      @env['HTTP_X_FORWARDED_HOST'] || @env['HTTP_HOST'] 
+      @env[Merb::Const::HTTP_X_FORWARDED_HOST] || @env[Merb::Const::HTTP_HOST] 
     end
     
     # ==== Parameters
@@ -561,7 +583,7 @@ module Merb
     # 
     # @api public
     def subdomains(tld_length = 1)
-      parts = host.split('.')
+      parts = host.split(Merb::Const::DOT)
       parts[0..-(tld_length+2)]
     end
     
@@ -575,7 +597,7 @@ module Merb
     # 
     # @api public
     def domain(tld_length = 1)
-      host.split('.').last(1 + tld_length).join('.').sub(/:\d+$/,'')
+      host.split(Merb::Const::DOT).last(1 + tld_length).join(Merb::Const::DOT).sub(/:\d+$/, Merb::Const::EMPTY_STRING)
     end
     
     # ==== Returns
