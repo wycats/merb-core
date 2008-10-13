@@ -1,5 +1,5 @@
 module Merb
-    
+
   module StatusCodes
 
     STATUS_CODES = []
@@ -82,7 +82,7 @@ module Merb
     class ServiceUnavailable          < Merb::StatusCodes::ServerError; def self.status; 503 end end
     class GatewayTimeout              < Merb::StatusCodes::ServerError; def self.status; 504 end end
     class HTTPVersionNotSupported     < Merb::StatusCodes::ServerError; def self.status; 505 end end
-    
+
     STATUS_CODES.each do |item|
       item[:status] = item[:child_class].status
     end
